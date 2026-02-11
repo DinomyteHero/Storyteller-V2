@@ -74,29 +74,27 @@ python -m ingestion.ingest --input_dir sample_data --era LOTF --source_type nove
 ### Option B: Rebellion Starter Pack (Hierarchical + Style)
 
 This repo includes:
-- Era Pack (Bible): `data/static/era_packs/rebellion.yaml`
-- Style guide: `data/style/rebellion_style.md`
-- Lore + hooks: `data/lore/rebellion/sourcebooks/` and `data/lore/rebellion/adventures/`
+- Era Pack (Bible): `data/static/era_packs/rebellion/` (12 YAML files)
+- Style guide: `data/style/era/rebellion_style.md`
+- Optional local lore directory for ingestion: `data/lore/rebellion/` (create if missing)
 
 ```powershell
 # Lore (hierarchical; UI-era key)
 python -m ingestion.ingest_lore --input ./data/lore/rebellion --db ./data/lancedb --time-period REBELLION --era-mode ui --recursive
 
 # Style
-python -m backend.app.scripts.ingest_style --dir ./data/style --db ./data/lancedb
+python scripts/ingest_style.py --input_dir ./data/style --era REBELLION --source_type style --out_db ./data/lancedb
 ```
 
 Rebellion tip: in campaign setup, choose Era = `REBELLION` (or set `DEFAULT_ERA=REBELLION`).
 
 ---
 
-## Character Aliases (Optional, Feature Incomplete)
+## Character Aliases (Optional)
 
-Character alias tagging during ingestion is supported via `data/character_aliases.yml`, but the facet generation pipeline is incomplete. The `build_character_facets` script produces generic text statistics instead of character-specific voice profiles.
+Character alias tagging during ingestion is supported via `data/character_aliases.yml`.
 
-**Status:** Feature is disabled by default (`ENABLE_CHARACTER_FACETS=0`) and not recommended for use. The core system works without it.
-
-If you want to implement proper character facets, see `ingestion/build_character_facets.py` and replace the deterministic heuristics with LLM-based analysis.
+**Status:** The core system works without aliases enabled. Keep `ENABLE_CHARACTER_FACETS=0` unless you are explicitly testing experimental retrieval behavior.
 
 ---
 
