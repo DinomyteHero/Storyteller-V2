@@ -32,7 +32,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 from shared.config import EMBEDDING_DIMENSION, EMBEDDING_MODEL
-from backend.app.world.era_pack_loader import get_era_pack
+from backend.app.content.repository import CONTENT_REPOSITORY
 
 
 def read_txt(path: Path) -> str:
@@ -276,7 +276,12 @@ def main() -> int:
         logger.error("No chunks produced (%d file failures)", file_failures)
         return 1
     era_pack_id = (args.era_pack or args.era or "").strip()
-    era_pack = get_era_pack(era_pack_id) if era_pack_id else None
+    era_pack = None
+    if era_pack_id:
+        try:
+            era_pack = CONTENT_REPOSITORY.get_pack(era_pack_id)
+        except Exception as exc:
+            logger.error("Failed to load era pack '%s': %s", era_pack_id, exc, exc_info=True)
     tag_npcs_enabled = args.tag_npcs if args.tag_npcs is not None else bool(era_pack)
     all_chunks, npc_tag_stats = apply_npc_tags_to_chunks(
         all_chunks,
