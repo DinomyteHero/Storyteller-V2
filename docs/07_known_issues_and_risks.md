@@ -29,7 +29,7 @@ The API helper that opens a connection runs schema application checks (`apply_sc
 
 ---
 
-### 3) Streamlit UI Redundant State Fetches
+### 3) Legacy Python UI Redundant State Fetches
 
 **Severity:** Medium (UX/perf)
 **File:** `streamlit_app.py`

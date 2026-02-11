@@ -1,7 +1,7 @@
 """Reusable UI primitives for the Storyteller narrative HUD.
 
 All rendering helpers accept a ThemeTokens instance for consistent styling.
-Components use Streamlit's st.markdown(unsafe_allow_html=True) for custom HTML.
+Components use the legacy Python UI framework's st.markdown(unsafe_allow_html=True) for custom HTML.
 """
 from __future__ import annotations
 

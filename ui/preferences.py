@@ -50,7 +50,7 @@ def save_preferences(prefs: dict) -> None:
     """Write preferences to disk **only when values have changed**.
 
     Keeps an in-process snapshot of the last written state to avoid
-    redundant disk I/O on every Streamlit rerun.
+    redundant disk I/O on every legacy Python UI rerun.
     """
     global _last_saved
     filtered = {k: v for k, v in prefs.items() if k in _PREF_KEYS}

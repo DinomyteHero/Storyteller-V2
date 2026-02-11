@@ -138,5 +138,5 @@ curl -X POST "http://localhost:8000/v2/campaigns/{campaign_id}/turn?player_id={p
 | Vector DB | LanceDB (RAG retrieval) |
 | Embeddings | `sentence-transformers/all-MiniLM-L6-v2` (384-dim, swappable via `EMBEDDING_MODEL` env) |
 | Default LLM | Ollama (local; multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:4b` for Architect/Casting/Biographer/KG, `qwen3:8b` for Mechanic/Ingestion, `nomic-embed-text` for embedding) |
-| Frontend | Streamlit (`streamlit_app.py`) |
+| Frontend | SvelteKit (`frontend/`) |
 | Tests | 467+ passing (`pytest`) |

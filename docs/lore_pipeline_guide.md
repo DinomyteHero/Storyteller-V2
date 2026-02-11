@@ -114,7 +114,7 @@ python -m ingestion.ingest --input_dir sample_data --era LOTF --source_type nove
 python -m ingestion.ingest_lore --input ./data/lore --db ./data/lancedb --time-period LOTF
 ```
 
-**UI era keys (recommended if you use the Streamlit era dropdown):**
+**UI era keys (recommended if you use the frontend era dropdown):**
 
 ```powershell
 python -m ingestion.ingest_lore --input ./data/lore --db ./data/lancedb --era-mode ui
@@ -138,7 +138,7 @@ This stores the *top-level folder name* under `data/lore/` as `era`/`time_period
 python -m ingestion.ingest_lore --input ./data/lore --db ./data/lancedb --era-mode folder --recursive
 ```
 
-In the Streamlit UI, choose **Era → Custom...** and enter the same folder name string so retrieval filters match.
+In the frontend UI, choose **Era → Custom...** and enter the same folder name string so retrieval filters match.
 
 Use `--era-aliases <file.json>` to map folder names to eras when your folder labels vary.
 

@@ -1,4 +1,4 @@
-"""Streamlit UI for local ingestion tasks (lore, style, facets, verify/query)."""
+"""Legacy Python UI for local ingestion tasks (lore, style, facets, verify/query)."""
 from __future__ import annotations
 
 import json

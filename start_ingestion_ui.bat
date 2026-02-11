@@ -1,6 +1,6 @@
 @echo off
 cd /d "%~dp0"
-echo Starting Storyteller Ingestion Studio (Streamlit, venv)...
+echo Starting Storyteller Ingestion Studio (legacy Python UI, venv)...
 echo.
 if exist ".\\venv\\Scripts\\python.exe" (
   set "PY=.\\venv\\Scripts\\python.exe"
@@ -17,7 +17,7 @@ echo Using %PY%
 echo.
 "%PY%" -c "import streamlit" >nul 2>&1
 if errorlevel 1 (
-  echo ERROR: Python package "streamlit" is not installed in this venv.
+  echo ERROR: Legacy ingestion UI dependency is not installed in this venv.
   echo Run: "%PY%" -m pip install streamlit
   echo.
   pause

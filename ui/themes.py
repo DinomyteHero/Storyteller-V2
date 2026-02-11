@@ -226,7 +226,7 @@ def generate_css(theme: ThemeTokens, *, reduce_motion: bool = False) -> str:
 <style>
 /* ============ STORYTELLER THEME: {theme.name} ============ */
 
-/* === Hide Streamlit Header === */
+/* === Hide Legacy UI Header === */
 header[data-testid="stHeader"] {{
     display: none;
 }}
