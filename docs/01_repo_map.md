@@ -72,9 +72,9 @@ Storyteller AI/
         utils.py                 # RAG utility functions
         style_ingest.py          # Style document ingestion
         _cache.py                # RAG retrieval caching
-      world/                     # Era Packs + deterministic world generation
-        era_pack_loader.py       # Load era pack YAML files
-        era_pack_models.py       # Era pack Pydantic models
+      world/                     # Setting Packs + deterministic world generation
+        setting_pack_loader.py   # Setting pack loader (thin wrapper)
+        era_pack_models.py       # Pack Pydantic models (EraPack for backward compat)
         faction_engine.py        # Deterministic faction engine (no LLM)
         npc_generator.py         # Procedural NPC generation
         npc_renderer.py          # NPC rendering for prompts
@@ -133,7 +133,7 @@ Storyteller AI/
           namebanks.yaml, factions.yaml, events.yaml, locations.yaml,
           rumors.yaml, facts.yaml, backgrounds.yaml
       starships.yaml             # Starship database
-      ERA_PACK_PROMPT_TEMPLATE.md
+      SETTING_PACK_PROMPT_TEMPLATE.md
       STYLE_PROMPT_TEMPLATE.md
     style/
       base/                      # Base Star Wars style (always-on Lane 0)
@@ -158,7 +158,7 @@ Storyteller AI/
     era_pack_template.md         # Comprehensive era pack template
     era_pack_schema_reference.md # Era pack schema validation rules
     era_pack_generation_prompt.md# LLM prompt for automated era pack generation
-    ERA_PACK_QUICK_REFERENCE.md  # Quick reference for era packs
+    SETTING_PACK_QUICK_REFERENCE.md  # Quick reference for setting packs
     PACK_AUTHORING.md            # Pack creation guide
     MIGRATION_FROM_ERA_PACKS.md  # Migration guide (future setting packs)
     CONTENT_SYSTEM.md            # Content loading system

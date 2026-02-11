@@ -53,7 +53,7 @@ Era Packs are YAML-based content bundles that define a playable Star Wars Legend
 
 **Location:** `/data/static/era_packs/{era_id}/`
 
-See `/docs/ERA_PACK_QUICK_REFERENCE.md` for complete documentation.
+See `/docs/SETTING_PACK_QUICK_REFERENCE.md` for complete documentation.
 
 ### Campaign Creation
 
@@ -186,7 +186,7 @@ ollama serve
 
 For detailed authoring guidance, see:
 
-- [`docs/ERA_PACK_QUICK_REFERENCE.md`](docs/ERA_PACK_QUICK_REFERENCE.md)
+- [`docs/SETTING_PACK_QUICK_REFERENCE.md`](docs/SETTING_PACK_QUICK_REFERENCE.md)
 - [`docs/era_pack_template.md`](docs/era_pack_template.md)
 - [`docs/era_pack_schema_reference.md`](docs/era_pack_schema_reference.md)
 
@@ -310,7 +310,7 @@ See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for operational details.
 ### Templates
 - [`docs/templates/CAMPAIGN_INIT_TEMPLATE.md`](docs/templates/CAMPAIGN_INIT_TEMPLATE.md) - Campaign creation
 - [`docs/templates/DB_SEED_TEMPLATE.md`](docs/templates/DB_SEED_TEMPLATE.md) - Database seeding
-- [`docs/ERA_PACK_QUICK_REFERENCE.md`](docs/ERA_PACK_QUICK_REFERENCE.md) - Era pack guide
+- [`docs/SETTING_PACK_QUICK_REFERENCE.md`](docs/SETTING_PACK_QUICK_REFERENCE.md) - Era pack guide
 
 ### Root Documentation
 - [`README.md`](README.md) - This file

@@ -1,19 +1,19 @@
-# Era Pack Generation Prompt Template
+# Setting Pack Generation Prompt Template
 
-Use this prompt with Claude, Gemini, or GPT to generate a new era pack YAML file.
+Use this prompt with Claude, Gemini, or GPT to generate a new setting pack YAML file.
 Replace all `{{PLACEHOLDER}}` values before submitting.
 
 ---
 
 ## PROMPT
 
-You are a Star Wars Legends game designer building an era pack for a text-based narrative RPG set in the **{{ERA_NAME}}** era (approximately {{TIMEFRAME}}).
+You are a Star Wars Legends game designer building an setting pack for a text-based narrative RPG set in the **{{ERA_NAME}}** era (approximately {{TIMEFRAME}}).
 
 The game is similar to Mass Effect / KOTOR: the player explores locations, talks to NPCs, makes choices that affect faction standings, and engages in combat/stealth/social encounters. Each turn, a Director agent picks narrative beats and suggests 3 player actions, and a Narrator agent writes the scene prose.
 
 ### YOUR TASK
 
-Generate a complete era pack in YAML format following the exact schema below. This is a one-time game design artifact — prioritize characters and locations that create interesting **gameplay dynamics** (faction tension, moral dilemmas, information brokering, shifting loyalties) over encyclopedic completeness.
+Generate a complete setting pack in YAML format following the exact schema below. This is a one-time game design artifact — prioritize characters and locations that create interesting **gameplay dynamics** (faction tension, moral dilemmas, information brokering, shifting loyalties) over encyclopedic completeness.
 
 ### DESIGN GUIDELINES
 
@@ -174,9 +174,9 @@ for f in sorted(facs, key=lambda x: len(store.get_triples_for_entity(x['id'], er
 - Template `tags` should overlap with location `tags` so the encounter system can match them. A "patrol" template with tag "street" will appear at locations tagged "street".
 - Output ONLY the YAML. No commentary, no markdown fences, no explanation.
 
-### REFERENCE: EXISTING REBELLION ERA PACK STATS
+### REFERENCE: EXISTING REBELLION SETTING PACK STATS
 
-For calibration, here is what the existing Rebellion era pack contains:
+For calibration, here is what the existing Rebellion setting pack contains:
 - 6 factions (2 Imperial, 1 Rebel, 1 Underworld, 1 Civilian Resistance, 1 Corporate)
 - 9 locations (3 low threat, 3 moderate, 2 high, 1 extreme)
 - 8 anchor NPCs, 9 rotating NPCs, 8 templates
@@ -202,5 +202,5 @@ After receiving the YAML output:
    - `description` on locations — are they atmospheric and distinct?
    - `threat_level` on locations — do they create a gradient from safe havens to dangerous zones?
 6. Adjust `match_rules` based on how distinctive each character's name is
-7. Run `storyteller doctor` to validate the full era pack loads correctly
+7. Run `storyteller doctor` to validate the full setting pack loads correctly
 8. Run tests: `pytest backend/tests/` to verify no regressions
