@@ -29,7 +29,7 @@ export function evaluateCondition(
         if (!choice) return false;
         if (fieldCheck.includes('==')) {
           const [field, expected] = fieldCheck.split('==').map((s) => s.trim());
-          const actual = String((choice as Record<string, unknown>)[field] ?? '').toUpperCase();
+          const actual = String((choice as unknown as Record<string, unknown>)[field] ?? '').toUpperCase();
           return actual === expected.toUpperCase();
         }
         return true;

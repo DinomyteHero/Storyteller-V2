@@ -620,6 +620,35 @@ class EraCompanion(BaseModel):
     metadata: Dict[str, object] = Field(default_factory=dict)
 
 
+class SettingRules(BaseModel):
+    """Universe-specific text carried through the pipeline to prevent cross-setting contamination.
+
+    Defaults are Star Wars Legends — zero behavior change for existing setup.
+    Other settings (Harry Potter, LOTR, etc.) override these fields via their EraPack.
+    """
+    model_config = ConfigDict(extra="forbid")
+
+    setting_name: str = "Star Wars Legends"
+    setting_genre: str = "science fantasy"
+    # Agent prompt role strings
+    biographer_role: str = "a biographer for a Star Wars narrative RPG"
+    architect_role: str = "the World Architect for a Star Wars narrative RPG"
+    director_role: str = "the Director for an interactive Star Wars story engine"
+    suggestion_style: str = "a Star Wars KOTOR-style game"
+    # Setting-specific data for prompts
+    common_species: List[str] = Field(
+        default=["Twi'lek", "Rodian", "Wookiee", "Zabrak", "Bothan", "Chiss", "Human"],
+    )
+    example_factions: List[str] = Field(
+        default=["Rebellion", "Empire", "criminal syndicates"],
+    )
+    historical_lore_label: str = "established Star Wars Legends lore"
+    concept_location_map: Dict[str, List[str]] = Field(default_factory=dict)
+    location_display_names: Dict[str, str] = Field(default_factory=dict)
+    bypass_methods: List[str] = Field(default=["force", "force_dark", "sith_amulet"])
+    fallback_background: str = "A traveler in a vast galaxy."
+
+
 class EraPack(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -648,6 +677,8 @@ class EraPack(BaseModel):
     background_figures: Dict[str, List[str]] = Field(default_factory=dict)
     # V3.1: Setting name for prompts (e.g. "Star Wars Legends", "Harry Potter")
     setting_name: str | None = None
+    # V3.2: Universe rules — all setting-specific text for agent prompts
+    setting_rules: SettingRules = Field(default_factory=SettingRules)
     metadata: Dict[str, object] = Field(default_factory=dict)
 
     def all_npcs(self) -> List[EraNpcEntry]:

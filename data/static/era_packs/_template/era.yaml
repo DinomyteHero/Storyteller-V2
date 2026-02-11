@@ -99,3 +99,28 @@ metadata:
   themes:
     - "Theme one: e.g., Sacrifice and duty."
     - "Theme two: e.g., The cost of power."
+
+# --- V3.2: Universe rules (SettingRules) ---
+# These fields control all setting-specific text in agent prompts.
+# Fill them in to prevent cross-universe contamination (e.g., no lightsabers in Harry Potter).
+# If omitted, the system defaults to Star Wars Legends values.
+setting_rules:
+  # The human-readable name of this setting/universe
+  setting_name: "Your Setting Name"
+  # Genre label for prompts (e.g., "science fantasy", "high fantasy", "urban fantasy")
+  setting_genre: "genre"
+  # Role descriptions injected into agent system prompts:
+  biographer_role: "a biographer for a [Your Setting] narrative RPG"
+  architect_role: "the World Architect for a [Your Setting] narrative RPG"
+  director_role: "the Director for an interactive [Your Setting] story engine"
+  suggestion_style: "a [Your Setting]-style game"
+  # Common species/races that NPCs can be:
+  common_species: ["Human"]
+  # Major factions used in faction-neutrality prompts:
+  example_factions: ["Faction A", "Faction B", "Faction C"]
+  # Label for historical lore in HISTORICAL campaign mode:
+  historical_lore_label: "established [Your Setting] lore"
+  # Setting-specific bypass methods for access points (e.g., magic, force, potion):
+  bypass_methods: []
+  # Fallback background text when character creation fails:
+  fallback_background: "A traveler in a vast world."

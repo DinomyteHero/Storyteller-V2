@@ -816,6 +816,11 @@ def _build_prompt(
     opening_tag = "[OPENING_SCENE]" in (state.user_input or "")
     is_opening_scene = is_opening or opening_tag
 
+    # V3.2: Extract setting_rules for universe-aware faction examples
+    from backend.app.core.setting_context import get_setting_rules
+    _sr = get_setting_rules(state.model_dump(mode="json") if hasattr(state, "model_dump") else (state if isinstance(state, dict) else {}))
+    _faction_examples = ", ".join(_sr.example_factions) if _sr.example_factions else "various factions"
+
     # V2.15: Narrator writes ONLY prose. Suggestions are generated deterministically
     # by the Director node using generate_suggestions() — no LLM involvement.
     _prose_stop_rule = (
@@ -891,7 +896,7 @@ def _build_prompt(
             "If you need an unnamed background character, describe them by appearance or role "
             "(e.g., 'a dock worker', 'the bartender', 'a passing spacer').\n"
             "- FACTION NEUTRALITY: Do NOT assume the player's allegiance. The player may choose to side "
-            "with ANY faction (Rebellion, Empire, criminal syndicates, independent). Narrate the world "
+            f"with ANY faction ({_faction_examples}, independent). Narrate the world "
             "as presenting opportunities from multiple sides. Do not frame one faction as 'the good guys'.\n"
             "  * BAD: 'Ozzel, from wanted posters' (assumes anti-Empire stance)\n"
             "  * GOOD: 'an Imperial officer — Ozzel, by the rank insignia'\n"
@@ -963,7 +968,7 @@ def _build_prompt(
             "If you need an unnamed background character, describe them by appearance or role "
             "(e.g., 'a dock worker', 'the bartender', 'a passing spacer').\n"
             "- FACTION NEUTRALITY: Do NOT assume the player's allegiance. The player may choose to side "
-            "with ANY faction (Rebellion, Empire, criminal syndicates, independent). Narrate the world "
+            f"with ANY faction ({_faction_examples}, independent). Narrate the world "
             "as presenting opportunities from multiple sides. Do not frame one faction as 'the good guys'.\n"
             "  * BAD: 'Ozzel, from wanted posters' (assumes anti-Empire stance)\n"
             "  * GOOD: 'an Imperial officer — Ozzel, by the rank insignia'\n"

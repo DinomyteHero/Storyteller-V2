@@ -27,6 +27,13 @@
   let cyoaAnswerIndices = $state<Record<number, number>>({});
   let eraCompanions = $state<CompanionPreview[]>([]);
   let loadingCompanions = $state(false);
+  let selectedDifficulty = $state<'easy' | 'normal' | 'hard'>('normal');
+
+  const DIFFICULTY_OPTIONS: { value: 'easy' | 'normal' | 'hard'; label: string; desc: string }[] = [
+    { value: 'easy', label: 'Easy', desc: 'Forgiving checks, reduced damage. Focus on story.' },
+    { value: 'normal', label: 'Normal', desc: 'Balanced challenge. The intended experience.' },
+    { value: 'hard', label: 'Hard', desc: 'Punishing checks, increased damage. Every choice matters.' },
+  ];
 
   // Load backgrounds when era changes
   $effect(() => {
@@ -165,6 +172,7 @@
         background_id: $selectedBackground?.id ?? null,
         background_answers: bgAnswersForApi,
         player_gender: $charGender,
+        difficulty: selectedDifficulty,
       };
 
       const result = await setupAuto(request);
@@ -503,6 +511,23 @@
             </div>
           </div>
         {/if}
+
+        <!-- Difficulty Selection -->
+        <div class="difficulty-section">
+          <h3 class="difficulty-heading">Difficulty</h3>
+          <div class="difficulty-cards">
+            {#each DIFFICULTY_OPTIONS as opt}
+              <button
+                class="card difficulty-card"
+                class:selected={selectedDifficulty === opt.value}
+                onclick={() => selectedDifficulty = opt.value}
+              >
+                <div class="difficulty-name">{opt.label}</div>
+                <div class="difficulty-desc">{opt.desc}</div>
+              </button>
+            {/each}
+          </div>
+        </div>
 
         {#if errorMessage}
           <div class="error-banner">{errorMessage}</div>
@@ -879,5 +904,50 @@
     color: var(--text-muted);
     font-style: italic;
     margin-top: 6px;
+  }
+
+  /* Difficulty section */
+  .difficulty-section {
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+  .difficulty-heading {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+  }
+  .difficulty-cards {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+  .difficulty-card {
+    flex: 1;
+    max-width: 180px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+  .difficulty-card:hover {
+    border-color: var(--choice-hover-border);
+    transform: translateY(-1px);
+  }
+  .difficulty-card.selected {
+    border-color: var(--accent);
+    background: var(--choice-selected-bg, rgba(74, 158, 255, 0.1));
+  }
+  .difficulty-name {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+  .difficulty-desc {
+    font-size: var(--font-small);
+    color: var(--text-secondary);
+    line-height: 1.3;
   }
 </style>

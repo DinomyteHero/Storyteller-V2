@@ -158,6 +158,8 @@ class SetupAutoRequest(BaseModel):
     campaign_mode: str = "historical"
     # V3.1: Campaign scale — controls NPC/location/quest density
     campaign_scale: str = "medium"  # small | medium | large | epic
+    # V3.2: Difficulty — affects DC, damage, and HP modifiers
+    difficulty: str = "normal"  # easy | normal | hard
 
 
 class SetupAutoResponse(BaseModel):
@@ -505,10 +507,18 @@ def setup_auto(body: SetupAutoRequest):
         except Exception as e:
             logger.warning("Failed to initialize BiographerAgent with LLM, using fallback: %s", e, exc_info=True)
             _bio = BiographerAgent(llm=None)
-        skeleton = _arch.build(time_period=body.time_period, themes=body.themes)
-
-        era_for_setup = body.time_period or skeleton.get("time_period")
+        # V3.2: Resolve era pack early so setting_rules is available for both architect and biographer
+        era_for_setup = body.time_period
         era_pack_for_setup = get_era_pack(era_for_setup) if era_for_setup else None
+        _setting_rules = era_pack_for_setup.setting_rules if (era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules")) else None
+        skeleton = _arch.build(time_period=body.time_period, themes=body.themes, setting_rules=_setting_rules)
+
+        # Refine era pack if architect resolved a different time_period
+        if not era_for_setup:
+            era_for_setup = skeleton.get("time_period")
+            if era_for_setup:
+                era_pack_for_setup = get_era_pack(era_for_setup)
+                _setting_rules = era_pack_for_setup.setting_rules if (era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules")) else _setting_rules
         available_locations = (
             [loc.id for loc in (era_pack_for_setup.locations or [])]
             if (era_pack_for_setup and era_pack_for_setup.locations)
@@ -518,6 +528,7 @@ def setup_auto(body: SetupAutoRequest):
             body.player_concept,
             skeleton.get("time_period"),
             available_locations=available_locations,
+            setting_rules=_setting_rules,
         )
 
         # Safety net: if biographer produced generic background but we have
@@ -745,6 +756,15 @@ def setup_auto(body: SetupAutoRequest):
             world_state["generated_locations"] = []
             world_state["generated_npcs"] = []
             world_state["generated_quests"] = []
+
+        # V3.2: Persist SettingRules from era pack (universe contamination prevention)
+        if era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules"):
+            world_state["setting_rules"] = era_pack_for_setup.setting_rules.model_dump(mode="json")
+
+        # V3.2: Persist difficulty profile
+        from backend.app.constants import DIFFICULTY_PROFILES
+        _difficulty = body.difficulty if body.difficulty in DIFFICULTY_PROFILES else "normal"
+        world_state["difficulty_profile"] = DIFFICULTY_PROFILES[_difficulty]
 
         world_state_json_str = json.dumps(world_state)
         from datetime import datetime, timezone

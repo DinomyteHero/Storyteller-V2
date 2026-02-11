@@ -172,6 +172,16 @@ CONCLUSION_ENDING_STYLES: dict[str, str] = {
     "epic": "full_cliffhanger",
 }
 
+# ── Difficulty profiles (Phase 3d) ────────────────────────────────────
+# dc_modifier: added to every DC roll
+# damage_modifier: multiplier on damage dealt TO the player
+# hp_modifier: multiplier on player starting HP
+DIFFICULTY_PROFILES: dict[str, dict[str, float]] = {
+    "easy":   {"dc_modifier": -2, "damage_modifier": 0.75, "hp_modifier": 1.25},
+    "normal": {"dc_modifier": 0,  "damage_modifier": 1.0,  "hp_modifier": 1.0},
+    "hard":   {"dc_modifier": 2,  "damage_modifier": 1.5,  "hp_modifier": 0.75},
+}
+
 # Deep companion system (Phase 5)
 COMPANION_ARC_STRANGER_MAX = -10
 COMPANION_ARC_ALLY_MIN = -9

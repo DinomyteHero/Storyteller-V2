@@ -95,9 +95,11 @@ def _build_generation_prompt(
             "Canon events are starting conditions, not certainties.\n\n"
         )
     else:
-        # V3.1: Resolve setting name from era pack (universe modularity)
+        # V3.2: Use SettingRules.historical_lore_label for universe-aware prompts
         setting_label = "the established lore"
-        if era_pack is not None:
+        if era_pack is not None and hasattr(era_pack, "setting_rules"):
+            setting_label = era_pack.setting_rules.historical_lore_label
+        elif era_pack is not None:
             _pack_setting = getattr(era_pack, "setting_name", None)
             if _pack_setting:
                 setting_label = f"established {_pack_setting} lore"

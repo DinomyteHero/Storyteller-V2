@@ -414,8 +414,11 @@ class DirectorAgent:
             return director_instructions, generate_suggestions(state)
 
         # V2.12: Simplified system prompt — instructions only, no JSON schema
+        # V3.2: Use setting_rules for universe-aware prompts
+        from backend.app.core.setting_context import get_setting_rules
+        _sr = get_setting_rules(state.model_dump(mode="json") if hasattr(state, "model_dump") else (state if isinstance(state, dict) else {}))
         system_prompt = (
-            "You are the Director for an interactive Star Wars story engine.\n"
+            f"You are {_sr.director_role}.\n"
             "Your job is to write SCENE INSTRUCTIONS for the Narrator — guidance on what should happen next.\n\n"
             "Write 3-5 sentences covering:\n"
             "1. SCENE GOAL: What should this scene accomplish? (establish setting, introduce threat, reveal information, etc.)\n"
