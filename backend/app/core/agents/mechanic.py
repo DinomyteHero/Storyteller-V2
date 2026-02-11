@@ -22,6 +22,31 @@ ACTION_TYPES = (
     "TRAVEL", "ATTACK", "SNEAK", "PERSUADE", "INVESTIGATE", "INTERACT", "IDLE", "TALK"
 )
 
+_CHOICE_TAG_ACTION_OVERRIDES: dict[str, str] = {
+    "PERSUADE": "PERSUADE",
+    "TECH": "INVESTIGATE",
+    "COMBAT": "ATTACK",
+    "INVESTIGATE": "INVESTIGATE",
+    "PARAGON": "TALK",
+    "RENEGADE": "ATTACK",
+}
+
+
+def _extract_choice_tags(user_input: str) -> tuple[list[str], str]:
+    """Parse leading [TAG] markers from suggestion text.
+
+    Returns (tags, cleaned_text). Tags are uppercase and in left-to-right order.
+    """
+    raw = (user_input or "").strip()
+    tags: list[str] = []
+    while True:
+        m = re.match(r"^\s*\[([A-Za-z_]+)\]\s*", raw)
+        if not m:
+            break
+        tags.append(m.group(1).upper())
+        raw = raw[m.end():]
+    return tags, raw.strip()
+
 
 def _get_seed(state: GameState) -> int | None:
     """Optional deterministic seed: state.debug_seed or MECHANIC_SEED env."""
@@ -169,7 +194,20 @@ def _classify_action(user_input: str, intent: str | None) -> str:
     raw = (user_input or "").strip()
     if not raw:
         return "IDLE"
-    low = raw.lower()
+    tags, cleaned = _extract_choice_tags(raw)
+    # Prefer explicit action tags first, then moral tone tags.
+    action_priority = ("PERSUADE", "TECH", "COMBAT", "INVESTIGATE")
+    for tag in action_priority:
+        if tag in tags:
+            override = _CHOICE_TAG_ACTION_OVERRIDES.get(tag)
+            if override:
+                return override
+    for tag in tags:
+        override = _CHOICE_TAG_ACTION_OVERRIDES.get(tag)
+        if override:
+            return override
+
+    low = (cleaned or raw).lower()
     if re.search(r"\b(go to|travel|head to|move to|return to|leave for)\b", low):
         return "TRAVEL"
     if re.search(r"\b(attack|shoot|slash|strike|fight|stab|hit)\b", low):
@@ -437,6 +475,7 @@ def resolve(state: GameState) -> MechanicOutput:
     seed = _get_seed(state)
     rng = random.Random(seed) if seed is not None else random
     user_input = (state.user_input or "").strip()
+    choice_tags, user_input_clean = _extract_choice_tags(user_input)
     intent = state.intent
     action_type = _classify_action(user_input, intent)
 
@@ -469,7 +508,7 @@ def resolve(state: GameState) -> MechanicOutput:
 
     # Physics: modifier, DC, roll
     modifier = _get_modifier(state, action_type)
-    dc = _compute_dc(state, action_type, user_input)
+    dc = _compute_dc(state, action_type, user_input_clean)
     roll = rng.randint(1, 20)
 
     # 3.3: Contextual advantage/disadvantage
@@ -495,7 +534,7 @@ def resolve(state: GameState) -> MechanicOutput:
     current_location = state.current_location or "unknown"
 
     if action_type == "TRAVEL":
-        dest, to_planet = _parse_travel_destination(user_input)
+        dest, to_planet = _parse_travel_destination(user_input_clean)
         if dest:
             move_payload: dict = {
                 "character_id": player_id,
@@ -528,7 +567,7 @@ def resolve(state: GameState) -> MechanicOutput:
             narrative_facts.append("No destination specified.")
 
     elif action_type == "ATTACK":
-        target_id = _select_attack_target(state, user_input)
+        target_id = _select_attack_target(state, user_input_clean)
         if target_id:
             events.append(Event(
                 event_type="FLAG_SET",
@@ -595,7 +634,7 @@ def resolve(state: GameState) -> MechanicOutput:
             ))
 
     elif action_type == "INTERACT":
-        item = _parse_item_name(user_input)
+        item = _parse_item_name(user_input_clean)
         if item:
             events.append(Event(
                 event_type="ITEM_GET",
@@ -643,6 +682,16 @@ def resolve(state: GameState) -> MechanicOutput:
         narrative_facts.append(f"Environmental {direction}: {src} ({'+' if val > 0 else ''}{val})")
 
     tone, ad, frd, cad, crr = _choice_impact_for_action(action_type, success)
+    if "PARAGON" in choice_tags:
+        ad["paragon_renegade"] = ad.get("paragon_renegade", 0) + 2
+        ad["light_dark"] = ad.get("light_dark", 0) + 1
+        tone = TONE_TAG_PARAGON
+    if "RENEGADE" in choice_tags:
+        ad["paragon_renegade"] = ad.get("paragon_renegade", 0) - 2
+        ad["light_dark"] = ad.get("light_dark", 0) - 1
+        tone = TONE_TAG_RENEGADE
+    if choice_tags:
+        narrative_facts.append(f"Choice path tags: {', '.join(choice_tags)}")
     return MechanicOutput(
         action_type=action_type,
         time_cost_minutes=time_cost_minutes,

@@ -50,6 +50,7 @@ def retrieve_lore(
     section_kinds: List[str] | None = None,
     characters: str | List[str] | None = None,
     related_npcs: str | List[str] | None = None,
+    universe: str | None = None,
     db_path: str | Path | None = None,
     table_name: str | None = None,
     warnings: list[str] | None = None,
@@ -101,11 +102,14 @@ def retrieve_lore(
         source_type = _safe_filter_token(source_type)
         doc_type = _safe_filter_token(doc_type)
         section_kind = _safe_filter_token(section_kind)
+        universe = _safe_filter_token(universe)
         safe_doc_types = _safe_filter_tokens(doc_types)
         safe_section_kinds = _safe_filter_tokens(section_kinds)
         safe_char_filter = _safe_filter_tokens(char_filter)
         safe_npc_filter = _safe_filter_tokens(npc_filter)
 
+        if universe and "universe" in schema_cols:
+            q = q.where(f"universe = '{_esc(universe)}'")
         if era and "era" in schema_cols:
             q = q.where(f"era = '{_esc(era)}'")
         if time_period and "time_period" in schema_cols:
@@ -182,6 +186,7 @@ def retrieve_lore(
             "book_title": book_title,
             "chapter_title": chapter_title or None,
             "chunk_id": chunk_id,
+            "universe": _v("universe") or "",
         }
         out.append({
             "text": _v("text") or "",
@@ -228,6 +233,7 @@ class LoreRetriever:
             section_kinds=filters.get("section_kinds"),
             characters=chars,
             related_npcs=related,
+            universe=filters.get("universe"),
             db_path=self.db_path,
             table_name=self.table_name,
             warnings=warnings,

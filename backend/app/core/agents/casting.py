@@ -54,7 +54,11 @@ class CastingAgent:
             "You are a casting director. Output ONLY valid JSON with keys: name, role, relationship_score (int 0-50), secret_agenda (short string or null), "
             "location_id, stats_json (object), hp_current (int). Add character_id as a UUID string. "
             "Use ONE simple, memorable name. Do not invent elaborate backstories or multiple NPCs. "
-            "Keep introductions grounded and distinct from already-introduced characters."
+            "Keep introductions grounded and distinct from already-introduced characters.\n\n"
+            "Example output:\n"
+            '{"character_id":"a1b2c3d4-e5f6-7890-abcd-ef1234567890","name":"Kira Voss","role":"Informant",'
+            '"relationship_score":15,"secret_agenda":"Sells intel to the highest bidder",'
+            '"location_id":"loc-cantina","stats_json":{"Combat":1,"Stealth":3,"Charisma":4,"Tech":2,"General":2},"hp_current":8}'
         )
         parts = [f"Location: {location_id}.", f"Context: {context or 'random encounter'}."]
         if introduced_npcs:

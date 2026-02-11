@@ -1,12 +1,14 @@
 """Episodic memory system for long-term recall across turns.
 
-Deterministic keyword-overlap + recency-weighted retrieval.
-No LLM calls, no embeddings — pure Python.
+V3.0: Hybrid retrieval — vector similarity (when embeddings available) blended
+with keyword-overlap + recency weighting. Graceful fallback to keyword-only
+if sentence-transformers is not installed.
 """
 from __future__ import annotations
 
 import json
 import logging
+import math
 import re
 import sqlite3
 from typing import Any
@@ -29,6 +31,62 @@ _STOP_WORDS = frozenset({
     "him", "you", "your", "we", "our", "i", "my", "me",
 })
 
+# ── Embedding helpers ────────────────────────────────────────────────
+
+_EMBEDDINGS_AVAILABLE: bool | None = None
+
+
+def _check_embeddings() -> bool:
+    """Check if embedding support is available (lazy, cached)."""
+    global _EMBEDDINGS_AVAILABLE
+    if _EMBEDDINGS_AVAILABLE is not None:
+        return _EMBEDDINGS_AVAILABLE
+    try:
+        from ingestion.embedding import encode  # noqa: F401
+        _EMBEDDINGS_AVAILABLE = True
+    except (ImportError, Exception):
+        _EMBEDDINGS_AVAILABLE = False
+        logger.debug("Episodic memory: embeddings unavailable, using keyword-only recall")
+    return _EMBEDDINGS_AVAILABLE
+
+
+def _embed_text(text: str) -> list[float] | None:
+    """Embed text to a vector. Returns None if embeddings unavailable."""
+    if not _check_embeddings():
+        return None
+    try:
+        from ingestion.embedding import encode
+        vectors = encode(text)
+        return vectors[0] if vectors else None
+    except Exception as e:
+        logger.debug("Episodic memory: embedding failed (non-fatal): %s", e)
+        return None
+
+
+def _cosine_similarity(a: list[float], b: list[float]) -> float:
+    """Compute cosine similarity between two vectors."""
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = math.sqrt(sum(x * x for x in a))
+    norm_b = math.sqrt(sum(x * x for x in b))
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return dot / (norm_a * norm_b)
+
+
+def _summarize_narrative(text: str, max_len: int = 200) -> str:
+    """Create a compressed summary of narrative text for storage."""
+    if not text:
+        return ""
+    # Take first and last sentences for a compressed summary
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+    if len(sentences) <= 2:
+        summary = text.strip()
+    else:
+        summary = sentences[0] + " ... " + sentences[-1]
+    return summary[:max_len]
+
+
+# ── Keyword extraction ───────────────────────────────────────────────
 
 def _extract_keywords(text: str, max_keywords: int = 20) -> list[str]:
     """Extract meaningful keywords from text, filtering stop words."""
@@ -84,12 +142,22 @@ def _is_pivotal(
 class EpisodicMemory:
     """Store and recall episodic memories for a campaign.
 
-    Deterministic: no LLM, no embeddings. Uses keyword overlap + recency weighting.
+    V3.0: Hybrid retrieval — vector similarity blended with keyword overlap
+    + recency weighting. Falls back to keyword-only if embeddings unavailable.
     """
 
     def __init__(self, conn: sqlite3.Connection, campaign_id: str) -> None:
         self._conn = conn
         self._campaign_id = campaign_id
+
+    def _has_embedding_column(self) -> bool:
+        """Check if the embedding_json column exists (migration may not have run)."""
+        try:
+            cursor = self._conn.execute("PRAGMA table_info(episodic_memories)")
+            columns = {row[1] for row in cursor.fetchall()}
+            return "embedding_json" in columns
+        except Exception:
+            return False
 
     def store(
         self,
@@ -120,26 +188,54 @@ class EpisodicMemory:
 
         pivotal = _is_pivotal(key_events, arc_stage, prev_arc_stage, stress_level)
 
+        # V3.0: Compute embedding and summary
+        has_emb_col = self._has_embedding_column()
+        embedding = _embed_text(combined_text) if has_emb_col else None
+        summary = _summarize_narrative(narrative_text) if has_emb_col else ""
+
         try:
-            self._conn.execute(
-                """INSERT INTO episodic_memories
-                   (campaign_id, turn_number, location_id, npcs_present_json,
-                    key_events_json, stress_level, arc_stage, hero_beat,
-                    keywords, is_pivotal)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (
-                    self._campaign_id,
-                    turn_number,
-                    location_id,
-                    json.dumps(npcs_present),
-                    json.dumps(key_events[:10]),  # Cap stored events
-                    stress_level,
-                    arc_stage,
-                    hero_beat,
-                    keywords_str,
-                    1 if pivotal else 0,
-                ),
-            )
+            if has_emb_col:
+                self._conn.execute(
+                    """INSERT INTO episodic_memories
+                       (campaign_id, turn_number, location_id, npcs_present_json,
+                        key_events_json, stress_level, arc_stage, hero_beat,
+                        keywords, is_pivotal, embedding_json, narrative_summary)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        self._campaign_id,
+                        turn_number,
+                        location_id,
+                        json.dumps(npcs_present),
+                        json.dumps(key_events[:10]),  # Cap stored events
+                        stress_level,
+                        arc_stage,
+                        hero_beat,
+                        keywords_str,
+                        1 if pivotal else 0,
+                        json.dumps(embedding) if embedding else None,
+                        summary,
+                    ),
+                )
+            else:
+                self._conn.execute(
+                    """INSERT INTO episodic_memories
+                       (campaign_id, turn_number, location_id, npcs_present_json,
+                        key_events_json, stress_level, arc_stage, hero_beat,
+                        keywords, is_pivotal)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        self._campaign_id,
+                        turn_number,
+                        location_id,
+                        json.dumps(npcs_present),
+                        json.dumps(key_events[:10]),
+                        stress_level,
+                        arc_stage,
+                        hero_beat,
+                        keywords_str,
+                        1 if pivotal else 0,
+                    ),
+                )
         except Exception as e:
             logger.warning("Failed to store episodic memory (non-fatal): %s", e)
 
@@ -151,20 +247,30 @@ class EpisodicMemory:
         npcs: list[str] | None = None,
         max_results: int = 5,
     ) -> list[dict[str, Any]]:
-        """Recall relevant episodic memories using keyword overlap + recency weighting.
+        """Recall relevant episodic memories using hybrid scoring.
 
-        Scoring:
-        - Keyword overlap: +1 per matching keyword
+        V3.0 scoring (when embeddings available):
+        - Vector similarity: cosine_sim * 5.0 (primary signal)
+        - Keyword overlap: +1 per matching keyword (secondary)
         - Pivotal bonus: +3 for pivotal moments
         - Location match: +2 if same location
         - NPC overlap: +1 per shared NPC
         - Recency decay: score * (1 / (1 + distance * 0.05))
+
+        Falls back to keyword-only scoring if embeddings unavailable.
         """
+        has_emb_col = self._has_embedding_column()
+        select_cols = (
+            "turn_number, location_id, npcs_present_json, "
+            "key_events_json, stress_level, arc_stage, "
+            "hero_beat, keywords, is_pivotal"
+        )
+        if has_emb_col:
+            select_cols += ", embedding_json, narrative_summary"
+
         try:
             rows = self._conn.execute(
-                """SELECT turn_number, location_id, npcs_present_json,
-                          key_events_json, stress_level, arc_stage,
-                          hero_beat, keywords, is_pivotal
+                f"""SELECT {select_cols}
                    FROM episodic_memories
                    WHERE campaign_id = ?
                    ORDER BY turn_number DESC
@@ -181,9 +287,20 @@ class EpisodicMemory:
         query_keywords = set(_extract_keywords(query_text))
         npc_set = set(n.lower() for n in (npcs or []))
 
+        # V3.0: Compute query embedding for vector similarity
+        query_embedding: list[float] | None = None
+        if has_emb_col and query_text:
+            query_embedding = _embed_text(query_text)
+
         scored: list[tuple[float, dict]] = []
         for row in rows:
-            turn_num, loc, npcs_json, events_json, stress, arc, beat, kw_str, pivotal = row
+            if has_emb_col:
+                turn_num, loc, npcs_json, events_json, stress, arc, beat, kw_str, pivotal, emb_json, summary = row
+            else:
+                turn_num, loc, npcs_json, events_json, stress, arc, beat, kw_str, pivotal = row
+                emb_json = None
+                summary = ""
+
             mem_keywords = set(kw_str.split()) if kw_str else set()
             mem_npcs = set()
             try:
@@ -194,7 +311,16 @@ class EpisodicMemory:
             # Score calculation
             score = 0.0
 
-            # Keyword overlap
+            # V3.0: Vector similarity (primary signal when available)
+            if query_embedding and emb_json:
+                try:
+                    mem_embedding = json.loads(emb_json)
+                    sim = _cosine_similarity(query_embedding, mem_embedding)
+                    score += max(0.0, sim) * 5.0  # Scale to make it dominant signal
+                except Exception:
+                    pass
+
+            # Keyword overlap (secondary signal)
             if query_keywords:
                 overlap = len(query_keywords & mem_keywords)
                 score += overlap
@@ -237,6 +363,7 @@ class EpisodicMemory:
                 "keywords": list(mem_keywords),
                 "is_pivotal": bool(pivotal),
                 "relevance_score": round(score, 2),
+                "narrative_summary": summary or "",
             }))
 
         # Sort by score descending, return top results
@@ -258,6 +385,7 @@ class EpisodicMemory:
             events = mem.get("key_events") or []
             pivotal = mem.get("is_pivotal", False)
             beat = mem.get("hero_beat") or ""
+            summary = mem.get("narrative_summary") or ""
 
             line_parts = [f"Turn {turn}"]
             if loc:
@@ -269,20 +397,24 @@ class EpisodicMemory:
             if pivotal:
                 line_parts.append("(PIVOTAL)")
 
-            # Add key event summaries
-            event_summaries = []
-            for ev in events[:3]:
-                etype = ev.get("event_type", "")
-                payload = ev.get("payload") or {}
-                text = payload.get("text") or payload.get("description") or ""
-                if text:
-                    event_summaries.append(f"{etype}: {text[:60]}")
-                elif etype:
-                    event_summaries.append(etype)
+            # V3.0: Prefer narrative summary over raw event types
+            if summary:
+                line = "- " + ", ".join(line_parts) + " | " + summary
+            else:
+                # Add key event summaries
+                event_summaries = []
+                for ev in events[:3]:
+                    etype = ev.get("event_type", "")
+                    payload = ev.get("payload") or {}
+                    text = payload.get("text") or payload.get("description") or ""
+                    if text:
+                        event_summaries.append(f"{etype}: {text[:60]}")
+                    elif etype:
+                        event_summaries.append(etype)
 
-            line = "- " + ", ".join(line_parts)
-            if event_summaries:
-                line += " | " + "; ".join(event_summaries)
+                line = "- " + ", ".join(line_parts)
+                if event_summaries:
+                    line += " | " + "; ".join(event_summaries)
 
             if char_count + len(line) + 1 > max_chars:
                 break

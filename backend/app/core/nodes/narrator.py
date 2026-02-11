@@ -32,6 +32,18 @@ def _is_high_stakes_combat(state: dict[str, Any]) -> bool:
     return False
 
 
+def _inject_companion_interjection(prose: str, speaker: str, line: str) -> str:
+    """Weave companion banter into prose flow instead of appending a divider block."""
+    text = (prose or "").strip()
+    interjection = f'{speaker} cut in, "{line}"' if speaker else f'"{line}"'
+    if not text:
+        return interjection
+    if "\n\n" in text:
+        head, tail = text.split("\n\n", 1)
+        return f"{head} {interjection}.\n\n{tail}".strip()
+    return f"{text} {interjection}.".strip()
+
+
 def make_narrator_node():
     """Build the Narrator node."""
     def lore_retriever(query: str, top_k: int = 6, era: str | None = None, related_npcs: list[str] | None = None):
@@ -156,8 +168,7 @@ def make_narrator_node():
                 # Strip wrapping quotes if present (banter is stored pre-quoted)
                 clean_line = line.strip().strip('"').strip("'").strip()
                 if clean_line:
-                    # Integrate companion banter as a narrative beat, not floating text
-                    final_text = f"{final_text}\n\n---\n\n*{clean_line}*"
+                    final_text = _inject_companion_interjection(final_text, speaker, clean_line)
             campaign = {**campaign, "banter_queue": banter_queue[1:]}
         # V2.15: Narrator produces prose only. Suggestions come from Director node
         # via generate_suggestions(). embedded_suggestions is always None.

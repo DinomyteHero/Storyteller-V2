@@ -69,7 +69,10 @@ Rules:
 - Use the most complete version of each name (e.g., "Luke Skywalker" not just "Luke").
 - If a character is referenced by a title/alias, still use their full name.
 - Keep chapter_summary under 100 words.
-- No markdown, no extra text. ONLY the JSON object."""
+- No markdown, no extra text. ONLY the JSON object.
+
+Example output (abbreviated):
+{"entities":[{"name":"Mara Jade","entity_type":"CHARACTER","properties":{"species":"Human","force_sensitive":true,"faction":"Empire","role":"Emperor's Hand"}},{"name":"Coruscant","entity_type":"LOCATION","properties":{"location_type":"planet","region":"Core Worlds","controlling_faction":"Galactic Empire"}}],"relationships":[{"subject":"Mara Jade","predicate":"SERVES","object":"Emperor Palpatine","context":"Mara Jade serves as the Emperor's Hand, carrying out his secret orders."}],"chapter_summary":"Mara Jade receives orders from the Emperor to eliminate a target on Coruscant.","key_events":[{"name":"Assassination Mission","participants":["Mara Jade"],"location":"Coruscant","outcome":"Mara receives her mission briefing and prepares to depart."}]}"""
 
 
 def _build_user_prompt(
