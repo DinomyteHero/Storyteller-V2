@@ -77,6 +77,7 @@ def _build_user_prompt(
     npc_agenda: str = "",
     companion_hint: str = "",
     player_history_hint: str = "",
+    director_intent: str = "",
 ) -> str:
     """Build the user prompt from scene context.
 
@@ -106,8 +107,148 @@ def _build_user_prompt(
         parts.append(f"COMPANIONS: {companion_hint}")
     if player_history_hint:
         parts.append(f"PLAYER PATTERN: {player_history_hint}")
+    if director_intent:
+        parts.append(f"DIRECTOR INTENT: {director_intent}")
     parts.append("\nGenerate 4 responses the player character could say or do:")
     return "\n".join(parts)
+
+
+def _stat_value(stats: dict[str, Any], *keys: str) -> int:
+    """Lookup a stat from mixed-case keys with safe int conversion."""
+    for key in keys:
+        value = stats.get(key)
+        if value is None:
+            value = stats.get(key.lower())
+        if value is None:
+            continue
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            continue
+    return 0
+
+
+def _build_stat_gated_options(gs: GameState) -> list[ActionSuggestion]:
+    """Deterministic stat-gated dialogue options.
+
+    These options are injected when player stats or alignment cross thresholds so
+    the dialogue wheel reflects character build and prior behavior.
+    """
+    player = gs.player
+    stats = (player.stats if player and player.stats else {}) or {}
+    campaign = gs.campaign if isinstance(gs.campaign, dict) else {}
+    ws = campaign.get("world_state_json") if isinstance(campaign, dict) else {}
+    if not isinstance(ws, dict):
+        ws = {}
+    alignment = ws.get("alignment") if isinstance(ws.get("alignment"), dict) else {}
+
+    charisma = _stat_value(stats, "Charisma", "charisma")
+    tech = _stat_value(stats, "Tech", "tech", "Investigation", "investigation")
+    combat = _stat_value(stats, "Combat", "combat")
+    paragon_renegade = int(alignment.get("paragon_renegade", 0) or 0)
+    scene_frame = gs.scene_frame if isinstance(gs.scene_frame, dict) else {}
+    npc_utt = gs.npc_utterance if isinstance(gs.npc_utterance, dict) else {}
+    topic = str(scene_frame.get("topic_primary") or "the situation").strip()[:40]
+    npc_line = str(npc_utt.get("text") or "").strip()
+    line_probe = "What makes you so certain?" if not npc_line else f"What did you mean by '{npc_line[:30]}'?"
+
+    gated: list[ActionSuggestion] = []
+    if charisma >= 6:
+        gated.append(ActionSuggestion(
+            label=f"[PERSUADE] Hear me out—we can settle this over {topic}, not blood.",
+            intent_text=f"Hear me out—we can settle this over {topic}, not blood.",
+            category="SOCIAL",
+            risk_level="SAFE",
+            strategy_tag="ALTERNATIVE",
+            tone_tag="PARAGON",
+            intent_style="confident",
+            consequence_hint="uses high charisma to de-escalate",
+        ))
+    if tech >= 6:
+        gated.append(ActionSuggestion(
+            label=f"[TECH] Give me a moment; I can analyze this {topic} angle.",
+            intent_text=f"Give me a moment; I can analyze this {topic} angle.",
+            category="EXPLORE",
+            risk_level="RISKY",
+            strategy_tag="ALTERNATIVE",
+            tone_tag="INVESTIGATE",
+            intent_style="focused",
+            consequence_hint="uses technical expertise",
+        ))
+    if combat >= 7:
+        gated.append(ActionSuggestion(
+            label="[COMBAT] Stand down now, or we settle this by force.",
+            intent_text="Stand down now, or we settle this by force.",
+            category="COMMIT",
+            risk_level="DANGEROUS",
+            strategy_tag="ALTERNATIVE",
+            tone_tag="RENEGADE",
+            intent_style="aggressive",
+            consequence_hint="leverages combat reputation",
+        ))
+    if paragon_renegade >= 8:
+        gated.append(ActionSuggestion(
+            label=f"[PARAGON] We finish this cleanly—no one gets sacrificed for {topic}.",
+            intent_text=f"We finish this cleanly—no one gets sacrificed for {topic}.",
+            category="SOCIAL",
+            risk_level="SAFE",
+            strategy_tag="ALTERNATIVE",
+            tone_tag="PARAGON",
+            intent_style="steady",
+            consequence_hint="reinforces your paragon path",
+        ))
+    if paragon_renegade <= -8:
+        gated.append(ActionSuggestion(
+            label=f"[RENEGADE] Enough speeches. Give me results on {topic}, now.",
+            intent_text=f"Enough speeches. Give me results on {topic}, now.",
+            category="COMMIT",
+            risk_level="RISKY",
+            strategy_tag="ALTERNATIVE",
+            tone_tag="RENEGADE",
+            intent_style="cold",
+            consequence_hint="leans into your renegade reputation",
+        ))
+    if tech >= 6 and npc_line:
+        gated.append(ActionSuggestion(
+            label=f"[INVESTIGATE] {line_probe}",
+            intent_text=line_probe,
+            category="EXPLORE",
+            risk_level="SAFE",
+            strategy_tag="ALTERNATIVE",
+            tone_tag="INVESTIGATE",
+            intent_style="analytical",
+            consequence_hint="tests the statement for inconsistencies",
+        ))
+
+    return gated
+
+
+def _apply_stat_gating(gs: GameState, suggestions: list[ActionSuggestion]) -> list[ActionSuggestion]:
+    """Inject stat-gated options without flattening overall tone diversity."""
+    gated = _build_stat_gated_options(gs)
+    if not gated:
+        return suggestions
+    out = list(suggestions[: SUGGESTED_ACTIONS_TARGET])
+    if not out:
+        return gated[:SUGGESTED_ACTIONS_TARGET]
+
+    used_tones = {s.tone_tag for s in out if getattr(s, "tone_tag", "")}
+    inject = None
+    for candidate in gated:
+        if candidate.tone_tag not in used_tones:
+            inject = candidate
+            break
+    if inject is None:
+        inject = gated[0]
+
+    # Replace first suggestion with same tone to preserve spread; fallback to index 0.
+    replace_idx = 0
+    for idx, existing in enumerate(out):
+        if getattr(existing, "tone_tag", "") == inject.tone_tag:
+            replace_idx = idx
+            break
+    out[replace_idx] = inject
+    return out
 
 
 _VALID_MEANING_TAGS = {
@@ -402,6 +543,7 @@ def make_suggestion_refiner_node():
             npc_agenda=npc_agenda,
             companion_hint=companion_hint,
             player_history_hint=player_history_hint,
+            director_intent=str((state.get("director_instructions") or ""))[:300],
         )
 
         try:
@@ -432,6 +574,7 @@ def make_suggestion_refiner_node():
 
             suggestions = _to_action_suggestions(items)
             suggestions = ensure_tone_diversity(suggestions)
+            suggestions = _apply_stat_gating(gs, suggestions)
 
             # Lint through the standard pipeline
             actions_list = [

@@ -9,7 +9,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 from backend.app.core.error_handling import log_error_with_context
-from backend.app.core.event_store import append_events, get_current_turn_number
+from backend.app.core.event_store import append_events, reserve_next_turn_number
 from backend.app.core.projections import apply_projection
 from backend.app.core.state_loader import build_initial_gamestate, load_turn_history
 from backend.app.core.transcript_store import write_rendered_turn
@@ -42,7 +42,7 @@ def make_commit_node():
         final_text = state.get("final_text")
         suggested_actions = state.get("suggested_actions") or []
 
-        next_turn_number = get_current_turn_number(conn, campaign_id) + 1
+        next_turn_number = 0
         events: list[Event] = [
             Event(event_type="TURN", payload={"user_input": user_input}, is_hidden=True),
         ]
@@ -96,7 +96,8 @@ def make_commit_node():
 
         try:
             if not conn.in_transaction:
-                conn.execute("BEGIN")
+                conn.execute("BEGIN IMMEDIATE")
+            next_turn_number = reserve_next_turn_number(conn, campaign_id)
             if intent != "META":
                 pending = state.get("pending_world_time_minutes")
                 if pending is not None:
