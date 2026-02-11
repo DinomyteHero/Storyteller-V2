@@ -161,3 +161,25 @@ def test_companion_speech_quirk():
     block = build_personality_block(companion)
     assert "Quirk:" in block
     assert "friend" in block
+
+
+def test_scene_context_reflects_companion_influence_state():
+    """Companion influence state should modulate personality stance guidance."""
+    npcs = [{"name": "Nyra", "id": "comp_nyra"}]
+    companion_lookup = {
+        "comp_nyra": {
+            "name": "Nyra",
+            "traits": ["loyal"],
+            "voice_tags": ["warm"],
+            "motivation": "Protect the crew",
+        }
+    }
+    companion_state_lookup = {
+        "comp_nyra": {"influence": 75, "trust": 80, "fear": 5}
+    }
+    ctx = build_scene_personality_context(
+        npcs,
+        companion_lookup=companion_lookup,
+        companion_state_lookup=companion_state_lookup,
+    )
+    assert "Current stance: Warm and trusting" in ctx
