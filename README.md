@@ -101,7 +101,43 @@ export ERA_TO_SETTING_PERIOD_MAP="./data/static/era_to_setting_period_map.yaml"
 
 ### Run API + UI
 
-Run both via unified CLI:
+Preferred wrapper (cross-platform):
+
+```bash
+python run_app.py --dev
+```
+
+Windows shortcut:
+
+```bat
+.\start_app.bat
+```
+
+Quick checks without starting processes:
+
+```bash
+python run_app.py --check
+```
+
+Useful launch modes:
+
+```bash
+python run_app.py --api-only --dev
+python run_app.py --ui-only --ui-port 5173
+python run_app.py --dev --setting-id star_wars_legends --period-id rebellion
+python run_app.py --validate-packs --setting-pack-paths "./data/static/setting_packs/core;./data/static/setting_packs/addons;./data/static/setting_packs/overrides"
+```
+
+Core wrapper flags:
+
+- `--dev`
+- `--api-only`, `--ui-only`, `--no-ui`
+- `--host`, `--port`, `--ui-port`
+- `--setting-id`, `--period-id`, `--setting-pack-paths`
+- `--validate-packs`, `--check`
+- `--start-ollama` and `--require-llm`
+
+Legacy developer command is still available:
 
 ```bash
 python -m storyteller dev
