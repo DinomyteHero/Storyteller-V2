@@ -142,10 +142,8 @@ Storyteller AI/
     lore/                        # Lore source files (EPUB/PDF/TXT)
     manifests/                   # Ingestion manifest files
 
-  ingestion_app.py               # Legacy ingestion studio entrypoint (deprecated)
   start_dev.bat                  # Windows: start backend + SvelteKit UI (`python -m storyteller dev`)
-  start_backend.bat              # Windows: start backend only
-  start_ingestion_ui.bat         # Windows: start ingestion studio
+  start_app.bat                  # Windows: unified launcher wrapper (backend + UI)
 
   README.md                      # Main overview + setup + usage
   QUICKSTART.md                  # Quick setup path
@@ -181,7 +179,6 @@ Storyteller AI/
 | **Health check** | `python -m storyteller doctor` | Verify Python/venv/deps/.env/data dirs/Ollama/LanceDB |
 | **API server** | `uvicorn backend.main:app` | Start FastAPI backend |
 | **SvelteKit UI** | `npm run dev` (in `frontend/`) | Player-facing UI |
-| **Ingestion Studio (legacy)** | `python -m streamlit run ingestion_app.py` | Local ingestion dashboard |
 | **Flat ingestion** | `python -m ingestion.ingest ...` | TXT/EPUB ingestion (no PDF) |
 | **Hierarchical ingestion** | `python -m ingestion.ingest_lore ...` | PDF/EPUB/TXT parent/child ingestion |
 | **KG extraction** | `python -m storyteller extract-knowledge ...` | Build SQLite KG tables from ingested lore |
