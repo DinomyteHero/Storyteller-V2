@@ -22,7 +22,7 @@ from backend.app.core.director_validation import (
 )
 from backend.app.core.warnings import add_warning
 from backend.app.config import get_role_max_input_tokens, get_role_reserved_output_tokens
-from backend.app.world.era_pack_loader import get_era_pack
+from backend.app.content.repository import CONTENT_REPOSITORY
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +148,7 @@ class DirectorAgent:
         loc_obj = None
         if loc_id:
             era_id_for_loc = campaign.get("time_period") or campaign.get("era") or None
-            era_pack_for_loc = get_era_pack(era_id_for_loc) if era_id_for_loc else None
+            era_pack_for_loc = CONTENT_REPOSITORY.get_pack(era_id_for_loc) if era_id_for_loc else None
             loc_obj = era_pack_for_loc.location_by_id(loc_id) if era_pack_for_loc else None
             if loc_obj:
                 base += f"\n\n## Current Location\nName: {loc_obj.name}."

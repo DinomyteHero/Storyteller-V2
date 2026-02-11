@@ -8,7 +8,7 @@ from typing import Any
 
 from backend.app.config import ENABLE_BIBLE_CASTING, ENABLE_PROCEDURAL_NPCS, NPC_RENDER_ENABLED
 from backend.app.constants import get_scale_profile
-from backend.app.world.era_pack_loader import get_era_pack
+from backend.app.content.repository import CONTENT_REPOSITORY
 from backend.app.world.era_pack_models import EraPack, EraNpcEntry
 from backend.app.world.npc_generator import generate_npc, derive_seed
 from backend.app.world.npc_renderer import render_npc
@@ -181,8 +181,7 @@ def get_dynamic_npc_cap(location_tags: set[str], campaign_scale: str | None = No
 def _get_pack_background_figures(era_id: str) -> dict[str, list[str]]:
     """Load background_figures from era pack if available, else empty dict."""
     try:
-        from backend.app.world.era_pack_loader import get_era_pack
-        pack = get_era_pack(era_id)
+        pack = CONTENT_REPOSITORY.get_pack(era_id) if era_id else None
         if pack and pack.background_figures:
             return dict(pack.background_figures)
     except Exception:
@@ -428,7 +427,7 @@ class EncounterManager:
         campaign = state.get("campaign") or {}
         era = (campaign.get("time_period") or campaign.get("era") or "REBELLION")
         era = str(era).strip() if isinstance(era, str) else "REBELLION"
-        era_pack = get_era_pack(era)
+        era_pack = CONTENT_REPOSITORY.get_pack(era) if era else None
 
         turn_number = int(state.get("turn_number") or 0)
         seed = _seed_from_env()

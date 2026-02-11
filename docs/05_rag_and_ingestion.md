@@ -81,15 +81,13 @@ Note: `nomic-embed-text` via Ollama has different dimensions; use the sentence-t
 
 ## Ingestion Pipeline
 
-### Ingestion UI (legacy Python app)
-**File:** `ingestion_app.py`
+**Available ingestion methods:**
+- **Hierarchical lore ingestion**: `python -m ingestion.ingest_lore ...` (supports PDF/EPUB/TXT with parent/child chunking)
+- **Flat lore ingestion**: `python -m ingestion.ingest ...` (TXT/EPUB only, simple chunking)
+- **Style ingestion**: `python -m backend.app.scripts.ingest_style ...` or `scripts/ingest_style.py`
+- **Verify/query**: `scripts/verify_lore_store.py`, `python -m ingestion query`
 
-Provides a local dashboard to run:
-- Hierarchical lore ingestion (`ingestion/ingest_lore.py`)
-- Flat lore ingestion (`ingestion/ingest.py`)
-- Style ingestion (`backend/app/scripts/ingest_style.py`)
-- ~~Character facets~~ (not functional - do not use)
-- Verify/query (`scripts/verify_lore_store.py`, `python -m ingestion query`)
+For detailed ingestion workflows, see `/docs/lore_pipeline_guide.md`.
 
 ### Style Ingestion
 **File:** `backend/app/rag/style_ingest.py` — `ingest_style_dir(data_dir)`

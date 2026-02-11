@@ -13,7 +13,7 @@ import random
 from typing import Any
 
 from shared.schemas import WorldSimOutput
-from backend.app.world.era_pack_loader import get_era_pack
+from backend.app.content.repository import CONTENT_REPOSITORY
 
 logger = logging.getLogger(__name__)
 
@@ -250,7 +250,12 @@ def simulate_faction_tick(
     rng = random.Random(turn_number * 7919 + world_time_minutes)  # deterministic seed
 
     # Load era pack for richer faction data
-    era_pack = get_era_pack(era_id) if era_id else None
+    era_pack = None
+    if era_id:
+        try:
+            era_pack = CONTENT_REPOSITORY.get_pack(era_id)
+        except Exception:
+            pass
     era_factions = era_pack.factions if era_pack else None
 
     # --- Determine how many outputs based on arc stage and triggers ---

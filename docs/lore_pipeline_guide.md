@@ -82,9 +82,6 @@ Characters like Luke can appear in multiple eras with different voices and knowl
 | Concept | Status |
 |---------|--------|
 | **Aliases** | ✅ Working. Map display names ("Luke", "Master Skywalker") → canonical ID (`luke_skywalker`). Ingestion tags chunks with `characters[]` using word-boundary matching. |
-| **Era facets** | ❌ Not implemented. The `build_character_facets` script produces generic text statistics, not character-specific voice profiles. Feature disabled by default (`ENABLE_CHARACTER_FACETS=0`). |
-
-**Current pipeline**: Edit `data/character_aliases.yml` → ingest lore → (skip build_character_facets) → run. Character tagging works, but voice retrieval is non-functional.
 
 ---
 
@@ -146,14 +143,7 @@ Use the same `--db` / `--out_db` path for both; both write to `lore_chunks`. Cre
 
 ### 5.2 Build character facets (NOT RECOMMENDED - incomplete implementation)
 
-The `build_character_facets` command is **not functional**. It produces generic text statistics instead of character-specific voice profiles.
-
-```powershell
 # DO NOT RUN - produces unusable output
-python -m ingestion build_character_facets --db ./data/lancedb --out ./data/character_facets.json
-```
-
-**Status:** Feature disabled by default (`ENABLE_CHARACTER_FACETS=0`). Skip this step - the system works fine without it.
 
 ### 5.3 Run backend
 

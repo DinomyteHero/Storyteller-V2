@@ -34,9 +34,6 @@ It intentionally avoids line numbers (they go stale quickly). Use file paths + f
 - **Entry:** `python -m ingestion <command>` (see `ingestion/__main__.py`)
   - `ingest` (flat TXT/EPUB)
   - `query`
-  - ~~`build_character_facets`~~ (not functional)
-- **Lore ingestion:** `python -m ingestion.ingest_lore ...` (PDF/EPUB/TXT hierarchical pipeline)
-- **KG extraction:** `python -m storyteller extract-knowledge ...` (fills SQLite `kg_*` tables from ingested lore chunks)
 
 ---
 

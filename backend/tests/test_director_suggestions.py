@@ -21,8 +21,6 @@ from backend.app.core.director_validation import (
     validate_suggestions,
     fallback_suggestions,
     generate_suggestions,
-    check_entities,
-    fix_social_npc_targets,
     sanitize_instructions_for_narrator,
     _jaccard_similarity,
 )
@@ -274,37 +272,6 @@ class TestDirectorSuggestions(unittest.TestCase):
         valid, reason = validate_suggestions(actions)
         self.assertTrue(valid, reason)
 
-    def test_check_entities_always_passes(self):
-        """V3.0: check_entities is disabled — always returns True."""
-        allowed = {"barkeep", "loc-tavern"}
-        actions = [{"label": "Talk to Xandar", "intent_text": "Ask Xandar for help"}]
-        ok, reason = check_entities(actions, allowed)
-        self.assertTrue(ok)
-        self.assertEqual(reason, "")
-
-    def test_check_entities_passes_with_known_names(self):
-        """V3.0: check_entities still passes (now a no-op)."""
-        allowed = {"barkeep", "loc-tavern"}
-        actions = [{"label": "Talk to Barkeep", "intent_text": "Ask Barkeep for help"}]
-        ok, reason = check_entities(actions, allowed)
-        self.assertTrue(ok, reason)
-
-    # --- fix_social_npc_targets: now a no-op (V3.0) ---
-
-    def test_fix_social_npc_targets_is_noop(self):
-        """V3.0: fix_social_npc_targets is disabled — does not modify actions."""
-        actions = [
-            {
-                "label": "Talk to Xandar",
-                "intent_text": "Say: 'I've heard Xandar knows about the shipments. Tell me more.'",
-                "category": "SOCIAL",
-            }
-        ]
-        present_npcs = [{"name": "Vorru"}]
-        fix_social_npc_targets(actions, present_npcs)
-        # No modification expected — guard is disabled
-        self.assertIn("Xandar", actions[0]["label"])
-        self.assertIn("Xandar", actions[0]["intent_text"])
 
     # --- sanitize_instructions_for_narrator ---
 

@@ -266,7 +266,6 @@ VoiceSnippet(
 )
 ```
 
-**Feature Flag:** `ENABLE_CHARACTER_FACETS=1` to enable (default OFF in V2.18)
 
 ---
 
@@ -635,7 +634,6 @@ flowchart TB
 |-------|--------------|-------------|
 | **No NPC speaks** | `present_npcs` empty | Check Encounter node output, verify era pack NPCs exist |
 | **NPC speaks but wrong voice** | Voice profile missing/malformed | Check SceneFrame output, verify voice_profile dict populated |
-| **Generic/flat dialogue** | Voice snippets not retrieved | Enable `ENABLE_CHARACTER_FACETS=1`, check LanceDB table |
 | **NPC speaks out of character** | Wrong rhetoric style or missing taboo | Verify voice_profile.rhetorical_style and taboo fields |
 | **Narrator observation instead of NPC** | `---NPC_LINE---` separator missing | Check Narrator LLM output, verify separator in prompt |
 | **Player options don't match context** | SuggestionRefiner not reading NPC utterance | Check refiner input, verify `npc_utterance` passed to prompt |

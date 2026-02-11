@@ -9,7 +9,6 @@ if str(_root) not in sys.path:
 from backend.app.core.nodes.narrative_validator import (
     narrative_validator_node,
     _check_mechanic_consistency,
-    _check_constraint_contradictions,
 )
 
 
@@ -65,26 +64,6 @@ class TestMechanicConsistency:
     def test_no_warning_on_none_mechanic(self):
         warnings = _check_mechanic_consistency("You succeeded.", None)
         assert len(warnings) == 0
-
-
-class TestConstraintContradictions:
-    """V3.0: _check_constraint_contradictions is now a no-op (too many false positives)."""
-
-    def test_always_returns_empty(self):
-        """Disabled guard always returns empty list."""
-        constraints = ["The door is sealed"]
-        text = "The door is not sealed anymore."
-        warnings = _check_constraint_contradictions(text, constraints)
-        assert len(warnings) == 0
-
-    def test_empty_constraints_returns_empty(self):
-        warnings = _check_constraint_contradictions("Some text.", [])
-        assert len(warnings) == 0
-
-    def test_empty_text_returns_empty(self):
-        warnings = _check_constraint_contradictions("", ["Something"])
-        assert len(warnings) == 0
-
 
 class TestNarrativeValidatorNode:
     def test_node_returns_validation_notes(self):

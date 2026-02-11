@@ -8,15 +8,15 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from backend.app.world.era_pack_loader import clear_era_pack_cache, load_all_era_packs, load_era_pack
+from backend.app.content.repository import CONTENT_REPOSITORY
 
 
 class TestEraPackLoaderModular(unittest.TestCase):
     def setUp(self) -> None:
-        clear_era_pack_cache()
+        CONTENT_REPOSITORY.clear_cache()
 
     def tearDown(self) -> None:
-        clear_era_pack_cache()
+        CONTENT_REPOSITORY.clear_cache()
 
     def test_load_era_pack_from_directory_merges_sections(self):
         with tempfile.TemporaryDirectory() as td:
@@ -39,7 +39,7 @@ class TestEraPackLoaderModular(unittest.TestCase):
             )
 
             with patch.dict(os.environ, {"ERA_PACK_DIR": str(pack_dir)}, clear=False):
-                pack = load_era_pack("MY_ERA")
+                pack = CONTENT_REPOSITORY.get_pack("MY_ERA")
                 self.assertEqual(pack.era_id, "MY_ERA")
                 self.assertEqual(pack.style_ref, "test_style")
                 self.assertEqual(len(pack.factions), 2)
@@ -59,7 +59,7 @@ class TestEraPackLoaderModular(unittest.TestCase):
             (era_dir / "era.yaml").write_text("era_id: MY_ERA\nstyle_ref: from_dir\n", encoding="utf-8")
 
             with patch.dict(os.environ, {"ERA_PACK_DIR": str(pack_dir)}, clear=False):
-                pack = load_era_pack("MY_ERA")
+                pack = CONTENT_REPOSITORY.get_pack("MY_ERA")
                 self.assertEqual(pack.style_ref, "from_dir")
 
     def test_load_all_era_packs_ignores_file_when_directory_exists(self):
@@ -71,7 +71,7 @@ class TestEraPackLoaderModular(unittest.TestCase):
             (pack_dir / "my_era.yaml").write_text("era_id: MY_ERA\nstyle_ref: from_file\n", encoding="utf-8")
             (era_dir / "era.yaml").write_text("era_id: MY_ERA\nstyle_ref: from_dir\n", encoding="utf-8")
 
-            packs = load_all_era_packs(pack_dir)
+            packs = CONTENT_REPOSITORY.load_all_packs()
             self.assertEqual(len(packs), 1)
             self.assertEqual(packs[0].era_id, "MY_ERA")
             self.assertEqual(packs[0].style_ref, "from_dir")

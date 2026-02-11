@@ -357,35 +357,24 @@ leia_organa:
 
 ## 14. Character Facets & Era-Specific Voice (Feature Not Implemented)
 
-**Status:** The character facet system is **incomplete** and **disabled by default** (`ENABLE_CHARACTER_FACETS=0`).
 
 ### 14.1 Current State
 
 The codebase includes infrastructure for era-scoped character voice profiles, but the implementation is non-functional:
 
-- The `build_character_facets` script produces **generic text statistics** (modal verb counts, sentence length) that apply equally to all characters
-- It does **not** generate character-specific voice profiles, personality traits, or knowledge boundaries
-- The `character_core` section is always empty (`aliases: [], traits: []`)
 - The `use_llm` parameter is hardcoded to `False` and there is no LLM implementation
 
 ### 14.2 What Would Need to Be Implemented
 
 To make character facets functional, you would need to:
 
-1. **Implement LLM-based analysis** in `ingestion/build_character_facets.py`:
-   - Replace `_deterministic_voice_profile()` with actual character voice analysis (speech patterns, vocabulary, tone per era)
-   - Replace `_deterministic_knowledge_scope()` with knowledge boundary analysis (what they know/don't know in each era)
    - Add personality trait extraction to populate `character_core`
 
 2. **Era normalization**: Fix inconsistent era metadata in lore chunks (currently a mix of canonical eras, book series names, and "unknown/default")
 
-3. **Enable the feature**: Set `ENABLE_CHARACTER_FACETS=1` after implementation
 
 ### 14.3 Current Recommendation
 
-**Do not run `build_character_facets`** unless you plan to implement the missing functionality. The system works perfectly without it - the Narrator generates appropriate dialogue without needing character voice retrieval.
-
----
 
 ## 15. Canon / Voice Guardrail
 

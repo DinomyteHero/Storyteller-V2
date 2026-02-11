@@ -62,7 +62,6 @@ Legend:
 | R1 | LanceDB-backed lore retrieval with metadata filters | ✅ | `backend/app/rag/lore_retriever.py` |
 | R2 | Style retrieval (4-lane: Base SW + Era + Genre + Archetype) | ✅ | `backend/app/rag/style_retriever.py`, `backend/app/rag/style_mappings.py` |
 | R3 | Retrieval bundles per agent role | ✅ | `backend/app/rag/retrieval_bundles.py` |
-| R4 | Character voice retrieval (era-scoped with widening fallback) | ⚠️ | `backend/app/rag/character_voice_retriever.py` works, but upstream facet generation is incomplete and disabled by default (`ENABLE_CHARACTER_FACETS=0`) |
 | R5 | Token-aware context trimming | ✅ | `backend/app/core/context_budget.py` (used by Director + Narrator agents) |
 | R6 | Caching of encoder + LanceDB handles | ✅ | `backend/app/rag/_cache.py` |
 
@@ -123,9 +122,6 @@ Legend:
 | I2 | Flat chunking (TXT/EPUB) | ✅ | `ingestion/ingest.py` |
 | I3 | Optional ingestion tagger (LLM enrichment) | ✅ | `ingestion/tagger.py` (guarded by `INGESTION_TAGGER_ENABLED`) |
 | I4 | Run manifest per ingest | ✅ | `ingestion/manifest.py` + `data/manifests/` |
-| I5 | Character aliases (facets incomplete) | ⚠️ | `data/character_aliases.yml` works; `build_character_facets.py` produces unusable output |
-
----
 
 ## Warnings System
 

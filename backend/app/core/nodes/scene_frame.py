@@ -16,7 +16,7 @@ from backend.app.models.dialogue_turn import (
     SceneFrame,
     compute_scene_hash,
 )
-from backend.app.world.era_pack_loader import get_era_pack
+from backend.app.content.repository import CONTENT_REPOSITORY
 
 logger = logging.getLogger(__name__)
 
@@ -401,7 +401,7 @@ def scene_frame_node(state: dict[str, Any]) -> dict[str, Any]:
     try:
         campaign = state.get("campaign") or {}
         era_id = (campaign.get("time_period") or campaign.get("era") or state.get("era") or "REBELLION")
-        pack = get_era_pack(str(era_id))
+        pack = CONTENT_REPOSITORY.get_pack(str(era_id)) if era_id else None
         if pack and location_id:
             loc = pack.location_by_id(location_id)
             if loc and getattr(loc, "name", None):
@@ -418,7 +418,7 @@ def scene_frame_node(state: dict[str, Any]) -> dict[str, Any]:
     try:
         campaign = state.get("campaign") or {}
         era_id = (campaign.get("time_period") or campaign.get("era") or state.get("era") or "REBELLION")
-        pack = get_era_pack(str(era_id))
+        pack = CONTENT_REPOSITORY.get_pack(str(era_id)) if era_id else None
         if pack:
             for npc_entry in (getattr(pack, "npcs", None) or []):
                 entry_dict = npc_entry.model_dump(mode="json") if hasattr(npc_entry, "model_dump") else (dict(npc_entry) if npc_entry else {})
@@ -499,7 +499,7 @@ def scene_frame_node(state: dict[str, Any]) -> dict[str, Any]:
         else:
             campaign = state.get("campaign") or {}
             era_id = (campaign.get("time_period") or campaign.get("era") or state.get("era") or "REBELLION")
-            pack = get_era_pack(str(era_id))
+            pack = CONTENT_REPOSITORY.get_pack(str(era_id)) if era_id else None
             if pack and location_id:
                 loc = pack.location_by_id(location_id)
                 allowed = list(getattr(loc, "scene_types", []) or [])

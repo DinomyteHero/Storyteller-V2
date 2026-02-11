@@ -27,7 +27,6 @@ _root = Path(__file__).resolve().parents[1]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from ingestion.character_aliases import extract_characters
 from ingestion.chunking import chunk_text_by_tokens, count_tokens
 from ingestion.classify_document import classify_document
 from ingestion.era_aliases import load_era_aliases
@@ -37,8 +36,8 @@ from ingestion.store import LanceStore, stable_chunk_id, file_doc_id, CHUNK_ID_S
 from ingestion.tagger import apply_tagger_to_chunks
 from ingestion.era_normalization import apply_era_mode, resolve_era_mode, infer_era_from_input_root
 from shared.lore_metadata import default_doc_type, default_section_kind, default_characters
-from shared.config import EMBEDDING_DIMENSION, EMBEDDING_MODEL, ENABLE_CHARACTER_FACETS
-from backend.app.world.era_pack_loader import get_era_pack
+from shared.config import EMBEDDING_DIMENSION, EMBEDDING_MODEL
+from backend.app.content.repository import CONTENT_REPOSITORY
 
 PARENT_TOKENS = 1024
 CHILD_TOKENS = 256
@@ -111,7 +110,7 @@ def _chunk_meta(meta: dict[str, str], text: str) -> dict[str, Any]:
     """Build standard metadata for a chunk; characters extracted from text via alias file."""
     time_period = meta.get("time_period", "")
     era = meta.get("era", time_period)  # canonical: store both for backward compat
-    characters = extract_characters(text) if ENABLE_CHARACTER_FACETS else default_characters()
+    characters = default_characters()
     return {
         "source": meta.get("source", ""),
         "chapter": meta.get("chapter", ""),
@@ -360,7 +359,12 @@ def main() -> int:
         return 1
     canonical = _to_canonical_chunks(all_chunks)
     era_pack_id = (args.era_pack or args.time_period or "").strip()
-    era_pack = get_era_pack(era_pack_id) if era_pack_id else None
+    era_pack = None
+    if era_pack_id:
+        try:
+            era_pack = CONTENT_REPOSITORY.get_pack(era_pack_id)
+        except Exception as exc:
+            logger.error("Failed to load era pack '%s': %s", era_pack_id, exc, exc_info=True)
     tag_npcs_enabled = args.tag_npcs if args.tag_npcs is not None else bool(era_pack)
     canonical, npc_tag_stats = apply_npc_tags_to_chunks(
         canonical,
