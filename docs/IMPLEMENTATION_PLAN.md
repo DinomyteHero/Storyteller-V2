@@ -1,366 +1,266 @@
-# Storyteller V2 — Strategic Implementation Plan
+# Storyteller V2 — Long-Term Stabilization & Migration Plan
 
-> Based on a comprehensive codebase review as senior engineer + game designer, evaluating against KOTOR-level storytelling depth.
-
----
-
-## The Core Thesis
-
-The game's storytelling depth is currently bottlenecked by three things:
-
-1. **Content is static** — locations, NPCs, and quests are hardcoded in era pack YAMLs
-2. **Prompts are fighting the models** — 1,400-word narrator prompts with 36 cleanup regexes indicate the models are struggling
-3. **The UI surfaces ~35% of what the backend computes** — companion reactions, faction shifts, quest branching, and world state all exist but are invisible to the player
+> Goal: move from an era-pack/hardcoded-frontend hybrid to a stable, dynamic setting/period platform that remains playable while content is migrated.
 
 ---
 
-## Phase 1: Content Foundation (Weeks 1–4)
+## Executive Summary
 
-*"Feed the machine before you tune the engine"*
+This plan addresses the core mismatch discovered in the repo:
 
-### 1A. Novel-Scale Corpus Ingestion
+1. **Backend content loading supports setting/period composition**, but most public APIs still expose legacy `era` semantics.
+2. **Frontend timeline options are hardcoded**, so users can select periods that do not exist on disk.
+3. **Setup flow fails too early** when a missing period is selected instead of guiding users.
+4. **Operational defaults still reference non-existent periods** in some scripts/tests.
 
-The ingestion pipeline (`ingestion/ingest_lore.py`) is already production-grade: EPUB/PDF/TXT → hierarchical chunking (1024 parent / 256 child tokens) → deterministic NPC tagging → LanceDB storage. **It can handle 100+ books today** (~60k chunks, ~200MB in LanceDB, ~10 minutes).
-
-**Steps:**
-
-1. Organize novels by era:
-   ```
-   data/lore/novels/
-   ├── kotor/
-   ├── rebellion/
-   ├── new_republic/
-   ├── legacy/
-   └── lotr/
-   ```
-
-2. Batch ingest:
-   ```bash
-   python -m ingestion.ingest_lore \
-     --input data/lore/novels --recursive \
-     --era-mode folder --tag-npcs \
-     --npc-tagging-mode lenient --source-type novel
-   ```
-
-3. Expand NPC alias tables in era packs to improve NPC-to-chunk linkage.
-
-4. Add a `universe` metadata field to the ingestion schema (`ingestion/store.py`) to support non-Star Wars content (LOTR, etc.). Filter by it during retrieval in `lore_retriever.py`.
-
-### 1B. Campaign World Generation Pass
-
-**This is the most impactful architectural addition.** Currently there is no per-campaign world generation — locations and NPCs are shared across all campaigns via static era pack YAMLs.
-
-**New system:** `CampaignInitializer` (`backend/app/core/campaign_init.py`)
-
-Runs once at campaign creation after `POST /v2/setup/auto`:
-
-```
-Player creates campaign (era, background, companions)
-    ↓
-CampaignInitializer:
-  1. Load era pack (base locations, anchor NPCs, factions)
-  2. RAG-query ingested novels for the chosen era (top 20 lore chunks)
-  3. LLM generates campaign-specific additions:
-     - 4-6 new locations (taverns, hideouts, ruins) seeded from novel lore
-     - 8-12 new NPCs with voice profiles drawn from novel characters
-     - 3-5 quest hooks derived from novel plot threads
-     - Faction tensions calibrated to novel-era conflicts
-  4. Validate and merge with era pack base content
-  5. Store in campaigns.world_state_json as "campaign_world"
-    ↓
-Game begins with a rich, unique world per playthrough
-```
-
-**Why at creation time, not on-the-fly:**
-- LLM generation takes 5–15s per call on local models — unacceptable mid-turn
-- Pre-generation ensures internal consistency (NPCs reference locations that exist, quests reference NPCs that exist)
-- Deterministic seed (`campaign_id`) means the same ID regenerates the same world
-- The era pack remains the skeleton; the campaign initializer fills in the muscle
-
-**Schema additions to `world_state_json`:**
-- `generated_locations`: list (same schema as `EraLocation`)
-- `generated_npcs`: list (same schema as `EraNpcEntry`)
-- `generated_quests`: list (same schema as `EraQuest`)
-
-Encounter node (`nodes/encounter.py`) and `EncounterManager` check both era pack AND generated content.
-
-### 1C. Era Pack Authoring Tools
-
-Create `tools/era_pack_generator.py`:
-- Input: era name + ingested novel corpus
-- LLM generates draft era pack YAML from RAG-retrieved lore
-- Output: standard `data/static/era_packs/{era_id}/` file structure
-- Human reviews, edits, commits
-- Validates via `EraPack.load_and_validate()` in strict mode
-
-**This turns novel ingestion into a content pipeline:** ingest books → generate era pack → review → commit → play.
+The implementation below is a full, staged migration designed to keep the game playable throughout.
 
 ---
 
-## Phase 2: Prompt Engineering (Weeks 3–6)
+## Guiding Principles
 
-*"Make the small models punch above their weight"*
-
-### 2A. Prompt Compression for Local Models
-
-**Problem:** Narrator system prompt is ~350 tokens. Full context (lore + history + NPCs + companions + ledger) reaches 6K+ in an 8K window, leaving <2K for output.
-
-**Solution — tiered prompt architecture:**
-
-| Tier | Included When | Size |
-|------|--------------|------|
-| **Core** | Always | ~150 tokens — voice, POV rules, output format |
-| **Opening** | First turn only | ~100 tokens — sensory orientation, hook creation |
-| **Combat** | Scene type = combat | ~80 tokens — combat prose rules |
-| **Companion** | Companion present | ~60 tokens — companion voice notes |
-| **NPC Dialogue** | NPC utterance expected | ~80 tokens — KOTOR voice rules, `---NPC_LINE---` format |
-
-**Target:** Reduce system prompt from ~350 to ~200 tokens, freeing ~150 tokens for more lore/context.
-
-### 2B. Few-Shot Examples for JSON Agents
-
-Currently only SuggestionRefiner has few-shot examples. Add 1–2 complete examples to:
-
-| Agent | File | Current System Prompt | Change |
-|-------|------|----------------------|--------|
-| CastingAgent | `casting.py:53-58` | ~100 words, schema only | Add example NPC JSON |
-| Architect.build() | `architect.py:91-106` | ~300 words, schema only | Add minimal campaign skeleton |
-| Biographer | `biographer.py:130-142` | ~200 words, schema only | Add example character sheet |
-| KG Extractor | `extractor.py:23-72` | ~600 words, exhaustive predicates | Add 1 complete extraction example |
-
-### 2C. Chain-of-Thought for Complex Reasoning
-
-Add structured reasoning prompts to Director for complex scenes:
-
-```
-Given the scene context above, reason through:
-1. What is the primary dramatic tension?
-2. Which NPC has the strongest motivation to act?
-3. What should the player discover or decide this turn?
-Then write your scene instructions.
-```
-
-qwen3 models already support `<think>` blocks natively. SuggestionRefiner already strips them (`suggestion_refiner.py:276-282`). Extend this pattern.
-
-### 2D. Post-Processing Reduction Tracking
-
-The 36 regex patterns in `_strip_structural_artifacts` are a symptom. Add pattern fire counters:
-
-```python
-pattern_fire_counts: dict[str, int] = {}
-```
-
-Log to warnings in dev mode. Goal: reduce active patterns from 36 to <15 as prompt quality improves. Drop patterns that haven't fired in 1000+ turns.
+- **Single source of truth:** available settings/periods come from backend content discovery only.
+- **No dead-end UX:** invalid selection should produce actionable user feedback (never a raw 500).
+- **Backward compatibility first:** preserve existing `/v2/era/*` routes while introducing `/v2/content/*`.
+- **Playability over purity:** default configs/scripts always point to a known playable period.
+- **Feature-flagged migration:** ship in slices with rollback switches.
 
 ---
 
-## Phase 3: Frontend Surface Area (Weeks 4–8)
+## Phase 0 — Baseline Hardening (Week 1)
 
-*"Show the player what the backend already knows"*
+### Objectives
 
-### 3A. Break Up the Monolith
+- Ensure one guaranteed playable path in all environments.
+- Stop false failures caused by stale defaults.
 
-Extract from `play/+page.svelte` (1,578 lines):
+### Tasks
 
-| New Component | Responsibility |
-|--------------|---------------|
-| `HudBar.svelte` | Top sticky bar: location, time, HP, credits, stress, heat, alert |
-| `NarrativeViewport.svelte` | Prose display with typewriter and streaming |
-| `CompanionSidebar.svelte` | Always-visible companion reactions |
-| `QuestTracker.svelte` | Floating objective indicator |
-| `AlignmentIndicator.svelte` | Paragon/Renegade meter |
+1. Set runtime/testing defaults to `rebellion` where period defaults are currently missing or stale.
+2. Update smoke and diagnostic scripts to use discovered/default playable period instead of hardcoded `LOTF`.
+3. Add preflight check that prints discovered periods and selected default period.
 
-### 3B. Companion Sidebar (Priority 1)
+### Acceptance Criteria
 
-The backend computes rich companion reactions every turn (`companion_reactions.py`: approval/disapproval on trait axes, arc stage changes, inter-party tensions, 17 banter styles). **None of this is visible during gameplay** — it's buried in the drawer Companions tab.
-
-**New `CompanionSidebar.svelte`:**
-- Always visible on desktop (right side, 280px)
-- Shows 2–3 active companions:
-  - Portrait/icon + name
-  - Affinity trend arrow (↑ improving / ↓ declining)
-  - Last reaction text ("Bastila approves" / "Mission is uneasy")
-  - Arc stage badge (STRANGER → ALLY → TRUSTED → LOYAL)
-- Collapses to bottom sheet on mobile
-- **Data source:** `TurnResponse.party_status` already contains all data
-
-### 3C. Alignment Meter (Priority 2)
-
-Every choice is tagged PARAGON/INVESTIGATE/RENEGADE/NEUTRAL. Companion system tracks trait axes. But there's no visual morality meter.
-
-**New `AlignmentIndicator.svelte`:**
-- Horizontal bar in HUD: blue (Paragon) ← → red (Renegade)
-- Shifts based on cumulative tone choices
-- Small pip shows last choice direction
-- **Backend addition:** `alignment_score` in `TurnResponse` — cumulative from tone tag history
-
-### 3D. Quest Objective Tracker (Priority 3)
-
-**New `QuestTracker.svelte`:**
-- Floating card (top-right, below HUD)
-- Active quest name + current objective text
-- Progress dots (stage 1 of 4)
-- Pulses on quest update
-- **Backend addition:** `current_objective_text` on quest log entries from `EraQuest` stage descriptions
-
-### 3E. World Map (Stretch Goal)
-
-**New `WorldMap.svelte`:**
-- Modal triggered by HUD button or M key
-- Available locations from era pack + generated locations
-- Current location highlighted
-- Travel connections as lines (from `EraLocation.travel_links`)
-- Faction-controlled zones color-coded
-- Click to travel (triggers MOVE action)
-- **New endpoint:** `GET /v2/campaigns/{id}/locations` exposing merged location data
+- `scripts/smoke_test.py` passes on clean repo + temp DB without manual period override.
+- Any CLI/start script reports exactly which setting/period it will use.
 
 ---
 
-## Phase 4: Hybrid Model Strategy (Weeks 6–10)
+## Phase 1 — Content Discovery API (Week 1–2)
 
-*"Local for speed, cloud for quality — when the player opts in"*
+### Objectives
 
-### 4A. Provider Abstraction Layer
+- Introduce canonical API surface for dynamic settings/periods.
 
-Create `backend/app/core/llm_provider.py`:
+### New Endpoints
 
-```python
-class LLMProvider(Protocol):
-    def complete(self, system: str, user: str, json_mode: bool = False) -> str: ...
-    def complete_stream(self, system: str, user: str) -> Iterator[str]: ...
-```
+1. `GET /v2/content/catalog`
+   - Returns settings + periods discovered from configured pack roots.
+   - Includes:
+     - `setting_id`, `setting_display_name`
+     - `period_id`, `period_display_name`
+     - `source` (`setting_pack` | `legacy_era_pack`)
+     - minimal metadata (description, tags, playability flags)
 
-Refactor `LLMClient` → `OllamaClient(LLMProvider)`. Add:
-- `AnthropicClient(LLMProvider)` — Claude models
-- `OpenAIClient(LLMProvider)` — GPT-4 / OpenAI-compatible APIs
+2. `GET /v2/content/default`
+   - Returns the server-selected default setting/period.
+   - Logic: env override -> configured default -> first discovered playable period.
 
-Extend `AgentLLM._get_client()` (`base.py:43-60`) with new provider branches.
+3. `GET /v2/content/{setting_id}/{period_id}/summary`
+   - Returns lightweight content summary for creation screen (location count, backgrounds, companions preview count).
 
-### 4B. Per-Role Provider Configuration
+### Compatibility
 
-Already supported by config.py's env override system:
+- Keep `/v2/era/{era_id}/...` alive, implemented as adapters over content catalog resolution.
 
-```bash
-# Cloud narrator, local everything else
-STORYTELLER_NARRATOR_PROVIDER=anthropic
-STORYTELLER_NARRATOR_MODEL=claude-sonnet-4-5-20250929
-STORYTELLER_DIRECTOR_PROVIDER=ollama
-STORYTELLER_DIRECTOR_MODEL=mistral-nemo:latest
-```
+### Acceptance Criteria
 
-### 4C. Fallback Chains
-
-```bash
-STORYTELLER_{ROLE}_FALLBACK_PROVIDER=ollama
-STORYTELLER_{ROLE}_FALLBACK_MODEL=mistral-nemo:latest
-```
-
-Primary fails → fallback local model → deterministic fallback (existing pattern).
-
-### 4D. Token Budget Scaling
-
-| Provider | Max Context | Reserved Output |
-|----------|------------|----------------|
-| Ollama (8K) | 8,192 | 2,048 |
-| Claude (200K) | 32,000 | 4,096 |
-| GPT-4 (128K) | 24,000 | 4,096 |
-
-Implement in `config.py:get_role_max_context_tokens()` keyed by provider.
-
-### 4E. UI Setting
-
-- **"Storytelling Quality"**: Local (free, faster) / Enhanced (cloud, requires API key)
-- API keys stored in browser localStorage
-- Backend validates on first cloud call, falls back to local on failure
+- Frontend can populate timeline selector entirely from API.
+- Catalog endpoint works whether content comes from `setting_packs/*` or legacy `era_packs/*`.
 
 ---
 
-## Phase 5: Backend Architecture Refinements (Ongoing)
+## Phase 2 — Setup & Turn API Robustness (Week 2–3)
 
-### 5A. World State Schema Normalization
+### Objectives
 
-As campaign generation grows `world_state_json`, normalize:
-- Generated locations → `campaign_locations` table (`campaign_id`, `location_id`, `location_json`)
-- Generated NPCs → existing `characters` table with `origin = 'generated'`
-- Keep coordination data (last_location_id, introduced_npcs) in world_state_json
+- Eliminate setup hard crashes from invalid period selections.
 
-### 5B. Episodic Memory Upgrade
+### Tasks
 
-Replace keyword-overlap recall (`episodic_memory.py`) with vector similarity:
-- At turn end, embed narrator prose into per-campaign LanceDB memory table
-- At retrieval, find semantically similar past turns
-- Enables "remember when we were in that cantina?" callbacks
+1. Add normalized request schema for setup:
+   - Preferred: `setting_id`, `period_id`
+   - Legacy accepted: `time_period` (mapped internally)
+2. In setup route:
+   - Validate selection against catalog first.
+   - Return structured 4xx (`error_code`, `message`, `details.suggestions`) for unknown periods.
+3. Add fallback policy when no period supplied:
+   - Use `content/default` resolver.
+4. Apply same validation to all period-dependent endpoints.
 
-### 5C. Dynamic Location Generation at Runtime
+### Acceptance Criteria
 
-Extend `EncounterManager` for runtime location discovery:
-- Player explores beyond known locations → lighter LLM call generates a new location
-- Uses campaign's generated world as seed context
-- `LOCATION_DISCOVERED` event → commit node applies projection
-
-### 5D. Multi-Universe Support
-
-For LOTR and other non-Star Wars content:
-- `universe_id` on campaigns table
-- `universe` filter on all RAG retrievers
-- Era packs become `{universe}/{era}/` in filesystem
-- Pipeline stays the same — content changes, architecture doesn't
+- Selecting unavailable period no longer raises unhandled exceptions.
+- API returns clear correction options (e.g., available periods list).
 
 ---
 
-## Priority Matrix
+## Phase 3 — Frontend Dynamic Timeline Migration (Week 3–4)
 
-| Item | Impact | Effort | Phase |
-|------|--------|--------|-------|
-| Novel ingestion (1A) | High | Low | 1 |
-| Campaign world generation (1B) | **Critical** | High | 1 |
-| Era pack authoring tools (1C) | Medium | Medium | 1 |
-| Prompt compression (2A) | High | Medium | 2 |
-| Few-shot examples (2B) | Medium | Low | 2 |
-| Chain-of-thought (2C) | Medium | Low | 2 |
-| Frontend monolith breakup (3A) | High | Medium | 3 |
-| Companion sidebar (3B) | High | Low | 3 |
-| Alignment meter (3C) | Medium | Low | 3 |
-| Quest tracker (3D) | Medium | Low | 3 |
-| World map (3E) | High | High | 3 |
-| Provider abstraction (4A) | Medium | Medium | 4 |
-| Fallback chains (4C) | Medium | Low | 4 |
-| World state normalization (5A) | Medium | Medium | 5 |
-| Episodic memory upgrade (5B) | Medium | Medium | 5 |
-| Multi-universe support (5D) | Medium | Low | 5 |
+### Objectives
 
----
+- Remove hardcoded era/timeline options and bind UI to content catalog.
 
-## Critical Path
+### Tasks
 
-```
-Phase 1A (ingest novels)
-    ↓
-Phase 1B (campaign world gen) ──→ Phase 3E (world map)
-    ↓                                ↓
-Phase 2A-C (prompt tuning) ──→ Phase 4A (hybrid LLM)
-    ↓
-Phase 3A (frontend breakup) → Phase 3B-D (companion/quest/alignment)
-```
+1. Add frontend data layer:
+   - `getContentCatalog()`, `getContentDefault()`, `getContentSummary()`
+2. Replace hardcoded `ERA_LABELS` selector source with catalog response.
+3. Keep visual labels from server metadata (display_name), not local constants.
+4. Update creation state:
+   - store selected `{settingId, periodId}`
+   - legacy `charEra` remains temporary adapter until full cutover
+5. On startup, auto-select server default content when user has no prior preference.
 
-**Phase 1A is the unlock.** Everything else builds on a rich content corpus.
+### Acceptance Criteria
 
-**Phases 2 and 3 run in parallel** — backend prompt work and frontend work have no conflicts.
-
-**Phase 4 is optional but transformative** — cloud-quality narration with local-speed UI responsiveness.
+- Adding/removing period folders changes UI choices without frontend code edits.
+- Creation flow succeeds with dynamic selections and fails gracefully otherwise.
 
 ---
 
-## End-State Player Experience
+## Phase 4 — Content Model Convergence (Week 4–6)
 
-With all phases complete:
+### Objectives
 
-1. **Create a campaign** → System generates a unique world with 15+ locations, 20+ NPCs, 5+ quest hooks from ingested novels
-2. **Open the star map** → See the galaxy, faction territories, travel routes
-3. **Enter a cantina** → Meet NPCs with voice profiles derived from novel characters
-4. **Make a choice** → KOTOR dialogue wheel with consequence hints, companion previews, skill checks
-5. **Watch companions react** → Sidebar shows approval shifts, loyalty upgrades
-6. **Track alignment** → Paragon/Renegade meter shifts with accumulated choices
-7. **Follow quest threads** → Floating objective tracker with progress, pulses on updates
+- Complete migration from era-first semantics to setting/period-first internals.
 
-That's KOTOR-level storytelling depth powered by ingested novels, per-campaign generated worlds, and a UI that surfaces the rich computation the backend already performs.
+### Tasks
+
+1. Introduce canonical internal key object for all content fetches:
+   - `ContentRef { setting_id, period_id }`
+2. Convert major services to consume `ContentRef` directly:
+   - setup, companions, encounter manager, quest tracker, lore retrieval filters
+3. Restrict legacy `era_id` handling to explicit adapter boundary.
+4. Add migration report command:
+   - shows which code paths still rely on era aliases.
+
+### Acceptance Criteria
+
+- Main game loop no longer depends on legacy `era_id` internally.
+- Legacy routes still function for existing clients.
+
+---
+
+## Phase 5 — Data Quality & Playability Gates (Week 5–7)
+
+### Objectives
+
+- Prevent “selectable but unplayable” periods.
+
+### Tasks
+
+1. Add playability validator score per period:
+   - required minima for locations, NPC templates, backgrounds, quests, rumors
+2. Catalog exposes `playable: true/false` + reason list.
+3. Frontend creation screen:
+   - hides non-playable periods by default
+   - optional “show experimental” toggle for dev mode
+4. CI gate for content packs:
+   - new/updated periods must meet threshold or be flagged experimental.
+
+### Acceptance Criteria
+
+- User cannot accidentally start campaign in content-incomplete period unless they explicitly opt in.
+
+---
+
+## Phase 6 — Documentation & Operations Cleanup (Week 6–8)
+
+### Objectives
+
+- Align docs and runbooks with new dynamic architecture.
+
+### Tasks
+
+1. Update docs to describe content catalog API as authoritative discovery mechanism.
+2. Replace examples using deprecated hardcoded periods.
+3. Add operator guide:
+   - how to add new period folder
+   - how it appears in API/UI
+   - how to validate playability
+4. Add troubleshooting matrix for common migration failures.
+
+### Acceptance Criteria
+
+- New contributor can add a period folder and see it in UI without touching frontend constants.
+
+---
+
+## Technical Work Breakdown (Cross-Cutting)
+
+### Backend
+
+- API additions under `backend/app/api/v2_campaigns.py` or a dedicated `v2_content.py` router.
+- Extend repository service for catalog/build metadata output.
+- Centralize period resolution and validation utility.
+
+### Frontend
+
+- Add content-catalog API client module.
+- Update creation store and creation route to dynamic options.
+- Keep temporary adapter for legacy fields until setup payload migration is complete.
+
+### Tests
+
+- Unit tests for catalog discovery and legacy mapping fallback.
+- API tests for invalid period handling (4xx + suggestions).
+- Frontend store tests for dynamic timeline selection.
+- End-to-end smoke test with:
+  - only legacy era packs,
+  - only setting packs,
+  - mixed roots.
+
+---
+
+## Migration Safety Strategy
+
+- Feature flag: `ENABLE_DYNAMIC_CONTENT_CATALOG=1`
+  - Allows staged rollout.
+- Dual-write/dual-read period in setup payload:
+  - accept both `time_period` and `setting_id/period_id`.
+- Compatibility window:
+  - keep era endpoints and mapping for at least one release cycle.
+- Telemetry:
+  - log usage split between legacy and canonical routes.
+
+---
+
+## Risks & Mitigations
+
+1. **Risk:** Mixed pack structures cause ambiguous resolution.
+   - **Mitigation:** deterministic precedence order + explicit catalog source metadata.
+
+2. **Risk:** Frontend and backend drift during migration.
+   - **Mitigation:** backend-driven defaults and strict API contract tests.
+
+3. **Risk:** Existing campaigns store legacy period IDs.
+   - **Mitigation:** migration mapper at campaign load; store canonical IDs forward.
+
+4. **Risk:** Catalog exposes non-playable periods.
+   - **Mitigation:** built-in playability score and UI filtering.
+
+---
+
+## Milestone Definition of Done
+
+The long-term migration is complete when all of the following are true:
+
+- Timeline/period options are discovered dynamically from backend content catalog.
+- Setup and gameplay APIs operate on canonical `setting_id/period_id` inputs.
+- Legacy era API remains available as compatibility adapter, not core path.
+- Unknown periods return friendly 4xx errors with correction hints.
+- New content folders become selectable in UI automatically.
+- Default smoke tests pass without manual period/environment surgery.
+

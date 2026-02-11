@@ -7,7 +7,7 @@
 - Writes via LanceStore to unified lore_chunks table (never overwrites).
 
 Usage:
-  python -m ingestion.ingest_lore --input ./data/lore [--time-period LOTF] [--planet Tatooine] [--faction Empire]
+  python -m ingestion.ingest_lore --input ./data/lore --setting-id star_wars_legends --period-id rebellion [--time-period REBELLION] [--planet Tatooine] [--faction Empire]
   python -m ingestion.ingest_lore --input ./data/lore --source-type reference --collection lore --book-title "My Sourcebook"
 """
 from __future__ import annotations
@@ -38,6 +38,7 @@ from ingestion.era_normalization import apply_era_mode, resolve_era_mode, infer_
 from shared.lore_metadata import default_doc_type, default_section_kind, default_characters
 from shared.config import EMBEDDING_DIMENSION, EMBEDDING_MODEL
 from backend.app.content.repository import CONTENT_REPOSITORY
+from backend.app.content.loader import resolve_legacy_era
 
 PARENT_TOKENS = 1024
 CHILD_TOKENS = 256
@@ -116,6 +117,8 @@ def _chunk_meta(meta: dict[str, str], text: str) -> dict[str, Any]:
         "chapter": meta.get("chapter", ""),
         "time_period": time_period,
         "era": era,
+        "setting_id": meta.get("setting_id", ""),
+        "period_id": meta.get("period_id", era),
         "planet": meta.get("planet", ""),
         "faction": meta.get("faction", ""),
         "doc_type": meta.get("doc_type", default_doc_type()),
@@ -219,6 +222,8 @@ def ingest_file(
     final_meta = {
         "time_period": final_time_period,
         "era": final_time_period,
+        "setting_id": meta.get("setting_id", ""),
+        "period_id": meta.get("period_id", final_time_period),
         "planet": meta.get("planet") or heuristic.get("planet", ""),
         "faction": meta.get("faction") or heuristic.get("faction", ""),
         "doc_type": meta.get("doc_type") or heuristic.get("doc_type", ""),
@@ -250,6 +255,8 @@ def _to_canonical_chunks(hierarchical: list[dict[str, Any]]) -> list[dict[str, A
             "chapter": c.get("chapter", ""),
             "time_period": c.get("time_period", ""),
             "era": c.get("era", c.get("time_period", "")),
+            "setting_id": c.get("setting_id", ""),
+            "period_id": c.get("period_id", c.get("time_period", "")),
             "planet": c.get("planet", ""),
             "faction": c.get("faction", ""),
             "doc_type": c.get("doc_type", default_doc_type()),
@@ -264,13 +271,57 @@ def _to_canonical_chunks(hierarchical: list[dict[str, Any]]) -> list[dict[str, A
     return canonical
 
 
+def _resolve_content_coordinates(*, setting_id: str, period_id: str, time_period: str) -> tuple[str, str, str]:
+    """Resolve canonical and legacy content identifiers for ingestion metadata."""
+    s = (setting_id or "").strip().lower().replace("-", "_")
+    p = (period_id or "").strip().lower().replace("-", "_")
+    legacy = (time_period or "").strip()
+
+    if s and p:
+        if not legacy:
+            legacy = p
+        return s, p, legacy
+
+    if time_period:
+        rs, rp = resolve_legacy_era(time_period)
+        return rs, rp, time_period
+
+    # no explicit selector: default to repository default period fallback
+    catalog = CONTENT_REPOSITORY.list_catalog()
+    if catalog:
+        first = catalog[0]
+        return first["setting_id"], first["period_id"], first["legacy_era_id"]
+    return "star_wars_legends", "rebellion", "rebellion"
+
+
+def _npc_linkage_stats(chunks: list[dict[str, Any]]) -> dict[str, Any]:
+    total = len(chunks)
+    with_links = 0
+    unique: set[str] = set()
+    for c in chunks:
+        md = c.get("metadata") or {}
+        rel = md.get("related_npcs") or []
+        if rel:
+            with_links += 1
+            unique.update(str(x) for x in rel if str(x).strip())
+    ratio = (with_links / total) if total else 0.0
+    return {
+        "chunks_total": total,
+        "chunks_with_related_npcs": with_links,
+        "related_npc_coverage_ratio": round(ratio, 4),
+        "unique_related_npcs": len(unique),
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(
         description="Enriched RAG: Ingest lore (PDF/EPUB/TXT) with parent-child chunking and context prefixes."
     )
     ap.add_argument("--input", "-i", type=str, default="./data/lore", help="Directory with .pdf/.epub/.txt")
     ap.add_argument("--db", type=str, default="./data/lancedb", help="LanceDB path")
-    ap.add_argument("--time-period", type=str, default="", help="Override/set time_period for all chunks (e.g. LOTF)")
+    ap.add_argument("--time-period", type=str, default="", help="Legacy alias for period selection (e.g. REBELLION)")
+    ap.add_argument("--setting-id", type=str, default="", help="Canonical setting id for all chunks (e.g. star_wars_legends)")
+    ap.add_argument("--period-id", type=str, default="", help="Canonical period id for all chunks (e.g. rebellion)")
     ap.add_argument("--planet", type=str, default="", help="Override/set planet for all chunks (e.g. Tatooine)")
     ap.add_argument("--faction", type=str, default="", help="Override/set faction for all chunks (e.g. Empire)")
     ap.add_argument("--source-type", type=str, default="reference", help="Source type (reference, novel, etc.)")
@@ -289,8 +340,9 @@ def main() -> int:
         "--delete-by",
         type=str,
         default="",
-        help="Delete chunks by filter instead of ingesting. Format: era=REBELLION,source=mybook.epub,doc_type=novel,collection=lore",
+        help="Delete chunks by filter instead of ingesting. Format: era=REBELLION,source=mybook.epub,doc_type=novel,collection=lore,setting_id=star_wars_legends,period_id=rebellion",
     )
+    ap.add_argument("--dry-run-delete", action="store_true", help="Preview delete-by matches without deleting rows")
     args = ap.parse_args()
 
     # V2.5: Bulk delete mode (early exit)
@@ -305,7 +357,7 @@ def main() -> int:
             logger.error("Invalid --delete-by format. Use: era=REBELLION,source=mybook.epub")
             return 1
         store = LanceStore(args.db)
-        deleted = store.delete_by_filter(**filters)
+        deleted = store.delete_by_filter(**filters, dry_run=args.dry_run_delete)
         logger.info("Deleted %d chunks matching: %s", deleted, filters)
         return 0
 
@@ -330,8 +382,25 @@ def main() -> int:
         logger.warning("No .txt/.epub/.pdf in %s", data_dir)
         return 0
     input_hashes, hash_failures = input_file_hashes(paths)
+    setting_id, period_id, legacy_era = _resolve_content_coordinates(
+        setting_id=args.setting_id,
+        period_id=args.period_id,
+        time_period=args.time_period,
+    )
+    catalog = CONTENT_REPOSITORY.list_catalog()
+    known_pairs = {(row.get("setting_id"), row.get("period_id")) for row in catalog}
+    if known_pairs and (setting_id, period_id) not in known_pairs:
+        logger.warning(
+            "Target %s/%s not found in discovered content catalog; ingestion will proceed but retrieval routing may not use these chunks until pack metadata is added.",
+            setting_id,
+            period_id,
+        )
+
     meta = {
-        "time_period": (args.time_period or "").strip(),
+        "time_period": period_id,
+        "era": period_id,
+        "setting_id": setting_id,
+        "period_id": period_id,
         "planet": args.planet.strip(),
         "faction": args.faction.strip(),
     }
@@ -358,9 +427,14 @@ def main() -> int:
         logger.error("No chunks produced (%d file failures)", file_failures)
         return 1
     canonical = _to_canonical_chunks(all_chunks)
-    era_pack_id = (args.era_pack or args.time_period or "").strip()
+    era_pack_id = (args.era_pack or legacy_era or period_id or "").strip()
     era_pack = None
-    if era_pack_id:
+    if args.setting_id and args.period_id:
+        try:
+            era_pack = CONTENT_REPOSITORY.get_content(setting_id, period_id)
+        except Exception as exc:
+            logger.error("Failed to load setting/period pack '%s/%s': %s", setting_id, period_id, exc, exc_info=True)
+    elif era_pack_id:
         try:
             era_pack = CONTENT_REPOSITORY.get_pack(era_pack_id)
         except Exception as exc:
@@ -375,6 +449,13 @@ def main() -> int:
     if npc_tag_stats.get("collision_report_path"):
         logger.info("NPC collision report written: %s", npc_tag_stats["collision_report_path"])
     canonical, tagger_stats = apply_tagger_to_chunks(canonical)
+    npc_linkage = _npc_linkage_stats(canonical)
+    logger.info("NPC linkage coverage: %.2f%% (%d/%d chunks), unique NPCs=%d",
+        npc_linkage["related_npc_coverage_ratio"] * 100.0,
+        npc_linkage["chunks_with_related_npcs"],
+        npc_linkage["chunks_total"],
+        npc_linkage["unique_related_npcs"],
+    )
     store = LanceStore(args.db, allow_overwrite=args.rebuild)
     logger.info("Writing %d chunks to LanceDB (with dedup)...", len(canonical))
     store_result = store.add_chunks(canonical)
@@ -402,6 +483,14 @@ def main() -> int:
             "skipped_dedup": skipped,
             "failed": int(hash_failures) + int(file_failures) + int(tagger_stats.get("failed", 0)),
         },
+        context={
+            "setting_id": setting_id,
+            "period_id": period_id,
+            "legacy_era_id": legacy_era,
+            "source_type": args.source_type,
+            "collection": args.collection,
+            "npc_linkage": npc_linkage,
+        },
     )
     # V2.5: Validate era values for retrieval compatibility
     from ingestion.era_normalization import validate_era_for_retrieval
@@ -416,8 +505,8 @@ def main() -> int:
             logger.warning("Era validation: %s", warn_msg)
 
     logger.info(
-        "Lore ingestion complete: %d chunks total, %d added, %d skipped (dedup), %d file failures",
-        len(canonical), added, skipped, file_failures,
+        "Lore ingestion complete for %s/%s: %d chunks total, %d added, %d skipped (dedup), %d file failures",
+        setting_id, period_id, len(canonical), added, skipped, file_failures,
     )
     return 0
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import logging
 import random
 import uuid
@@ -140,6 +141,10 @@ class CreateCampaignResponse(BaseModel):
 
 
 class SetupAutoRequest(BaseModel):
+    # Canonical content coordinates
+    setting_id: str | None = None
+    period_id: str | None = None
+    # Legacy alias still accepted for backward compatibility
     time_period: str | None = None
     genre: str | None = None
     themes: list[str] = Field(default_factory=list)
@@ -167,6 +172,82 @@ class SetupAutoResponse(BaseModel):
     player_id: str
     skeleton: dict
     character_sheet: dict
+
+
+class ContentCatalogEntry(BaseModel):
+    setting_id: str
+    setting_display_name: str
+    period_id: str
+    period_display_name: str
+    legacy_era_id: str
+    source: str
+    summary: str = ""
+    playable: bool = True
+    playability_reasons: list[str] = Field(default_factory=list)
+    locations_count: int = 0
+    backgrounds_count: int = 0
+    companions_count: int = 0
+    quests_count: int = 0
+
+
+class ContentCatalogResponse(BaseModel):
+    items: list[ContentCatalogEntry]
+
+
+class ContentDefaultResponse(BaseModel):
+    setting_id: str
+    period_id: str
+    legacy_era_id: str
+
+
+class ContentSummaryResponse(BaseModel):
+    setting_id: str
+    period_id: str
+    legacy_era_id: str
+    backgrounds_count: int
+    locations_count: int
+    companions_count: int
+    quests_count: int
+    playable: bool
+
+
+def _catalog_items() -> list[dict]:
+    return CONTENT_REPOSITORY.list_catalog()
+
+
+def _resolve_requested_period(*, setting_id: str | None, period_id: str | None, time_period: str | None) -> tuple[str, str, str]:
+    """Resolve request into canonical (setting_id, period_id, legacy_era_id)."""
+    items = _catalog_items()
+    if setting_id and period_id:
+        s = str(setting_id).strip().lower().replace("-", "_")
+        p = str(period_id).strip().lower().replace("-", "_")
+        for item in items:
+            if item["setting_id"] == s and item["period_id"] == p:
+                return s, p, item["legacy_era_id"]
+        available = ", ".join(sorted({f"{i['setting_id']}/{i['period_id']}" for i in items})) or "none"
+        raise HTTPException(status_code=400, detail=f"Unknown period '{s}/{p}'. Available: {available}")
+
+    if time_period:
+        era = str(time_period).strip().lower().replace("-", "_")
+        for item in items:
+            if item["period_id"] == era or item["legacy_era_id"].strip().lower() == era:
+                return item["setting_id"], item["period_id"], item["legacy_era_id"]
+        # Legacy compatibility: unknown time_period falls back to default instead of hard-failing.
+        # Canonical callers should use setting_id/period_id for strict validation.
+        if items:
+            fallback = items[0]
+            return fallback["setting_id"], fallback["period_id"], fallback["legacy_era_id"]
+
+    # Default resolver
+    default_setting = (os.environ.get("DEFAULT_SETTING_ID") or "star_wars_legends").strip().lower().replace("-", "_")
+    default_period = (os.environ.get("DEFAULT_PERIOD_ID") or "rebellion").strip().lower().replace("-", "_")
+    for item in items:
+        if item["setting_id"] == default_setting and item["period_id"] == default_period:
+            return default_setting, default_period, item["legacy_era_id"]
+    if items:
+        first = items[0]
+        return first["setting_id"], first["period_id"], first["legacy_era_id"]
+    raise HTTPException(status_code=500, detail="No content packs discovered")
 
 
 class TurnRequest(BaseModel):
@@ -259,10 +340,42 @@ def _create_npc_cast_from_skeleton(conn, campaign_id: str, skeleton: dict, start
         )
 
 
+@router.get("/content/catalog", response_model=ContentCatalogResponse)
+def get_content_catalog():
+    """Return discovered setting/period catalog for dynamic frontend selectors."""
+    return {"items": _catalog_items()}
+
+
+@router.get("/content/default", response_model=ContentDefaultResponse)
+def get_content_default():
+    setting_id, period_id, legacy_era_id = _resolve_requested_period(setting_id=None, period_id=None, time_period=None)
+    return {"setting_id": setting_id, "period_id": period_id, "legacy_era_id": legacy_era_id}
+
+
+@router.get("/content/{setting_id}/{period_id}/summary", response_model=ContentSummaryResponse)
+def get_content_summary(setting_id: str, period_id: str):
+    s, p, legacy = _resolve_requested_period(setting_id=setting_id, period_id=period_id, time_period=None)
+    pack = CONTENT_REPOSITORY.get_content(s, p)
+    playable = bool(pack.locations) and bool(pack.backgrounds)
+    return {
+        "setting_id": s,
+        "period_id": p,
+        "legacy_era_id": legacy,
+        "backgrounds_count": len(pack.backgrounds or []),
+        "locations_count": len(pack.locations or []),
+        "companions_count": len(pack.companions or []),
+        "quests_count": len(pack.quests or []),
+        "playable": playable,
+    }
+
+
 @router.get("/era/{era_id}/locations")
 def get_era_locations(era_id: str):
     """Return known locations for an era pack (for UI starting-area selection)."""
-    pack = CONTENT_REPOSITORY.get_pack(era_id) if era_id else None
+    try:
+        pack = CONTENT_REPOSITORY.get_pack(era_id) if era_id else None
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Era pack not found")
     if not pack:
         raise HTTPException(status_code=404, detail="Era pack not found")
     return {
@@ -275,7 +388,11 @@ def get_era_locations(era_id: str):
 def get_era_backgrounds(era_id: str):
     """Return available backgrounds and their question chains for the given era."""
     logger.info(f"Received request for era backgrounds: era_id={era_id}")
-    pack = CONTENT_REPOSITORY.get_pack(era_id) if era_id else None
+    try:
+        pack = CONTENT_REPOSITORY.get_pack(era_id) if era_id else None
+    except FileNotFoundError:
+        logger.error(f"Era pack not found for era_id={era_id}")
+        raise HTTPException(status_code=404, detail="Era pack not found")
     if not pack:
         logger.error(f"Era pack not found for era_id={era_id}")
         raise HTTPException(status_code=404, detail="Era pack not found")
@@ -506,17 +623,23 @@ def setup_auto(body: SetupAutoRequest):
         except Exception as e:
             logger.warning("Failed to initialize BiographerAgent with LLM, using fallback: %s", e, exc_info=True)
             _bio = BiographerAgent(llm=None)
-        # V3.2: Resolve era pack early so setting_rules is available for both architect and biographer
-        era_for_setup = body.time_period
-        era_pack_for_setup = CONTENT_REPOSITORY.get_pack(era_for_setup) if era_for_setup else None
+        # Resolve requested content coordinates with graceful validation.
+        req_setting, req_period, req_legacy_era = _resolve_requested_period(
+            setting_id=body.setting_id,
+            period_id=body.period_id,
+            time_period=body.time_period,
+        )
+        era_for_setup = req_period
+        era_pack_for_setup = CONTENT_REPOSITORY.get_content(req_setting, req_period)
         _setting_rules = era_pack_for_setup.setting_rules if (era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules")) else None
-        skeleton = _arch.build(time_period=body.time_period, themes=body.themes, setting_rules=_setting_rules)
+        skeleton = _arch.build(time_period=era_for_setup, themes=body.themes, setting_rules=_setting_rules)
 
         # Refine era pack if architect resolved a different time_period
         if not era_for_setup:
             era_for_setup = skeleton.get("time_period")
             if era_for_setup:
-                era_pack_for_setup = CONTENT_REPOSITORY.get_pack(era_for_setup)
+                _, era_for_setup, _ = _resolve_requested_period(setting_id=req_setting, period_id=None, time_period=era_for_setup)
+                era_pack_for_setup = CONTENT_REPOSITORY.get_content(req_setting, era_for_setup)
                 _setting_rules = era_pack_for_setup.setting_rules if (era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules")) else _setting_rules
         available_locations = (
             [loc.id for loc in (era_pack_for_setup.locations or [])]
@@ -829,7 +952,7 @@ def setup_auto(body: SetupAutoRequest):
             campaign_id=None,
             turn_number=None,
             agent_name="setup_auto",
-            extra_context={"time_period": body.time_period, "themes": body.themes},
+            extra_context={"time_period": era_for_setup, "themes": body.themes},
         )
         raise
     finally:

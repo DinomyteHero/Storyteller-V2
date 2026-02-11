@@ -1,162 +1,179 @@
 # Quick Start Guide
 
+This guide reflects the current repository layout and launch scripts.
+
 ## Prerequisites
 
-1. **Python 3.11+**: `python --version`
-2. **Ollama installed** (local LLM): https://ollama.com/download
-3. **Ollama running**: `ollama serve` (or use `.\start_dev.bat` / `python -m storyteller dev`, which can try to start it)
-4. **Pull the required models**:
-   ```bash
-   ollama pull mistral-nemo        # Director + Narrator (quality-critical, ~7GB VRAM)
-   ollama pull qwen3:4b            # Architect, Casting, Biographer, KG Extractor (lightweight)
-   ```
+1. **Python 3.11+**
+2. **Node.js + npm** (for SvelteKit frontend)
+3. **Ollama** installed and available on PATH (for LLM-backed flows)
 
-Notes:
-- `mistral-nemo:latest` handles Director and Narrator (the two quality-critical roles).
-- `qwen3:4b` handles all lightweight roles (Architect, Casting, Biographer, KG Extractor).
-- Only one model is loaded at a time (specialist swapping). An RTX 4070 12GB or equivalent is sufficient.
-- Embeddings default to `sentence-transformers/all-MiniLM-L6-v2` (downloads automatically on first ingest/retrieval).
-
----
-
-## Fastest Path (Windows)
-
-```powershell
-.\setup_dev.bat
-.\start_dev.bat
-```
-
-Open:
-- Backend: `http://localhost:8000` (OpenAPI UI: `http://localhost:8000/docs`)
-- SvelteKit UI: `http://localhost:5173`
-
----
-
-## Cross-Platform Setup (Recommended)
+Recommended model pulls (matching default role configuration):
 
 ```bash
-python -m venv venv
-# Activate:
-#   Windows PowerShell: .\venv\Scripts\Activate.ps1
-#   Windows CMD:       .\venv\Scripts\activate.bat
-#   macOS/Linux:       source venv/bin/activate
+ollama pull mistral-nemo:latest
+ollama pull qwen3:4b
+ollama pull qwen3:8b
+ollama pull nomic-embed-text
+```
 
+---
+
+## 1) Install dependencies
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -e .
+```
+
+Optional first-run setup helper:
+
+```bash
 python -m storyteller setup
+```
+
+`storyteller setup` creates the standard data directories and runs basic health checks.
+
+---
+
+## 2) Configure environment
+
+Create `.env` (or export variables in shell). Minimum useful variables:
+
+```bash
+# Runtime paths
+export STORYTELLER_DB_PATH="./data/storyteller.db"
+export VECTORDB_PATH="./data/lancedb"
+export ERA_PACK_DIR="./data/static/era_packs"
+
+# Ollama endpoint
+export OLLAMA_BASE_URL="http://127.0.0.1:11434"
+
+# Optional API auth for non-dev mode
+# export STORYTELLER_DEV_MODE=0
+# export STORYTELLER_API_TOKEN="replace-me"
+```
+
+If you keep `STORYTELLER_DEV_MODE=1` (default), API auth is disabled for local development.
+
+---
+
+## 3) Start the stack
+
+### Recommended unified launcher
+
+```bash
+python run_app.py --dev
+```
+
+Useful variants:
+
+```bash
+python run_app.py --check
+python run_app.py --api-only --dev
+python run_app.py --ui-only --ui-port 5173
+python run_app.py --validate-packs --dev
+```
+
+### Alternative CLI launcher
+
+```bash
 python -m storyteller dev
 ```
 
-`storyteller setup`:
-- Creates `data/`, `data/lancedb/`, `data/lore/`, `data/style/`, `data/manifests/`
-- Copies `.env.example` to `.env` (if missing)
-- Runs `storyteller doctor` (environment health check)
+### Windows helper
 
----
-
-## (Optional) Run DB Migration
-
-```powershell
-python -m backend.app.db.migrate --db ./data/storyteller.db
-```
-
-- Safe to run multiple times; migrations are tracked in `schema_migrations`.
-
----
-
-## Ingest Starter Content
-
-### Option A: Sample Data (Flat TXT/EPUB)
-
-```powershell
-python -m ingestion.ingest --input_dir sample_data --era LOTF --source_type novel --out_db ./data/lancedb
-```
-
-### Option B: Rebellion Starter Pack (Hierarchical + Style)
-
-This repo includes:
-- Era Pack (Bible): `data/static/era_packs/rebellion.yaml`
-- Style guide: `data/style/rebellion_style.md`
-- Lore + hooks: `data/lore/rebellion/sourcebooks/` and `data/lore/rebellion/adventures/`
-
-```powershell
-# Lore (hierarchical; UI-era key)
-python -m ingestion.ingest_lore --input ./data/lore/rebellion --db ./data/lancedb --time-period REBELLION --era-mode ui --recursive
-
-# Style
-python -m backend.app.scripts.ingest_style --dir ./data/style --db ./data/lancedb
-```
-
-Rebellion tip: in campaign setup, choose Era = `REBELLION` (or set `DEFAULT_ERA=REBELLION`).
-
----
-
-## Character Aliases (Reference Only)
-
-The file `data/character_aliases.yml` defines character name mappings for entity resolution. This feature is not currently used during ingestion - all chunks are ingested with empty character metadata. The core system works fine without character tagging.
-
----
-
-## Verify (Optional)
-
-```powershell
-python scripts/verify_lore_store.py --db ./data/lancedb
-python -m storyteller query "ISB tactics" --k 5 --era REBELLION
-```
-
-Optional (advanced): build SQLite knowledge-graph tables from ingested lore:
-
-```powershell
-python -m storyteller extract-knowledge --era rebellion --resume
+```bat
+.\start_app.bat
 ```
 
 ---
 
-## Minimal API Test (PowerShell)
+## 4) Verify services
 
-```powershell
-# Create campaign (manual)
-$create = Invoke-RestMethod -Uri "http://localhost:8000/v2/campaigns" -Method Post -Body '{"title":"Test","player_name":"Rex","starting_location":"loc-tavern"}' -ContentType "application/json"
-$cid = $create.campaign_id
-$pid = $create.player_id
+- API root: `http://localhost:8000/`
+- API health: `http://localhost:8000/health`
+- OpenAPI: `http://localhost:8000/docs`
+- UI (dev): `http://localhost:5173`
 
-# Run a turn
-Invoke-RestMethod -Uri "http://localhost:8000/v2/campaigns/$cid/turn?player_id=$pid" -Method Post -Body '{"user_input":"Look around"}' -ContentType "application/json"
+Quick API check:
+
+```bash
+curl http://localhost:8000/health
 ```
 
-The turn response always includes `narrated_text`, `suggested_actions` (exactly 4 KOTOR-style dialogue options), `player_sheet`, `inventory`, `quest_log`, and `warnings`. It can optionally include `debug`, `state`, `party_status`, `alignment`, `faction_reputation`, and `news_feed`.
+---
 
-### Gameplay interaction
+## 5) Create a campaign and run a turn
 
-Storyteller AI uses a **KOTOR-style dialogue wheel** -- there is no free-text input. Each turn returns exactly 4 `suggested_actions` with tone tags (`PARAGON`, `INVESTIGATE`, `RENEGADE`, `NEUTRAL`). The player picks one, and its `intent_text` is sent as `user_input` for the next turn.
+```bash
+# Create campaign
+curl -X POST "http://localhost:8000/v2/campaigns" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title":"Quickstart Campaign",
+    "time_period":"rebellion",
+    "player_name":"Rex",
+    "starting_location":"loc-cantina"
+  }'
+```
 
-During character creation (via `POST /v2/setup/auto`), the player selects a **gender** (`player_gender`: `"male"` or `"female"`) which is used for pronoun consistency throughout the narrative.
+Use returned `campaign_id` and `player_id`:
+
+```bash
+curl -X POST "http://localhost:8000/v2/campaigns/<campaign_id>/turn?player_id=<player_id>" \
+  -H "Content-Type: application/json" \
+  -d '{"user_input":"Look around"}'
+```
+
+---
+
+## 6) Optional ingestion commands
+
+Flat ingestion (TXT/EPUB):
+
+```bash
+python -m ingestion.ingest --input_dir sample_data --era rebellion --source_type novel --out_db ./data/lancedb
+```
+
+Hierarchical ingestion (PDF/EPUB/TXT):
+
+```bash
+python -m ingestion.ingest_lore --input ./data/lore/rebellion --db ./data/lancedb --setting-id star_wars_legends --period-id rebellion --time-period REBELLION --era-mode ui --recursive
+```
+
+Style ingestion:
+
+```bash
+python scripts/ingest_style.py --dir ./data/style --db ./data/lancedb
+
+# Playability quality gates (content + lore coverage)
+python scripts/check_period_playability.py --db ./data/lancedb
+```
 
 ---
 
 ## Troubleshooting
 
-### "Vector database is empty"
-- Run ingestion first (`ingestion.ingest` or `ingestion.ingest_lore`), and ensure `VECTORDB_PATH` matches the same `--out_db` / `--db` path.
+### Ollama unreachable
 
-### "Failed to connect to Ollama"
-- Ensure Ollama is running: `ollama serve`
-- Verify a model is available: `ollama list`
-- Pull the required models: `ollama pull mistral-nemo` and `ollama pull qwen3:4b`
-
-### Slow first run
-- First ingest/retrieval downloads the sentence-transformers model (~80MB).
-- LLM speed depends on your Ollama model size.
-
-### "Activate.ps1 is not digitally signed" (Windows)
-Run in PowerShell:
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```bash
+ollama serve
+curl http://127.0.0.1:11434/api/tags
 ```
 
-### Using run_with_venv.bat
-For guaranteed venv usage without manual activation:
-```cmd
-.\run_with_venv.bat -m storyteller dev
-.\run_with_venv.bat scripts\ingest_style.py
+### Era pack not found
+
+- Ensure `ERA_PACK_DIR` points to `data/static/era_packs`.
+- Validate packs:
+
+```bash
+python scripts/validate_era_packs.py
 ```
-Note: Do not include `python` in the command -- the wrapper adds it automatically.
+
+### Dependency or environment issues
+
+```bash
+python -m storyteller doctor
+```

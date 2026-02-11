@@ -142,8 +142,8 @@ Storyteller AI/
     lore/                        # Lore source files (EPUB/PDF/TXT)
     manifests/                   # Ingestion manifest files
 
-  start_dev.bat                  # Windows: start backend + SvelteKit UI (`python -m storyteller dev`)
   start_app.bat                  # Windows: unified launcher wrapper (backend + UI)
+  run_app.py                     # Cross-platform launcher with preflight/check modes
 
   README.md                      # Main overview + setup + usage
   QUICKSTART.md                  # Quick setup path
@@ -174,7 +174,8 @@ Storyteller AI/
 
 | Entry Point | File / Command | Purpose |
 |------------|------------------|---------|
-| **Dev stack (recommended)** | `python -m storyteller dev` | Start backend + UI (and try to start Ollama) |
+| **Dev stack (recommended)** | `python run_app.py --dev` | Start backend + UI with preflight checks |
+| **Alternative dev launcher** | `python -m storyteller dev` | Start backend + UI from CLI command |
 | **First-time setup** | `python -m storyteller setup` | Create data dirs + copy `.env` + run health check |
 | **Health check** | `python -m storyteller doctor` | Verify Python/venv/deps/.env/data dirs/Ollama/LanceDB |
 | **API server** | `uvicorn backend.main:app` | Start FastAPI backend |
@@ -182,7 +183,7 @@ Storyteller AI/
 | **Flat ingestion** | `python -m ingestion.ingest ...` | TXT/EPUB ingestion (no PDF) |
 | **Hierarchical ingestion** | `python -m ingestion.ingest_lore ...` | PDF/EPUB/TXT parent/child ingestion |
 | **KG extraction** | `python -m storyteller extract-knowledge ...` | Build SQLite KG tables from ingested lore |
-| **Style ingestion** | `python -m backend.app.scripts.ingest_style ...` | Ingest `data/style/` docs |
+| **Style ingestion** | `python scripts/ingest_style.py ...` | Ingest `data/style/` docs |
 
 ## Key Dependency Map (Conceptual)
 

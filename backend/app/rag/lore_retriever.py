@@ -50,6 +50,8 @@ def retrieve_lore(
     section_kinds: List[str] | None = None,
     characters: str | List[str] | None = None,
     related_npcs: str | List[str] | None = None,
+    setting_id: str | None = None,
+    period_id: str | None = None,
     universe: str | None = None,
     db_path: str | Path | None = None,
     table_name: str | None = None,
@@ -102,12 +104,18 @@ def retrieve_lore(
         source_type = _safe_filter_token(source_type)
         doc_type = _safe_filter_token(doc_type)
         section_kind = _safe_filter_token(section_kind)
+        setting_id = _safe_filter_token(setting_id)
+        period_id = _safe_filter_token(period_id)
         universe = _safe_filter_token(universe)
         safe_doc_types = _safe_filter_tokens(doc_types)
         safe_section_kinds = _safe_filter_tokens(section_kinds)
         safe_char_filter = _safe_filter_tokens(char_filter)
         safe_npc_filter = _safe_filter_tokens(npc_filter)
 
+        if setting_id and "setting_id" in schema_cols:
+            q = q.where(f"setting_id = '{_esc(setting_id)}'")
+        if period_id and "period_id" in schema_cols:
+            q = q.where(f"period_id = '{_esc(period_id)}'")
         if universe and "universe" in schema_cols:
             q = q.where(f"universe = '{_esc(universe)}'")
         if era and "era" in schema_cols:
@@ -176,6 +184,8 @@ def retrieve_lore(
         metadata = {
             "era": _v("era") or "",
             "time_period": _v("time_period") or "",
+            "setting_id": _v("setting_id") or "",
+            "period_id": _v("period_id") or "",
             "planet": _v("planet") or "",
             "faction": _v("faction") or "",
             "source_type": _v("source_type") or "",
@@ -233,6 +243,8 @@ class LoreRetriever:
             section_kinds=filters.get("section_kinds"),
             characters=chars,
             related_npcs=related,
+            setting_id=filters.get("setting_id"),
+            period_id=filters.get("period_id"),
             universe=filters.get("universe"),
             db_path=self.db_path,
             table_name=self.table_name,
