@@ -99,14 +99,14 @@ def make_director_node():
         # --- V2.10: Dynamic genre detection ---
         try:
             from backend.app.core.genre_triggers import detect_genre_shift
-            from backend.app.world.era_pack_loader import get_era_pack as _get_era_pack_for_genre
+            from backend.app.content.repository import CONTENT_REPOSITORY
             current_genre = campaign_ws.get("genre")
             genre_last_turn = int(campaign_ws.get("genre_last_changed_turn", 0))
             cache_turn = int(gs.turn_number or 0)
             cache_arc_stage = (state.get("arc_guidance") or {}).get("arc_stage", "SETUP")
             turns_since = max(0, cache_turn - genre_last_turn)
             loc_tags_for_genre: list[str] = []
-            _genre_pack = _get_era_pack_for_genre(era)
+            _genre_pack = CONTENT_REPOSITORY.get_pack(era) if era else None
             if _genre_pack:
                 _genre_loc = _genre_pack.location_by_id(gs.current_location or "")
                 if _genre_loc:
@@ -126,10 +126,10 @@ def make_director_node():
         # --- V2.10: Build NPC personality context for scene ---
         npc_personality_ctx = ""
         try:
-            from backend.app.world.era_pack_loader import get_era_pack
+            from backend.app.content.repository import CONTENT_REPOSITORY
             from backend.app.core.companions import get_companion_by_id
             era_npc_lookup: dict[str, Any] = {}
-            pack = get_era_pack(era)
+            pack = CONTENT_REPOSITORY.get_pack(era) if era else None
             if pack:
                 for npc_entry in pack.all_npcs():
                     era_npc_lookup[npc_entry.id] = npc_entry.model_dump(mode="json")

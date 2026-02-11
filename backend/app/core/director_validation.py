@@ -619,8 +619,8 @@ def _get_location_affordances(
     Returns (services, access_points, travel_links) — all as lists.
     """
     try:
-        from backend.app.world.era_pack_loader import get_era_pack
-        pack = get_era_pack(era)
+        from backend.app.content.repository import CONTENT_REPOSITORY
+        pack = CONTENT_REPOSITORY.get_pack(era) if era else None
         if not pack:
             return [], [], []
         loc = pack.location_by_id(location_id or "")
