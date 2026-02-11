@@ -222,3 +222,78 @@ python -m pytest backend/tests/ -q --tb=short
 ## 10. License / Credits
 
 Not specified in the repo; omit or add per your project policy.
+
+## Modes: SIM, PASSAGE, HYBRID
+
+The backend now emits a strict `turn_contract` on every turn response. Legacy fields (`narrated_text`, `suggested_actions`) remain for compatibility.
+
+- **SIM**: LangGraph simulation pipeline (deterministic mechanics + narrated resolution).
+- **PASSAGE**: Authored branching episode packs loaded from `static/passages/**`.
+- **HYBRID**: Passage spine with optional SIM scene triggers via `SIM_SCENE:<template_id>` choice targets.
+
+### TurnContract (example)
+
+```json
+{
+  "mode": "SIM",
+  "campaign_id": "...",
+  "turn_id": "..._t12",
+  "display_text": "...",
+  "scene_goal": "Advance objective",
+  "obstacle": "Escalating opposition",
+  "stakes": "Mission momentum",
+  "outcome": { "category": "PARTIAL" },
+  "state_delta": { "time_minutes": 5 },
+  "choices": [{ "id": "t12_c1", "label": "Scout", "intent": { "intent_type": "INVESTIGATE", "target_ids": {}, "params": {} }, "risk": "med", "cost": { "time_minutes": 5 } }]
+}
+```
+
+### New Passage Endpoints
+
+- `POST /v2/campaigns/{id}/start_passage` with `{ "pack_id": "rebellion", "mode": "PASSAGE|HYBRID" }`
+- `POST /v2/campaigns/{id}/choose` with `{ "choice_id": "..." }` or `{ "intent": {...} }`
+
+### Run backend + Svelte frontend
+
+Backend:
+
+```bash
+uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+VITE_API_BASE_URL=http://localhost:8000 npm run dev
+```
+
+### Debug checklist
+
+- CORS mismatch: set `STORYTELLER_CORS_ALLOW_ORIGINS` and `VITE_API_BASE_URL`.
+- SSE unavailable: frontend should retry non-stream endpoint.
+- Era pack missing: verify `time_period` exists in era packs.
+- Passage pack missing: ensure `static/passages/<pack>/episode_01.yml` exists.
+
+### Manual verification smoke flows
+
+1. **SIM mode (3 turns, objective + beats pacing)**
+   - Create campaign: `POST /v2/campaigns`
+   - Run 3 turns via `POST /v2/campaigns/{id}/turn`
+   - Verify each response has `turn_contract` with 2–4 distinct choices, includes `meta.active_objectives`, and `meta.beats_remaining` decrements/reset on transition.
+
+2. **PASSAGE mode (requirements/check branching)**
+   - Start passage: `POST /v2/campaigns/{id}/start_passage` with `{"pack_id":"rebellion","mode":"PASSAGE"}`
+   - Advance with `POST /v2/campaigns/{id}/choose`
+   - Verify choices are gated and deterministic check choices branch to success/fail passages.
+
+3. **HYBRID mode (passage -> sim trigger path)**
+   - Start with `mode:"HYBRID"`
+   - Select branch that emits `SIM_SCENE:*` in passage pack
+   - Verify returned turn contains deterministic outcome and progression remains stable.
+
+### Streaming reliability notes
+
+- `turn_stream` should always emit a final `done` event containing a complete `turn_contract`.
+- Frontend play flow retries the non-stream `/turn` endpoint if stream fails or ends without a final contract.

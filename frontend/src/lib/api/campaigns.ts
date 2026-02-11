@@ -21,9 +21,10 @@ export async function runTurn(
   campaignId: string,
   playerId: string,
   userInput: string,
-  debug: boolean = false
+  debug: boolean = false,
+  intent?: import("./types").Intent
 ): Promise<TurnResponse> {
-  const req: TurnRequest = { user_input: userInput, debug };
+  const req: TurnRequest = intent ? { intent, user_input: userInput, debug } : { user_input: userInput, debug };
   return apiFetch<TurnResponse>(
     `/v2/campaigns/${campaignId}/turn?player_id=${encodeURIComponent(playerId)}`,
     { method: 'POST', body: JSON.stringify(req) },

@@ -151,7 +151,21 @@ export interface TurnResponse {
   debug?: Record<string, unknown>;
   // V2.17: DialogueTurn contract (primary UI source when available)
   dialogue_turn?: DialogueTurn | null;
+  turn_contract?: TurnContract | null;
 }
+
+export interface TurnContract {
+  mode: "SIM"|"PASSAGE"|"HYBRID";
+  campaign_id: string;
+  turn_id: string;
+  display_text: string;
+  scene_goal: string;
+  obstacle: string;
+  stakes: string;
+  outcome: { category: string };
+  choices: Array<{ id: string; label: string; intent: Intent }>;
+}
+
 
 export interface SetupAutoRequest {
   time_period: string;
@@ -172,8 +186,16 @@ export interface SetupAutoResponse {
   character_sheet: Record<string, unknown>;
 }
 
+export interface Intent {
+  intent_type: "TALK"|"MOVE"|"FIGHT"|"SNEAK"|"HACK"|"INVESTIGATE"|"REST"|"BUY"|"USE_ITEM"|"FORCE"|"PASSAGE";
+  target_ids: Record<string,string>;
+  params: Record<string, unknown>;
+  user_utterance?: string | null;
+}
+
 export interface TurnRequest {
-  user_input: string;
+  user_input?: string;
+  intent?: Intent;
   debug?: boolean;
   include_state?: boolean;
 }
@@ -206,7 +228,21 @@ export interface SSEEvent {
   warnings?: string[];
   // V2.17: DialogueTurn contract
   dialogue_turn?: DialogueTurn | null;
+  turn_contract?: TurnContract | null;
 }
+
+export interface TurnContract {
+  mode: "SIM"|"PASSAGE"|"HYBRID";
+  campaign_id: string;
+  turn_id: string;
+  display_text: string;
+  scene_goal: string;
+  obstacle: string;
+  stakes: string;
+  outcome: { category: string };
+  choices: Array<{ id: string; label: string; intent: Intent }>;
+}
+
 
 export interface EraBackground {
   id: string;
