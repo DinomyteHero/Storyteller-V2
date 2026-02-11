@@ -138,7 +138,11 @@ class BiographerAgent:
             "- Military, soldiers -> loc-command-center, loc-hangar\n"
             "- Diplomats, politicians -> loc-marketplace, loc-spaceport\n"
             f"Available locations: {locations_list}\n"
-            "Use Star Wars-appropriate location names."
+            "Use Star Wars-appropriate location names.\n\n"
+            "Example output:\n"
+            '{"name":"Kael Dorne","stats":{"Combat":3,"Stealth":2,"Charisma":1,"Tech":1,"General":2},'
+            '"hp_current":12,"starting_location":"loc-docking-bay",'
+            '"background":"A Corellian smuggler who lost his ship in a rigged sabacc game and now works odd jobs at the docks."}'
         )
         user = f"Player concept: {player_concept}. Era/time_period: {time_period or 'any'}."
 

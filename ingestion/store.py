@@ -179,6 +179,7 @@ def _chunk_to_row(chunk: dict, embedding: List[float]) -> dict:
         "timeline_start": m.get("timeline_start", ""),
         "timeline_end": m.get("timeline_end", ""),
         "timeline_confidence": m.get("timeline_confidence"),
+        "universe": m.get("universe", ""),
     }
 
 
@@ -222,6 +223,7 @@ class LanceStore:
             pa.field("timeline_start", pa.string()),
             pa.field("timeline_end", pa.string()),
             pa.field("timeline_confidence", pa.float32()),
+            pa.field("universe", pa.string()),
         ])
 
     def _ensure_table(self) -> None:

@@ -31,7 +31,11 @@ class LLMResult(str):
 
 
 class AgentLLM:
-    """Role-based LLM: reads MODEL_CONFIG[role]; Ollama only. One client per call to avoid VRAM overload."""
+    """Role-based LLM: reads MODEL_CONFIG[role]. Supports multiple providers via llm_provider.
+
+    V3.0: Supports ollama (default), anthropic, openai, and openai_compat providers.
+    One client per call to avoid VRAM overload (for local models).
+    """
 
     def __init__(self, role: str) -> None:
         if role not in MODEL_CONFIG:
@@ -42,22 +46,59 @@ class AgentLLM:
 
     def _get_client(self) -> Any:
         """Lazy client factory — provider is config-driven (env-overridable per role).
-        Currently only 'ollama' is implemented; add branches here for future providers."""
+
+        V3.0: Supports ollama, anthropic, openai, and openai_compat providers
+        via the unified create_provider() factory.
+        """
         if self._client is not None:
             return self._client
-        provider = self._config.get("provider", "")
+        provider = self._config.get("provider", "ollama")
         model = self._config.get("model", "")
         base_url = self._config.get("base_url", "")
-        if provider == "ollama":
-            from backend.llm_client import LLMClient
-            self._client = LLMClient(
-                base_url=base_url or None,
-                model=model,
+        api_key = self._config.get("api_key", "")
+        from backend.app.core.llm_provider import create_provider
+        self._client = create_provider(provider, model, base_url, api_key)
+        return self._client
+
+    def _call_provider(self, client: Any, user_prompt: str, system_prompt: str, json_mode: bool = False) -> str:
+        """Call the provider using its native interface.
+
+        Ollama uses _call_llm(); cloud providers use complete().
+        """
+        if hasattr(client, "_call_llm"):
+            # Ollama LLMClient
+            return client._call_llm(user_prompt, system_prompt, json_mode=json_mode)
+        elif hasattr(client, "complete"):
+            # Cloud providers (AnthropicClient, OpenAICompatClient)
+            return client.complete(user_prompt, system_prompt, json_mode=json_mode)
+        else:
+            raise TypeError(f"Provider {type(client).__name__} has no complete or _call_llm method")
+
+    def _stream_provider(self, client: Any, user_prompt: str, system_prompt: str) -> Iterator[str]:
+        """Stream from the provider using its native interface."""
+        if hasattr(client, "_call_llm_stream"):
+            yield from client._call_llm_stream(user_prompt, system_prompt)
+        elif hasattr(client, "complete_stream"):
+            yield from client.complete_stream(user_prompt, system_prompt)
+        else:
+            raise TypeError(f"Provider {type(client).__name__} has no streaming method")
+
+    def _try_fallback_client(self) -> Any | None:
+        """Create a fallback client if configured. Returns None if not available."""
+        fallback_provider = self._config.get("fallback_provider")
+        fallback_model = self._config.get("fallback_model")
+        if not fallback_provider:
+            return None
+        try:
+            from backend.app.core.llm_provider import create_provider
+            return create_provider(
+                fallback_provider,
+                fallback_model or self._config.get("model", ""),
+                self._config.get("base_url", ""),
             )
-            return self._client
-        raise NotImplementedError(
-            f"Provider '{provider}' for role '{self._role}' not supported. Only 'ollama' is supported."
-        )
+        except Exception as e:
+            logger.warning("AgentLLM %s: fallback provider init failed: %s", self._role, e)
+            return None
 
     def complete(
         self,
@@ -70,6 +111,8 @@ class AgentLLM:
         Call the LLM; return raw response text.
         If json_mode=True: request JSON-only, validate parse, retry once on invalid.
         If raw_json_mode=True: skip internal JSON validation/retry and return raw output.
+
+        V3.0: Falls back to fallback_provider if primary fails.
         """
         try:
             client = self._get_client()
@@ -78,10 +121,20 @@ class AgentLLM:
             raise
 
         try:
-            raw = client._call_llm(user_prompt, system_prompt, json_mode=json_mode)
+            raw = self._call_provider(client, user_prompt, system_prompt, json_mode=json_mode)
         except Exception as e:
-            logger.exception("AgentLLM %s: LLM call failed", self._role)
-            raise
+            # V3.0: Try fallback provider before giving up
+            fallback = self._try_fallback_client()
+            if fallback:
+                logger.warning("AgentLLM %s: primary failed, trying fallback provider", self._role)
+                try:
+                    raw = self._call_provider(fallback, user_prompt, system_prompt, json_mode=json_mode)
+                except Exception as e2:
+                    logger.exception("AgentLLM %s: fallback provider also failed", self._role)
+                    raise e2
+            else:
+                logger.exception("AgentLLM %s: LLM call failed", self._role)
+                raise
 
         if not json_mode or raw_json_mode:
             return LLMResult(raw)
@@ -100,11 +153,7 @@ class AgentLLM:
             "Your previous response was not valid JSON. Output ONLY a single valid JSON object, no markdown or extra text."
         )
         try:
-            raw2 = client._call_llm(
-                user_prompt + "\n\n" + correction,
-                system_prompt,
-                json_mode=True,
-            )
+            raw2 = self._call_provider(client, user_prompt + "\n\n" + correction, system_prompt, json_mode=True)
         except Exception as e:
             logger.exception("AgentLLM %s: LLM call failed on JSON repair", self._role)
             raise
@@ -128,6 +177,7 @@ class AgentLLM:
         """Stream tokens from LLM. Yields individual token strings.
 
         V2.8: Used by NarratorAgent.generate_stream() for SSE narration.
+        V3.0: Supports streaming from all provider types.
         """
         try:
             client = self._get_client()
@@ -136,7 +186,7 @@ class AgentLLM:
             raise
 
         try:
-            yield from client._call_llm_stream(user_prompt, system_prompt)
+            yield from self._stream_provider(client, user_prompt, system_prompt)
         except Exception as e:
             logger.exception("AgentLLM %s: streaming LLM call failed", self._role)
             raise
