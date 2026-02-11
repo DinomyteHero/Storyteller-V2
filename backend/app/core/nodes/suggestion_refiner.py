@@ -146,12 +146,17 @@ def _build_stat_gated_options(gs: GameState) -> list[ActionSuggestion]:
     tech = _stat_value(stats, "Tech", "tech", "Investigation", "investigation")
     combat = _stat_value(stats, "Combat", "combat")
     paragon_renegade = int(alignment.get("paragon_renegade", 0) or 0)
+    scene_frame = gs.scene_frame if isinstance(gs.scene_frame, dict) else {}
+    npc_utt = gs.npc_utterance if isinstance(gs.npc_utterance, dict) else {}
+    topic = str(scene_frame.get("topic_primary") or "the situation").strip()[:40]
+    npc_line = str(npc_utt.get("text") or "").strip()
+    line_probe = "What makes you so certain?" if not npc_line else f"What did you mean by '{npc_line[:30]}'?"
 
     gated: list[ActionSuggestion] = []
     if charisma >= 6:
         gated.append(ActionSuggestion(
-            label="[PERSUADE] I can resolve this without bloodshed—hear me out.",
-            intent_text="I can resolve this without bloodshed—hear me out.",
+            label=f"[PERSUADE] Hear me out—we can settle this over {topic}, not blood.",
+            intent_text=f"Hear me out—we can settle this over {topic}, not blood.",
             category="SOCIAL",
             risk_level="SAFE",
             strategy_tag="ALTERNATIVE",
@@ -161,8 +166,8 @@ def _build_stat_gated_options(gs: GameState) -> list[ActionSuggestion]:
         ))
     if tech >= 6:
         gated.append(ActionSuggestion(
-            label="[TECH] Give me ten seconds. I'll slice the terminal myself.",
-            intent_text="Give me ten seconds. I'll slice the terminal myself.",
+            label=f"[TECH] Give me a moment; I can analyze this {topic} angle.",
+            intent_text=f"Give me a moment; I can analyze this {topic} angle.",
             category="EXPLORE",
             risk_level="RISKY",
             strategy_tag="ALTERNATIVE",
@@ -172,8 +177,8 @@ def _build_stat_gated_options(gs: GameState) -> list[ActionSuggestion]:
         ))
     if combat >= 7:
         gated.append(ActionSuggestion(
-            label="[COMBAT] Stand down now, or I end this the hard way.",
-            intent_text="Stand down now, or I end this the hard way.",
+            label="[COMBAT] Stand down now, or we settle this by force.",
+            intent_text="Stand down now, or we settle this by force.",
             category="COMMIT",
             risk_level="DANGEROUS",
             strategy_tag="ALTERNATIVE",
@@ -183,8 +188,8 @@ def _build_stat_gated_options(gs: GameState) -> list[ActionSuggestion]:
         ))
     if paragon_renegade >= 8:
         gated.append(ActionSuggestion(
-            label="[PARAGON] We do this cleanly. No one gets abandoned.",
-            intent_text="We do this cleanly. No one gets abandoned.",
+            label=f"[PARAGON] We finish this cleanly—no one gets sacrificed for {topic}.",
+            intent_text=f"We finish this cleanly—no one gets sacrificed for {topic}.",
             category="SOCIAL",
             risk_level="SAFE",
             strategy_tag="ALTERNATIVE",
@@ -194,8 +199,8 @@ def _build_stat_gated_options(gs: GameState) -> list[ActionSuggestion]:
         ))
     if paragon_renegade <= -8:
         gated.append(ActionSuggestion(
-            label="[RENEGADE] Spare me the speech. Give me what I came for.",
-            intent_text="Spare me the speech. Give me what I came for.",
+            label=f"[RENEGADE] Enough speeches. Give me results on {topic}, now.",
+            intent_text=f"Enough speeches. Give me results on {topic}, now.",
             category="COMMIT",
             risk_level="RISKY",
             strategy_tag="ALTERNATIVE",
@@ -203,12 +208,23 @@ def _build_stat_gated_options(gs: GameState) -> list[ActionSuggestion]:
             intent_style="cold",
             consequence_hint="leans into your renegade reputation",
         ))
+    if tech >= 6 and npc_line:
+        gated.append(ActionSuggestion(
+            label=f"[INVESTIGATE] {line_probe}",
+            intent_text=line_probe,
+            category="EXPLORE",
+            risk_level="SAFE",
+            strategy_tag="ALTERNATIVE",
+            tone_tag="INVESTIGATE",
+            intent_style="analytical",
+            consequence_hint="tests the statement for inconsistencies",
+        ))
 
     return gated
 
 
 def _apply_stat_gating(gs: GameState, suggestions: list[ActionSuggestion]) -> list[ActionSuggestion]:
-    """Inject at least one stat-gated option when available."""
+    """Inject stat-gated options without flattening overall tone diversity."""
     gated = _build_stat_gated_options(gs)
     if not gated:
         return suggestions
@@ -216,8 +232,22 @@ def _apply_stat_gating(gs: GameState, suggestions: list[ActionSuggestion]) -> li
     if not out:
         return gated[:SUGGESTED_ACTIONS_TARGET]
 
-    # Keep one option per tone where possible and reserve slot 0 for gated affordance.
-    out[0] = gated[0]
+    used_tones = {s.tone_tag for s in out if getattr(s, "tone_tag", "")}
+    inject = None
+    for candidate in gated:
+        if candidate.tone_tag not in used_tones:
+            inject = candidate
+            break
+    if inject is None:
+        inject = gated[0]
+
+    # Replace first suggestion with same tone to preserve spread; fallback to index 0.
+    replace_idx = 0
+    for idx, existing in enumerate(out):
+        if getattr(existing, "tone_tag", "") == inject.tone_tag:
+            replace_idx = idx
+            break
+    out[replace_idx] = inject
     return out
 
 
