@@ -1,60 +1,80 @@
 # Storyteller AI
 
-Storyteller AI is a local-first narrative RPG engine with a FastAPI backend, a SvelteKit frontend, and deterministic world content loaded from YAML packs.
+Storyteller AI is a local-first narrative RPG engine powered by a FastAPI backend, SvelteKit frontend, and deterministic world content loaded from YAML-based Era Packs.
 
-This repository now supports a **world-agnostic content model** based on:
+**Current System (V2.20):**
+- Star Wars Legends narrative campaigns with LLM-powered storytelling
+- Era Pack system for deterministic world content (`/data/static/era_packs/`)
+- Event sourcing architecture with SQLite persistence
+- RAG-powered lore retrieval from ingested novels
+- Ollama-only local LLM execution (no cloud dependencies)
 
-- `setting_id` (which world/universe)
-- `period_id` (which time slice/campaign period in that setting)
-- stackable pack roots via `SETTING_PACK_PATHS`
-- `ContentRepository` and typed resolvers (`NpcResolver`, `LocationResolver`, `MissionResolver`)
-
-Legacy `era_*` naming is still supported by a compatibility layer, but new content should use **Setting Packs**.
+**Repository Status:**
+- Streamlined to `_template` + `rebellion` era packs (others can be regenerated)
+- Removed legacy migration scripts and obsolete tooling
+- Consolidated documentation and templates
 
 ---
 
 ## Project Overview
 
-At runtime, the backend serves story generation/gameplay APIs while content is loaded deterministically from pack files. The content layer supports:
+Storyteller AI combines deterministic game systems with LLM-powered narrative generation:
 
-- composed pack roots (`core`, `addons`, `overrides`)
-- deterministic merges (`id`-based list merges + deep dict merges)
-- resolver APIs that provide location lookup, NPC casting/procedural generation, and mission offers
+- **Backend:** FastAPI server (`backend.main:app`) with LangGraph pipeline orchestration
+- **Frontend:** SvelteKit UI with typewriter narration and KOTOR-style dialogue wheel
+- **Content:** Era Pack YAML bundles define NPCs, locations, quests, and factions
+- **Narrative:** Ollama-based Director/Narrator agents with RAG lore retrieval
+- **Persistence:** Event sourcing with SQLite (append-only events + projections)
 
-The default backend entrypoint is `backend.main:app`.
+**Key Features:**
+- Historical/Sandbox campaign modes
+- Deterministic mechanics (dice, time, encounters)
+- Companion affinity and party dynamics
+- Multi-lane RAG retrieval (lore, style, character voice, knowledge graph)
+- Streaming narration via SSE
 
 ---
 
 ## Key Concepts
 
-### Setting vs Period
+### Era Packs
 
-- **Setting (`setting_id`)**: normalized key for the world/domain (for example, `star_wars_legends`, `lotr`, `got`)
-- **Period (`period_id`)**: normalized key for a playable slice inside a setting (for example, `rebellion`, `third_age`, `war_of_five_kings`)
+Era Packs are YAML-based content bundles that define a playable Star Wars Legends time period. Each pack contains 12 files:
 
-Internally, content is cached and addressed as `(setting_id, period_id)` in `ContentRepository`.
+- `era.yaml` - Era metadata, tone, galactic state
+- `companions.yaml` - Recruitable party members
+- `quests.yaml`, `npcs.yaml`, `locations.yaml`, `factions.yaml`
+- `backgrounds.yaml` - SWTOR-style character creation
+- `namebanks.yaml`, `meters.yaml`, `events.yaml`, `rumors.yaml`, `facts.yaml`
 
-### Setting Packs (core/addons/overrides)
+**Current Era Packs:**
+- `_template` - Reference structure for authoring new packs
+- `rebellion` - Galactic Civil War (0 BBY - 4 ABY) - canonical example
 
-Pack roots are discovered from `SETTING_PACK_PATHS` (semicolon-delimited). For each `(setting_id, period_id)`, the loader reads roots in order and merges matching period directories.
+**Location:** `/data/static/era_packs/{era_id}/`
 
-Default roots when `SETTING_PACK_PATHS` is not set:
+See `/docs/ERA_PACK_QUICK_REFERENCE.md` for complete documentation.
 
-- `./data/static/setting_packs/core`
-- `./data/static/setting_packs/addons`
-- `./data/static/setting_packs/overrides`
+### Campaign Creation
 
-### ContentRepository + Resolvers
+Campaigns are created via:
+- `POST /v2/setup/auto` - Automated setup with CampaignArchitect + BiographerAgent
+- `POST /v2/campaigns` - Manual campaign creation
 
-- `ContentRepository.get_content(setting_id, period_id)` loads merged content and validates it into `EraPack`
-- `ContentRepository.get_indices(...)` builds query indices for locations/NPCs/quests/templates
-- `NpcResolver` provides scene cast selection and deterministic procedural NPC generation
-- `LocationResolver` provides location lookup/filtering/pathing helpers
-- `MissionResolver` exposes available authored/procedural mission offers
+Each campaign includes:
+- Player character with background and stats
+- 12 NPCs (Villain, Rival, Merchants, Informants, Guards)
+- Active factions from the era pack
+- Arc scaffold (themes, opening threads, climax question)
+- Generated world content (locations, NPCs, quests)
 
-### Determinism (seeded generation)
+### Deterministic Systems
 
-`NpcResolver` derives a deterministic RNG from a SHA-256 hash of the provided seed. This makes procedural NPC generation reproducible for identical inputs.
+- **Mechanic:** Zero LLM calls — pure Python dice rolls, DC checks, time costs
+- **Encounter throttling:** Seeded by turn number for reproducible spawns
+- **Companion reactions:** Deterministic affinity deltas based on player choices
+- **NPC generation:** Fallback procedural generation from templates
+- **Faction engine:** Seeded faction behavior
 
 ---
 
@@ -84,19 +104,31 @@ python -m storyteller setup --skip-deps
 
 ### Configure environment variables
 
-Minimal content-system variables:
+Essential variables (see `backend/app/config.py` for full list):
 
 ```bash
-export SETTING_PACK_PATHS="./data/static/setting_packs/core;./data/static/setting_packs/addons;./data/static/setting_packs/overrides"
-export DEFAULT_SETTING_ID="star_wars_legends"
+# Database
+export DEFAULT_DB_PATH="./storyteller.db"
+
+# Era Packs
+export ERA_PACK_DIR="./data/static/era_packs"
+
+# Ollama LLM (per-role model configuration)
+export STORYTELLER_DIRECTOR_MODEL="mistral-nemo:latest"
+export STORYTELLER_NARRATOR_MODEL="mistral-nemo:latest"
+export STORYTELLER_ARCHITECT_MODEL="qwen3:4b"
+
+# Feature Flags
+export ENABLE_BIBLE_CASTING=1              # Use era pack deterministic NPC casting
+export ENABLE_SUGGESTION_REFINER=1         # LLM-powered KOTOR dialogue suggestions
+export DEV_CONTEXT_STATS=0                 # Include RAG context budgeting stats
 ```
 
-Optional legacy compatibility variables:
+Optional:
 
 ```bash
-export ERA_PACK_DIR="./data/static/era_packs"
-# optional mapping YAML for legacy era_id -> (setting_id, period_id)
-export ERA_TO_SETTING_PERIOD_MAP="./data/static/era_to_setting_period_map.yaml"
+export OLLAMA_BASE_URL="http://localhost:11434"
+export ENABLE_CHARACTER_FACETS=0           # Character facets system (experimental)
 ```
 
 ### Run API + UI
@@ -122,139 +154,187 @@ python run_app.py --check
 Useful launch modes:
 
 ```bash
-python run_app.py --api-only --dev
-python run_app.py --ui-only --ui-port 5173
-python run_app.py --dev --setting-id star_wars_legends --period-id rebellion
-python run_app.py --validate-packs --setting-pack-paths "./data/static/setting_packs/core;./data/static/setting_packs/addons;./data/static/setting_packs/overrides"
+python run_app.py --api-only --dev     # Backend only
+python run_app.py --ui-only --ui-port 5173  # Frontend only
+python run_app.py --dev --host 0.0.0.0 --port 8000
 ```
 
 Core wrapper flags:
 
-- `--dev`
+- `--dev` - Enable hot reload
 - `--api-only`, `--ui-only`, `--no-ui`
 - `--host`, `--port`, `--ui-port`
-- `--setting-id`, `--period-id`, `--setting-pack-paths`
-- `--validate-packs`, `--check`
-- `--start-ollama` and `--require-llm`
-
-Legacy developer command is still available:
-
-```bash
-python -m storyteller dev
-```
+- `--check` - Validate configuration without starting
 
 Or run components separately:
 
 ```bash
+# Backend
 python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
-```
 
-```bash
+# Frontend
 cd frontend
 npm install
 npm run dev -- --port 5173
+
+# Ollama (if not running)
+ollama serve
 ```
 
 ---
 
-## Content Authoring (short guide)
+## Era Pack Authoring
 
 For detailed authoring guidance, see:
 
-- [`docs/CONTENT_SYSTEM.md`](docs/CONTENT_SYSTEM.md)
-- [`docs/PACK_AUTHORING.md`](docs/PACK_AUTHORING.md)
+- [`docs/ERA_PACK_QUICK_REFERENCE.md`](docs/ERA_PACK_QUICK_REFERENCE.md)
+- [`docs/era_pack_template.md`](docs/era_pack_template.md)
+- [`docs/era_pack_schema_reference.md`](docs/era_pack_schema_reference.md)
 
-### Directory layout (example)
+### Creating a New Era Pack
+
+1. Copy the template:
+   ```bash
+   cp -r data/static/era_packs/_template data/static/era_packs/kotor
+   ```
+
+2. Edit `era.yaml` with the new era's metadata
+
+3. Fill in each of the 12 YAML files with era-specific content
+
+4. Validate the pack:
+   ```bash
+   python scripts/validate_era_pack.py kotor
+   ```
+
+### Directory Structure
 
 ```text
-data/static/setting_packs/
-  core/
-    star_wars_legends/
-      periods/
-        rebellion/
-          era.yaml
-          locations.yaml
-          npcs.yaml
-          quests.yaml
-  addons/
-    star_wars_legends/
-      periods/
-        rebellion/
-          locations/
-            outer_rim.yaml
-  overrides/
-    star_wars_legends/
-      periods/
-        rebellion/
-          npcs.yaml
+data/static/era_packs/
+  _template/           # Reference structure
+  rebellion/           # Canonical example (Galactic Civil War)
+    era.yaml
+    companions.yaml
+    quests.yaml
+    meters.yaml
+    npcs.yaml
+    namebanks.yaml
+    factions.yaml
+    events.yaml
+    locations.yaml
+    rumors.yaml
+    facts.yaml
+    backgrounds.yaml
 ```
-
-### Merge / override behavior
-
-- Dicts are deep-merged.
-- Lists of objects with `id` are merged by `id`.
-- `disabled: true` removes the matching `id` from the merged result.
-- `extends` is supported for:
-  - `npcs.templates`
-  - `missions.templates`
 
 ---
 
 ## Validation + Testing
 
-Validate packs after stacking/merge:
+### Validate Era Packs
 
 ```bash
-python scripts/validate_setting_packs.py
+# Validate all era packs
+python scripts/validate_era_packs.py
+
+# Validate single pack
+python scripts/validate_era_pack.py rebellion
+
+# Audit pack completeness
+python scripts/audit_era_packs.py
 ```
 
-Override roots for a validation run:
+### Run Tests
 
 ```bash
-python scripts/validate_setting_packs.py --paths "./data/static/setting_packs/core;./data/static/setting_packs/overrides"
-```
-
-Run backend tests:
-
-```bash
+# All backend tests (587 tests, V2.20)
 python -m pytest backend/tests -q
+
+# Specific test suites
+python -m pytest backend/tests/test_director.py -v
+python -m pytest backend/tests/test_narrator.py -v
+
+# Deterministic harness
+python scripts/run_deterministic_tests.py
+
+# Smoke test
+python scripts/smoke_test.py
 ```
 
 ---
 
 ## Troubleshooting
 
-- **`No setting pack found for setting='...' period='...'`**
-  - Confirm `SETTING_PACK_PATHS` is set correctly and each root exists.
-  - Confirm folder names normalize to expected keys.
+- **`Era pack not found for era_id='...'`**
+  - Confirm `ERA_PACK_DIR` points to `/data/static/era_packs`
+  - Verify the era_id directory exists and contains all 12 YAML files
+  - Check YAML syntax: `python scripts/validate_era_pack.py {era_id}`
 
-- **Validation errors from `validate_setting_packs.py`**
-  - Check missing `extends` bases, cyclic `extends`, bad IDs, or malformed YAML.
+- **LLM connection failures**
+  - Ensure Ollama is running: `ollama serve`
+  - Check model availability: `ollama list`
+  - Pull required models: `ollama pull mistral-nemo:latest && ollama pull qwen3:4b`
 
-- **Legacy content loads unexpectedly**
-  - If setting pack roots are empty/missing and `setting_id == DEFAULT_SETTING_ID`, loader falls back to `ERA_PACK_DIR`.
+- **Database migration errors**
+  - Delete `storyteller.db` and restart (for development only)
+  - Check migrations: `ls backend/app/db/migrations/`
+  - Verify schema: `sqlite3 storyteller.db ".schema campaigns"`
 
-- **UI cannot start from `storyteller dev`**
-  - Ensure Node/npm are installed and `frontend/` exists.
+- **Frontend won't start**
+  - Install dependencies: `cd frontend && npm install`
+  - Check port availability: `lsof -i :5173`
+  - Clear cache: `rm -rf frontend/.svelte-kit`
 
 See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for operational details.
 
 ---
 
-## Glossary
+## Documentation
 
-- **setting_id**: normalized identifier for a world/domain.
-- **period_id**: normalized identifier for a time slice within a setting.
-- **pack root**: one root directory in `SETTING_PACK_PATHS` (for example `core`, `addons`, `overrides`).
-- **Setting Pack**: content files under `.../{setting_id}/periods/{period_id}/`.
-- **ContentRepository**: app-lifetime cache/loader for merged content and indices.
-- **resolver**: query/generation helper over repository data (`NpcResolver`, `LocationResolver`, `MissionResolver`).
-- **legacy era adapter**: compatibility path that maps `era_id` to `(setting_id, period_id)`.
+### Core Documentation (Sequential Learning Path)
+- [`docs/00_overview.md`](docs/00_overview.md) - High-level overview
+- [`docs/01_repo_map.md`](docs/01_repo_map.md) - Repository structure
+- [`docs/02_turn_lifecycle.md`](docs/02_turn_lifecycle.md) - Turn execution flow
+- [`docs/03_state_and_persistence.md`](docs/03_state_and_persistence.md) - Event sourcing
+- [`docs/04_agents_and_models.md`](docs/04_agents_and_models.md) - Agent roles & LLMs
+- [`docs/05_rag_and_ingestion.md`](docs/05_rag_and_ingestion.md) - RAG pipeline
+- [`docs/06_api_and_routes.md`](docs/06_api_and_routes.md) - API endpoints
+- [`docs/07_known_issues_and_risks.md`](docs/07_known_issues_and_risks.md) - Known issues
+- [`docs/08_alignment_checklist.md`](docs/08_alignment_checklist.md) - Architectural alignment
+- [`docs/09_call_graph.md`](docs/09_call_graph.md) - Call graph & dependencies
+
+### Deep Dives
+- [`docs/architecture.md`](docs/architecture.md) - Complete system architecture
+- [`docs/user_guide.md`](docs/user_guide.md) - Player-facing documentation
+- [`docs/lore_pipeline_guide.md`](docs/lore_pipeline_guide.md) - Lore ingestion
+
+### Templates
+- [`docs/templates/CAMPAIGN_INIT_TEMPLATE.md`](docs/templates/CAMPAIGN_INIT_TEMPLATE.md) - Campaign creation
+- [`docs/templates/DB_SEED_TEMPLATE.md`](docs/templates/DB_SEED_TEMPLATE.md) - Database seeding
+- [`docs/ERA_PACK_QUICK_REFERENCE.md`](docs/ERA_PACK_QUICK_REFERENCE.md) - Era pack guide
+
+### Root Documentation
+- [`README.md`](README.md) - This file
+- [`CLAUDE.md`](CLAUDE.md) - Project constraints & coding standards
+- [`QUICKSTART.md`](QUICKSTART.md) - Quick start guide
+- [`API_REFERENCE.md`](API_REFERENCE.md) - API contract
 
 ---
 
-## Contributing
+## Architecture Highlights
 
-- Prefer world-agnostic naming in new docs/code (`setting_id`/`period_id`).
-- Validate content changes with `scripts/validate_setting_packs.py` before opening a PR.
-- Keep long-form process guidance in `docs/` and link from README.
+- **Event Sourcing:** Append-only `turn_events` table + projections to normalized tables
+- **Single Transaction Boundary:** Only the Commit node writes to the database
+- **Graceful Degradation:** Every LLM-dependent agent has deterministic fallbacks
+- **JSON Retry Pattern:** LLM agents use `json_mode=True` + `ensure_json()` repair + retry
+- **Per-Role LLM Config:** Agent model selection via `STORYTELLER_{ROLE}_MODEL` env vars
+- **Ollama-Only:** No cloud LLM dependencies (OpenAI/Anthropic paths removed)
+- **RAG Token Budgeting:** `build_context()` manages retrieval budget across lore/style/voice/KG
+
+See [`CLAUDE.md`](CLAUDE.md) for complete architectural invariants and constraints.
+
+---
+
+## License
+
+See LICENSE file for details.
