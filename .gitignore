@@ -48,3 +48,9 @@ nul
 
 # Data variants (local vector DB)
 data/lancedb*/
+
+# Frontend (Node/SvelteKit)
+node_modules/
+frontend/node_modules/
+frontend/.svelte-kit/
+frontend/build/
