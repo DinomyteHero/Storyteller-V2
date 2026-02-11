@@ -77,6 +77,7 @@ def _build_user_prompt(
     npc_agenda: str = "",
     companion_hint: str = "",
     player_history_hint: str = "",
+    director_intent: str = "",
 ) -> str:
     """Build the user prompt from scene context.
 
@@ -106,8 +107,118 @@ def _build_user_prompt(
         parts.append(f"COMPANIONS: {companion_hint}")
     if player_history_hint:
         parts.append(f"PLAYER PATTERN: {player_history_hint}")
+    if director_intent:
+        parts.append(f"DIRECTOR INTENT: {director_intent}")
     parts.append("\nGenerate 4 responses the player character could say or do:")
     return "\n".join(parts)
+
+
+def _stat_value(stats: dict[str, Any], *keys: str) -> int:
+    """Lookup a stat from mixed-case keys with safe int conversion."""
+    for key in keys:
+        value = stats.get(key)
+        if value is None:
+            value = stats.get(key.lower())
+        if value is None:
+            continue
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            continue
+    return 0
+
+
+def _build_stat_gated_options(gs: GameState) -> list[ActionSuggestion]:
+    """Deterministic stat-gated dialogue options.
+
+    These options are injected when player stats or alignment cross thresholds so
+    the dialogue wheel reflects character build and prior behavior.
+    """
+    player = gs.player
+    stats = (player.stats if player and player.stats else {}) or {}
+    campaign = gs.campaign if isinstance(gs.campaign, dict) else {}
+    ws = campaign.get("world_state_json") if isinstance(campaign, dict) else {}
+    if not isinstance(ws, dict):
+        ws = {}
+    alignment = ws.get("alignment") if isinstance(ws.get("alignment"), dict) else {}
+
+    charisma = _stat_value(stats, "Charisma", "charisma")
+    tech = _stat_value(stats, "Tech", "tech", "Investigation", "investigation")
+    combat = _stat_value(stats, "Combat", "combat")
+    paragon_renegade = int(alignment.get("paragon_renegade", 0) or 0)
+
+    gated: list[ActionSuggestion] = []
+    if charisma >= 6:
+        gated.append(ActionSuggestion(
+            label="[PERSUADE] I can resolve this without bloodshed—hear me out.",
+            intent_text="I can resolve this without bloodshed—hear me out.",
+            category="SOCIAL",
+            risk_level="SAFE",
+            strategy_tag="ALTERNATIVE",
+            tone_tag="PARAGON",
+            intent_style="confident",
+            consequence_hint="uses high charisma to de-escalate",
+        ))
+    if tech >= 6:
+        gated.append(ActionSuggestion(
+            label="[TECH] Give me ten seconds. I'll slice the terminal myself.",
+            intent_text="Give me ten seconds. I'll slice the terminal myself.",
+            category="EXPLORE",
+            risk_level="RISKY",
+            strategy_tag="ALTERNATIVE",
+            tone_tag="INVESTIGATE",
+            intent_style="focused",
+            consequence_hint="uses technical expertise",
+        ))
+    if combat >= 7:
+        gated.append(ActionSuggestion(
+            label="[COMBAT] Stand down now, or I end this the hard way.",
+            intent_text="Stand down now, or I end this the hard way.",
+            category="COMMIT",
+            risk_level="DANGEROUS",
+            strategy_tag="ALTERNATIVE",
+            tone_tag="RENEGADE",
+            intent_style="aggressive",
+            consequence_hint="leverages combat reputation",
+        ))
+    if paragon_renegade >= 8:
+        gated.append(ActionSuggestion(
+            label="[PARAGON] We do this cleanly. No one gets abandoned.",
+            intent_text="We do this cleanly. No one gets abandoned.",
+            category="SOCIAL",
+            risk_level="SAFE",
+            strategy_tag="ALTERNATIVE",
+            tone_tag="PARAGON",
+            intent_style="steady",
+            consequence_hint="reinforces your paragon path",
+        ))
+    if paragon_renegade <= -8:
+        gated.append(ActionSuggestion(
+            label="[RENEGADE] Spare me the speech. Give me what I came for.",
+            intent_text="Spare me the speech. Give me what I came for.",
+            category="COMMIT",
+            risk_level="RISKY",
+            strategy_tag="ALTERNATIVE",
+            tone_tag="RENEGADE",
+            intent_style="cold",
+            consequence_hint="leans into your renegade reputation",
+        ))
+
+    return gated
+
+
+def _apply_stat_gating(gs: GameState, suggestions: list[ActionSuggestion]) -> list[ActionSuggestion]:
+    """Inject at least one stat-gated option when available."""
+    gated = _build_stat_gated_options(gs)
+    if not gated:
+        return suggestions
+    out = list(suggestions[: SUGGESTED_ACTIONS_TARGET])
+    if not out:
+        return gated[:SUGGESTED_ACTIONS_TARGET]
+
+    # Keep one option per tone where possible and reserve slot 0 for gated affordance.
+    out[0] = gated[0]
+    return out
 
 
 _VALID_MEANING_TAGS = {
@@ -402,6 +513,7 @@ def make_suggestion_refiner_node():
             npc_agenda=npc_agenda,
             companion_hint=companion_hint,
             player_history_hint=player_history_hint,
+            director_intent=str((state.get("director_instructions") or ""))[:300],
         )
 
         try:
@@ -432,6 +544,7 @@ def make_suggestion_refiner_node():
 
             suggestions = _to_action_suggestions(items)
             suggestions = ensure_tone_diversity(suggestions)
+            suggestions = _apply_stat_gating(gs, suggestions)
 
             # Lint through the standard pipeline
             actions_list = [

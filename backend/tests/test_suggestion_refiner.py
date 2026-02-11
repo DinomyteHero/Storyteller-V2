@@ -5,7 +5,9 @@ from unittest.mock import MagicMock, patch
 
 from backend.app.constants import SUGGESTED_ACTIONS_TARGET
 from backend.app.core.nodes.suggestion_refiner import (
+    _apply_stat_gating,
     _build_user_prompt,
+    _build_stat_gated_options,
     _parse_and_validate,
     _to_action_suggestions,
     make_suggestion_refiner_node,
@@ -80,6 +82,48 @@ class TestBuildUserPrompt(unittest.TestCase):
     def test_no_mechanic(self):
         prompt = _build_user_prompt("Quiet.", "here", [], None)
         self.assertNotIn("AFTER:", prompt)
+
+    def test_includes_director_intent(self):
+        prompt = _build_user_prompt(
+            "Quiet.", "here", [], None, director_intent="Escalate primary conflict this turn"
+        )
+        self.assertIn("DIRECTOR INTENT: Escalate primary conflict this turn", prompt)
+
+
+class TestStatGating(unittest.TestCase):
+    def test_builds_stat_gated_options(self):
+        gs = GameState.model_validate(
+            {
+                "campaign_id": "c1",
+                "player_id": "p1",
+                "campaign": {"world_state_json": {"alignment": {"paragon_renegade": -12}}},
+                "player": {"character_id": "p1", "name": "PC", "stats": {"Charisma": 7, "Tech": 2, "Combat": 8}},
+            }
+        )
+        opts = _build_stat_gated_options(gs)
+        labels = [o.label for o in opts]
+        self.assertTrue(any("[PERSUADE]" in s for s in labels))
+        self.assertTrue(any("[COMBAT]" in s for s in labels))
+        self.assertTrue(any("[RENEGADE]" in s for s in labels))
+
+    def test_apply_stat_gating_replaces_first_option(self):
+        gs = GameState.model_validate(
+            {
+                "campaign_id": "c1",
+                "player_id": "p1",
+                "campaign": {"world_state_json": {"alignment": {"paragon_renegade": 10}}},
+                "player": {"character_id": "p1", "name": "PC", "stats": {"Charisma": 9}},
+            }
+        )
+        baseline = [
+            ActionSuggestion(label="A", intent_text="A"),
+            ActionSuggestion(label="B", intent_text="B"),
+            ActionSuggestion(label="C", intent_text="C"),
+            ActionSuggestion(label="D", intent_text="D"),
+        ]
+        result = _apply_stat_gating(gs, baseline)
+        self.assertEqual(len(result), 4)
+        self.assertNotEqual(result[0].label, "A")
 
 
 class TestParseAndValidate(unittest.TestCase):
