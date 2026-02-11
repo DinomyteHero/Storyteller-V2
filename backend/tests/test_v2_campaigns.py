@@ -177,3 +177,57 @@ class TestV2OneTurn(unittest.TestCase):
         if data.get("alignment") is not None:
             self.assertIn("light_dark", data["alignment"])
             self.assertIn("paragon_renegade", data["alignment"])
+
+
+    def test_turn_contract_has_coherent_choices_and_objectives(self):
+        r = self.client.post(
+            f"/v2/campaigns/{self.campaign_id}/turn",
+            params={"player_id": self.player_id},
+            json={"user_input": "Look around"},
+        )
+        self.assertEqual(r.status_code, 200, r.text)
+        data = r.json()
+        tc = data.get("turn_contract") or {}
+        self.assertTrue(tc)
+        choices = tc.get("choices") or []
+        self.assertGreaterEqual(len(choices), 2)
+        self.assertLessEqual(len(choices), 4)
+        labels = [c.get("label", "") for c in choices]
+        self.assertEqual(len(labels), len(set(labels)))
+        self.assertTrue(all(len(lbl) <= 80 for lbl in labels))
+        intents = [((c.get("intent") or {}).get("intent_type")) for c in choices]
+        self.assertGreaterEqual(len(set(intents)), 2)
+        risks = {c.get("risk") for c in choices}
+        self.assertIn("low", risks)
+        self.assertTrue(bool({"med", "high"}.intersection(risks)))
+        meta = tc.get("meta") or {}
+        self.assertTrue(meta.get("active_objectives"), "active objectives must be present")
+
+    def test_stream_done_event_includes_turn_contract(self):
+        with self.client.stream(
+            "POST",
+            f"/v2/campaigns/{self.campaign_id}/turn_stream",
+            params={"player_id": self.player_id},
+            json={"user_input": "Look around"},
+        ) as resp:
+            self.assertEqual(resp.status_code, 200)
+            done = None
+            for line in resp.iter_lines():
+                if not line:
+                    continue
+                txt = line.decode() if isinstance(line, bytes) else line
+                if txt.startswith("data: "):
+                    payload = __import__("json").loads(txt[6:])
+                    if payload.get("type") == "done":
+                        done = payload
+                        break
+            self.assertIsNotNone(done, "stream must emit done event")
+            self.assertIn("turn_contract", done)
+            self.assertIsInstance(done["turn_contract"], dict)
+
+    def test_validation_failures_endpoint_exists(self):
+        r = self.client.get(f"/v2/campaigns/{self.campaign_id}/validation_failures")
+        self.assertEqual(r.status_code, 200, r.text)
+        body = r.json()
+        self.assertIn("validation_failures", body)
+        self.assertIsInstance(body["validation_failures"], list)

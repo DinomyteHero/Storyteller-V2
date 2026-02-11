@@ -277,9 +277,12 @@
     announce(`Choosing: ${label}. Processing...`);
 
     try {
-      if ($ui.enableStreaming) {
+      const mode = $lastTurnResponse?.turn_contract?.mode ?? 'SIM';
+      const useStreaming = $ui.enableStreaming && mode !== 'PASSAGE';
+      if (useStreaming) {
         startStreaming();
         let finalResponse: TurnResponse | null = null;
+        let streamErrored = false;
         for await (const event of streamTurn(cId, pId, userInput)) {
           if (event.type === 'token' && event.text) {
             appendToken(event.text);
@@ -287,19 +290,29 @@
             finalResponse = event as unknown as TurnResponse;
             finishStreaming();
           } else if (event.type === 'error') {
+            streamErrored = true;
             failStreaming(event.message ?? 'Stream error');
           }
         }
-        if (finalResponse) {
+        if (finalResponse?.turn_contract) {
           lastTurnResponse.set(finalResponse);
           fetchTranscript();
+        } else {
+          // Retry deterministic non-stream endpoint if stream fails or ends without done payload
+          const result = await runTurn(cId, pId, userInput);
+          const msg = streamErrored
+            ? 'Streaming interrupted. Recovered via non-stream request.'
+            : 'Streaming ended early. Recovered via non-stream request.';
+          result.warnings = [...(result.warnings ?? []), msg];
+          lastTurnResponse.set(result);
+          fetchTranscript();
+          finishStreaming();
         }
       } else {
         const result = await runTurn(cId, pId, userInput);
         lastTurnResponse.set(result);
         fetchTranscript();
       }
-
       // Update campaign in local registry
       touchCampaign(cId, $turnNumber);
     } catch (e) {
