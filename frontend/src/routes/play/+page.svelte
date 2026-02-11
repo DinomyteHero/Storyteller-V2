@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { runTurn, getTranscript } from '$lib/api/campaigns';
+  import { runTurn, getTranscript, completeCampaign } from '$lib/api/campaigns';
   import { streamTurn } from '$lib/api/sse';
   import {
     campaignId, playerId, lastTurnResponse, transcript,
@@ -35,6 +35,12 @@
   let narrativeEl: HTMLDivElement | undefined = $state();
   let drawerEl: HTMLElement | undefined = $state();
   let showPreviously = $state(false);
+  let isCompleting = $state(false);
+
+  // V3.2: Detect campaign conclusion readiness from warnings
+  let conclusionReady = $derived(
+    ($lastTurnResponse?.warnings ?? []).some(w => w.includes('[CONCLUSION_READY]'))
+  );
 
   // Typewriter state
   let typewriterRevealLength = $state(0);
@@ -539,6 +545,34 @@
       </details>
     {/if}
 
+    <!-- V3.2: Campaign conclusion banner -->
+    {#if conclusionReady}
+      <div class="conclusion-banner card" role="alert">
+        <p class="conclusion-text">Your story is reaching its conclusion. Ready to end this chapter?</p>
+        <button
+          class="btn btn-primary conclusion-btn"
+          disabled={isCompleting}
+          onclick={async () => {
+            if (!$campaignId) return;
+            isCompleting = true;
+            try {
+              const result = await completeCampaign($campaignId);
+              // Store completion data and navigate to summary page
+              sessionStorage.setItem('completionData', JSON.stringify(result));
+              sessionStorage.setItem('completionTurns', String($transcript.length));
+              sessionStorage.setItem('completionFactions', JSON.stringify($factionReputation ?? {}));
+              sessionStorage.setItem('completionParty', JSON.stringify($partyStatus ?? []));
+              goto('/complete');
+            } catch (e) {
+              isCompleting = false;
+            }
+          }}
+        >
+          {isCompleting ? 'Completing...' : 'Complete Campaign'}
+        </button>
+      </div>
+    {/if}
+
     {#if $ui.showDebug && $lastTurnResponse?.warnings && $lastTurnResponse.warnings.length > 0}
       <div class="debug-warnings card" role="status">
         <div class="section-header">Warnings</div>
@@ -825,7 +859,7 @@
   <!-- V3.0: KOTOR-soul overlays -->
   <CompanionSidebar />
   <QuestTracker />
-  <AlignmentIndicator score={$lastTurnResponse?.debug?.alignment_score ?? 0} />
+  <AlignmentIndicator />
 </div>
 {/if}
 
@@ -1048,6 +1082,27 @@
   }
   @keyframes spin {
     to { transform: rotate(360deg); }
+  }
+
+  /* ======================== CONCLUSION BANNER ======================== */
+  .conclusion-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, rgba(74, 158, 255, 0.08), rgba(234, 179, 8, 0.08));
+    border: 1px solid rgba(234, 179, 8, 0.3);
+    margin-top: 1rem;
+  }
+  .conclusion-text {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+  }
+  .conclusion-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   /* ======================== DEBUG ======================== */

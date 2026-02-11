@@ -1,6 +1,86 @@
 """Centralized tuning constants shared across the app."""
 from __future__ import annotations
 
+from dataclasses import dataclass
+from enum import Enum
+
+# ── Campaign scale tiers ─────────────────────────────────────────────
+# Controls how many locations, NPCs, quests, and per-scene caps a campaign uses.
+# Stored in world_state_json["campaign_scale"] at creation time.
+
+VALID_CAMPAIGN_SCALES = ("small", "medium", "large", "epic")
+
+
+class CampaignScaleTier(str, Enum):
+    SMALL = "small"
+    MEDIUM = "medium"
+    LARGE = "large"
+    EPIC = "epic"
+
+
+@dataclass(frozen=True)
+class CampaignScaleProfile:
+    """Numeric profile for a campaign scale tier."""
+    generated_locations: int
+    generated_npcs: int
+    generated_quests: int
+    max_present_npcs: int       # Default per-scene NPC cap (replaces MAX_PRESENT_NPCS)
+    npc_cap_multiplier: float   # Applied to location-tag NPC caps
+    early_game_npc_cap: int     # Max new named NPCs during early-game window
+    background_figure_count: int
+
+
+CAMPAIGN_SCALE_PROFILES: dict[CampaignScaleTier, CampaignScaleProfile] = {
+    CampaignScaleTier.SMALL: CampaignScaleProfile(
+        generated_locations=3,
+        generated_npcs=5,
+        generated_quests=2,
+        max_present_npcs=1,
+        npc_cap_multiplier=0.75,
+        early_game_npc_cap=2,
+        background_figure_count=2,
+    ),
+    CampaignScaleTier.MEDIUM: CampaignScaleProfile(
+        generated_locations=5,
+        generated_npcs=10,
+        generated_quests=4,
+        max_present_npcs=2,
+        npc_cap_multiplier=1.0,
+        early_game_npc_cap=3,
+        background_figure_count=3,
+    ),
+    CampaignScaleTier.LARGE: CampaignScaleProfile(
+        generated_locations=8,
+        generated_npcs=16,
+        generated_quests=6,
+        max_present_npcs=3,
+        npc_cap_multiplier=1.5,
+        early_game_npc_cap=5,
+        background_figure_count=4,
+    ),
+    CampaignScaleTier.EPIC: CampaignScaleProfile(
+        generated_locations=12,
+        generated_npcs=24,
+        generated_quests=8,
+        max_present_npcs=4,
+        npc_cap_multiplier=2.0,
+        early_game_npc_cap=7,
+        background_figure_count=5,
+    ),
+}
+
+
+def get_scale_profile(scale: str | None = None) -> CampaignScaleProfile:
+    """Get the scale profile for a campaign scale tier. Defaults to MEDIUM."""
+    if not scale:
+        return CAMPAIGN_SCALE_PROFILES[CampaignScaleTier.MEDIUM]
+    try:
+        tier = CampaignScaleTier(scale.lower())
+    except ValueError:
+        return CAMPAIGN_SCALE_PROFILES[CampaignScaleTier.MEDIUM]
+    return CAMPAIGN_SCALE_PROFILES[tier]
+
+
 # Ledger limits
 LEDGER_MAX_FACTS = 40
 LEDGER_MAX_THREADS = 10
@@ -60,6 +140,47 @@ ARC_SETUP_TO_RISING_MIN_THREADS = 2
 ARC_SETUP_TO_RISING_MIN_FACTS = 3
 ARC_RISING_TO_CLIMAX_MIN_THREADS = 4
 ARC_CLIMAX_RESOLUTION_FLAG_PREFIX = "resolved"
+
+# ── Scale auto-advisor thresholds (Phase 2a) ─────────────────────────
+# Gated by ENABLE_SCALE_ADVISOR feature flag in config.py.
+SCALE_SHIFT_COOLDOWN_TURNS = 15
+SCALE_SHIFT_MIN_ARC_STAGE = "RISING"          # Don't advise scale shifts during SETUP
+SCALE_ORDER: tuple[str, ...] = ("small", "medium", "large", "epic")
+SCALE_UP_SCORE_THRESHOLD = 8                   # density_score >= this → recommend scale up
+SCALE_DOWN_SCORE_THRESHOLD = 2                 # density_score <= this → recommend scale down
+INTER_CAMPAIGN_SCALE_MAP: dict[str, str] = {
+    "SETUP": "small",
+    "RISING": "medium",
+    "CLIMAX": "large",
+    "RESOLUTION": "medium",
+}
+
+# ── Conclusion planner thresholds (Phase 2b) ─────────────────────────
+# Minimum fraction of threads that must be resolved before a campaign
+# can be considered "conclusion ready", keyed by ending style / scale.
+CONCLUSION_RESOLVED_RATIO: dict[str, float] = {
+    "small": 0.9,     # Nearly everything wrapped up
+    "medium": 0.7,    # Most threads resolved
+    "large": 0.5,     # Half resolved, half become hooks
+    "epic": 0.3,      # Only the primary arc resolved
+}
+CONCLUSION_MIN_RESOLUTION_TURNS = 2            # At least 2 turns in RESOLUTION before ending
+CONCLUSION_ENDING_STYLES: dict[str, str] = {
+    "small": "closed",
+    "medium": "soft_cliffhanger",
+    "large": "open_bittersweet",
+    "epic": "full_cliffhanger",
+}
+
+# ── Difficulty profiles (Phase 3d) ────────────────────────────────────
+# dc_modifier: added to every DC roll
+# damage_modifier: multiplier on damage dealt TO the player
+# hp_modifier: multiplier on player starting HP
+DIFFICULTY_PROFILES: dict[str, dict[str, float]] = {
+    "easy":   {"dc_modifier": -2, "damage_modifier": 0.75, "hp_modifier": 1.25},
+    "normal": {"dc_modifier": 0,  "damage_modifier": 1.0,  "hp_modifier": 1.0},
+    "hard":   {"dc_modifier": 2,  "damage_modifier": 1.5,  "hp_modifier": 0.75},
+}
 
 # Deep companion system (Phase 5)
 COMPANION_ARC_STRANGER_MAX = -10
@@ -271,7 +392,7 @@ BANTER_POOL: dict[str, dict[str, list[str]]] = {
     "wise": {
         "PARAGON": [
             "{name} nods slowly. \"Wisdom is choosing the harder right over the easier wrong.\"",
-            "{name} closes their eyes briefly. \"The Force approves. I can feel it.\"",
+            "{name} closes their eyes briefly. \"The universe approves. I can feel it.\"",
             "{name} places their hands together. \"You chose well. Remember this feeling.\"",
         ],
         "RENEGADE": [
@@ -282,7 +403,7 @@ BANTER_POOL: dict[str, dict[str, list[str]]] = {
         "INVESTIGATE": [
             "{name} strokes their chin. \"Seek the truth, but be ready for what you find.\"",
             "{name} nods. \"Questions are the beginning of wisdom. Ask freely.\"",
-            "{name} watches with approval. \"Patience and observation — the Jedi way.\"",
+            "{name} watches with approval. \"Patience and observation — the old way.\"",
         ],
         "NEUTRAL": [
             "{name} meditates in stillness, content to wait.",
@@ -518,13 +639,13 @@ BANTER_POOL: dict[str, dict[str, list[str]]] = {
         ],
         "RENEGADE": [
             "{name} opens their eyes wide. \"The threads grow dark. Tread carefully.\"",
-            "{name} shudders. \"The Force cries out. Something has been... wounded.\"",
+            "{name} shudders. \"Something cries out. Something has been... wounded.\"",
             "{name} whispers, \"The shadows deepen. Can you not feel it?\"",
         ],
         "INVESTIGATE": [
             "{name} reaches out with unseen senses. \"There is more here than meets the eye.\"",
             "{name} traces patterns in the dust. \"The answer lies hidden. We must look deeper.\"",
-            "{name} murmurs, \"The Force reveals to those who are patient enough to listen.\"",
+            "{name} murmurs, \"The truth reveals itself to those who are patient enough to listen.\"",
         ],
         "NEUTRAL": [
             "{name} meditates quietly, present but elsewhere.",
@@ -579,7 +700,7 @@ BANTER_MEMORY_POOL: dict[str, list[str]] = {
     ],
     "wise": [
         '"{name} nods sagely. \"As with {memory}, the lesson reveals itself in time.\""',
-        '"{name} closes their eyes. \"{memory}. The Force works in patterns, young one.\""',
+        '"{name} closes their eyes. \"{memory}. The cosmos works in patterns, young one.\""',
     ],
     "calculating": [
         '"{name} consults a mental ledger. \"{memory}. The returns on that were... mixed.\""',
@@ -622,7 +743,7 @@ BANTER_MEMORY_POOL: dict[str, list[str]] = {
         '"{name} processes. \"Similar parameters to {memory}. Adjusting predictions.\""',
     ],
     "mystical": [
-        '"{name} whispers, \"The threads of {memory} still echo in the Force.\""',
+        '"{name} whispers, \"The threads of {memory} still echo across the ages.\""',
         '"{name} traces a symbol. \"{memory}. The vision was clear then, as now.\""',
     ],
     "formal": [

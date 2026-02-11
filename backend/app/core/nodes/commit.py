@@ -161,6 +161,46 @@ def make_commit_node():
             arc_guidance = state.get("arc_guidance") or {}
             if isinstance(arc_guidance, dict) and "arc_state" in arc_guidance:
                 world_state["arc_state"] = arc_guidance["arc_state"]
+
+            # V3.1: Scale advisor — auto-apply recommended scale change
+            scale_rec = arc_guidance.get("scale_recommendation") if isinstance(arc_guidance, dict) else None
+            if isinstance(scale_rec, dict) and scale_rec.get("recommended_scale"):
+                new_scale = scale_rec["recommended_scale"]
+                old_scale = world_state.get("campaign_scale", "medium")
+                world_state["campaign_scale"] = new_scale
+                world_state["last_scale_change_turn"] = next_turn_number
+                events.append(Event(
+                    event_type="SCALE_CHANGE",
+                    payload={
+                        "from_scale": old_scale,
+                        "to_scale": new_scale,
+                        "direction": scale_rec.get("direction", ""),
+                        "reason": scale_rec.get("reason", ""),
+                    },
+                    is_hidden=False,
+                ))
+                existing_warnings = list(state.get("warnings") or [])
+                existing_warnings.append(
+                    f"[SCALE_CHANGED] Campaign scale shifted from {old_scale} to {new_scale}: "
+                    f"{scale_rec.get('reason', '')}"
+                )
+                state["warnings"] = existing_warnings
+                logger.info(
+                    "Scale auto-applied: %s -> %s (campaign %s, turn %d)",
+                    old_scale, new_scale, campaign_id, next_turn_number,
+                )
+
+            # V3.1: Conclusion planner — surface conclusion_ready warning
+            conclusion_plan = arc_guidance.get("conclusion_plan") if isinstance(arc_guidance, dict) else None
+            if isinstance(conclusion_plan, dict):
+                world_state["conclusion_plan"] = conclusion_plan
+                if conclusion_plan.get("conclusion_ready"):
+                    existing_warnings = list(state.get("warnings") or [])
+                    existing_warnings.append(
+                        f"[CONCLUSION_READY] Campaign ending style: {conclusion_plan.get('ending_style', 'unknown')} "
+                        f"(resolved ratio: {conclusion_plan.get('resolved_ratio', 0):.0%})"
+                    )
+                    state["warnings"] = existing_warnings
             # Era transition: execute if pending
             if isinstance(arc_guidance, dict) and arc_guidance.get("era_transition_pending"):
                 try:
@@ -313,6 +353,11 @@ def make_commit_node():
                     narrative_text=final_text or "",
                     prev_arc_stage=prev_arc,
                 )
+                # V3.1: Track pivotal events for scale advisor density scoring
+                from backend.app.core.episodic_memory import _is_pivotal
+                if _is_pivotal(key_events_for_mem, cur_arc, prev_arc, stress_lvl):
+                    piv_count = int(world_state.get("pivotal_event_count") or 0) + 1
+                    world_state["pivotal_event_count"] = piv_count
             except Exception as _epi_err:
                 logger.warning(
                     "Episodic memory store failed (non-fatal): %s", _epi_err

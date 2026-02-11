@@ -52,6 +52,9 @@ def _model_config() -> dict[str, dict[str, str]]:
         "kg_extractor": {"provider": "ollama", "model": "qwen3:4b"},
         "suggestion_refiner": {"provider": "ollama", "model": "qwen3:8b"},
         "embedding": {"provider": "ollama", "model": "nomic-embed-text"},
+        # V3.1: Dedicated campaign init role — defaults to architect config.
+        # In production, override to cloud: STORYTELLER_CAMPAIGN_INIT_PROVIDER=anthropic
+        "campaign_init": {"provider": "ollama", "model": "qwen3:4b"},
     }
     out = {}
     for role, cfg in base.items():
@@ -171,6 +174,7 @@ ENABLE_PROCEDURAL_NPCS = _env_flag("ENABLE_PROCEDURAL_NPCS", default=True)
 NPC_RENDER_ENABLED = _env_flag("NPC_RENDER_ENABLED", default=False)
 ENABLE_SUGGESTION_REFINER = _env_flag("ENABLE_SUGGESTION_REFINER", default=True)
 ENABLE_CLOUD_BLUEPRINT = _env_flag("ENABLE_CLOUD_BLUEPRINT", default=False)
+ENABLE_SCALE_ADVISOR = _env_flag("ENABLE_SCALE_ADVISOR", default=False)
 
 # World simulation (V2.5): tick interval in hours (default 4 = 240 min)
 # Override via WORLD_TICK_INTERVAL_HOURS env. See backend.app.time_economy for action costs.
@@ -205,6 +209,8 @@ _ROLE_TOKEN_BUDGETS: dict[str, dict[str, int]] = {
     "kg_extractor": {"max_context_tokens": 6144, "reserved_output_tokens": 2048},
     # Suggestion refiner: small context (prose + scene), small output (JSON array)
     "suggestion_refiner": {"max_context_tokens": 2048, "reserved_output_tokens": 512},
+    # Campaign init: generous output for world generation (cloud models have big windows)
+    "campaign_init": {"max_context_tokens": 8192, "reserved_output_tokens": 4096},
 }
 
 

@@ -130,6 +130,8 @@ class CreateCampaignRequest(BaseModel):
     starting_location: str = "Unknown"
     player_stats: dict[str, int] = Field(default_factory=dict)
     hp_current: int = 10
+    # V3.1: Campaign scale — controls NPC/location/quest density
+    campaign_scale: str = "medium"  # small | medium | large | epic
 
 
 class CreateCampaignResponse(BaseModel):
@@ -154,6 +156,10 @@ class SetupAutoRequest(BaseModel):
     player_profile_id: str | None = None
     # V3.0: Campaign mode — "historical" (lore immutable) or "sandbox" (player reshapes galaxy)
     campaign_mode: str = "historical"
+    # V3.1: Campaign scale — controls NPC/location/quest density
+    campaign_scale: str = "medium"  # small | medium | large | epic
+    # V3.2: Difficulty — affects DC, damage, and HP modifiers
+    difficulty: str = "normal"  # easy | normal | hard
 
 
 class SetupAutoResponse(BaseModel):
@@ -501,10 +507,18 @@ def setup_auto(body: SetupAutoRequest):
         except Exception as e:
             logger.warning("Failed to initialize BiographerAgent with LLM, using fallback: %s", e, exc_info=True)
             _bio = BiographerAgent(llm=None)
-        skeleton = _arch.build(time_period=body.time_period, themes=body.themes)
-
-        era_for_setup = body.time_period or skeleton.get("time_period")
+        # V3.2: Resolve era pack early so setting_rules is available for both architect and biographer
+        era_for_setup = body.time_period
         era_pack_for_setup = get_era_pack(era_for_setup) if era_for_setup else None
+        _setting_rules = era_pack_for_setup.setting_rules if (era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules")) else None
+        skeleton = _arch.build(time_period=body.time_period, themes=body.themes, setting_rules=_setting_rules)
+
+        # Refine era pack if architect resolved a different time_period
+        if not era_for_setup:
+            era_for_setup = skeleton.get("time_period")
+            if era_for_setup:
+                era_pack_for_setup = get_era_pack(era_for_setup)
+                _setting_rules = era_pack_for_setup.setting_rules if (era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules")) else _setting_rules
         available_locations = (
             [loc.id for loc in (era_pack_for_setup.locations or [])]
             if (era_pack_for_setup and era_pack_for_setup.locations)
@@ -514,6 +528,7 @@ def setup_auto(body: SetupAutoRequest):
             body.player_concept,
             skeleton.get("time_period"),
             available_locations=available_locations,
+            setting_rules=_setting_rules,
         )
 
         # Safety net: if biographer produced generic background but we have
@@ -618,10 +633,11 @@ def setup_auto(body: SetupAutoRequest):
             except Exception as _genre_err:
                 logger.debug("Genre auto-assignment failed (non-fatal): %s", _genre_err)
         # V2.10: Seed faction standings from player legacy if profile linked
+        # V3.1: Also read recommended_next_scale and next_campaign_pitch from legacy
         if body.player_profile_id:
             try:
                 legacy_rows = conn.execute(
-                    "SELECT faction_standings_json FROM campaign_legacy WHERE player_profile_id = ? ORDER BY completed_at DESC LIMIT 3",
+                    "SELECT faction_standings_json, major_decisions_json FROM campaign_legacy WHERE player_profile_id = ? ORDER BY completed_at DESC LIMIT 3",
                     (body.player_profile_id,),
                 ).fetchall()
                 if legacy_rows:
@@ -638,6 +654,27 @@ def setup_auto(body: SetupAutoRequest):
                         existing_rep[faction] = existing_rep.get(faction, 0) + delta
                     world_state["faction_reputation"] = existing_rep
                     logger.info("Seeded faction reputation from %d legacy campaign(s)", len(legacy_rows))
+
+                    # V3.1: Inter-campaign scale + pitch from most recent legacy
+                    most_recent_decisions = json.loads(legacy_rows[0][1] or "[]")
+                    if isinstance(most_recent_decisions, list):
+                        completion_entry = next(
+                            (d for d in reversed(most_recent_decisions)
+                             if isinstance(d, dict) and d.get("type") == "campaign_completion"),
+                            None,
+                        )
+                        if completion_entry:
+                            legacy_scale = completion_entry.get("recommended_next_scale")
+                            legacy_pitch = completion_entry.get("next_campaign_pitch", "")
+                            # Use legacy scale as default if player didn't explicitly set one
+                            if legacy_scale and body.campaign_scale == "medium":
+                                world_state["campaign_scale"] = legacy_scale
+                                logger.info(
+                                    "Applied legacy recommended scale: %s", legacy_scale,
+                                )
+                            if legacy_pitch:
+                                world_state["legacy_campaign_pitch"] = legacy_pitch
+                                logger.info("Injected legacy campaign pitch for architect context")
             except Exception as _legacy_err:
                 logger.debug("Legacy faction seeding failed (non-fatal): %s", _legacy_err)
 
@@ -700,12 +737,14 @@ def setup_auto(body: SetupAutoRequest):
                 existing_factions=active_factions,
                 skeleton=skeleton,
                 campaign_mode=body.campaign_mode or "historical",
+                campaign_scale=body.campaign_scale or "medium",
             )
             world_state["generated_locations"] = campaign_world.get("generated_locations", [])
             world_state["generated_npcs"] = campaign_world.get("generated_npcs", [])
             world_state["generated_quests"] = campaign_world.get("generated_quests", [])
             world_state["world_generation"] = campaign_world.get("world_generation", {})
             world_state["campaign_mode"] = campaign_world.get("campaign_mode", "historical")
+            world_state["campaign_scale"] = campaign_world.get("campaign_scale", "medium")
             if campaign_world.get("campaign_blueprint"):
                 world_state["campaign_blueprint"] = campaign_world["campaign_blueprint"]
             logger.info("Campaign world generated: %d locations, %d NPCs, %d quests",
@@ -717,6 +756,15 @@ def setup_auto(body: SetupAutoRequest):
             world_state["generated_locations"] = []
             world_state["generated_npcs"] = []
             world_state["generated_quests"] = []
+
+        # V3.2: Persist SettingRules from era pack (universe contamination prevention)
+        if era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules"):
+            world_state["setting_rules"] = era_pack_for_setup.setting_rules.model_dump(mode="json")
+
+        # V3.2: Persist difficulty profile
+        from backend.app.constants import DIFFICULTY_PROFILES
+        _difficulty = body.difficulty if body.difficulty in DIFFICULTY_PROFILES else "normal"
+        world_state["difficulty_profile"] = DIFFICULTY_PROFILES[_difficulty]
 
         world_state_json_str = json.dumps(world_state)
         from datetime import datetime, timezone
@@ -809,6 +857,7 @@ def create_campaign(body: CreateCampaignRequest):
         world_state = {"active_factions": active_factions, **companion_state}
         if body.genre:
             world_state["genre"] = body.genre
+        world_state["campaign_scale"] = body.campaign_scale or "medium"
         from datetime import datetime, timezone
         now_str = datetime.now(timezone.utc).isoformat()
         conn.execute(
@@ -1699,6 +1748,7 @@ def get_player_legacy(player_profile_id: str):
 @router.post("/campaigns/{campaign_id}/complete")
 def complete_campaign(campaign_id: str, body: CompleteCampaignRequest):
     """Mark a campaign as completed and save legacy data for cross-campaign influence."""
+    from backend.app.constants import INTER_CAMPAIGN_SCALE_MAP
     conn = _get_conn()
     try:
         campaign = load_campaign(conn, campaign_id)
@@ -1718,6 +1768,58 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest):
             except json.JSONDecodeError:
                 ws = {}
         ws = ws if isinstance(ws, dict) else {}
+
+        arc_stage_reached = (
+            ws.get("arc_state", {}).get("current_stage", "SETUP")
+            if isinstance(ws.get("arc_state"), dict)
+            else "SETUP"
+        )
+
+        # V3.1: Compute recommended next campaign scale from arc stage reached
+        recommended_next_scale = INTER_CAMPAIGN_SCALE_MAP.get(arc_stage_reached, "medium")
+
+        # V3.1: Generate next campaign pitch via LLM (deterministic fallback)
+        conclusion_plan = ws.get("conclusion_plan") or {}
+        dangling_hooks = conclusion_plan.get("dangling_hooks", []) if isinstance(conclusion_plan, dict) else []
+        next_campaign_pitch = ""
+        try:
+            from backend.app.core.agents.base import AgentLLM
+            llm = AgentLLM("campaign_init")
+            hooks_text = "; ".join(dangling_hooks[:5]) if dangling_hooks else "no unresolved threads"
+            pitch_prompt = (
+                "Based on a completed RPG campaign, write a 1-2 sentence hook for the NEXT campaign.\n"
+                f"Arc stage reached: {arc_stage_reached}\n"
+                f"Outcome: {body.outcome_summary or 'unknown'}\n"
+                f"Character fate: {body.character_fate or 'unknown'}\n"
+                f"Dangling plot threads: {hooks_text}\n"
+                f"Recommended scale: {recommended_next_scale}\n\n"
+                "Write ONLY the pitch text (1-2 sentences). No JSON, no formatting."
+            )
+            raw = llm.complete(
+                "You write compelling RPG campaign hooks. Output plain text only.",
+                pitch_prompt,
+            )
+            if raw and isinstance(raw, str) and len(raw.strip()) > 10:
+                next_campaign_pitch = raw.strip()[:500]
+        except Exception as _pitch_err:
+            logger.warning("Next campaign pitch generation failed (non-fatal): %s", _pitch_err)
+
+        # Deterministic fallback pitch if LLM failed
+        if not next_campaign_pitch:
+            if dangling_hooks:
+                next_campaign_pitch = f"Unfinished business awaits: {dangling_hooks[0]}"
+            else:
+                next_campaign_pitch = "A new chapter begins. The galaxy remembers your choices."
+
+        # Store pitch + recommended scale in major_decisions_json
+        major_decisions = list(ws.get("major_decisions", []))
+        major_decisions.append({
+            "type": "campaign_completion",
+            "recommended_next_scale": recommended_next_scale,
+            "next_campaign_pitch": next_campaign_pitch,
+            "arc_stage_reached": arc_stage_reached,
+        })
+
         legacy_id = str(uuid.uuid4())
         from datetime import datetime, timezone
         now_str = datetime.now(timezone.utc).isoformat()
@@ -1734,14 +1836,20 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest):
                 ws.get("genre"),
                 body.outcome_summary,
                 json.dumps(ws.get("faction_reputation", {})),
-                json.dumps(ws.get("major_decisions", [])),
+                json.dumps(major_decisions),
                 body.character_fate,
-                (ws.get("arc_state", {}).get("current_stage", "SETUP") if isinstance(ws.get("arc_state"), dict) else "SETUP"),
+                arc_stage_reached,
                 now_str,
             ),
         )
         conn.commit()
-        return {"status": "completed", "legacy_id": legacy_id, "campaign_id": campaign_id}
+        return {
+            "status": "completed",
+            "legacy_id": legacy_id,
+            "campaign_id": campaign_id,
+            "recommended_next_scale": recommended_next_scale,
+            "next_campaign_pitch": next_campaign_pitch,
+        }
     finally:
         conn.close()
 

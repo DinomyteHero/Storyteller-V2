@@ -17,8 +17,16 @@ from backend.app.constants import (
     ARC_SETUP_TO_RISING_MIN_FACTS,
     ARC_SETUP_TO_RISING_MIN_THREADS,
     BEAT_ARCHETYPE_HINTS,
+    CONCLUSION_ENDING_STYLES,
+    CONCLUSION_MIN_RESOLUTION_TURNS,
+    CONCLUSION_RESOLVED_RATIO,
     HERO_JOURNEY_BEATS,
     NPC_ARCHETYPES,
+    SCALE_DOWN_SCORE_THRESHOLD,
+    SCALE_ORDER,
+    SCALE_SHIFT_COOLDOWN_TURNS,
+    SCALE_SHIFT_MIN_ARC_STAGE,
+    SCALE_UP_SCORE_THRESHOLD,
 )
 from backend.app.core.ledger import weighted_thread_count
 from backend.app.core.nodes import dict_to_state
@@ -158,6 +166,144 @@ def _determine_tension(arc_stage: str, ledger: dict) -> str:
     return base
 
 
+def _evaluate_scale_recommendation(
+    current_scale: str,
+    arc_stage: str,
+    tension_level: str,
+    ledger: dict,
+    turn_number: int,
+    last_scale_change_turn: int,
+    pivotal_event_count: int,
+) -> dict[str, Any] | None:
+    """Evaluate whether campaign scale should shift based on narrative density.
+
+    Returns a recommendation dict or None if no change is warranted.
+    Pure function — caller gates on ENABLE_SCALE_ADVISOR feature flag.
+    """
+    # Enforce cooldown
+    if turn_number - last_scale_change_turn < SCALE_SHIFT_COOLDOWN_TURNS:
+        return None
+
+    # Don't advise during SETUP — not enough data yet
+    eligible_stages = ("RISING", "CLIMAX", "RESOLUTION")
+    if arc_stage not in eligible_stages:
+        return None
+
+    # Compute narrative density score
+    threads = ledger.get("open_threads") or []
+    goals = ledger.get("active_goals") or []
+    thread_score = weighted_thread_count(threads)
+    density_score = thread_score + len(goals) + (pivotal_event_count * 2)
+
+    scale_idx = SCALE_ORDER.index(current_scale) if current_scale in SCALE_ORDER else 1
+
+    # Scale UP: high density during RISING/CLIMAX
+    if arc_stage in ("RISING", "CLIMAX") and density_score >= SCALE_UP_SCORE_THRESHOLD:
+        if scale_idx < len(SCALE_ORDER) - 1:
+            new_scale = SCALE_ORDER[scale_idx + 1]
+            return {
+                "recommended_scale": new_scale,
+                "direction": "up",
+                "reason": f"Narrative density ({density_score}) exceeds threshold during {arc_stage}",
+                "density_score": density_score,
+            }
+
+    # Scale DOWN: low density during RESOLUTION
+    if arc_stage == "RESOLUTION" and density_score <= SCALE_DOWN_SCORE_THRESHOLD:
+        if scale_idx > 0:
+            new_scale = SCALE_ORDER[scale_idx - 1]
+            return {
+                "recommended_scale": new_scale,
+                "direction": "down",
+                "reason": f"Low narrative density ({density_score}) during RESOLUTION",
+                "density_score": density_score,
+            }
+
+    return None
+
+
+def _build_conclusion_plan(
+    arc_stage: str,
+    turns_in_stage: int,
+    campaign_scale: str,
+    ledger: dict,
+) -> dict[str, Any] | None:
+    """Build a deterministic conclusion plan during RESOLUTION stage.
+
+    Returns a conclusion_plan dict or None if not in RESOLUTION.
+    """
+    if arc_stage != "RESOLUTION":
+        return None
+
+    scale = campaign_scale if campaign_scale in CONCLUSION_RESOLVED_RATIO else "medium"
+    ending_style = CONCLUSION_ENDING_STYLES.get(scale, "soft_cliffhanger")
+    required_ratio = CONCLUSION_RESOLVED_RATIO.get(scale, 0.7)
+
+    threads = ledger.get("open_threads") or []
+    total_threads = len(threads)
+
+    if total_threads == 0:
+        # No threads tracked — campaign is trivially ready to conclude
+        return {
+            "ending_style": ending_style,
+            "conclusion_ready": turns_in_stage >= CONCLUSION_MIN_RESOLUTION_TURNS,
+            "resolved_ratio": 1.0,
+            "dangling_hooks": [],
+            "payoff_threads": [],
+        }
+
+    # Classify threads by weight: W3 = must resolve, W1 = can become hooks
+    resolved_facts = ledger.get("established_facts") or []
+    resolved_flags = [f for f in resolved_facts if f.lower().startswith("resolved")]
+
+    # Heuristic: count threads whose text appears in a resolved flag
+    resolved_count = 0
+    dangling_hooks: list[str] = []
+    payoff_threads: list[str] = []
+
+    import re as _re
+    for t in threads:
+        thread_text = t if isinstance(t, str) else (t.get("text", "") if isinstance(t, dict) else str(t))
+        # Check if any resolved flag references this thread
+        # Strip [W<n>] prefix for matching
+        clean_text = _re.sub(r"^\[W\d\]\s*", "", thread_text) if isinstance(thread_text, str) else thread_text
+        is_resolved = any(
+            clean_text.lower()[:20] in flag.lower()
+            for flag in resolved_flags
+        ) if clean_text else False
+
+        if is_resolved:
+            resolved_count += 1
+            payoff_threads.append(thread_text)
+        else:
+            # Weight-based classification: W3 payoffs, W1 hooks
+            weight = 1
+            if isinstance(t, str):
+                wm = _re.match(r"^\[W(\d)\]", t)
+                if wm:
+                    weight = int(wm.group(1))
+            elif isinstance(t, dict):
+                weight = int(t.get("weight", 1))
+            if weight >= 3:
+                payoff_threads.append(thread_text)
+            else:
+                dangling_hooks.append(thread_text)
+
+    resolved_ratio = resolved_count / total_threads if total_threads > 0 else 1.0
+    conclusion_ready = (
+        resolved_ratio >= required_ratio
+        and turns_in_stage >= CONCLUSION_MIN_RESOLUTION_TURNS
+    )
+
+    return {
+        "ending_style": ending_style,
+        "conclusion_ready": conclusion_ready,
+        "resolved_ratio": round(resolved_ratio, 2),
+        "dangling_hooks": dangling_hooks[:10],
+        "payoff_threads": payoff_threads[:10],
+    }
+
+
 def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
     """Deterministic arc planner: reads ledger + turn_number, writes arc_guidance.
 
@@ -272,6 +418,53 @@ def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
             "stage_start_turn": stage_start_turn,
         },
     }
+
+    # ── Scale advisor (gated by ENABLE_SCALE_ADVISOR) ────────────────
+    try:
+        from backend.app.config import ENABLE_SCALE_ADVISOR
+        if ENABLE_SCALE_ADVISOR:
+            current_scale = ws.get("campaign_scale") or "medium"
+            last_scale_change_turn = int(ws.get("last_scale_change_turn") or 0)
+            pivotal_event_count = int(ws.get("pivotal_event_count") or 0)
+            scale_rec = _evaluate_scale_recommendation(
+                current_scale=current_scale,
+                arc_stage=arc_stage,
+                tension_level=tension_level,
+                ledger=ledger,
+                turn_number=turn_number,
+                last_scale_change_turn=last_scale_change_turn,
+                pivotal_event_count=pivotal_event_count,
+            )
+            if scale_rec:
+                arc_guidance["scale_recommendation"] = scale_rec
+                logger.info(
+                    "Scale advisor recommends %s (%s): %s",
+                    scale_rec["recommended_scale"],
+                    scale_rec["direction"],
+                    scale_rec["reason"],
+                )
+    except Exception as _scale_err:
+        logger.warning("Scale advisor failed (non-fatal): %s", _scale_err)
+
+    # ── Conclusion planner (active during RESOLUTION) ────────────────
+    try:
+        campaign_scale = ws.get("campaign_scale") or "medium"
+        conclusion_plan = _build_conclusion_plan(
+            arc_stage=arc_stage,
+            turns_in_stage=turns_in_stage,
+            campaign_scale=campaign_scale,
+            ledger=ledger,
+        )
+        if conclusion_plan:
+            arc_guidance["conclusion_plan"] = conclusion_plan
+            if conclusion_plan.get("conclusion_ready"):
+                logger.info(
+                    "Conclusion ready: style=%s ratio=%.2f",
+                    conclusion_plan["ending_style"],
+                    conclusion_plan["resolved_ratio"],
+                )
+    except Exception as _concl_err:
+        logger.warning("Conclusion planner failed (non-fatal): %s", _concl_err)
 
     return {
         **state,
