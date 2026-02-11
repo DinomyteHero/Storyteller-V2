@@ -137,6 +137,9 @@ def make_director_node():
             # Build companion lookup from party members for personality injection
             companion_lookup: dict[str, Any] = {}
             party_ids = (campaign.get("party") or []) if isinstance(campaign, dict) else []
+            party_state = campaign_ws.get("party_state") if isinstance(campaign_ws, dict) else {}
+            companion_states = party_state.get("companion_states") if isinstance(party_state, dict) else {}
+            companion_state_lookup: dict[str, Any] = {}
             for cid in party_ids:
                 comp_data = get_companion_by_id(cid)
                 if comp_data:
@@ -144,10 +147,15 @@ def make_director_node():
                     cname = comp_data.get("name", "")
                     if cname:
                         companion_lookup[cname] = comp_data
+                        if isinstance(companion_states, dict) and cid in companion_states:
+                            companion_state_lookup[cname] = companion_states.get(cid) or {}
+                if isinstance(companion_states, dict) and cid in companion_states:
+                    companion_state_lookup[cid] = companion_states.get(cid) or {}
             npc_personality_ctx = build_scene_personality_context(
                 present_npcs=gs.present_npcs or [],
                 era_npc_lookup=era_npc_lookup,
                 companion_lookup=companion_lookup,
+                companion_state_lookup=companion_state_lookup,
             )
             if npc_personality_ctx:
                 kg_context = (kg_context + "\n\n## NPC Personalities\n" + npc_personality_ctx) if kg_context else ("## NPC Personalities\n" + npc_personality_ctx)

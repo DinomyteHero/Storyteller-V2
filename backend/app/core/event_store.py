@@ -1,5 +1,6 @@
 """Event store for turn_events table. Uses sqlite3 only (no ORM)."""
 import json
+import sqlite3
 from datetime import datetime, timezone
 from typing import Any
 
@@ -14,6 +15,66 @@ def get_current_turn_number(conn: Any, campaign_id: str) -> int:
     )
     row = cur.fetchone()
     return int(row[0]) if row else 0
+
+
+def reserve_next_turn_number(conn: Any, campaign_id: str, max_retries: int = 5) -> int:
+    """Atomically reserve and return the next turn number for a campaign.
+
+    Uses optimistic compare-and-swap on campaigns.version so concurrent writers
+    cannot allocate the same turn number.
+    """
+    if max_retries < 1:
+        max_retries = 1
+
+    for _attempt in range(max_retries):
+        try:
+            row = conn.execute(
+                """
+                SELECT
+                  COALESCE(version, 0) AS version,
+                  COALESCE(next_turn_number, 0) AS next_turn_number,
+                  (
+                    SELECT COALESCE(MAX(turn_number), 0)
+                    FROM turn_events
+                    WHERE campaign_id = ?
+                  ) AS max_turn
+                FROM campaigns
+                WHERE id = ?
+                """,
+                (campaign_id, campaign_id),
+            ).fetchone()
+        except sqlite3.OperationalError as e:
+            if "locked" in str(e).lower():
+                continue
+            raise
+        if not row:
+            raise ValueError(f"Campaign not found: {campaign_id}")
+
+        version = int(row[0] or 0)
+        next_from_campaign = int(row[1] or 0)
+        max_turn = int(row[2] or 0)
+        allocated = max(next_from_campaign, max_turn + 1)
+        next_value = allocated + 1
+
+        try:
+            cur = conn.execute(
+                """
+                UPDATE campaigns
+                SET next_turn_number = ?, version = version + 1, updated_at = datetime('now')
+                WHERE id = ? AND COALESCE(version, 0) = ?
+                """,
+                (next_value, campaign_id, version),
+            )
+        except sqlite3.OperationalError as e:
+            if "locked" in str(e).lower():
+                continue
+            raise
+        if getattr(cur, "rowcount", 0) == 1:
+            return allocated
+
+    raise RuntimeError(
+        f"Failed to reserve next turn number for campaign {campaign_id} after {max_retries} attempts"
+    )
 
 
 def append_events(
