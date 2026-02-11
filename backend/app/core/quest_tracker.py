@@ -386,8 +386,8 @@ def get_quest_tracker(era: str) -> QuestTracker | None:
     Returns None if no era pack or no quests found.
     """
     try:
-        from backend.app.world.era_pack_loader import get_era_pack
-        pack = get_era_pack(era)
+        from backend.app.content.repository import CONTENT_REPOSITORY
+        pack = CONTENT_REPOSITORY.get_pack(era) if era else None
         if not pack or not pack.quests:
             return None
         quest_dicts = [q.model_dump(mode="json") for q in pack.quests]
