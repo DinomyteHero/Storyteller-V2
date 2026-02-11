@@ -1,0 +1,141 @@
+factions:
+- id: neutral
+  name: Neutral / Independents
+  tags:
+  - neutral
+  home_locations: []
+  goals:
+  - "Survive, profit, and keep out of the three-way war."
+  metadata:
+    flavor: "Unaffiliated operators: freelancers, independents, and those who refuse to pick a side."
+- id: one_sith
+  name: The One Sith
+  tags:
+  - sith
+  - cult
+  - authoritarian
+  - hostile
+  home_locations:
+  - loc-coruscant_sith
+  - loc-korriban
+  goals:
+  - "Enforce the Rule of One: one Sith Lord, one will—Darth Krayt's absolute dominion"
+  - Eradicate the Jedi Order and crush the Galactic Alliance Remnant; no rival power may stand
+  - Hold Coruscant and the Core through fear, Sith Troopers, and the dark side
+  - "Rebuild the galaxy in the Sith image: order through strength, loyalty through terror"
+  hostility_matrix:
+    fel_empire: -80
+    galactic_alliance_remnant: -100
+    jedi_order: -100
+    mandalorians: -50
+    underworld: -20
+  metadata:
+    flavor: "Krayt's vision: not the old Sith Lords squabbling—one Dark Lord, one order. The Jedi Temple is his fortress now."
+- id: fel_empire
+  name: The Galactic Empire (Fel)
+  tags:
+  - imperial
+  - monarchy
+  - disciplined
+  - rival
+  home_locations:
+  - loc-bastion
+  - loc-imperial_palace
+  goals:
+  - Reclaim the throne for the legitimate Emperor, Roan Fel—Krayt is a usurper
+  - Drive the One Sith from Coruscant and restore Imperial rule without Sith corruption
+  - Maintain discipline, honor, and the Imperial tradition; ally with Jedi and Alliance when it serves
+  hostility_matrix:
+    one_sith: -100
+    galactic_alliance_remnant: -40
+    jedi_order: -10
+    mandalorians: 0
+    underworld: -30
+  metadata:
+    flavor: "The true Empire in exile: Roan Fel's loyalists hold Bastion and fight for a galaxy free of Krayt's dark side tyranny."
+- id: galactic_alliance_remnant
+  name: Galactic Alliance Remnant
+  tags:
+  - alliance
+  - rebels
+  - military
+  - desperate
+  home_locations:
+  - loc-indomitable
+  - loc-hidden_base
+  goals:
+  - Restore the Galactic Alliance and democracy; the Remnant is the government-in-exile
+  - Harass Sith supply lines and strike where Krayt is vulnerable; Admiral Stazi's hit-and-run war
+  - Forge and hold alliances with the Fel Empire and the Jedi—defeat Krayt together or not at all
+  hostility_matrix:
+    one_sith: -100
+    fel_empire: -40
+    jedi_order: 50
+    mandalorians: 10
+    underworld: 10
+  metadata:
+    flavor: "What's left of the Alliance—a fleet, a cause, and Gar Stazi's refusal to surrender. They fight from the void."
+- id: jedi_order
+  name: The Jedi Order
+  tags:
+  - jedi
+  - guardians
+  - hunted
+  - hidden
+  home_locations:
+  - loc-taivas
+  - loc-ossus_ruins
+  goals:
+  - Survive the Sith purge; protect the remaining Jedi and recruit in secret
+  - Strike from the shadows—assassinate Sith, disrupt operations, keep hope alive
+  - Restore balance to the Force and one day rebuild the Order in the light
+  - Work with Fel and Alliance when the enemy of their enemy demands it
+  hostility_matrix:
+    one_sith: -100
+    fel_empire: -10
+    galactic_alliance_remnant: 50
+    mandalorians: 0
+    underworld: 0
+  metadata:
+    flavor: "Hunted to the edge of extinction. The Jedi hide in the Deep Core and the ruins of the past, waiting for the moment to strike."
+- id: mandalorians
+  name: Mandalorian Clans
+  tags:
+  - mandalorian
+  - mercenary
+  - independent
+  home_locations:
+  - loc-mandalore
+  goals:
+  - Protect Mandalore and the clans from Sith encroachment; never bow to Krayt
+  - Sell blades and ships to the highest bidder—usually the Fel Empire or the Alliance
+  - Uphold the Resol'nare and the warrior way; the galaxy's chaos is their market
+  hostility_matrix:
+    one_sith: -50
+    fel_empire: 0
+    galactic_alliance_remnant: 10
+    jedi_order: 0
+    underworld: 20
+  metadata:
+    flavor: "Mandalorians don't serve Sith. They fight for pay, honor, and the chance to test themselves against the best—and the worst."
+- id: underworld
+  name: Criminal Syndicates
+  tags:
+  - criminal
+  - opportunist
+  - neutral
+  home_locations:
+  - loc-nar_shaddaa
+  - loc-socorro
+  goals:
+  - "Profit from the three-way war: smuggle tech, weapons, and information to all sides"
+  - Keep Nar Shaddaa and the fringe beyond the Sith's full grip—survive and thrive
+  - Avoid drawing Krayt's direct ire; the underworld outlasts empires
+  hostility_matrix:
+    one_sith: -20
+    fel_empire: -30
+    galactic_alliance_remnant: 10
+    jedi_order: 0
+    mandalorians: 20
+  metadata:
+    flavor: "In the cracks between Sith, Fel, and Alliance, the syndicates run. Credits have no allegiance."

@@ -1,0 +1,128 @@
+# KOTOR Era Facts — 20+ knowledge triples (Sith, Jedi, ancient, artifacts)
+
+facts:
+  - id: fact_kotor_holocron_dantooine
+    subject: jedi_order
+    predicate: hid
+    object: holocron on Dantooine before Malak's bombardment
+    confidence: 0.9
+  - id: fact_kotor_revan_identity
+    subject: Revan
+    predicate: was
+    object: mind-wiped by the Jedi Council and rebuilt as a Republic weapon
+    confidence: 1.0
+  - id: fact_kotor_star_forge_destroyed
+    subject: Star Forge
+    predicate: was_destroyed_at
+    object: end of the Jedi Civil War by Republic and Revan
+    confidence: 1.0
+  - id: fact_kotor_malak_jaw
+    subject: Darth Malak
+    predicate: lost
+    object: his jaw to Revan's lightsaber before becoming Dark Lord
+    confidence: 1.0
+  - id: fact_kotor_bastila_meditation
+    subject: Bastila Shan
+    predicate: possesses
+    object: rare battle meditation that can sway battles
+    confidence: 1.0
+  - id: fact_kotor_korriban_academy
+    subject: sith_empire
+    predicate: maintains
+    object: the Sith Academy on Korriban as its primary training ground
+    confidence: 1.0
+  - id: fact_kotor_ajunta_pall
+    subject: Ajunta Pall
+    predicate: was
+    object: the first Dark Lord to lead the Exiles to Korriban
+    confidence: 1.0
+  - id: fact_kotor_tulak_hord
+    subject: Tulak Hord
+    predicate: was
+    object: one of the greatest Sith Lords; his tomb is in the Valley of the Dark Lords
+    confidence: 1.0
+  - id: fact_kotor_naga_sadow
+    subject: Naga Sadow
+    predicate: was
+    object: a Sith Lord whose tomb holds traps and ancient knowledge
+    confidence: 1.0
+  - id: fact_kotor_rakata_star_forge
+    subject: Rakata
+    predicate: built
+    object: the Star Forge using Force-binding technology
+    confidence: 1.0
+  - id: fact_kotor_exile_wound
+    subject: The Exile
+    predicate: is
+    object: a wound in the Force—cut off at Malachor V, they draw others unconsciously
+    confidence: 0.95
+  - id: fact_kotor_dromund_kaas
+    subject: sith_empire
+    predicate: has_hidden_capital_on
+    object: Dromund Kaas in the Unknown Regions
+    confidence: 0.85
+  - id: fact_kotor_jedi_council_three
+    subject: Jedi Council (Dantooine)
+    predicate: included
+    object: Vrook Lamar, Kavar, and Zez-Kai Ell among others
+    confidence: 1.0
+  - id: fact_kotor_hk47_revan
+    subject: HK-47
+    predicate: was_built_by
+    object: Revan
+    confidence: 1.0
+  - id: fact_kotor_manaan_neutral
+    subject: Manaan
+    predicate: remains
+    object: neutral in the conflict; Selkath arbitrate and forbid open war in their space
+    confidence: 1.0
+  - id: fact_kotor_ossus_library
+    subject: jedi_order
+    predicate: maintains
+    object: the great library on Ossus with holocrons and ancient texts
+    confidence: 1.0
+  - id: fact_kotor_mandalorian_wars
+    subject: Mandalorian Clans
+    predicate: were_defeated_in
+    object: the Mandalorian Wars by Revan and the Republic
+    confidence: 1.0
+  - id: fact_kotor_leviathan
+    subject: sith_empire
+    predicate: operates
+    object: the flagship Leviathan under Darth Malak
+    confidence: 1.0
+  - id: fact_kotor_taris_divided
+    subject: Taris
+    predicate: is_divided_into
+    object: Upper City (wealthy) and Lower City (underworld and gangs)
+    confidence: 1.0
+  - id: fact_kotor_force_cave
+    subject: Jedi Order
+    predicate: uses
+    object: caves strong in the Force for trials and meditation
+    confidence: 1.0
+  - id: fact_kotor_kreia_traya
+    subject: Kreia
+    predicate: is_also_known_as
+    object: Darth Traya, the Lord of Betrayal
+    confidence: 0.9
+  - id: fact_kotor_visas_nihilus
+    subject: Visas Marr
+    predicate: served
+    object: Darth Nihilus until she was drawn to the Exile
+    confidence: 1.0
+  - id: fact_kotor_star_maps
+    subject: Rakata
+    predicate: left
+    object: Star Maps that led Revan and Malak to the Star Forge
+    confidence: 1.0
+  - id: fact_kotor_canderous_revan
+    subject: Canderous Ordo
+    predicate: fought_beside
+    object: Revan during and after the Mandalorian Wars
+    confidence: 1.0
+  - id: fact_kotor_infinite_empire
+    subject: Rakata
+    predicate: ruled
+    object: the galaxy as the Infinite Empire before their fall
+    confidence: 1.0

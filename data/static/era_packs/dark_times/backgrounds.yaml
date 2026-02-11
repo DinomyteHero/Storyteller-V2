@@ -1,0 +1,188 @@
+# The Dark Times — Backgrounds (19–0 BBY)
+# Character origins for the post–Order 66 era.
+
+backgrounds:
+  - id: jedi_survivor
+    name: "Jedi Survivor"
+    description: "You survived Order 66. The Order is gone; you are hunted. You hide, protect what you can, and wait for a chance to restore the light."
+    icon: "jedi"
+    starting_stats:
+      Combat: 3
+      Stealth: 2
+      Charisma: 2
+      Tech: 1
+      General: 2
+    questions:
+      - id: survival
+        title: "How have you survived so far?"
+        subtitle: "This shapes your starting position and skills"
+        choices:
+          - label: "Safe houses and silence. I move when I have to and trust almost no one."
+            concept: "a Jedi who relies on the underground network"
+            tone: NEUTRAL
+            effects:
+              faction_hint: jedi_survivors
+              location_hint: loc-jedi_safe_house
+              thread_seed: "A contact says the Empire is closing in on a cache of holocrons. You have one chance to move them—or destroy them."
+          - label: "I help others escape. Every refugee I move is a small victory."
+            concept: "a Jedi who has turned survival into resistance"
+            tone: PARAGON
+            effects:
+              faction_hint: early_resistance
+              location_hint: loc-refugee_camp
+              thread_seed: "A family is hiding a Force-sensitive child. The Inquisitors are one step behind. You have to get them out."
+          - label: "I have done things I never thought I would. Survival has a price."
+            concept: "a Jedi who has compromised to stay alive"
+            tone: RENEGADE
+            effects:
+              faction_hint: underworld
+              location_hint: loc-underground_cantina
+              thread_seed: "Someone from your past has found you. They want a favor—the kind that could burn the last of your conscience."
+
+  - id: imperial_operative
+    name: "Imperial Operative"
+    description: "You serve the New Order—as an officer, an ISB agent, or a soldier. The Jedi are traitors; the Empire is the future. Or so you tell yourself."
+    icon: "imperial"
+    starting_stats:
+      Combat: 2
+      Stealth: 2
+      Charisma: 3
+      Tech: 2
+      General: 2
+    questions:
+      - id: loyalty
+        title: "Where does your loyalty truly lie?"
+        subtitle: "This determines your faction alignment"
+        choices:
+          - label: "The Empire is order. The Jedi betrayed the Republic. I have no doubts."
+            concept: "a true believer in the New Order"
+            tone: NEUTRAL
+            effects:
+              faction_hint: galactic_empire
+              location_hint: loc-imperial_garrison_coruscant
+              thread_seed: "You have been assigned to a Jedi-hunting unit. Your first target is a refugee camp. The orders are clear—no survivors."
+          - label: "I have seen what we do to the innocent. I cannot unsee it."
+            concept: "an Imperial who is starting to question"
+            tone: PARAGON
+            effects:
+              faction_hint: early_resistance
+              location_hint: loc-rebel_cell_safe_house
+              thread_seed: "A resistance contact has reached out. They offer a way out—if you are willing to pass one piece of intel. Just one."
+          - label: "The uniform is power. I use it. When the Empire falls, I will have options."
+            concept: "a self-serving operator in Imperial grey"
+            tone: RENEGADE
+            effects:
+              faction_hint: underworld
+              location_hint: loc-black_market_hub
+              thread_seed: "A smuggler pays well for patrol schedules. The risk is execution. The reward is enough to disappear."
+
+  - id: refugee
+    name: "Refugee"
+    description: "The Clone Wars and the Purge took everything. You are displaced, desperate, and determined to find a place where the Empire cannot reach."
+    icon: "civilian"
+    starting_stats:
+      Combat: 1
+      Stealth: 2
+      Charisma: 2
+      Tech: 2
+      General: 3
+    questions:
+      - id: loss
+        title: "What did you lose?"
+        subtitle: "This seeds your motivation"
+        choices:
+          - label: "My family. I am all that is left. I have to keep moving."
+            concept: "a refugee driven by the need to survive for those who did not"
+            tone: PARAGON
+            effects:
+              faction_hint: early_resistance
+              location_hint: loc-refugee_camp
+              thread_seed: "Someone in the camp is Force-sensitive. The Empire is coming. You have to help them get out—or they will die."
+          - label: "My homeworld. The Empire occupied it. I will never go back."
+            concept: "a refugee who has lost their world and their trust"
+            tone: NEUTRAL
+            effects:
+              faction_hint: neutral
+              location_hint: loc-spaceport_neutral
+              thread_seed: "A stranger offers passage off-world—for a price. The price might be more than credits. You have to decide."
+          - label: "Everything. I have nothing left to lose. That makes me dangerous."
+            concept: "a refugee with nothing left to lose"
+            tone: RENEGADE
+            effects:
+              faction_hint: underworld
+              location_hint: loc-underground_cantina
+              thread_seed: "A resistance cell needs someone to do something no one else will. No questions. No glory. Just results."
+
+  - id: smuggler
+    name: "Smuggler"
+    description: "You run cargo—and sometimes people—where the Empire does not want it to go. Credits keep you flying; survival keeps you quiet."
+    icon: "underworld"
+    starting_stats:
+      Combat: 2
+      Stealth: 3
+      Charisma: 2
+      Tech: 2
+      General: 2
+    questions:
+      - id: cargo
+        title: "What do you run?"
+        subtitle: "This shapes your contacts and risk"
+        choices:
+          - label: "Whatever pays. Weapons, spice, refugees—I do not ask."
+            concept: "a smuggler who runs anything for the right price"
+            tone: RENEGADE
+            effects:
+              faction_hint: underworld
+              location_hint: loc-smuggler_den
+              thread_seed: "A Jedi is hiding in your hold. The Empire has put a bounty on your head. You can hand them over—or run."
+          - label: "Refugees and resistance. The pay is worse, but it means something."
+            concept: "a smuggler who has chosen a side"
+            tone: PARAGON
+            effects:
+              faction_hint: early_resistance
+              location_hint: loc-rebel_cell_safe_house
+              thread_seed: "Your next run is a family of Force-sensitives. The Inquisitors are hunting them. One wrong move and everyone dies."
+          - label: "I stay neutral. Empire, resistance—I sell to both and belong to neither."
+            concept: "a smuggler who refuses to pick a side"
+            tone: NEUTRAL
+            effects:
+              faction_hint: neutral
+              location_hint: loc-spaceport_neutral
+              thread_seed: "Both the Empire and the resistance want the same cargo. You have to deliver it to one—or neither. Your choice."
+
+  - id: resistance_cell
+    name: "Resistance Cell Member"
+    description: "You are part of the underground—moving refugees, hiding Jedi, and building the network that will one day challenge the Empire."
+    icon: "rebel"
+    starting_stats:
+      Combat: 2
+      Stealth: 3
+      Charisma: 2
+      Tech: 1
+      General: 2
+    questions:
+      - id: role
+        title: "What do you do for the cell?"
+        subtitle: "This determines your specialty"
+        choices:
+          - label: "Intel. I run sources and dead drops. No one knows the full picture."
+            concept: "a resistance intelligence operative"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: early_resistance
+              location_hint: loc-rebel_cell_safe_house
+              thread_seed: "A source inside the ISB has gone silent. Either they are dead, turned, or trapped. You have to find out."
+          - label: "Logistics. I move people and supplies. Safe houses, smugglers, papers."
+            concept: "a resistance logistician"
+            tone: PARAGON
+            effects:
+              faction_hint: early_resistance
+              location_hint: loc-refugee_camp
+              thread_seed: "A safe house has been compromised. You have twelve hours to move everyone and burn the location."
+          - label: "Direct action. When the cell needs someone to hit the Empire, I go."
+            concept: "a resistance operative who does the wet work"
+            tone: RENEGADE
+            effects:
+              faction_hint: early_resistance
+              location_hint: loc-rebel_cell_safe_house
+              thread_seed: "The cell has a target—an Imperial officer who is closing in on the network. You have been chosen to remove them."

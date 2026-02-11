@@ -1,0 +1,840 @@
+# Player-owned starship catalog for Storyteller AI
+# Each starship has stats, upgrade slots, and acquisition methods
+# Design principles:
+# - 6-8 ships per era with unique stats and aesthetics
+# - Acquisition via backgrounds, purchase, quests, salvage, faction rewards
+# - Customization system: weapons, shields, hyperdrive, crew quarters, utility
+# - Starship as social hub (like Mass Effect's Normandy)
+
+starships:
+
+  # ============================================================
+  # REBELLION ERA (0-4 ABY) — Iconic smuggler ships and Imperial hardware
+  # ============================================================
+
+  - id: ship-reb-yt1300
+    name: YT-1300 Light Freighter
+    era: REBELLION
+    class: light_freighter
+    manufacturer: Corellian Engineering Corporation
+    description: |
+      The galaxy's most iconic smuggler vessel. Fast, modular, and endlessly customizable.
+      The Millennium Falcon made this model legendary—every spacer dreams of owning one.
+    stats:
+      combat_rating: 6
+      speed: 8
+      cargo_capacity: 100
+      crew_requirement: 2
+      companion_capacity: 6
+      maintenance_cost: 50
+    upgrade_slots:
+      weapons: ["Quad laser cannons", "Concussion missiles"]
+      shields: ["Standard deflectors", "Enhanced deflectors"]
+      hyperdrive: ["Class 2.0", "Class 1.5", "Class 0.5 (modified)"]
+      crew_quarters: ["Basic (6)", "Comfortable (8)"]
+      utility: ["Smuggling compartments", "Medical bay", "Workshop"]
+    acquisition_methods:
+      - background: "Smuggler background grants basic YT-1300"
+      - purchase: "50,000 credits at major spaceports"
+      - quest: "Win in high-stakes sabacc game"
+      - salvage: "Claim from abandoned spaceport"
+    base_price: 50000
+
+  - id: ship-reb-cr90
+    name: Corellian Corvette (CR90)
+    era: REBELLION
+    class: corvette
+    manufacturer: Corellian Engineering Corporation
+    description: |
+      Princess Leia's Tantive IV was a CR90—small capital ship, crew-intensive,
+      but perfect for diplomatic missions and blockade running.
+    stats:
+      combat_rating: 7
+      speed: 5
+      cargo_capacity: 500
+      crew_requirement: 30
+      companion_capacity: 12
+      maintenance_cost: 200
+    upgrade_slots:
+      weapons: ["Turbolasers", "Ion cannons"]
+      shields: ["Capital-grade deflectors"]
+      hyperdrive: ["Class 2.0", "Class 1.0"]
+      crew_quarters: ["Standard (12)", "Diplomatic suites (10)"]
+      utility: ["Diplomatic suite", "Brig", "Escape pods"]
+    acquisition_methods:
+      - quest: "Rebel Alliance rewards for critical mission"
+      - faction: "High reputation (+75) with Rebel Alliance"
+    base_price: 250000
+
+  - id: ship-reb-action6
+    name: Action VI Transport
+    era: REBELLION
+    class: heavy_freighter
+    manufacturer: Corellian Engineering Corporation
+    description: |
+      Massive cargo hauler—slow, durable, and capable of moving entire
+      Rebel cells. Not pretty, but it gets the job done.
+    stats:
+      combat_rating: 3
+      speed: 3
+      cargo_capacity: 5000
+      crew_requirement: 12
+      companion_capacity: 10
+      maintenance_cost: 100
+    upgrade_slots:
+      weapons: ["Light laser cannons"]
+      shields: ["Heavy industrial deflectors"]
+      hyperdrive: ["Class 3.0", "Class 2.0"]
+      crew_quarters: ["Cargo dormitories (10)", "Converted cargo bay (12)"]
+      utility: ["Massive cargo hold", "Repair bay", "Refugee quarters"]
+    acquisition_methods:
+      - purchase: "80,000 credits (common surplus)"
+      - quest: "Liberate from Hutt Cartel"
+    base_price: 80000
+
+  - id: ship-reb-firespray
+    name: Firespray-31 Patrol Craft
+    era: REBELLION
+    class: patrol_craft
+    manufacturer: Kuat Systems Engineering
+    description: |
+      Boba Fett's Slave I is a Firespray-31—compact, heavily armed,
+      and designed for bounty hunting. Rotating cockpit, carbonite chamber.
+    stats:
+      combat_rating: 9
+      speed: 7
+      cargo_capacity: 40
+      crew_requirement: 1
+      companion_capacity: 4
+      maintenance_cost: 75
+    upgrade_slots:
+      weapons: ["Blaster cannons", "Seismic charges", "Ion cannon"]
+      shields: ["Military-grade deflectors"]
+      hyperdrive: ["Class 1.0", "Class 0.7"]
+      crew_quarters: ["Spartan (4)", "Prisoner cells (2 + brig)"]
+      utility: ["Carbonite freezing chamber", "Tracking systems", "Weapons locker"]
+    acquisition_methods:
+      - background: "Bounty Hunter background grants basic Firespray"
+      - purchase: "120,000 credits (rare)"
+      - salvage: "Capture from rival bounty hunter"
+    base_price: 120000
+
+  - id: ship-reb-baudo
+    name: Baudo-class Star Yacht
+    era: REBELLION
+    class: star_yacht
+    manufacturer: Baudo
+    description: |
+      Luxury vessel for diplomats and nobles. Fast, elegant, lightly armed—
+      designed for high society, not combat.
+    stats:
+      combat_rating: 2
+      speed: 7
+      cargo_capacity: 30
+      crew_requirement: 1
+      companion_capacity: 6
+      maintenance_cost: 60
+    upgrade_slots:
+      weapons: ["Light laser cannons"]
+      shields: ["Standard deflectors"]
+      hyperdrive: ["Class 1.0", "Class 0.5"]
+      crew_quarters: ["Luxury suites (6)"]
+      utility: ["Diplomatic suite", "Entertainment lounge", "Holonet suite"]
+    acquisition_methods:
+      - background: "Noble background grants Baudo yacht"
+      - purchase: "90,000 credits"
+      - quest: "Inherit from aristocratic benefactor"
+    base_price: 90000
+
+  - id: ship-reb-hwk290
+    name: HWK-290 Light Freighter
+    era: REBELLION
+    class: light_freighter
+    manufacturer: Corellian Engineering Corporation
+    description: |
+      Small, fast, lightly armed. Kyle Katarn's Moldy Crow was an HWK-290—
+      perfect for solo operators and small crews.
+    stats:
+      combat_rating: 5
+      speed: 7
+      cargo_capacity: 50
+      crew_requirement: 1
+      companion_capacity: 4
+      maintenance_cost: 40
+    upgrade_slots:
+      weapons: ["Blaster cannon", "Concussion missiles"]
+      shields: ["Standard deflectors"]
+      hyperdrive: ["Class 2.0", "Class 1.0"]
+      crew_quarters: ["Compact (4)"]
+      utility: ["Smuggling compartments", "Sensor suite", "Stealth systems"]
+    acquisition_methods:
+      - purchase: "35,000 credits"
+      - quest: "Smuggler contact gifts ship for completed job"
+    base_price: 35000
+
+  - id: ship-reb-gr75
+    name: GR-75 Medium Transport
+    era: REBELLION
+    class: transport
+    manufacturer: Gallofree Yards
+    description: |
+      Rebel fleet workhorse—huge crew capacity, minimal weapons. Used for
+      evacuations, supply runs, and mobile bases.
+    stats:
+      combat_rating: 2
+      speed: 4
+      cargo_capacity: 2000
+      crew_requirement: 6
+      companion_capacity: 12
+      maintenance_cost: 80
+    upgrade_slots:
+      weapons: ["Point-defense lasers"]
+      shields: ["Transport-grade deflectors"]
+      hyperdrive: ["Class 4.0", "Class 2.0"]
+      crew_quarters: ["Refugee dormitories (20)", "Medical bays (12)"]
+      utility: ["Refugee quarters", "Medical bay", "Mobile command center"]
+    acquisition_methods:
+      - faction: "Rebel Alliance rewards for evacuation missions"
+      - salvage: "Claim abandoned transport"
+    base_price: 100000
+
+  - id: ship-reb-z95
+    name: Customized Z-95 Headhunter
+    era: REBELLION
+    class: modified_fighter
+    manufacturer: Incom/Subpro
+    description: |
+      Single-pilot fighter converted to small transport. Fast, fragile, and
+      cramped—but cheap and maneuverable.
+    stats:
+      combat_rating: 6
+      speed: 9
+      cargo_capacity: 10
+      crew_requirement: 1
+      companion_capacity: 2
+      maintenance_cost: 30
+    upgrade_slots:
+      weapons: ["Triple blaster cannons", "Concussion missiles"]
+      shields: ["Fighter-grade deflectors"]
+      hyperdrive: ["Class 2.0 (aftermarket)", "Class 1.5"]
+      crew_quarters: ["Cramped (2)"]
+      utility: ["Stripped for speed", "Astromech socket"]
+    acquisition_methods:
+      - purchase: "20,000 credits"
+      - salvage: "Repair derelict fighter"
+    base_price: 20000
+
+  # ============================================================
+  # NEW REPUBLIC ERA (5-19 ABY) — Post-war surplus and upgraded models
+  # ============================================================
+
+  - id: ship-nr-yt2400
+    name: YT-2400 Light Freighter
+    era: NEW_REPUBLIC
+    class: light_freighter
+    manufacturer: Corellian Engineering Corporation
+    description: |
+      The Outrider—Dash Rendar's ship. Upgraded YT model with better weapons
+      and shields than the YT-1300.
+    stats:
+      combat_rating: 7
+      speed: 8
+      cargo_capacity: 120
+      crew_requirement: 2
+      companion_capacity: 6
+      maintenance_cost: 60
+    upgrade_slots:
+      weapons: ["Quad laser cannons", "Concussion missiles", "Ion cannon"]
+      shields: ["Enhanced deflectors"]
+      hyperdrive: ["Class 1.5", "Class 1.0", "Class 0.5"]
+      crew_quarters: ["Comfortable (6)", "Luxury (6)"]
+      utility: ["Smuggling compartments", "Workshop", "Sensor suite"]
+    acquisition_methods:
+      - purchase: "70,000 credits"
+      - quest: "Win from rival smuggler"
+    base_price: 70000
+
+  - id: ship-nr-skipray
+    name: Skipray Blastboat
+    era: NEW_REPUBLIC
+    class: attack_craft
+    manufacturer: Sienar Fleet Systems
+    description: |
+      Fast attack craft with heavy firepower. Imperial surplus, now available
+      to privateers and mercenaries.
+    stats:
+      combat_rating: 8
+      speed: 7
+      cargo_capacity: 30
+      crew_requirement: 2
+      companion_capacity: 4
+      maintenance_cost: 70
+    upgrade_slots:
+      weapons: ["Ion cannons", "Concussion missiles", "Proton torpedoes"]
+      shields: ["Military deflectors"]
+      hyperdrive: ["Class 1.0", "Class 0.7"]
+      crew_quarters: ["Spartan (4)"]
+      utility: ["Weapons locker", "Targeting computer"]
+    acquisition_methods:
+      - purchase: "100,000 credits (surplus)"
+      - salvage: "Capture from pirates"
+    base_price: 100000
+
+  - id: ship-nr-marauder
+    name: Marauder-class Corvette
+    era: NEW_REPUBLIC
+    class: corvette
+    manufacturer: Republic Sienar Systems
+    description: |
+      Small warship, Imperial Remnant surplus. Crew-intensive but heavily armed.
+    stats:
+      combat_rating: 8
+      speed: 6
+      cargo_capacity: 300
+      crew_requirement: 20
+      companion_capacity: 10
+      maintenance_cost: 150
+    upgrade_slots:
+      weapons: ["Turbolasers", "Tractor beam"]
+      shields: ["Military deflectors"]
+      hyperdrive: ["Class 2.0", "Class 1.0"]
+      crew_quarters: ["Military barracks (10)"]
+      utility: ["Brig", "Command center", "Armory"]
+    acquisition_methods:
+      - faction: "Imperial Remnant surplus (neutral reputation)"
+      - quest: "Liberate from warlord"
+    base_price: 200000
+
+  - id: ship-nr-consular
+    name: Consular-class Cruiser
+    era: NEW_REPUBLIC
+    class: cruiser
+    manufacturer: Corellian Engineering Corporation
+    description: |
+      Diplomatic vessel, New Republic legitimacy. Elegant, lightly armed,
+      perfect for negotiations.
+    stats:
+      combat_rating: 4
+      speed: 5
+      cargo_capacity: 400
+      crew_requirement: 15
+      companion_capacity: 12
+      maintenance_cost: 120
+    upgrade_slots:
+      weapons: ["Light turbolasers"]
+      shields: ["Diplomatic deflectors"]
+      hyperdrive: ["Class 1.5", "Class 1.0"]
+      crew_quarters: ["Diplomatic suites (12)"]
+      utility: ["Conference chambers", "Holonet suite", "Medical bay"]
+    acquisition_methods:
+      - faction: "New Republic rewards for diplomatic service"
+      - background: "Diplomat background grants Consular cruiser"
+    base_price: 180000
+
+  - id: ship-nr-action6-surplus
+    name: Action VI Transport (Surplus)
+    era: NEW_REPUBLIC
+    class: heavy_freighter
+    manufacturer: Corellian Engineering Corporation
+    description: |
+      Post-war surplus, affordable and reliable. Same massive cargo capacity.
+    stats:
+      combat_rating: 3
+      speed: 3
+      cargo_capacity: 5000
+      crew_requirement: 12
+      companion_capacity: 10
+      maintenance_cost: 90
+    upgrade_slots:
+      weapons: ["Light laser cannons"]
+      shields: ["Industrial deflectors"]
+      hyperdrive: ["Class 3.0", "Class 2.0"]
+      crew_quarters: ["Cargo dormitories (10)"]
+      utility: ["Massive cargo hold", "Repair bay"]
+    acquisition_methods:
+      - purchase: "50,000 credits (cheap surplus)"
+    base_price: 50000
+
+  - id: ship-nr-gozanti
+    name: Gozanti-class Cruiser
+    era: NEW_REPUBLIC
+    class: cruiser
+    manufacturer: Corellian Engineering Corporation
+    description: |
+      Imperial surplus, modular cargo hauler. Can carry starfighters externally.
+    stats:
+      combat_rating: 5
+      speed: 4
+      cargo_capacity: 1000
+      crew_requirement: 8
+      companion_capacity: 8
+      maintenance_cost: 100
+    upgrade_slots:
+      weapons: ["Heavy laser cannons"]
+      shields: ["Transport deflectors"]
+      hyperdrive: ["Class 3.0", "Class 2.0"]
+      crew_quarters: ["Modular (8)"]
+      utility: ["Starfighter docking clamps", "Cargo modularity", "Repair bay"]
+    acquisition_methods:
+      - purchase: "75,000 credits"
+      - salvage: "Capture from pirates"
+    base_price: 75000
+
+  - id: ship-nr-gym
+    name: Gym-class Fighter Yacht
+    era: NEW_REPUBLIC
+    class: fighter_yacht
+    manufacturer: Slayn & Korpil
+    description: |
+      Personal luxury fighter, speed-focused. For wealthy pilots who want style.
+    stats:
+      combat_rating: 6
+      speed: 9
+      cargo_capacity: 20
+      crew_requirement: 1
+      companion_capacity: 2
+      maintenance_cost: 50
+    upgrade_slots:
+      weapons: ["Blaster cannons", "Concussion missiles"]
+      shields: ["Fighter deflectors"]
+      hyperdrive: ["Class 1.0", "Class 0.5"]
+      crew_quarters: ["Luxury cockpit (2)"]
+      utility: ["Entertainment system", "Sensor suite"]
+    acquisition_methods:
+      - purchase: "60,000 credits"
+      - quest: "Inherit from wealthy patron"
+    base_price: 60000
+
+  - id: ship-nr-bulk
+    name: Modified Bulk Freighter
+    era: NEW_REPUBLIC
+    class: bulk_freighter
+    manufacturer: Various
+    description: |
+      Huge cargo capacity, glacially slow. Mobile base for entire operations.
+    stats:
+      combat_rating: 2
+      speed: 2
+      cargo_capacity: 10000
+      crew_requirement: 20
+      companion_capacity: 12
+      maintenance_cost: 150
+    upgrade_slots:
+      weapons: ["Point-defense lasers"]
+      shields: ["Industrial deflectors"]
+      hyperdrive: ["Class 4.0", "Class 3.0"]
+      crew_quarters: ["Cargo dormitories (12)", "Mobile base (12)"]
+      utility: ["Massive cargo hold", "Workshop", "Repair bay", "Medical bay"]
+    acquisition_methods:
+      - purchase: "120,000 credits"
+      - quest: "Salvage from abandoned operation"
+    base_price: 120000
+
+  # ============================================================
+  # NEW JEDI ORDER ERA (25-29 ABY) — Desperate survival, Vong bio-tech
+  # ============================================================
+
+  - id: ship-njo-sekotan
+    name: Sekotan Starship
+    era: NEW_JEDI_ORDER
+    class: organic_starship
+    manufacturer: Zonama Sekot (living planet)
+    description: |
+      Living vessel, Force-bonded to its pilot. Organic technology, unique
+      and priceless. Anakin Solo flew a Sekotan ship.
+    stats:
+      combat_rating: 9
+      speed: 10
+      cargo_capacity: 40
+      crew_requirement: 1
+      companion_capacity: 4
+      maintenance_cost: 20
+    upgrade_slots:
+      weapons: ["Organic projectile launchers"]
+      shields: ["Living hull regeneration"]
+      hyperdrive: ["Organic drive (Class 0.5 equivalent)"]
+      crew_quarters: ["Symbiotic bond (4)"]
+      utility: ["Self-repair", "Force bond", "Stealth systems"]
+    acquisition_methods:
+      - quest: "Pilgrimage to Zonama Sekot, prove worthiness to the planet"
+    base_price: null  # Cannot be purchased
+
+  - id: ship-njo-moncal
+    name: Mon Calamari Cruiser (Small)
+    era: NEW_JEDI_ORDER
+    class: cruiser
+    manufacturer: Mon Calamari Shipyards
+    description: |
+      Alliance surplus, durable and slow. Mobile command center for refugees.
+    stats:
+      combat_rating: 7
+      speed: 4
+      cargo_capacity: 800
+      crew_requirement: 25
+      companion_capacity: 12
+      maintenance_cost: 180
+    upgrade_slots:
+      weapons: ["Turbolasers", "Ion cannons"]
+      shields: ["Capital deflectors"]
+      hyperdrive: ["Class 2.0", "Class 1.0"]
+      crew_quarters: ["Military quarters (12)"]
+      utility: ["Command center", "Medical bay", "Refugee quarters"]
+    acquisition_methods:
+      - faction: "Galactic Alliance rewards for critical service"
+    base_price: 300000
+
+  - id: ship-njo-carrack
+    name: Carrack-class Light Cruiser
+    era: NEW_JEDI_ORDER
+    class: light_cruiser
+    manufacturer: Damorian Manufacturing
+    description: |
+      Military surplus, crew-intensive warship. Heavily armed escort vessel.
+    stats:
+      combat_rating: 8
+      speed: 5
+      cargo_capacity: 400
+      crew_requirement: 30
+      companion_capacity: 10
+      maintenance_cost: 200
+    upgrade_slots:
+      weapons: ["Heavy turbolasers", "Tractor beam"]
+      shields: ["Military deflectors"]
+      hyperdrive: ["Class 2.0", "Class 1.0"]
+      crew_quarters: ["Military barracks (10)"]
+      utility: ["Command center", "Armory", "Brig"]
+    acquisition_methods:
+      - purchase: "250,000 credits (rare surplus)"
+      - salvage: "Capture from warlord"
+    base_price: 250000
+
+  - id: ship-njo-yt-modified
+    name: Modified YT-series Freighter
+    era: NEW_JEDI_ORDER
+    class: light_freighter
+    manufacturer: Corellian Engineering Corporation
+    description: |
+      Post-war salvage, heavily customized. Every YT is unique by now.
+    stats:
+      combat_rating: 6
+      speed: 7
+      cargo_capacity: 100
+      crew_requirement: 2
+      companion_capacity: 6
+      maintenance_cost: 50
+    upgrade_slots:
+      weapons: ["Customized laser cannons", "Missiles"]
+      shields: ["Modified deflectors"]
+      hyperdrive: ["Class 1.5", "Class 1.0"]
+      crew_quarters: ["Customized (6)"]
+      utility: ["Jury-rigged systems", "Workshop", "Stealth modifications"]
+    acquisition_methods:
+      - purchase: "40,000 credits"
+      - salvage: "Repair abandoned freighter"
+    base_price: 40000
+
+  - id: ship-njo-yorik
+    name: Vong-captured Yorik-trema
+    era: NEW_JEDI_ORDER
+    class: organic_transport
+    manufacturer: Yuuzhan Vong bio-engineers
+    description: |
+      Captured Vong transport, organic bio-tech. Dangerous but effective.
+    stats:
+      combat_rating: 7
+      speed: 6
+      cargo_capacity: 80
+      crew_requirement: 2
+      companion_capacity: 6
+      maintenance_cost: 40
+    upgrade_slots:
+      weapons: ["Plasma launchers"]
+      shields: ["Dovin basal (gravity shields)"]
+      hyperdrive: ["Organic drive (Class 1.5 equivalent)"]
+      crew_quarters: ["Organic pods (6)"]
+      utility: ["Bio-tech healing", "Organic stealth", "Villip communication"]
+    acquisition_methods:
+      - salvage: "Capture from Vong forces"
+      - quest: "Liberate from Vong slaveship"
+    base_price: null  # Cannot be purchased
+
+  - id: ship-njo-refugee
+    name: Refugee Fleet Shuttle
+    era: NEW_JEDI_ORDER
+    class: shuttle
+    manufacturer: Various
+    description: |
+      Scrappy survival vessel, minimal weapons. Built from scrap during the war.
+    stats:
+      combat_rating: 3
+      speed: 5
+      cargo_capacity: 50
+      crew_requirement: 1
+      companion_capacity: 8
+      maintenance_cost: 30
+    upgrade_slots:
+      weapons: ["Light blaster cannons"]
+      shields: ["Makeshift deflectors"]
+      hyperdrive: ["Class 3.0", "Class 2.0"]
+      crew_quarters: ["Refugee bunks (8)"]
+      utility: ["Life support overdrive", "Medical supplies"]
+    acquisition_methods:
+      - purchase: "15,000 credits"
+      - quest: "Inherit from refugee family"
+    base_price: 15000
+
+  - id: ship-njo-hapan
+    name: Hapan Battle Dragon (Small)
+    era: NEW_JEDI_ORDER
+    class: battle_dragon
+    manufacturer: Hapan Consortium
+    description: |
+      Matriarchal gift, elegant and deadly. Hapan design philosophy—beauty and power.
+    stats:
+      combat_rating: 8
+      speed: 6
+      cargo_capacity: 300
+      crew_requirement: 18
+      companion_capacity: 10
+      maintenance_cost: 160
+    upgrade_slots:
+      weapons: ["Turbolasers", "Ion cannons", "Pulse-mass mines"]
+      shields: ["Hapan deflectors"]
+      hyperdrive: ["Class 1.5", "Class 1.0"]
+      crew_quarters: ["Hapan luxury (10)"]
+      utility: ["Sensor masking", "Diplomatic suite", "Command center"]
+    acquisition_methods:
+      - faction: "Hapes Consortium gift for high reputation"
+      - quest: "Royal favor from Queen Mother"
+    base_price: null  # Gift only
+
+  - id: ship-njo-xs
+    name: XS Stock Light Freighter
+    era: NEW_JEDI_ORDER
+    class: light_freighter
+    manufacturer: Corellian Engineering Corporation
+    description: |
+      Compact, efficient, modular. Post-war standard for small operators.
+    stats:
+      combat_rating: 5
+      speed: 7
+      cargo_capacity: 60
+      crew_requirement: 2
+      companion_capacity: 4
+      maintenance_cost: 40
+    upgrade_slots:
+      weapons: ["Laser cannons"]
+      shields: ["Standard deflectors"]
+      hyperdrive: ["Class 2.0", "Class 1.5"]
+      crew_quarters: ["Compact (4)"]
+      utility: ["Modular cargo bay", "Sensor suite"]
+    acquisition_methods:
+      - purchase: "30,000 credits"
+    base_price: 30000
+
+  # ============================================================
+  # LEGACY ERA (130-138 ABY) — Sith Empire, scavenged relics
+  # ============================================================
+
+  - id: ship-leg-mynock
+    name: Mynock (Cade's ship type)
+    era: LEGACY
+    class: pirate_vessel
+    manufacturer: Custom-built
+    description: |
+      Cade Skywalker's ship. Pirate vessel, modular, combat-ready. Built for
+      bounty hunting and smuggling.
+    stats:
+      combat_rating: 8
+      speed: 8
+      cargo_capacity: 80
+      crew_requirement: 2
+      companion_capacity: 6
+      maintenance_cost: 60
+    upgrade_slots:
+      weapons: ["Heavy laser cannons", "Concussion missiles"]
+      shields: ["Military deflectors"]
+      hyperdrive: ["Class 1.0", "Class 0.7"]
+      crew_quarters: ["Pirate bunks (6)"]
+      utility: ["Smuggling compartments", "Workshop", "Weapons locker"]
+    acquisition_methods:
+      - background: "Bounty Hunter background grants Mynock-type ship"
+      - purchase: "80,000 credits"
+      - salvage: "Capture from rival pirate"
+    base_price: 80000
+
+  - id: ship-leg-komrk
+    name: Kom'rk-class Fighter
+    era: LEGACY
+    class: mandalorian_fighter
+    manufacturer: MandalMotors
+    description: |
+      Mandalorian warrior ship, versatile and deadly. Rotating wings, heavy weapons.
+    stats:
+      combat_rating: 9
+      speed: 8
+      cargo_capacity: 30
+      crew_requirement: 1
+      companion_capacity: 4
+      maintenance_cost: 70
+    upgrade_slots:
+      weapons: ["Rotary cannons", "Missiles", "Ion cannon"]
+      shields: ["Mandalorian deflectors"]
+      hyperdrive: ["Class 1.0", "Class 0.7"]
+      crew_quarters: ["Spartan warrior bunks (4)"]
+      utility: ["Armory", "Clan insignia projector", "Stealth systems"]
+    acquisition_methods:
+      - faction: "Mandalorian clan rewards for honor"
+      - purchase: "110,000 credits (rare)"
+    base_price: 110000
+
+  - id: ship-leg-imperial-knight
+    name: Imperial Knight Shuttle
+    era: LEGACY
+    class: shuttle
+    manufacturer: Fel Empire
+    description: |
+      Sleek Fel Empire vessel, honorable aesthetic. Imperial Knights fly these.
+    stats:
+      combat_rating: 6
+      speed: 7
+      cargo_capacity: 50
+      crew_requirement: 1
+      companion_capacity: 6
+      maintenance_cost: 50
+    upgrade_slots:
+      weapons: ["Laser cannons"]
+      shields: ["Imperial deflectors"]
+      hyperdrive: ["Class 1.5", "Class 1.0"]
+      crew_quarters: ["Knight quarters (6)"]
+      utility: ["Meditation chamber", "Armory", "Holonet suite"]
+    acquisition_methods:
+      - faction: "Fel Empire rewards for loyalty"
+      - background: "Imperial Knight background grants shuttle"
+    base_price: 70000
+
+  - id: ship-leg-sith-infiltrator
+    name: Sith Infiltrator
+    era: LEGACY
+    class: infiltrator
+    manufacturer: One Sith
+    description: |
+      Dark side aesthetic, stealth ship. One Sith operatives fly these for assassinations.
+    stats:
+      combat_rating: 7
+      speed: 9
+      cargo_capacity: 40
+      crew_requirement: 1
+      companion_capacity: 4
+      maintenance_cost: 60
+    upgrade_slots:
+      weapons: ["Heavy laser cannons", "Ion cannon"]
+      shields: ["Stealth deflectors"]
+      hyperdrive: ["Class 1.0", "Class 0.5"]
+      crew_quarters: ["Dark meditation pods (4)"]
+      utility: ["Cloaking device", "Dark side meditation chamber", "Sensor masking"]
+    acquisition_methods:
+      - salvage: "Capture from One Sith operative"
+      - quest: "Steal from Sith stronghold"
+    base_price: null  # Cannot be purchased legally
+
+  - id: ship-leg-xwing
+    name: Rogue Squadron Surplus X-wing
+    era: LEGACY
+    class: modified_fighter
+    manufacturer: Incom Corporation
+    description: |
+      Resistance fighter converted to transport. Legendary X-wing, modified for cargo.
+    stats:
+      combat_rating: 7
+      speed: 8
+      cargo_capacity: 20
+      crew_requirement: 1
+      companion_capacity: 2
+      maintenance_cost: 50
+    upgrade_slots:
+      weapons: ["Quad laser cannons", "Proton torpedoes"]
+      shields: ["Fighter deflectors"]
+      hyperdrive: ["Class 1.0", "Class 0.7"]
+      crew_quarters: ["Cockpit + astromech socket (2)"]
+      utility: ["Astromech socket", "Targeting computer"]
+    acquisition_methods:
+      - faction: "Rogue Squadron legacy rewards"
+      - salvage: "Restore derelict X-wing"
+    base_price: 60000
+
+  - id: ship-leg-star-destroyer
+    name: Scavenged Imperial Star Destroyer Section
+    era: LEGACY
+    class: capital_ship_section
+    manufacturer: Kuat Drive Yards
+    description: |
+      Massive mobile base, crew-intensive. Section of a Star Destroyer converted
+      to mobile fortress. Slow, powerful, intimidating.
+    stats:
+      combat_rating: 10
+      speed: 2
+      cargo_capacity: 20000
+      crew_requirement: 50
+      companion_capacity: 12
+      maintenance_cost: 400
+    upgrade_slots:
+      weapons: ["Turbolaser batteries", "Ion cannons", "Tractor beams"]
+      shields: ["Capital-grade deflectors"]
+      hyperdrive: ["Class 3.0", "Class 2.0"]
+      crew_quarters: ["Military barracks (12)", "Command suite"]
+      utility: ["Command center", "Hangar bay", "Armory", "Medical bay", "Brig"]
+    acquisition_methods:
+      - quest: "Salvage from derelict Imperial wreck (major questline)"
+    base_price: null  # Quest only
+
+  - id: ship-leg-meditation-sphere
+    name: Lost Tribe Sith Meditation Sphere
+    era: LEGACY
+    class: sentient_ship
+    manufacturer: Ancient Sith (Lost Tribe)
+    description: |
+      Sentient Sith ship, Force-bonded. Meditation Sphere from the Lost Tribe—
+      ancient, powerful, and alive with dark side energy.
+    stats:
+      combat_rating: 9
+      speed: 10
+      cargo_capacity: 30
+      crew_requirement: 1
+      companion_capacity: 4
+      maintenance_cost: 30
+    upgrade_slots:
+      weapons: ["Dark side energy projectors"]
+      shields: ["Force-imbued hull"]
+      hyperdrive: ["Sith meditation drive (Class 0.5 equivalent)"]
+      crew_quarters: ["Dark meditation chambers (4)"]
+      utility: ["Force bond", "Dark side amplification", "Self-aware AI"]
+    acquisition_methods:
+      - quest: "Discover on Lost Tribe world, prove dark side worthiness"
+    base_price: null  # Quest only
+
+  - id: ship-leg-black-sun
+    name: Black Sun Syndicate Freighter
+    era: LEGACY
+    class: syndicate_freighter
+    manufacturer: Custom-built
+    description: |
+      Crime vessel, hidden compartments, smuggler aesthetic. Black Sun operatives
+      use these for covert operations.
+    stats:
+      combat_rating: 6
+      speed: 7
+      cargo_capacity: 150
+      crew_requirement: 2
+      companion_capacity: 6
+      maintenance_cost: 50
+    upgrade_slots:
+      weapons: ["Concealed laser cannons"]
+      shields: ["Standard deflectors"]
+      hyperdrive: ["Class 1.5", "Class 1.0"]
+      crew_quarters: ["Syndicate quarters (6)"]
+      utility: ["Hidden smuggling compartments", "False transponder", "Sensor masking"]
+    acquisition_methods:
+      - faction: "Black Sun rewards for criminal services"
+      - purchase: "65,000 credits (underworld contacts)"
+    base_price: 65000

@@ -1,0 +1,2380 @@
+# KOTOR Era Locations — 65 base + 35 sub-locations
+# Ancient Sith strongholds, Jedi enclaves, Republic space, underworld, and precursor ruins.
+
+locations:
+  # ---- A. Ancient Sith & Korriban ----
+  - id: loc-kotor-korriban_academy
+    name: Sith Academy (Korriban)
+    tags: [sith, academy, korriban, dark]
+    region: Outer Rim
+    controlling_factions: [sith_empire]
+    planet: Korriban
+    description: |
+      The heart of Sith power in the galaxy—a fortress of dark stone where acolytes are broken and rebuilt in the image of the Sith Lords. The air tastes of ozone and blood; the walls echo with duels and the whispers of ancient spirits. Masters pit students against each other in trials of strength, cunning, and cruelty. Those who survive ascend; the rest feed the tombs. The Academy guards the valley of the Sith Lords and the secrets of the dark side.
+    threat_level: extreme
+    parent_id: null
+    scene_types: [dialogue, combat, investigation]
+    security:
+      controlling_faction: sith_empire
+      security_level: 90
+      patrol_intensity: high
+      inspection_chance: high
+    services: []
+    access_points:
+      - id: main_gate
+        type: door
+        visibility: public
+        bypass_methods: [credential, intimidate]
+      - id: tomb_passage
+        type: door
+        visibility: restricted
+        bypass_methods: [force, stealth]
+    encounter_table:
+      - template_id: sith_acolyte_template
+        weight: 5
+      - template_id: sith_assassin_template
+        weight: 2
+      - template_id: ancient_scholar_template
+        weight: 1
+    keywords: [sith, academy, korriban, dark_side, training]
+    travel_links:
+      - to_location_id: loc-kotor-korriban_academy_entrance
+      - to_location_id: loc-kotor-tomb_ajunta_pall
+    metadata: {}
+
+  - id: loc-kotor-korriban_academy_entrance
+    name: Sith Academy Entrance
+    tags: [sith, korriban, entrance]
+    region: Outer Rim
+    planet: Korriban
+    controlling_factions: [sith_empire]
+    description: Dust and red rock; the main approach to the Sith Academy. Guards and acolytes watch all who approach.
+    threat_level: high
+    parent_id: loc-kotor-korriban_academy
+    scene_types: [dialogue, combat]
+    security:
+      controlling_faction: sith_empire
+      security_level: 75
+      patrol_intensity: high
+      inspection_chance: medium
+    services: []
+    access_points:
+      - id: gate
+        type: door
+        visibility: public
+        bypass_methods: [credential, intimidate, bribe]
+    encounter_table:
+      - template_id: sith_acolyte_template
+        weight: 4
+      - template_id: sith_assassin_template
+        weight: 2
+      - template_id: mandalorian_warrior_template
+        weight: 1
+    keywords: [korriban, sith, entrance]
+    travel_links:
+      - to_location_id: loc-kotor-korriban_valley
+    metadata: {}
+
+  - id: loc-kotor-tomb_ajunta_pall
+    name: Tomb of Ajunta Pall
+    tags: [sith, tomb, korriban, ancient]
+    region: Outer Rim
+    planet: Korriban
+    description: The burial place of the first Dark Lord to lead the Exiles to Korriban. Dark side energy saturates the chambers; spirits and traps guard his legacy.
+    threat_level: extreme
+    parent_id: loc-kotor-korriban_academy
+    scene_types: [combat, investigation]
+    security:
+      security_level: 60
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points:
+      - id: entrance
+        type: door
+        visibility: public
+        bypass_methods: [force, sneak]
+    encounter_table:
+      - template_id: sith_acolyte_template
+        weight: 3
+      - template_id: sith_assassin_template
+        weight: 2
+      - template_id: ancient_scholar_template
+        weight: 1
+      - template_id: force_hermit_template
+        weight: 1
+    keywords: [ajunta_pall, sith_tomb, dark_side]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-korriban_valley
+    name: Valley of the Dark Lords
+    tags: [sith, korriban, valley, tombs]
+    region: Outer Rim
+    planet: Korriban
+    controlling_factions: [sith_empire]
+    description: A canyon of red rock lined with the tombs of ancient Sith Lords. The dark side is palpable; acolytes come here to prove themselves or die.
+    threat_level: high
+    parent_id: null
+    scene_types: [dialogue, combat, investigation]
+    security:
+      controlling_faction: sith_empire
+      security_level: 70
+      patrol_intensity: medium
+      inspection_chance: medium
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: sith_acolyte_template
+        weight: 4
+      - template_id: sith_assassin_template
+        weight: 3
+      - template_id: ancient_scholar_template
+        weight: 1
+    keywords: [korriban, sith_tombs, valley]
+    travel_links:
+      - to_location_id: loc-kotor-korriban_academy
+    metadata: {}
+
+  - id: loc-kotor-dromund_kaas_citadel
+    name: Dromund Kaas Citadel
+    tags: [sith, jungle, hidden, empire]
+    region: Unknown Regions
+    planet: Dromund Kaas
+    controlling_factions: [sith_empire]
+    description: The hidden capital of the Sith Empire, shrouded in storms and jungle. The citadel rises from the dark world like a blade; here the true Sith Lords plot their return.
+    threat_level: extreme
+    parent_id: null
+    scene_types: [dialogue, stealth, combat]
+    security:
+      controlling_faction: sith_empire
+      security_level: 95
+      patrol_intensity: high
+      inspection_chance: high
+    services: [briefing_room, safehouse]
+    access_points:
+      - id: main
+        type: door
+        visibility: restricted
+        bypass_methods: [credential, force]
+    encounter_table:
+      - template_id: sith_acolyte_template
+        weight: 3
+      - template_id: sith_assassin_template
+        weight: 4
+      - template_id: ancient_scholar_template
+        weight: 1
+    keywords: [dromund_kaas, sith_empire, hidden]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-sith_temple_unknown
+    name: Abandoned Sith Temple
+    tags: [sith, temple, ruins, dark]
+    region: Outer Rim
+    controlling_factions: []
+    description: A forgotten Sith temple, overgrown and unstable. Dark side artifacts and echoes of old rituals linger.
+    threat_level: high
+    parent_id: null
+    scene_types: [investigation, combat]
+    security:
+      security_level: 30
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: sith_acolyte_template
+        weight: 2
+      - template_id: ancient_scholar_template
+        weight: 3
+      - template_id: force_hermit_template
+        weight: 2
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [sith_temple, ruins, artifact]
+    travel_links: []
+    metadata: {}
+
+  # ---- B. Jedi Order ----
+  - id: loc-kotor-dantooine_academy
+    name: Jedi Enclave (Dantooine)
+    tags: [jedi, academy, dantooine, light]
+    region: Outer Rim
+    planet: Dantooine
+    controlling_factions: [jedi_order]
+    description: The Jedi training facility on Dantooine—rebuilt after Malak's bombardment. Grass plains and ancient groves surround the enclave; inside, Masters train Padawans and guard what remains of the Order's archives.
+    threat_level: low
+    parent_id: null
+    scene_types: [dialogue, investigation]
+    security:
+      controlling_faction: jedi_order
+      security_level: 80
+      patrol_intensity: medium
+      inspection_chance: low
+    services: [briefing_room, medbay]
+    access_points:
+      - id: main
+        type: door
+        visibility: public
+        bypass_methods: [credential]
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 5
+      - template_id: grey_jedi_template
+        weight: 1
+      - template_id: ancient_scholar_template
+        weight: 1
+    keywords: [jedi, dantooine, enclave]
+    travel_links:
+      - to_location_id: loc-kotor-dantooine_encampment
+      - to_location_id: loc-kotor-dantooine_council_chamber
+    metadata: {}
+
+  - id: loc-kotor-dantooine_encampment
+    name: Dantooine Encampment
+    tags: [jedi, dantooine, settlement]
+    region: Outer Rim
+    planet: Dantooine
+    controlling_factions: [jedi_order]
+    description: A small settlement near the Jedi Enclave—settlers, merchants, and travelers passing through the plains.
+    threat_level: low
+    parent_id: null
+    scene_types: [dialogue, travel]
+    security:
+      security_level: 40
+      patrol_intensity: low
+      inspection_chance: low
+    services: [transport]
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 2
+      - template_id: criminal_boss_template
+        weight: 1
+      - template_id: ancient_scholar_template
+        weight: 2
+      - template_id: force_hermit_template
+        weight: 1
+    keywords: [dantooine, settlement]
+    travel_links:
+      - to_location_id: loc-kotor-dantooine_academy
+    metadata: {}
+
+  - id: loc-kotor-dantooine_council_chamber
+    name: Jedi Council Chamber (Dantooine)
+    tags: [jedi, council, dantooine]
+    region: Outer Rim
+    planet: Dantooine
+    controlling_factions: [jedi_order]
+    description: Where the Jedi Council convenes—sparse, meditative, and heavy with the weight of decisions that shape the Order.
+    threat_level: low
+    parent_id: loc-kotor-dantooine_academy
+    scene_types: [dialogue]
+    security:
+      controlling_faction: jedi_order
+      security_level: 90
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points:
+      - id: door
+        type: door
+        visibility: restricted
+        bypass_methods: [credential]
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 5
+      - template_id: grey_jedi_template
+        weight: 1
+    keywords: [jedi_council, dantooine]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-coruscant_jedi_temple
+    name: Jedi Temple (Coruscant)
+    tags: [jedi, temple, coruscant]
+    region: Core
+    planet: Coruscant
+    controlling_factions: [jedi_order]
+    description: The great Jedi Temple on Coruscant—symbol of the Order's presence in the Republic. Archives, training halls, and the High Council chamber stand at the heart of the capital.
+    threat_level: low
+    parent_id: null
+    scene_types: [dialogue, investigation]
+    security:
+      controlling_faction: jedi_order
+      security_level: 85
+      patrol_intensity: medium
+      inspection_chance: medium
+    services: [briefing_room, medbay]
+    access_points:
+      - id: main
+        type: door
+        visibility: public
+        bypass_methods: [credential]
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 5
+      - template_id: ancient_scholar_template
+        weight: 2
+      - template_id: grey_jedi_template
+        weight: 1
+    keywords: [jedi, coruscant, temple]
+    travel_links:
+      - to_location_id: loc-kotor-coruscant_senate
+    metadata: {}
+
+  - id: loc-kotor-ossus_library
+    name: Jedi Library (Ossus)
+    tags: [jedi, library, ossus, ancient]
+    region: Outer Rim
+    planet: Ossus
+    controlling_factions: [jedi_order]
+    description: Ancient Jedi library world—repositories of knowledge from the dawn of the Order. Scholars and Jedi preserve scrolls and holocrons despite the scars of past wars.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [dialogue, investigation]
+    security:
+      controlling_faction: jedi_order
+      security_level: 70
+      patrol_intensity: medium
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 3
+      - template_id: ancient_scholar_template
+        weight: 4
+      - template_id: grey_jedi_template
+        weight: 1
+    keywords: [ossus, jedi_library, holocron]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-manaan_embassy
+    name: Republic Embassy (Manaan)
+    tags: [republic, manaan, neutral, water]
+    region: Mid Rim
+    planet: Manaan
+    controlling_factions: [galactic_republic]
+    description: The Republic embassy on the water world of Manaan—neutral ground where Selkath arbitrate and Republic diplomats negotiate. The ocean stretches in every direction.
+    threat_level: low
+    parent_id: null
+    scene_types: [dialogue, investigation]
+    security:
+      controlling_faction: galactic_republic
+      security_level: 65
+      patrol_intensity: medium
+      inspection_chance: medium
+    services: [briefing_room, transport]
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 2
+      - template_id: criminal_boss_template
+        weight: 1
+      - template_id: ancient_scholar_template
+        weight: 2
+    keywords: [manaan, selkath, embassy]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-kashyyyk_jedi_grove
+    name: Kashyyyk Jedi Grove
+    tags: [jedi, kashyyyk, wookiee]
+    region: Mid Rim
+    planet: Kashyyyk
+    controlling_factions: [jedi_order]
+    description: A secluded grove where Jedi and Wookiees have long cooperated. Ancient trees and shadowlands hold secrets and trials.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [dialogue, combat, investigation]
+    security:
+      security_level: 50
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 3
+      - template_id: force_hermit_template
+        weight: 2
+      - template_id: ancient_scholar_template
+        weight: 1
+      - template_id: grey_jedi_template
+        weight: 1
+    keywords: [kashyyyk, wookiee, jedi]
+    travel_links: []
+    metadata: {}
+
+  # ---- C. Ancient Civilizations & Rakata ----
+  - id: loc-kotor-rakata_primordial_temple
+    name: Rakata Primordial Temple
+    tags: [rakata, ancient, temple, precursor]
+    region: Unknown Regions
+    controlling_factions: [rakata_remnant]
+    description: A temple of the Infinite Empire—stone and force-binding technology fused. The Rakata once ruled the galaxy from such places; now only echoes and traps remain.
+    threat_level: extreme
+    parent_id: null
+    scene_types: [investigation, combat]
+    security:
+      security_level: 40
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: ancient_scholar_template
+        weight: 3
+      - template_id: sith_acolyte_template
+        weight: 2
+      - template_id: force_hermit_template
+        weight: 1
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [rakata, infinite_empire, star_forge]
+    travel_links:
+      - to_location_id: loc-kotor-star_forge_ruins
+    metadata: {}
+
+  - id: loc-kotor-star_forge_ruins
+    name: Star Forge Debris Field
+    tags: [rakata, star_forge, ruins, space]
+    region: Unknown Regions
+    controlling_factions: []
+    description: The shattered remnants of the Star Forge—a weapon of mass construction destroyed in the Jedi Civil War. Debris and derelicts drift; scavengers and Sith cultists still seek fragments.
+    threat_level: high
+    parent_id: null
+    scene_types: [investigation, combat]
+    security:
+      security_level: 20
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: ancient_scholar_template
+        weight: 2
+      - template_id: criminal_boss_template
+        weight: 2
+      - template_id: sith_acolyte_template
+        weight: 2
+      - template_id: force_hermit_template
+        weight: 1
+    keywords: [star_forge, rakata, debris]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-ancient_observatory
+    name: Ancient Observatory
+    tags: [precursor, observatory, ruins]
+    region: Outer Rim
+    controlling_factions: []
+    description: A pre-Republic observatory—purpose unclear. Ancient machinery and star charts suggest knowledge beyond current understanding.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [investigation]
+    security:
+      security_level: 25
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: ancient_scholar_template
+        weight: 4
+      - template_id: force_hermit_template
+        weight: 2
+      - template_id: sith_acolyte_template
+        weight: 1
+    keywords: [observatory, ancient]
+    travel_links: []
+    metadata: {}
+
+  # ---- D. Republic & Government ----
+  - id: loc-kotor-coruscant_senate
+    name: Republic Senate (Coruscant)
+    tags: [republic, senate, coruscant]
+    region: Core
+    planet: Coruscant
+    controlling_factions: [galactic_republic]
+    description: The Senate building on Coruscant—heart of Republic politics. Senators debate, lobby, and scheme while the galaxy struggles to recover from war.
+    threat_level: low
+    parent_id: null
+    scene_types: [dialogue, investigation]
+    security:
+      controlling_faction: galactic_republic
+      security_level: 85
+      patrol_intensity: high
+      inspection_chance: high
+    services: [briefing_room]
+    access_points:
+      - id: main
+        type: door
+        visibility: public
+        bypass_methods: [credential]
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 2
+      - template_id: criminal_boss_template
+        weight: 1
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [senate, coruscant, republic]
+    travel_links:
+      - to_location_id: loc-kotor-coruscant_jedi_temple
+    metadata: {}
+
+  - id: loc-kotor-republic_fleet_station
+    name: Republic Fleet Station
+    tags: [republic, military, fleet]
+    region: Core
+    controlling_factions: [galactic_republic]
+    description: A Republic naval station—warships, supply depots, and officers coordinating defense of the Core and key hyperspace routes.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [dialogue, combat]
+    security:
+      controlling_faction: galactic_republic
+      security_level: 80
+      patrol_intensity: high
+      inspection_chance: high
+    services: [briefing_room, transport]
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 2
+      - template_id: mandalorian_warrior_template
+        weight: 1
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [republic, fleet, military]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-military_academy
+    name: Republic Military Academy
+    tags: [republic, military, academy]
+    region: Core
+    controlling_factions: [galactic_republic]
+    description: Where Republic officers are trained—discipline, strategy, and loyalty to the Republic.
+    threat_level: low
+    parent_id: null
+    scene_types: [dialogue]
+    security:
+      controlling_faction: galactic_republic
+      security_level: 75
+      patrol_intensity: medium
+      inspection_chance: medium
+    services: [briefing_room]
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 2
+      - template_id: mandalorian_warrior_template
+        weight: 1
+    keywords: [military, academy]
+    travel_links: []
+    metadata: {}
+
+  # ---- E. Underworld & Crime ----
+  - id: loc-kotor-taris_lower_city
+    name: Taris Lower City
+    tags: [underworld, taris, urban]
+    region: Outer Rim
+    planet: Taris
+    controlling_factions: [underworld]
+    description: The lower levels of Taris—a maze of duracrete, neon, and desperation. Smugglers, gangs, and refugees crowd the streets; the upper city looks down in disdain.
+    threat_level: high
+    parent_id: null
+    scene_types: [dialogue, combat, stealth]
+    security:
+      security_level: 30
+      patrol_intensity: low
+      inspection_chance: low
+    services: [bounty_board, arms_dealer]
+    access_points: []
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 4
+      - template_id: mandalorian_warrior_template
+        weight: 2
+      - template_id: sith_assassin_template
+        weight: 1
+      - template_id: grey_jedi_template
+        weight: 1
+    keywords: [taris, lower_city, underworld]
+    travel_links:
+      - to_location_id: loc-kotor-taris_cantina
+      - to_location_id: loc-kotor-smuggler_haven
+    metadata: {}
+
+  - id: loc-kotor-taris_cantina
+    name: Cantina (Taris Lower City)
+    tags: [cantina, taris, underworld]
+    region: Outer Rim
+    planet: Taris
+    controlling_factions: [underworld]
+    description: A noisy cantina in the Lower City—drinks, deals, and brawls. Pilots and thugs trade information and insults.
+    threat_level: moderate
+    parent_id: loc-kotor-taris_lower_city
+    scene_types: [dialogue]
+    security:
+      security_level: 25
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 3
+      - template_id: mandalorian_warrior_template
+        weight: 2
+      - template_id: grey_jedi_template
+        weight: 1
+      - template_id: jedi_knight_template
+        weight: 1
+    keywords: [cantina, taris]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-smuggler_haven
+    name: Smuggler Haven
+    tags: [smuggler, underworld, base]
+    region: Outer Rim
+    controlling_factions: [underworld]
+    description: A hidden base in an asteroid field or backwater—smugglers, fences, and runners gather to split cargo and avoid Republic and Sith alike.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [dialogue, stealth]
+    security:
+      security_level: 45
+      patrol_intensity: low
+      inspection_chance: low
+    services: [transport, bounty_board]
+    access_points:
+      - id: dock
+        type: door
+        visibility: hidden
+        bypass_methods: [bribe, credential]
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 4
+      - template_id: mandalorian_warrior_template
+        weight: 2
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [smuggler, haven]
+    travel_links:
+      - to_location_id: loc-kotor-taris_lower_city
+    metadata: {}
+
+  - id: loc-kotor-hutt_palace_tatooine
+    name: Hutt Palace (Tatooine)
+    tags: [hutt, palace, tatooine, criminal]
+    region: Outer Rim
+    planet: Tatooine
+    controlling_factions: [underworld]
+    description: A Hutt's palace—opulent, oppressive, and reeking of spice and power. Crime lords hold court; bounty hunters and slaves serve.
+    threat_level: high
+    parent_id: null
+    scene_types: [dialogue, combat]
+    security:
+      security_level: 60
+      patrol_intensity: medium
+      inspection_chance: medium
+    services: [bounty_board]
+    access_points:
+      - id: main
+        type: door
+        visibility: public
+        bypass_methods: [bribe, charm]
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 5
+      - template_id: mandalorian_warrior_template
+        weight: 2
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [hutt, tatooine, palace]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-black_market_hub
+    name: Black Market Hub
+    tags: [black_market, underworld]
+    region: Outer Rim
+    controlling_factions: [underworld]
+    description: A den where illegal goods—artifacts, weapons, spice—change hands. Buyers and sellers guard their identities.
+    threat_level: high
+    parent_id: null
+    scene_types: [dialogue, stealth]
+    security:
+      security_level: 35
+      patrol_intensity: low
+      inspection_chance: low
+    services: [arms_dealer]
+    access_points: []
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 5
+      - template_id: sith_assassin_template
+        weight: 2
+      - template_id: mandalorian_warrior_template
+        weight: 1
+    keywords: [black_market]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-bounty_hunter_guild_hall
+    name: Bounty Hunter Guild Hall
+    tags: [bounty_hunter, guild]
+    region: Mid Rim
+    controlling_factions: [underworld]
+    description: Where bounty hunters take contracts and swap leads. The Guild enforces its own code; outsiders tread carefully.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [dialogue]
+    security:
+      security_level: 55
+      patrol_intensity: medium
+      inspection_chance: low
+    services: [bounty_board]
+    access_points: []
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 3
+      - template_id: mandalorian_warrior_template
+        weight: 3
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [bounty_hunter, guild]
+    travel_links: []
+    metadata: {}
+
+  # ---- F. Exploration & Ebon Hawk ----
+  - id: loc-kotor-ebon_hawk_docking
+    name: Ebon Hawk Docking Bay
+    tags: [ship, ebon_hawk, docking]
+    region: null
+    controlling_factions: []
+    description: Where the Ebon Hawk—or any player vessel—docks. A familiar refuge between worlds.
+    threat_level: low
+    parent_id: null
+    scene_types: [dialogue, travel]
+    security:
+      security_level: 70
+      patrol_intensity: low
+      inspection_chance: low
+    services: [transport, safehouse]
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 2
+      - template_id: criminal_boss_template
+        weight: 1
+    keywords: [ebon_hawk, ship]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-archaeological_dig
+    name: Archaeological Dig Site
+    tags: [archaeological, ruins, exploration]
+    region: Outer Rim
+    controlling_factions: []
+    description: An active dig—scholars and laborers unearth ancient structures and artifacts. Republic, Jedi, or independent sponsors; danger from traps and rival parties.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [investigation, dialogue]
+    security:
+      security_level: 40
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: ancient_scholar_template
+        weight: 5
+      - template_id: force_hermit_template
+        weight: 2
+      - template_id: sith_acolyte_template
+        weight: 1
+    keywords: [archaeological, dig]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-uncharted_asteroid_field
+    name: Uncharted Asteroid Field
+    tags: [uncharted, asteroid, space]
+    region: Unknown Regions
+    controlling_factions: []
+    description: A dense field of asteroids—navigable only by skilled pilots. Pirates and hermits sometimes hide here.
+    threat_level: high
+    parent_id: null
+    scene_types: [travel, combat]
+    security:
+      security_level: 10
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 3
+      - template_id: force_hermit_template
+        weight: 2
+      - template_id: mandalorian_warrior_template
+        weight: 1
+    keywords: [asteroid, uncharted]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-exile_colony
+    name: Exile Colony
+    tags: [exile, colony, frontier]
+    region: Outer Rim
+    controlling_factions: [neutral]
+    description: A settlement of outcasts—banished Jedi, deserters, and refugees. They survive on the fringe, away from Republic and Sith.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [dialogue, investigation]
+    security:
+      security_level: 35
+      patrol_intensity: low
+      inspection_chance: low
+    services: [safehouse]
+    access_points: []
+    encounter_table:
+      - template_id: force_hermit_template
+        weight: 3
+      - template_id: grey_jedi_template
+        weight: 3
+      - template_id: criminal_boss_template
+        weight: 1
+      - template_id: jedi_knight_template
+        weight: 1
+    keywords: [exile, colony]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-mandalore_camp
+    name: Mandalorian Camp
+    tags: [mandalorian, camp, warrior]
+    region: Outer Rim
+    planet: Mandalore
+    controlling_factions: [mandalorian_clans]
+    description: A Mandalorian encampment—clan banners, armor, and the smell of forge and field rations. Warriors train and plan; outsiders are judged by strength and honor.
+    threat_level: high
+    parent_id: null
+    scene_types: [dialogue, combat]
+    security:
+      controlling_faction: mandalorian_clans
+      security_level: 65
+      patrol_intensity: medium
+      inspection_chance: medium
+    services: [arms_dealer, briefing_room]
+    access_points: []
+    encounter_table:
+      - template_id: mandalorian_warrior_template
+        weight: 5
+      - template_id: criminal_boss_template
+        weight: 1
+      - template_id: ancient_scholar_template
+        weight: 1
+    keywords: [mandalorian, camp]
+    travel_links:
+      - to_location_id: loc-kotor-ordo_stronghold
+    metadata: {}
+
+  - id: loc-kotor-ordo_stronghold
+    name: Ordo Stronghold
+    tags: [mandalorian, ordo, stronghold]
+    region: Outer Rim
+    controlling_factions: [mandalorian_clans]
+    description: A Mandalorian clan stronghold—likely tied to the Ordo line. War rooms and armories; honor and blood.
+    threat_level: high
+    parent_id: null
+    scene_types: [dialogue, combat]
+    security:
+      controlling_faction: mandalorian_clans
+      security_level: 75
+      patrol_intensity: high
+      inspection_chance: medium
+    services: [arms_dealer]
+    access_points: []
+    encounter_table:
+      - template_id: mandalorian_warrior_template
+        weight: 5
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [ordo, mandalorian]
+    travel_links:
+      - to_location_id: loc-kotor-mandalore_camp
+    metadata: {}
+
+  - id: loc-kotor-dark_side_nexus
+    name: Dark Side Nexus
+    tags: [sith, dark_side, nexus]
+    region: Outer Rim
+    controlling_factions: []
+    description: A place where the dark side pools—unnatural cold, whispers, and the urge to draw on anger and fear. Sith seek such sites for rituals.
+    threat_level: extreme
+    parent_id: null
+    scene_types: [combat, investigation]
+    security:
+      security_level: 20
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: sith_acolyte_template
+        weight: 3
+      - template_id: sith_assassin_template
+        weight: 3
+      - template_id: force_hermit_template
+        weight: 1
+    keywords: [dark_side, nexus]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-jedi_meditation_temple
+    name: Jedi Meditation Temple
+    tags: [jedi, meditation, temple]
+    region: Mid Rim
+    controlling_factions: [jedi_order]
+    description: A small temple devoted to meditation and reflection—Jedi retreat here to center themselves in the Force.
+    threat_level: low
+    parent_id: null
+    scene_types: [dialogue]
+    security:
+      controlling_faction: jedi_order
+      security_level: 70
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 4
+      - template_id: grey_jedi_template
+        weight: 2
+      - template_id: force_hermit_template
+        weight: 1
+    keywords: [jedi, meditation]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-sith_artifact_vault
+    name: Sith Artifact Vault
+    tags: [sith, artifact, vault]
+    region: Outer Rim
+    controlling_factions: [sith_empire]
+    description: A secured vault holding Sith artifacts—holocrons, weapons, and forbidden texts. Heavily warded and guarded.
+    threat_level: extreme
+    parent_id: null
+    scene_types: [stealth, combat, investigation]
+    security:
+      controlling_faction: sith_empire
+      security_level: 90
+      patrol_intensity: high
+      inspection_chance: high
+    services: []
+    access_points:
+      - id: vault_door
+        type: door
+        visibility: restricted
+        bypass_methods: [force, hack, credential]
+    encounter_table:
+      - template_id: sith_acolyte_template
+        weight: 3
+      - template_id: sith_assassin_template
+        weight: 4
+      - template_id: ancient_scholar_template
+        weight: 1
+    keywords: [sith, artifact, vault]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-forgotten_vault
+    name: Forgotten Vault
+    tags: [ancient, vault, ruins]
+    region: Unknown Regions
+    controlling_factions: []
+    description: A sealed vault from a lost civilization—contents unknown. Explorers and Sith alike seek to breach it.
+    threat_level: high
+    parent_id: null
+    scene_types: [investigation, combat]
+    security:
+      security_level: 50
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: ancient_scholar_template
+        weight: 3
+      - template_id: force_hermit_template
+        weight: 2
+      - template_id: sith_acolyte_template
+        weight: 1
+      - template_id: criminal_boss_template
+        weight: 1
+    keywords: [vault, ancient]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-coruscant_underworld
+    name: Coruscant Underworld
+    tags: [coruscant, underworld, urban]
+    region: Core
+    planet: Coruscant
+    controlling_factions: [underworld]
+    description: The lower levels of Coruscant—crime, gangs, and the forgotten. The Senate and Jedi Temple are far above.
+    threat_level: high
+    parent_id: null
+    scene_types: [dialogue, stealth, combat]
+    security:
+      security_level: 35
+      patrol_intensity: medium
+      inspection_chance: low
+    services: [bounty_board]
+    access_points: []
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 4
+      - template_id: sith_assassin_template
+        weight: 2
+      - template_id: grey_jedi_template
+        weight: 1
+      - template_id: mandalorian_warrior_template
+        weight: 1
+    keywords: [coruscant, underworld]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-pirate_stronghold
+    name: Pirate Stronghold
+    tags: [pirate, stronghold]
+    region: Outer Rim
+    controlling_factions: [underworld]
+    description: A pirate base—raiders, loot, and rough discipline. Outsiders are prey unless they have something to trade.
+    threat_level: high
+    parent_id: null
+    scene_types: [dialogue, combat]
+    security:
+      security_level: 50
+      patrol_intensity: medium
+      inspection_chance: low
+    services: [arms_dealer]
+    access_points: []
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 5
+      - template_id: mandalorian_warrior_template
+        weight: 2
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [pirate, stronghold]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-diplomatic_station
+    name: Republic Diplomatic Station
+    tags: [republic, diplomatic]
+    region: Mid Rim
+    controlling_factions: [galactic_republic]
+    description: A station for Republic diplomats—neutral ground for negotiations with non-Republic worlds and factions.
+    threat_level: low
+    parent_id: null
+    scene_types: [dialogue]
+    security:
+      controlling_faction: galactic_republic
+      security_level: 70
+      patrol_intensity: medium
+      inspection_chance: medium
+    services: [briefing_room]
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 2
+      - template_id: criminal_boss_template
+        weight: 1
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [diplomatic, republic]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-trade_center
+    name: Galactic Trade Center
+    tags: [trade, commerce]
+    region: Core
+    controlling_factions: [galactic_republic]
+    description: A major trade hub—merchants, shipping, and credits. The lifeblood of the Republic economy.
+    threat_level: low
+    parent_id: null
+    scene_types: [dialogue]
+    security:
+      controlling_faction: galactic_republic
+      security_level: 65
+      patrol_intensity: medium
+      inspection_chance: medium
+    services: [transport]
+    access_points: []
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 3
+      - template_id: jedi_knight_template
+        weight: 1
+      - template_id: mandalorian_warrior_template
+        weight: 1
+    keywords: [trade, commerce]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-frontier_settlement
+    name: Frontier Settlement
+    tags: [frontier, settlement]
+    region: Outer Rim
+    controlling_factions: []
+    description: A small settlement on the edge of known space—colonists, scavengers, and the occasional Jedi or Sith passing through.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [dialogue, travel]
+    security:
+      security_level: 40
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: force_hermit_template
+        weight: 3
+      - template_id: criminal_boss_template
+        weight: 2
+      - template_id: ancient_scholar_template
+        weight: 1
+      - template_id: mandalorian_warrior_template
+        weight: 1
+    keywords: [frontier, settlement]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-hidden_academy
+    name: Hidden Academy
+    tags: [jedi, hidden, academy]
+    region: Outer Rim
+    controlling_factions: [jedi_order]
+    description: A secret Jedi training site—off the books, for those the Order wishes to protect or train away from prying eyes.
+    threat_level: low
+    parent_id: null
+    scene_types: [dialogue, investigation]
+    security:
+      controlling_faction: jedi_order
+      security_level: 85
+      patrol_intensity: low
+      inspection_chance: low
+    services: [briefing_room]
+    access_points:
+      - id: entrance
+        type: door
+        visibility: secret
+        bypass_methods: [credential, force]
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 4
+      - template_id: grey_jedi_template
+        weight: 2
+      - template_id: force_hermit_template
+        weight: 1
+    keywords: [jedi, hidden]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-korriban_sith_tomb_2
+    name: Tomb of Naga Sadow
+    tags: [sith, tomb, korriban]
+    region: Outer Rim
+    planet: Korriban
+    controlling_factions: [sith_empire]
+    description: Another tomb in the Valley of the Dark Lords—Naga Sadow's legacy. Traps and spirits guard his secrets.
+    threat_level: extreme
+    parent_id: loc-kotor-korriban_valley
+    scene_types: [combat, investigation]
+    security:
+      security_level: 55
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: sith_acolyte_template
+        weight: 3
+      - template_id: sith_assassin_template
+        weight: 2
+      - template_id: ancient_scholar_template
+        weight: 2
+    keywords: [naga_sadow, sith_tomb]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-korriban_sith_tomb_3
+    name: Tomb of Tulak Hord
+    tags: [sith, tomb, korriban]
+    region: Outer Rim
+    planet: Korriban
+    controlling_factions: [sith_empire]
+    description: The tomb of Tulak Hord—one of the greatest Sith Lords. Acolytes are sent here to prove their worth.
+    threat_level: extreme
+    parent_id: loc-kotor-korriban_valley
+    scene_types: [combat, investigation]
+    security:
+      security_level: 60
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: sith_acolyte_template
+        weight: 3
+      - template_id: sith_assassin_template
+        weight: 3
+      - template_id: ancient_scholar_template
+        weight: 1
+    keywords: [tulak_hord, sith_tomb]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-dantooine_ruins
+    name: Dantooine Ruins (Jedi)
+    tags: [jedi, ruins, dantooine]
+    region: Outer Rim
+    planet: Dantooine
+    controlling_factions: []
+    description: Ruins of an older Jedi presence on Dantooine—partially excavated, partially collapsed. Artifacts and echoes remain.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [investigation]
+    security:
+      security_level: 30
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: ancient_scholar_template
+        weight: 3
+      - template_id: jedi_knight_template
+        weight: 2
+      - template_id: force_hermit_template
+        weight: 2
+    keywords: [dantooine, jedi_ruins]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-ossus_archives_wing
+    name: Ossus Archives Wing
+    tags: [jedi, ossus, archives]
+    region: Outer Rim
+    planet: Ossus
+    controlling_factions: [jedi_order]
+    description: A wing of the Jedi library on Ossus—restricted archives and holocrons. Scholars and Jedi only.
+    threat_level: low
+    parent_id: loc-kotor-ossus_library
+    scene_types: [dialogue, investigation]
+    security:
+      controlling_faction: jedi_order
+      security_level: 80
+      patrol_intensity: medium
+      inspection_chance: low
+    services: []
+    access_points:
+      - id: door
+        type: door
+        visibility: restricted
+        bypass_methods: [credential]
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 3
+      - template_id: ancient_scholar_template
+        weight: 4
+      - template_id: grey_jedi_template
+        weight: 1
+    keywords: [ossus, archives]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-republic_garrison
+    name: Republic Garrison
+    tags: [republic, garrison, military]
+    region: Mid Rim
+    controlling_factions: [galactic_republic]
+    description: A Republic military garrison—troops, vehicles, and a commander keeping order on a contested or strategic world.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [dialogue, combat]
+    security:
+      controlling_faction: galactic_republic
+      security_level: 75
+      patrol_intensity: high
+      inspection_chance: high
+    services: [briefing_room, medbay]
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 2
+      - template_id: mandalorian_warrior_template
+        weight: 1
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [garrison, republic]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-chancellery_outpost
+    name: Chancellery Outpost
+    tags: [republic, chancellery]
+    region: Core
+    controlling_factions: [galactic_republic]
+    description: A small government outpost—Republic administration and records. Bureaucrats and the occasional Jedi liaison.
+    threat_level: low
+    parent_id: null
+    scene_types: [dialogue]
+    security:
+      controlling_faction: galactic_republic
+      security_level: 70
+      patrol_intensity: medium
+      inspection_chance: medium
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 2
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [chancellery, republic]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-mercenary_guild
+    name: Mercenary Guild Hall
+    tags: [mercenary, guild]
+    region: Mid Rim
+    controlling_factions: [underworld]
+    description: Where mercenaries sign contracts—Republic, Hutts, or private clients. Honor is negotiable; payment is not.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [dialogue]
+    security:
+      security_level: 50
+      patrol_intensity: medium
+      inspection_chance: low
+    services: [bounty_board]
+    access_points: []
+    encounter_table:
+      - template_id: mandalorian_warrior_template
+        weight: 4
+      - template_id: criminal_boss_template
+        weight: 3
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [mercenary, guild]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-neutral_free_city
+    name: Free City (Neutral)
+    tags: [neutral, city, independent]
+    region: Mid Rim
+    controlling_factions: [neutral]
+    description: A city that owes no allegiance to Republic or Sith—traders, refugees, and those who want no part of the eternal war.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [dialogue, travel]
+    security:
+      security_level: 50
+      patrol_intensity: medium
+      inspection_chance: low
+    services: [transport]
+    access_points: []
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 3
+      - template_id: mandalorian_warrior_template
+        weight: 2
+      - template_id: grey_jedi_template
+        weight: 1
+      - template_id: jedi_knight_template
+        weight: 1
+    keywords: [free_city, neutral]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-scientific_expedition
+    name: Scientific Expedition Camp
+    tags: [scientific, expedition]
+    region: Outer Rim
+    controlling_factions: []
+    description: A research camp—scientists studying ancient ruins, flora, or phenomena. Funding from Republic or independents.
+    threat_level: low
+    parent_id: null
+    scene_types: [dialogue, investigation]
+    security:
+      security_level: 40
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: ancient_scholar_template
+        weight: 4
+      - template_id: force_hermit_template
+        weight: 2
+      - template_id: jedi_knight_template
+        weight: 1
+    keywords: [scientific, expedition]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-mysterious_monolith
+    name: Mysterious Monolith
+    tags: [ancient, monolith, mystery]
+    region: Unknown Regions
+    controlling_factions: []
+    description: A towering structure of unknown origin—no markings, no clear purpose. Force-sensitive visitors feel a pull or unease.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [investigation]
+    security:
+      security_level: 10
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: ancient_scholar_template
+        weight: 3
+      - template_id: force_hermit_template
+        weight: 3
+      - template_id: sith_acolyte_template
+        weight: 1
+    keywords: [monolith, ancient]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-sith_academy_secondary
+    name: Secondary Sith Academy
+    tags: [sith, academy]
+    region: Outer Rim
+    controlling_factions: [sith_empire]
+    description: A smaller Sith training facility—satellite to Korriban or a hidden site. Acolytes and instructors maintain the dark tradition.
+    threat_level: high
+    parent_id: null
+    scene_types: [dialogue, combat]
+    security:
+      controlling_faction: sith_empire
+      security_level: 80
+      patrol_intensity: high
+      inspection_chance: medium
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: sith_acolyte_template
+        weight: 5
+      - template_id: sith_assassin_template
+        weight: 3
+      - template_id: ancient_scholar_template
+        weight: 1
+    keywords: [sith_academy]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-jedi_sanctuary
+    name: Jedi Sanctuary
+    tags: [jedi, sanctuary]
+    region: Outer Rim
+    controlling_factions: [jedi_order]
+    description: A remote sanctuary where Jedi in exile or retreat find peace. Few know its location.
+    threat_level: low
+    parent_id: null
+    scene_types: [dialogue]
+    security:
+      controlling_faction: jedi_order
+      security_level: 75
+      patrol_intensity: low
+      inspection_chance: low
+    services: [medbay]
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 3
+      - template_id: grey_jedi_template
+        weight: 3
+      - template_id: force_hermit_template
+        weight: 2
+    keywords: [jedi_sanctuary]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-coruscant_jedi_archives
+    name: Jedi Archives (Coruscant)
+    tags: [jedi, coruscant, archives]
+    region: Core
+    planet: Coruscant
+    controlling_factions: [jedi_order]
+    description: The great Jedi Archives on Coruscant—holocrons, scrolls, and the accumulated knowledge of the Order.
+    threat_level: low
+    parent_id: loc-kotor-coruscant_jedi_temple
+    scene_types: [dialogue, investigation]
+    security:
+      controlling_faction: jedi_order
+      security_level: 85
+      patrol_intensity: medium
+      inspection_chance: low
+    services: []
+    access_points:
+      - id: main
+        type: door
+        visibility: restricted
+        bypass_methods: [credential]
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 4
+      - template_id: ancient_scholar_template
+        weight: 3
+      - template_id: grey_jedi_template
+        weight: 1
+    keywords: [archives, coruscant]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-coruscant_jedi_training_hall
+    name: Jedi Training Hall (Coruscant)
+    tags: [jedi, coruscant, training]
+    region: Core
+    planet: Coruscant
+    controlling_factions: [jedi_order]
+    description: Where Jedi train with sabers and the Force—sparring, drills, and the hum of blades.
+    threat_level: low
+    parent_id: loc-kotor-coruscant_jedi_temple
+    scene_types: [dialogue, combat]
+    security:
+      controlling_faction: jedi_order
+      security_level: 70
+      patrol_intensity: medium
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 5
+      - template_id: grey_jedi_template
+        weight: 1
+    keywords: [training, coruscant]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-dromund_kaas_sith_library
+    name: Sith Library (Dromund Kaas)
+    tags: [sith, dromund_kaas, library]
+    region: Unknown Regions
+    planet: Dromund Kaas
+    controlling_factions: [sith_empire]
+    description: The Sith archive on Dromund Kaas—forbidden knowledge, holocrons, and the history of the dark side.
+    threat_level: extreme
+    parent_id: loc-kotor-dromund_kaas_citadel
+    scene_types: [dialogue, investigation]
+    security:
+      controlling_faction: sith_empire
+      security_level: 90
+      patrol_intensity: high
+      inspection_chance: high
+    services: []
+    access_points:
+      - id: door
+        type: door
+        visibility: restricted
+        bypass_methods: [credential, force]
+    encounter_table:
+      - template_id: sith_acolyte_template
+        weight: 3
+      - template_id: sith_assassin_template
+        weight: 2
+      - template_id: ancient_scholar_template
+        weight: 2
+    keywords: [sith_library, dromund_kaas]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-dromund_kaas_throne_room
+    name: Sith Throne Room (Dromund Kaas)
+    tags: [sith, dromund_kaas, throne]
+    region: Unknown Regions
+    planet: Dromund Kaas
+    controlling_factions: [sith_empire]
+    description: The throne room of the Sith leadership on Dromund Kaas—where the Dark Council or Emperor's voice holds court.
+    threat_level: extreme
+    parent_id: loc-kotor-dromund_kaas_citadel
+    scene_types: [dialogue]
+    security:
+      controlling_faction: sith_empire
+      security_level: 95
+      patrol_intensity: high
+      inspection_chance: high
+    services: [briefing_room]
+    access_points:
+      - id: main
+        type: door
+        visibility: restricted
+        bypass_methods: [credential]
+    encounter_table:
+      - template_id: sith_assassin_template
+        weight: 4
+      - template_id: sith_acolyte_template
+        weight: 3
+    keywords: [throne_room, sith]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-republic_fleet_bridge
+    name: Republic Flagship Bridge
+    tags: [republic, fleet, bridge]
+    region: null
+    controlling_factions: [galactic_republic]
+    description: The bridge of a Republic capital ship—admiral, officers, and the vastness of space on the viewscreens.
+    threat_level: moderate
+    parent_id: loc-kotor-republic_fleet_station
+    scene_types: [dialogue]
+    security:
+      controlling_faction: galactic_republic
+      security_level: 90
+      patrol_intensity: high
+      inspection_chance: high
+    services: [briefing_room]
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 2
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [flagship, bridge]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-senate_chamber
+    name: Senate Chamber (Coruscant)
+    tags: [republic, senate, coruscant]
+    region: Core
+    planet: Coruscant
+    controlling_factions: [galactic_republic]
+    description: The main Senate chamber—senators in their pods, the Chancellor's podium, and the din of democracy.
+    threat_level: low
+    parent_id: loc-kotor-coruscant_senate
+    scene_types: [dialogue]
+    security:
+      controlling_faction: galactic_republic
+      security_level: 90
+      patrol_intensity: high
+      inspection_chance: high
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 2
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [senate_chamber]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-taris_upper_city
+    name: Taris Upper City
+    tags: [taris, upper_city, urban]
+    region: Outer Rim
+    planet: Taris
+    controlling_factions: [galactic_republic]
+    description: The wealthy levels of Taris—towers, speeders, and the elite who pretend the Lower City does not exist.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [dialogue]
+    security:
+      controlling_faction: galactic_republic
+      security_level: 65
+      patrol_intensity: medium
+      inspection_chance: medium
+    services: [transport]
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 2
+      - template_id: criminal_boss_template
+        weight: 2
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [taris, upper_city]
+    travel_links:
+      - to_location_id: loc-kotor-taris_lower_city
+    metadata: {}
+
+  - id: loc-kotor-taris_black_vulkar_base
+    name: Black Vulkar Base (Taris)
+    tags: [taris, gang, underworld]
+    region: Outer Rim
+    planet: Taris
+    controlling_factions: [underworld]
+    description: A gang stronghold in the Lower City—the Black Vulkars or a similar crew. Dangerous territory.
+    threat_level: high
+    parent_id: loc-kotor-taris_lower_city
+    scene_types: [combat, stealth]
+    security:
+      security_level: 45
+      patrol_intensity: medium
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 5
+      - template_id: mandalorian_warrior_template
+        weight: 2
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [black_vulkar, taris]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-rakata_control_room
+    name: Rakata Control Room
+    tags: [rakata, control, ancient]
+    region: Unknown Regions
+    controlling_factions: [rakata_remnant]
+    description: A control center of Rakata design—consoles and force-binding technology. Those who learn to use it can access ancient systems.
+    threat_level: high
+    parent_id: loc-kotor-rakata_primordial_temple
+    scene_types: [investigation]
+    security:
+      security_level: 60
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: ancient_scholar_template
+        weight: 3
+      - template_id: sith_acolyte_template
+        weight: 2
+      - template_id: force_hermit_template
+        weight: 1
+    keywords: [rakata, control]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-ancient_archive_chamber
+    name: Ancient Archive Chamber
+    tags: [ancient, archive]
+    region: Outer Rim
+    controlling_factions: []
+    description: A chamber of a lost civilization—scrolls, data crystals, and indecipherable script. Scholars and Sith seek it.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [investigation]
+    security:
+      security_level: 35
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: ancient_scholar_template
+        weight: 4
+      - template_id: force_hermit_template
+        weight: 2
+      - template_id: sith_acolyte_template
+        weight: 1
+    keywords: [archive, ancient]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-gladiator_arena
+    name: Gladiator Arena
+    tags: [gladiator, arena, underworld]
+    region: Outer Rim
+    controlling_factions: [underworld]
+    description: An arena where fighters—slaves, criminals, or volunteers—battle for the crowd's amusement and betting credits.
+    threat_level: high
+    parent_id: null
+    scene_types: [combat, dialogue]
+    security:
+      security_level: 55
+      patrol_intensity: medium
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: mandalorian_warrior_template
+        weight: 3
+      - template_id: criminal_boss_template
+        weight: 4
+      - template_id: sith_acolyte_template
+        weight: 1
+    keywords: [gladiator, arena]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-kosh_gurm_outpost
+    name: Kosh Gurm Outpost
+    tags: [sith, ancient, colony]
+    region: Outer Rim
+    controlling_factions: [sith_empire]
+    description: An ancient Sith colony world—ruins and a small Sith presence. Historians and acolytes come to study the past.
+    threat_level: high
+    parent_id: null
+    scene_types: [dialogue, investigation]
+    security:
+      controlling_faction: sith_empire
+      security_level: 65
+      patrol_intensity: medium
+      inspection_chance: medium
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: sith_acolyte_template
+        weight: 3
+      - template_id: ancient_scholar_template
+        weight: 3
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [kosh_gurm, sith_colony]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-unknown_space_gate
+    name: Unknown Space Gate
+    tags: [unknown, gate, portal]
+    region: Unknown Regions
+    controlling_factions: []
+    description: A massive structure—possibly a hyperspace gate or something else. Its purpose and builders are unknown.
+    threat_level: high
+    parent_id: null
+    scene_types: [investigation, travel]
+    security:
+      security_level: 20
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: ancient_scholar_template
+        weight: 2
+      - template_id: force_hermit_template
+        weight: 2
+      - template_id: sith_acolyte_template
+        weight: 1
+      - template_id: criminal_boss_template
+        weight: 1
+    keywords: [space_gate, unknown]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-force_cave
+    name: Force Cave
+    tags: [force, cave, trial]
+    region: Outer Rim
+    controlling_factions: []
+    description: A cave strong in the Force—Jedi use such places for trials; the cave reflects one's inner darkness or light.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [investigation]
+    security:
+      security_level: 10
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: force_hermit_template
+        weight: 3
+      - template_id: grey_jedi_template
+        weight: 2
+      - template_id: jedi_knight_template
+        weight: 1
+    keywords: [force_cave, trial]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-slave_compound
+    name: Slave Compound
+    tags: [slavery, compound, underworld]
+    region: Outer Rim
+    controlling_factions: [underworld]
+    description: A compound where slaves are held—before sale or for labor. A grim reminder of the galaxy's cruelty.
+    threat_level: high
+    parent_id: null
+    scene_types: [dialogue, stealth, combat]
+    security:
+      security_level: 55
+      patrol_intensity: medium
+      inspection_chance: medium
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 5
+      - template_id: mandalorian_warrior_template
+        weight: 2
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [slave, compound]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-secret_bunker
+    name: Secret Bunker
+    tags: [secret, bunker, republic]
+    region: Mid Rim
+    controlling_factions: [galactic_republic]
+    description: A hidden Republic or Jedi bunker—supplies, intel, or refugees. Location classified.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [dialogue, stealth]
+    security:
+      controlling_faction: galactic_republic
+      security_level: 80
+      patrol_intensity: low
+      inspection_chance: low
+    services: [safehouse, briefing_room]
+    access_points:
+      - id: entrance
+        type: door
+        visibility: secret
+        bypass_methods: [credential, hack]
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 3
+      - template_id: grey_jedi_template
+        weight: 1
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [bunker, secret]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-manaan_underwater_lab
+    name: Underwater Lab (Manaan)
+    tags: [manaan, underwater, lab]
+    region: Mid Rim
+    planet: Manaan
+    controlling_factions: []
+    description: A submerged facility on Manaan—research or smuggling. The Selkath and the ocean keep many secrets.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [investigation, dialogue]
+    security:
+      security_level: 50
+      patrol_intensity: medium
+      inspection_chance: medium
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: ancient_scholar_template
+        weight: 3
+      - template_id: criminal_boss_template
+        weight: 2
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [manaan, underwater]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-lehon_temple
+    name: Temple on Lehon
+    tags: [rakata, lehon, temple]
+    region: Unknown Regions
+    planet: Lehon
+    controlling_factions: [rakata_remnant]
+    description: The temple on the Rakata homeworld—where the Star Forge was controlled and where Revan and Malak once walked.
+    threat_level: extreme
+    parent_id: null
+    scene_types: [dialogue, investigation, combat]
+    security:
+      security_level: 70
+      patrol_intensity: medium
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: ancient_scholar_template
+        weight: 3
+      - template_id: sith_acolyte_template
+        weight: 2
+      - template_id: force_hermit_template
+        weight: 1
+      - template_id: jedi_knight_template
+        weight: 1
+    keywords: [lehon, rakata, temple]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-dantooine_grasslands
+    name: Dantooine Grasslands
+    tags: [dantooine, grasslands]
+    region: Outer Rim
+    planet: Dantooine
+    controlling_factions: []
+    description: The open grasslands of Dantooine—herds, settlers, and the occasional Kath hound or bandit.
+    threat_level: low
+    parent_id: null
+    scene_types: [travel, dialogue]
+    security:
+      security_level: 30
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: force_hermit_template
+        weight: 2
+      - template_id: jedi_knight_template
+        weight: 2
+      - template_id: mandalorian_warrior_template
+        weight: 1
+      - template_id: criminal_boss_template
+        weight: 1
+    keywords: [dantooine, grasslands]
+    travel_links:
+      - to_location_id: loc-kotor-dantooine_encampment
+    metadata: {}
+
+  - id: loc-kotor-leviathan_detention
+    name: Leviathan Detention Block
+    tags: [sith, ship, detention]
+    region: null
+    controlling_factions: [sith_empire]
+    description: The detention block of a Sith capital ship—prisoners await interrogation or execution. Escape is nearly impossible.
+    threat_level: extreme
+    parent_id: null
+    scene_types: [stealth, combat]
+    security:
+      controlling_faction: sith_empire
+      security_level: 95
+      patrol_intensity: high
+      inspection_chance: high
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: sith_assassin_template
+        weight: 4
+      - template_id: sith_acolyte_template
+        weight: 3
+    keywords: [leviathan, detention]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-endar_spire_wreck
+    name: Endar Spire Wreckage
+    tags: [republic, wreck, ship]
+    region: Outer Rim
+    planet: Taris
+    controlling_factions: []
+    description: The wreckage of a Republic vessel—perhaps the Endar Spire or another casualty of war. Scavengers and survivors pick through the debris.
+    threat_level: high
+    parent_id: null
+    scene_types: [investigation, combat]
+    security:
+      security_level: 25
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 3
+      - template_id: sith_acolyte_template
+        weight: 2
+      - template_id: mandalorian_warrior_template
+        weight: 1
+    keywords: [endar_spire, wreck]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-jedi_war_room
+    name: Jedi War Room
+    tags: [jedi, war_room]
+    region: Core
+    planet: Coruscant
+    controlling_factions: [jedi_order]
+    description: A secure room where Jedi strategists coordinate with the Republic military against Sith threats.
+    threat_level: low
+    parent_id: loc-kotor-coruscant_jedi_temple
+    scene_types: [dialogue]
+    security:
+      controlling_faction: jedi_order
+      security_level: 90
+      patrol_intensity: low
+      inspection_chance: low
+    services: [briefing_room]
+    access_points: []
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 5
+    keywords: [war_room, jedi]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-sith_interrogation
+    name: Sith Interrogation Chamber
+    tags: [sith, interrogation]
+    region: Outer Rim
+    controlling_factions: [sith_empire]
+    description: A chamber where Sith extract information through pain and the Force. Few leave unchanged.
+    threat_level: extreme
+    parent_id: null
+    scene_types: [dialogue, combat]
+    security:
+      controlling_faction: sith_empire
+      security_level: 85
+      patrol_intensity: high
+      inspection_chance: high
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: sith_assassin_template
+        weight: 4
+      - template_id: sith_acolyte_template
+        weight: 3
+    keywords: [interrogation, sith]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-cantina_generic
+    name: Cantina
+    tags: [cantina, underworld]
+    region: Outer Rim
+    controlling_factions: [underworld]
+    description: A typical cantina—drinks, music, and the exchange of information and credits. A good place to find work or trouble.
+    threat_level: moderate
+    parent_id: null
+    scene_types: [dialogue]
+    security:
+      security_level: 35
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 3
+      - template_id: mandalorian_warrior_template
+        weight: 2
+      - template_id: grey_jedi_template
+        weight: 1
+      - template_id: jedi_knight_template
+        weight: 1
+    keywords: [cantina]
+    travel_links: []
+    metadata: {}
+
+  - id: loc-kotor-unknown_region_depths
+    name: Unknown Regions Depths
+    tags: [unknown_regions, space]
+    region: Unknown Regions
+    controlling_factions: []
+    description: Deep in the Unknown Regions—uncharted, strange, and home to the hidden Sith Empire and other mysteries.
+    threat_level: extreme
+    parent_id: null
+    scene_types: [travel, investigation]
+    security:
+      security_level: 15
+      patrol_intensity: low
+      inspection_chance: low
+    services: []
+    access_points: []
+    encounter_table:
+      - template_id: sith_assassin_template
+        weight: 2
+      - template_id: force_hermit_template
+        weight: 2
+      - template_id: ancient_scholar_template
+        weight: 1
+      - template_id: sith_acolyte_template
+        weight: 1
+    keywords: [unknown_regions]
+    travel_links: []
+    metadata: {}
+
+# Expansion
+# KOTOR Era Locations — Exhaustive High-Depth Edition
+# Target: 65 Base + 35 Sub-locations
+# Timeline: ~3954 BBY (Post-KOTOR 2)
+
+locations:
+  # ---- A. ANCIENT SITH STRONGHOLDS & TEMPLES ----
+  - id: loc-kotor-tomb_tulak_hord
+    name: "Tomb of Tulak Hord (Korriban)"
+    tags: [sith, tomb, korriban, ancient, dark, combat_heavy]
+    region: Outer Rim
+    controlling_factions: [sith_empire]
+    planet: Korriban
+    description: |
+      The final resting place of the Lord of Hate, Tulak Hord. The air is heavy with the weight of ancient sorcery and the physical remnants of Hord’s unrivaled lightsaber prowess. The tomb is a labyrinth of traps and guardian droids, designed to test the worthiness of any acolyte bold enough to seek the Lord’s lost holocron. Shadows here seem to move with a predatory intent, whispering of the 'Greatest Duelist' who ever lived. The Force is so concentrated here that non-sensitives suffer physical nausea, while Dark Side users feel an intoxicating surge of strength.
+    threat_level: extreme
+    parent_id: loc-kotor-valley_of_dark_lords
+    scene_types: [combat, investigation, puzzle]
+    security:
+      controlling_faction: sith_empire
+      security_level: 95
+      patrol_intensity: medium
+      inspection_chance: low
+    access_points:
+      - id: sealed_gate_of_hate
+        type: heavy_door
+        visibility: public
+        bypass_methods: [force_dark, logic_puzzle, sith_amulet]
+    encounter_table:
+      - template_id: sith_acolyte_template
+        weight: 4
+      - template_id: sith_assassin_template
+        weight: 3
+      - template_id: ancient_scholar_template
+        weight: 1
+    keywords: [tulak_hord, lightsaber_lore, dark_side_nexus, ancient_sorcery]
+
+  - id: loc-kotor-dromund_kaas_dark_temple
+    name: "The Dark Temple (Dromund Kaas)"
+    tags: [sith, temple, ancient, unknown_regions, horror]
+    region: Unknown Regions
+    controlling_factions: [sith_empire]
+    planet: Dromund Kaas
+    description: |
+      A massive obsidian ziggurat built by the Sith Emperor to contain the spirits of his defeated rivals. The temple acts as a focal point for the planet's perpetual lightning storms. Inside, the geography is non-Euclidean; corridors loop back on themselves, and the walls pulse with a faint, rhythmic heartbeat. It is a place of madness where the 'Shadow Beasts'—creatures of pure dark side energy—stalk anyone not shielded by powerful Sith wards.
+    threat_level: extreme
+    scene_types: [stealth, investigation, combat]
+    security:
+      controlling_faction: sith_empire
+      security_level: 98
+      patrol_intensity: high
+    encounter_table:
+      - template_id: sith_assassin_template
+        weight: 4
+      - template_id: sith_acolyte_template
+        weight: 3
+      - template_id: force_hermit_template
+        weight: 1
+    keywords: [shadow_beast, lightning_storm, emperor_ritual, sith_spirits]
+
+  - id: loc-kotor-malachor_trayus_academy
+    name: "Trayus Academy (Malachor V)"
+    tags: [ruins, sith, force_wound, dark, dead_world]
+    region: Outer Rim
+    controlling_factions: []
+    planet: Malachor V
+    description: |
+      Though the planet was shattered by the Mass Shadow Generator, the Trayus Academy remains at its core, a jagged claw of dark stone floating in the gravitational graveyard. It is a 'Wound in the Force,' a place of profound silence where the echoes of the thousands who died during the Mandalorian Wars still scream in the minds of the sensitive. The Academy houses the Trayus Core, a crystalline computer that contains the collective knowledge of the Sith Triumvirate.
+    threat_level: extreme
+    scene_types: [investigation, philosophical_dialogue, survival]
+    security:
+      security_level: 80
+      patrol_intensity: low # Only automated droids and Force Phantoms remain
+    encounter_table:
+      - template_id: sith_acolyte_template
+        weight: 2
+      - template_id: sith_assassin_template
+        weight: 2
+      - template_id: force_hermit_template
+        weight: 2
+      - template_id: grey_jedi_template
+        weight: 1
+    keywords: [wound_in_the_force, trayus_core, nihilus_echo, mass_shadow_generator]
+
+  # ---- B. JEDI ENCLAVES & REPUBLIC HUBS ----
+  - id: loc-kotor-tython_silent_meadow
+    name: "The Silent Meadow (Tython)"
+    tags: [jedi, ancient, sanctuary, force_light, meditation]
+    region: Deep Core
+    controlling_factions: [jedi_order]
+    planet: Tython
+    description: |
+      The birthplace of the Jedi Order. The Silent Meadow is a rare geographic anomaly where the planet’s turbulent 'Force Storms' never reach. Ancient stone plinths, carved by the first Je'daii, hum with a resonance that can heal a fractured mind. It is a place of absolute pacifism; drawing a weapon here feels like a physical weight against the soul, and the planet itself may react violently to any act of aggression.
+    threat_level: low
+    scene_types: [dialogue, investigation, meditation]
+    security:
+      controlling_faction: jedi_order
+      security_level: 50
+    encounter_table:
+      - template_id: jedi_knight_template
+        weight: 4
+      - template_id: grey_jedi_template
+        weight: 2
+      - template_id: force_hermit_template
+        weight: 2
+    keywords: [tython, jedaii_origins, force_storm, meditation]
+
+  - id: loc-kotor-ossus_library_sublevel
+    name: "Chamber of Antiquities (Ossus)"
+    tags: [jedi, ruins, archaeological, knowledge, tech]
+    region: Outer Rim
+    controlling_factions: [neutral]
+    planet: Ossus
+    description: |
+      A subterranean vault that survived the Cron Supernova. The walls are lined with data-crystals and stone tablets that predate the Republic. The air is sterile and cold. The 'Iron Knights'—Shard crystals inhabiting droid bodies—stand motionless in the shadows, guarding the Jedi Order's most dangerous secrets. Scavenging here is a capital offense according to the Jedi Council, but the ruins are too vast for them to fully patrol.
+    threat_level: high
+    scene_types: [investigation, tech_investigation, combat]
+    security:
+      security_level: 85
+    encounter_table:
+      - template_id: ancient_scholar_template
+        weight: 4
+      - template_id: jedi_knight_template
+        weight: 2
+      - template_id: sith_acolyte_template
+        weight: 1
+      - template_id: force_hermit_template
+        weight: 1
+    keywords: [ossus_library, iron_knights, cron_supernova, data_crystals]
+
+  # ---- C. UNDERWORLD & FRONTIER ----
+  - id: loc-kotor-nar_shaddaa_jekk_jekk_tar
+    name: "The Jekk'Jekk Tarr (Nar Shaddaa)"
+    tags: [underworld, toxic, cantina, neutral]
+    region: Mid Rim
+    controlling_factions: [underworld]
+    planet: Nar Shaddaa
+    description: |
+      A notorious bar in the Refugee Sector designed for non-oxygen breathers. The atmosphere is a lethal mixture of methane, chlorine, and ammonia. For humans, it is a death trap; for the Gand Findsmen and Ubese mercenaries who call it home, it is a sanctuary. The Exchange uses this location to host meetings they want kept 'private' from Republic ears.
+    threat_level: high
+    scene_types: [dialogue, stealth, combat]
+    security:
+      controlling_faction: underworld
+      security_level: 60
+    encounter_table:
+      - template_id: criminal_boss_template
+        weight: 4
+      - template_id: mandalorian_warrior_template
+        weight: 3
+      - template_id: sith_assassin_template
+        weight: 1
+    keywords: [exchange, gand_findsmen, toxic_atmosphere, bounty_hunters]
+
+  - id: loc-kotor-tatooine_krayt_graveyard
+    name: "The Krayt Graveyard (Dune Sea)"
+    tags: [frontier, desert, wildlife, ancient]
+    region: Outer Rim
+    controlling_factions: []
+    planet: Tatooine
+    description: |
+      A valley of bleached white bones where the ancient Greater Krayt Dragons come to die. The Tusken Raiders consider this ground sacred and believe the massive ribcages are gateways to the spirit world. High-quality Krayt pearls—essential for lightsaber focusing—are buried in the sands, but the 'Ghost of the Desert,' a dragon that has survived for centuries, still stalks the perimeter.
+    threat_level: extreme
+    scene_types: [survival, combat, exploration]
+    encounter_table:
+      - template_id: force_hermit_template
+        weight: 3
+      - template_id: ancient_scholar_template
+        weight: 2
+      - template_id: mandalorian_warrior_template
+        weight: 1
+      - template_id: criminal_boss_template
+        weight: 1
+    keywords: [tusken_raiders, krayt_dragon, desert_survival, lightsaber_crystals]

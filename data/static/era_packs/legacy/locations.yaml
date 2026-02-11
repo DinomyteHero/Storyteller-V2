@@ -1,0 +1,1624 @@
+locations:
+- id: loc-coruscant_sith
+  name: Coruscant (Sith Controlled)
+  tags:
+  - city-planet
+  - capital
+  - dark_side
+  - oppressed
+  region: Core Worlds
+  controlling_factions:
+  - one_sith
+  planet: Coruscant
+  description: 'The galactic capital under the boot of Darth Krayt. The Jedi Temple
+    has been
+
+    turned into a Sith fortress; the streets crawl with Sith Troopers and
+
+    informants. The population lives in fear—the Rule of One is enforced with
+
+    the dark side and the certainty that resistance means death. Coruscant
+
+    is the throne of the One Sith and the heart of the galaxy''s nightmare.
+
+    '
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: one_sith
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points: []
+  encounter_table:
+  - template_id: local_civilian_legacy
+    weight: 1
+  keywords:
+  - city-planet
+  - capital
+  - dark_side
+  - oppressed
+  - Core Worlds
+  - Coruscant
+  - extreme
+  travel_links: []
+- id: loc-bastion
+  name: Bastion
+  tags:
+  - imperial
+  - fortress
+  - capital
+  - fortified
+  region: Outer Rim
+  controlling_factions:
+  - fel_empire
+  planet: Bastion
+  description: 'The fortified capital of the Fel Empire—Emperor Roan Fel''s seat in
+    exile.
+
+    Bastion is military precision, Imperial tradition, and the staging ground
+
+    for the war to reclaim Coruscant. No Sith corruption here; only discipline,
+
+    loyalty, and the belief that the true Empire will rise again.
+
+    '
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - combat
+  - stealth
+  security:
+    controlling_faction: fel_empire
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services: []
+  access_points: []
+  encounter_table:
+  - template_id: fel_empire_trooper
+    weight: 1
+  - template_id: imperial_diplomat
+    weight: 1
+  - template_id: imperial_knight
+    weight: 1
+  keywords:
+  - imperial
+  - fortress
+  - capital
+  - fortified
+  - Outer Rim
+  - Bastion
+  - high
+  travel_links: []
+- id: loc-taivas
+  name: Taivas (The Hidden Temple)
+  tags:
+  - jedi
+  - secret
+  - sanctuary
+  - hidden
+  region: Deep Core
+  controlling_factions:
+  - jedi_order
+  planet: Taivas
+  description: 'A secret Jedi sanctuary buried in the Deep Core—one of the last places
+
+    Krayt''s purge has not reached. Here the Order regroups, trains a new
+
+    generation, and plans the strikes that keep hope alive. To find Taivas
+
+    is to be trusted with the Jedi''s survival.
+
+    '
+  threat_level: low
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: jedi_order
+    security_level: 20
+    patrol_intensity: low
+    inspection_chance: low
+  services:
+  - safehouse
+  access_points: []
+  encounter_table:
+  - template_id: hidden_force_user
+    weight: 1
+  - template_id: hidden_jedi
+    weight: 1
+  keywords:
+  - jedi
+  - secret
+  - sanctuary
+  - hidden
+  - Deep Core
+  - Taivas
+  - low
+  travel_links: []
+- id: loc-ossus_ruins
+  name: Ossus (Ruined Temple)
+  tags:
+  - ruins
+  - jedi
+  - destroyed
+  - hazardous
+  region: Outer Rim
+  controlling_factions:
+  - one_sith
+  planet: Ossus
+  description: 'The ancient Jedi library world—shattered by the Sith and left a toxic
+
+    wasteland. The One Sith patrol for survivors and artifacts; the ruins
+
+    hold both danger and the echoes of the Order''s golden age. A graveyard
+
+    and a prize.
+
+    '
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: one_sith
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services: []
+  access_points: []
+  encounter_table:
+  - template_id: hidden_jedi
+    weight: 1
+  keywords:
+  - ruins
+  - jedi
+  - destroyed
+  - hazardous
+  - Outer Rim
+  - Ossus
+  - high
+  travel_links: []
+- id: loc-indomitable
+  name: The Indomitable (Gar Stazi's Flagship)
+  tags:
+  - warship
+  - mobile
+  - alliance
+  - base
+  region: Mobile
+  controlling_factions:
+  - galactic_alliance_remnant
+  planet: null
+  description: 'Admiral Gar Stazi''s flagship and the mobile capital of the Galactic
+
+    Alliance Remnant. Where the Indomitable goes, the government-in-exile
+
+    goes—hit-and-run raids, fleet actions, and the refusal to let the
+
+    Alliance die. The last flag of democracy in the void.
+
+    '
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - combat
+  - stealth
+  security:
+    controlling_faction: galactic_alliance_remnant
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - briefing_room
+  - medbay
+  - transport
+  access_points: []
+  encounter_table:
+  - template_id: alliance_pilot
+    weight: 1
+  - template_id: alliance_soldier
+    weight: 1
+  - template_id: galactic_alliance_officer
+    weight: 1
+  keywords:
+  - warship
+  - mobile
+  - alliance
+  - base
+  - high
+  travel_links: []
+- id: loc-mandalore
+  name: Mandalore
+  tags:
+  - mandalorian
+  - warrior
+  - neutral
+  - defensive
+  region: Outer Rim
+  controlling_factions:
+  - mandalorians
+  planet: Mandalore
+  description: 'The Mandalorian homeworld—clans, armor, and the Resol''nare. Mandalore
+
+    stays neutral in name but sells its warriors to the highest bidder;
+
+    more often than not, that means the Fel Empire or the Alliance, against
+
+    the Sith. Krayt has not forgotten; the Mandalorians have not bowed.
+
+    '
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: mandalorians
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services: []
+  access_points: []
+  encounter_table:
+  - template_id: mandalorian_merc
+    weight: 1
+  - template_id: mandalorian_scout
+    weight: 1
+  keywords:
+  - mandalorian
+  - warrior
+  - neutral
+  - defensive
+  - Outer Rim
+  - Mandalore
+  - moderate
+  travel_links: []
+- id: loc-nar_shaddaa
+  name: Nar Shaddaa
+  tags:
+  - city-moon
+  - criminal
+  - lawless
+  - dangerous
+  region: Hutt Space
+  controlling_factions:
+  - underworld
+  planet: Nar Shaddaa
+  description: 'The Smuggler''s Moon—a city-moon where anything can be bought or sold
+    and
+
+    the major powers prefer to look the other way. Refugees, spies, and
+
+    syndicates thrive in the neon and the shadows. Nar Shaddaa outlasts
+
+    empires; it always has.
+
+    '
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - stealth
+  security:
+    controlling_faction: underworld
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - arms_dealer
+  - bounty_board
+  - slicer
+  access_points: []
+  encounter_table:
+  - template_id: black_market_dealer
+    weight: 1
+  - template_id: bounty_hunter_legacy
+    weight: 1
+  - template_id: pirate_crew
+    weight: 1
+  - template_id: underworld_fixer
+    weight: 1
+  keywords:
+  - city-moon
+  - criminal
+  - lawless
+  - dangerous
+  - Hutt Space
+  - Nar Shaddaa
+  - high
+  travel_links: []
+- id: loc-korriban
+  name: Korriban
+  tags:
+  - sith
+  - tombs
+  - dark_side
+  - ancient
+  region: Outer Rim
+  controlling_factions:
+  - one_sith
+  planet: Korriban
+  description: 'The ancient homeworld of the Sith—valley of the Dark Lords, tombs
+    and
+
+    terrors. Krayt has made it a training ground for his One Sith: acolytes
+
+    descend into the crypts and rise forged in the dark side. The past
+
+    serves the Rule of One.
+
+    '
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: one_sith
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points: []
+  encounter_table:
+  - template_id: krayt_zealot
+    weight: 1
+  - template_id: one_sith_acolyte
+    weight: 1
+  - template_id: sith_inquisitor
+    weight: 1
+  - template_id: sith_intelligence_agent
+    weight: 1
+  - template_id: sith_trooper
+    weight: 1
+  keywords:
+  - sith
+  - tombs
+  - dark_side
+  - ancient
+  - Outer Rim
+  - Korriban
+  - extreme
+  travel_links: []
+- id: loc-socorro
+  name: Socorro
+  tags:
+  - desert
+  - smuggler
+  - criminal
+  - remote
+  region: Outer Rim
+  controlling_factions:
+  - underworld
+  planet: Socorro
+  description: 'A remote desert world in the Outer Rim—black markets, no questions,
+    and
+
+    just far enough off the main lanes that Sith, Fel, and Alliance all
+
+    use it when they need deniable deals. Socorro survives by being useful
+
+    and forgettable.
+
+    '
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - stealth
+  security:
+    controlling_faction: underworld
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - arms_dealer
+  - bounty_board
+  - slicer
+  access_points: []
+  encounter_table:
+  - template_id: black_market_dealer
+    weight: 1
+  - template_id: bounty_hunter_legacy
+    weight: 1
+  - template_id: pirate_crew
+    weight: 1
+  - template_id: underworld_fixer
+    weight: 1
+  keywords:
+  - desert
+  - smuggler
+  - criminal
+  - remote
+  - Outer Rim
+  - Socorro
+  - moderate
+  travel_links: []
+- id: loc-vendaxa
+  name: Vendaxa (Wilderness)
+  tags:
+  - wildlife
+  - dangerous
+  - remote
+  region: Outer Rim
+  controlling_factions:
+  - neutral
+  planet: Vendaxa
+  description: 'A savage world of predators and untamed wilderness — where the Fel
+
+    loyalists hide safe houses far from Sith eyes. The jungle eats the
+
+    unwary, and the native fauna is deadlier than most soldiers. A place
+
+    for those who value secrecy over comfort.
+
+    '
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: neutral
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services: []
+  access_points: []
+  encounter_table: []
+  keywords:
+  - wildlife
+  - dangerous
+  - remote
+  - Outer Rim
+  - Vendaxa
+  - high
+  travel_links: []
+- id: loc-raxus_prime
+  name: Raxus Prime (Junk World)
+  tags:
+  - industrial
+  - scrap
+  - lawless
+  region: Outer Rim
+  controlling_factions:
+  - underworld
+  planet: Raxus Prime
+  description: 'Mountains of scrap from a thousand years of galactic industry. Salvagers,
+
+    smugglers, and fugitives pick through the wreckage for anything valuable.
+
+    The Sith don''t bother patrolling here — the planet itself is punishment
+
+    enough.
+
+    '
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: underworld
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services: []
+  access_points: []
+  encounter_table: []
+  keywords:
+  - industrial
+  - scrap
+  - lawless
+  - Outer Rim
+  - Raxus Prime
+  - moderate
+  travel_links: []
+- id: loc-agamar
+  name: Agamar (Frontier)
+  tags:
+  - agricultural
+  - contested
+  - militia
+  region: Outer Rim
+  controlling_factions:
+  - galactic_alliance_remnant
+  planet: Agamar
+  description: 'A frontier agricultural world caught between factions. The locals
+    maintain
+
+    their own militia and distrust outsiders — Sith, Alliance, and Fel alike.
+
+    A place where ordinary people fight to keep their fields and their freedom.
+
+    '
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: galactic_alliance_remnant
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services: []
+  access_points: []
+  encounter_table: []
+  keywords:
+  - agricultural
+  - contested
+  - militia
+  - Outer Rim
+  - Agamar
+  - moderate
+  travel_links: []
+- id: loc-empress_teta
+  name: Empress Teta (Deep Core)
+  tags:
+  - ancient
+  - industrial
+  - dark_side
+  region: Deep Core
+  controlling_factions:
+  - one_sith
+  planet: Empress Teta
+  description: 'An ancient Deep Core world rich in dark side history — home to the
+    Krath
+
+    and the memories of Exar Kun''s war. The Sith have reclaimed its temples
+
+    and its carbonite mines. The past is not dead here; it serves the One Sith.
+
+    '
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: one_sith
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points: []
+  encounter_table: []
+  keywords:
+  - ancient
+  - industrial
+  - dark_side
+  - Deep Core
+  - Empress Teta
+  - extreme
+  travel_links: []
+- id: loc-dac
+  name: Dac (Mon Calamari)
+  tags:
+  - aquatic
+  - resistance
+  - shipyard
+  region: Outer Rim
+  controlling_factions:
+  - galactic_alliance_remnant
+  planet: Dac
+  description: 'The Mon Calamari homeworld — still building warships, still resisting.
+
+    The Sith want the shipyards; the Mon Cal and Quarren remember what
+
+    happened the last time an enemy tried to take their world. The orbital
+
+    docks work day and night.
+
+    '
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: galactic_alliance_remnant
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services: []
+  access_points: []
+  encounter_table: []
+  keywords:
+  - aquatic
+  - resistance
+  - shipyard
+  - Outer Rim
+  - Dac
+  - high
+  travel_links: []
+- id: loc-had_abbadon
+  name: Had Abbadon
+  tags:
+  - dark_side
+  - ancient
+  - sith
+  - nexus
+  region: Outer Rim
+  controlling_factions:
+  - one_sith
+  planet: Had Abbadon
+  description: 'A dark side nexus world steeped in ancient Sith power. The ruins here
+
+    predate even Korriban''s golden age — temples carved into black stone,
+
+    rituals written in blood. Krayt sends his most promising acolytes here
+
+    to face trials that break minds and forge monsters. Few return unchanged.
+
+    '
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: one_sith
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points: []
+  encounter_table:
+  - template_id: krayt_zealot
+    weight: 1
+  - template_id: one_sith_acolyte
+    weight: 1
+  - template_id: sith_inquisitor
+    weight: 1
+  - template_id: sith_intelligence_agent
+    weight: 1
+  - template_id: sith_trooper
+    weight: 1
+  keywords:
+  - dark_side
+  - ancient
+  - sith
+  - nexus
+  - Outer Rim
+  - Had Abbadon
+  - extreme
+  travel_links: []
+- id: loc-wayland
+  name: Wayland
+  tags:
+  - abandoned
+  - cloning
+  - imperial
+  - ruins
+  region: Outer Rim
+  controlling_factions:
+  - neutral
+  planet: Wayland
+  description: 'The site of the Emperor''s abandoned cloning facility — Mount Tantiss.
+
+    The technology is outdated, the labs are ruins, but the secrets buried
+
+    here still draw scavengers, Sith archaeologists, and those who remember
+
+    what Thrawn once built. A ghost of the Empire''s darkest ambitions.
+
+    '
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: neutral
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services: []
+  access_points: []
+  encounter_table:
+  - template_id: fel_empire_trooper
+    weight: 1
+  - template_id: imperial_diplomat
+    weight: 1
+  - template_id: imperial_knight
+    weight: 1
+  keywords:
+  - abandoned
+  - cloning
+  - imperial
+  - ruins
+  - Outer Rim
+  - Wayland
+  - moderate
+  travel_links: []
+- id: loc-malastare
+  name: Malastare
+  tags:
+  - fuel
+  - criminal
+  - industrial
+  - contested
+  region: Outer Rim
+  controlling_factions:
+  - underworld
+  planet: Malastare
+  description: 'A major fuel depot world controlled by competing criminal syndicates.
+
+    All three factions — Sith, Fel, and Alliance — maintain covert presence
+
+    here. Fuel is power, and Malastare''s refineries keep starships moving.
+
+    No one wants open war here; it would shut down the spice that flows.
+
+    '
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - stealth
+  security:
+    controlling_faction: underworld
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - arms_dealer
+  - bounty_board
+  - slicer
+  access_points: []
+  encounter_table:
+  - template_id: black_market_dealer
+    weight: 1
+  - template_id: bounty_hunter_legacy
+    weight: 1
+  - template_id: pirate_crew
+    weight: 1
+  - template_id: underworld_fixer
+    weight: 1
+  keywords:
+  - fuel
+  - criminal
+  - industrial
+  - contested
+  - Outer Rim
+  - Malastare
+  - high
+  travel_links: []
+- id: loc-prakith
+  name: Prakith
+  tags:
+  - sith
+  - academy
+  - military
+  - fortified
+  region: Deep Core
+  controlling_factions:
+  - one_sith
+  planet: Prakith
+  description: 'A One Sith training academy and military staging ground deep in the
+    Core.
+
+    Where Korriban forges through ancient tombs, Prakith forges through modern
+
+    warfare — tactics, starfighter combat, interrogation. Graduates emerge
+
+    ready for conquest, not just philosophy. Krayt''s war machine starts here.
+
+    '
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - combat
+  - stealth
+  security:
+    controlling_faction: one_sith
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points: []
+  encounter_table:
+  - template_id: sith_trooper
+    weight: 2
+  - template_id: krayt_zealot
+    weight: 1
+  - template_id: one_sith_acolyte
+    weight: 1
+  - template_id: sith_inquisitor
+    weight: 1
+  - template_id: sith_intelligence_agent
+    weight: 1
+  keywords:
+  - sith
+  - academy
+  - military
+  - fortified
+  - Deep Core
+  - Prakith
+  - extreme
+  travel_links: []
+- id: loc-krayt_flagship
+  name: Krayt's Flagship (Imperious)
+  tags:
+  - warship
+  - mobile
+  - sith
+  - command
+  region: Mobile
+  controlling_factions:
+  - one_sith
+  planet: null
+  description: 'Darth Krayt''s personal command ship — the Imperious, a massive Star
+
+    Destroyer converted into a mobile throne room and dark side fortress.
+
+    Where Krayt goes, terror follows. The ship itself radiates dark side
+
+    energy; Force-sensitives can feel it from lightyears away.
+
+    '
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - combat
+  - stealth
+  security:
+    controlling_faction: one_sith
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services:
+  - briefing_room
+  - transport
+  access_points: []
+  encounter_table:
+  - template_id: krayt_zealot
+    weight: 1
+  - template_id: one_sith_acolyte
+    weight: 1
+  - template_id: sith_inquisitor
+    weight: 1
+  - template_id: sith_intelligence_agent
+    weight: 1
+  - template_id: sith_trooper
+    weight: 1
+  keywords:
+  - warship
+  - mobile
+  - sith
+  - command
+  - extreme
+  travel_links: []
+- id: loc-myrkr_ruins
+  name: Myrkr (Ruins)
+  tags:
+  - force_dead
+  - ysalamiri
+  - refugee
+  - hidden
+  region: Outer Rim
+  controlling_factions:
+  - neutral
+  planet: Myrkr
+  description: 'The forest world where the Force does not reach — ysalamiri blanket
+    the
+
+    trees, creating Force-dead zones. Refugee camps hide here, protected from
+
+    Sith detection. The forests remember the Vong war; now they shelter those
+
+    fleeing Krayt''s purge. A sanctuary for the hunted.
+
+    '
+  threat_level: low
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: neutral
+    security_level: 20
+    patrol_intensity: low
+    inspection_chance: low
+  services:
+  - safehouse
+  access_points: []
+  encounter_table:
+  - template_id: hidden_force_user
+    weight: 1
+  - template_id: refugee_leader
+    weight: 1
+  keywords:
+  - force_dead
+  - ysalamiri
+  - refugee
+  - hidden
+  - Outer Rim
+  - Myrkr
+  - low
+  travel_links: []
+- id: loc-sluis_van
+  name: Sluis Van Shipyards
+  tags:
+  - shipyard
+  - industrial
+  - contested
+  - strategic
+  region: Outer Rim
+  controlling_factions:
+  - contested
+  planet: Sluis Van
+  description: 'One of the galaxy''s premier shipyard systems — currently contested
+    between
+
+    the Fel Empire and the One Sith. Control of Sluis Van means control of
+
+    capital ship production. The Alliance Remnant raids regularly to deny both
+
+    sides. The system is a constant war zone.
+
+    '
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: contested
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points: []
+  encounter_table: []
+  keywords:
+  - shipyard
+  - industrial
+  - contested
+  - strategic
+  - Outer Rim
+  - Sluis Van
+  - extreme
+  travel_links: []
+- id: loc-the_wheel
+  name: The Wheel
+  tags:
+  - station
+  - gambling
+  - neutral
+  - information
+  region: Mid Rim
+  controlling_factions:
+  - underworld
+  planet: null
+  description: 'A neutral gambling station and information hub — no faction claims
+    it,
+
+    all factions use it. Spies trade secrets in the casinos, smugglers move
+
+    cargo through the docks, and the management asks no questions as long as
+
+    the credits flow. A marketplace for everything illegal and invisible.
+
+    '
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: underworld
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services: []
+  access_points: []
+  encounter_table: []
+  keywords:
+  - station
+  - gambling
+  - neutral
+  - information
+  - Mid Rim
+  - moderate
+  travel_links: []
+- id: loc-gamorr
+  name: Gamorr
+  tags:
+  - mandalorian
+  - recruitment
+  - warrior
+  - remote
+  region: Outer Rim
+  controlling_factions:
+  - mandalorians
+  planet: Gamorr
+  description: 'A Mandalorian recruitment and training ground on a brutal, low-tech
+    world.
+
+    The Gamorreans are not Mandalorian by blood, but the clans recruit warriors
+
+    here for their ferocity. Those who survive the trials earn beskar and a
+
+    place in the clans. The Fel Empire pays well for Mandalorian support.
+
+    '
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: mandalorians
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services: []
+  access_points: []
+  encounter_table:
+  - template_id: mandalorian_merc
+    weight: 1
+  - template_id: mandalorian_scout
+    weight: 1
+  keywords:
+  - mandalorian
+  - recruitment
+  - warrior
+  - remote
+  - Outer Rim
+  - Gamorr
+  - moderate
+  travel_links: []
+- id: loc-ziost_temple
+  name: Ziost (Sith Temple)
+  tags:
+  - sith
+  - dark_side
+  - ancient
+  - archaeology
+  region: Outer Rim
+  controlling_factions:
+  - one_sith
+  planet: Ziost
+  description: 'An ancient Sith world — not as famous as Korriban, but just as deadly.
+
+    The temples here are active sites of dark side archaeology; Krayt''s
+
+    scholars dig for pre-Republic Sith artifacts and rituals. What they
+
+    unearth often kills them — but what survives makes the One Sith stronger.
+
+    '
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: one_sith
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points: []
+  encounter_table:
+  - template_id: krayt_zealot
+    weight: 1
+  - template_id: one_sith_acolyte
+    weight: 1
+  - template_id: sith_inquisitor
+    weight: 1
+  - template_id: sith_intelligence_agent
+    weight: 1
+  - template_id: sith_trooper
+    weight: 1
+  keywords:
+  - sith
+  - dark_side
+  - ancient
+  - archaeology
+  - Outer Rim
+  - Ziost
+  - extreme
+  travel_links: []
+- id: loc-belsavis
+  name: Belsavis
+  tags:
+  - prison
+  - hidden
+  - jedi
+  - underground
+  region: Outer Rim
+  controlling_factions:
+  - jedi_order
+  planet: Belsavis
+  description: 'An ancient prison world with vast underground vaults. The Jedi have
+
+    claimed one of the deeper levels as a hidden refuge — far from Sith eyes,
+
+    protected by layers of rock and forgotten technology. A cold sanctuary,
+
+    but a safe one. The Order''s last libraries are stored here.
+
+    '
+  threat_level: low
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: jedi_order
+    security_level: 20
+    patrol_intensity: low
+    inspection_chance: low
+  services:
+  - safehouse
+  access_points: []
+  encounter_table:
+  - template_id: hidden_force_user
+    weight: 1
+  - template_id: hidden_jedi
+    weight: 1
+  keywords:
+  - prison
+  - hidden
+  - jedi
+  - underground
+  - Outer Rim
+  - Belsavis
+  - low
+  travel_links: []
+- id: loc-obroa_skai
+  name: Obroa-skai Archives
+  tags:
+  - library
+  - knowledge
+  - neutral
+  - contested
+  region: Outer Rim
+  controlling_factions:
+  - neutral
+  planet: Obroa-skai
+  description: 'One of the galaxy''s greatest repositories of knowledge — archives
+    stretching
+
+    back millennia. Officially neutral, but all factions send agents to steal,
+
+    copy, or destroy inconvenient records. The archivists try to preserve what
+
+    they can. Knowledge is a weapon, and Obroa-skai is the armory.
+
+    '
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: neutral
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services: []
+  access_points: []
+  encounter_table: []
+  keywords:
+  - library
+  - knowledge
+  - neutral
+  - contested
+  - Outer Rim
+  - Obroa-skai
+  - moderate
+  travel_links: []
+- id: loc-kuat
+  name: Kuat Drive Yards
+  tags:
+  - shipyard
+  - industrial
+  - sith
+  - strategic
+  region: Core Worlds
+  controlling_factions:
+  - one_sith
+  planet: Kuat
+  description: 'The most famous shipyard in the galaxy — now under total Sith control.
+
+    Star Destroyers roll off the production lines under the watchful eyes of
+
+    Krayt''s overseers. The Kuati nobility cooperates to survive; resistance
+
+    means their families become examples. The Core''s industrial heart beats
+
+    for the One Sith.
+
+    '
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: one_sith
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points: []
+  encounter_table:
+  - template_id: krayt_zealot
+    weight: 1
+  - template_id: one_sith_acolyte
+    weight: 1
+  - template_id: sith_inquisitor
+    weight: 1
+  - template_id: sith_intelligence_agent
+    weight: 1
+  - template_id: sith_trooper
+    weight: 1
+  keywords:
+  - shipyard
+  - industrial
+  - sith
+  - strategic
+  - Core Worlds
+  - Kuat
+  - extreme
+  travel_links: []
+- id: loc-dathomir_ruins
+  name: Dathomir (Nightsister Ruins)
+  tags:
+  - force
+  - witches
+  - ruins
+  - dark_side
+  region: Outer Rim
+  controlling_factions:
+  - neutral
+  planet: Dathomir
+  description: 'The ruined homeworld of the Nightsisters — a matriarchal Force tradition
+
+    wiped out generations ago. The ruins still hold power; Force-sensitives
+
+    come here to study forbidden techniques and commune with the spirits of
+
+    the dead. The Sith monitor it, but do not control it. Dathomir belongs
+
+    to the ghosts.
+
+    '
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: neutral
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services: []
+  access_points: []
+  encounter_table: []
+  keywords:
+  - force
+  - witches
+  - ruins
+  - dark_side
+  - Outer Rim
+  - Dathomir
+  - high
+  travel_links: []
+- id: loc-hidden_base
+  name: Hidden Base
+  tags:
+  - stub
+  region: null
+  controlling_factions: []
+  planet: null
+  description: null
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: null
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services: []
+  access_points: []
+  encounter_table: []
+  keywords:
+  - stub
+  - moderate
+  travel_links: []
+- id: loc-imperial_palace
+  name: Imperial Palace (Bastion)
+  tags:
+  - imperial
+  - palace
+  - capital
+  - fortress
+  region: Outer Rim
+  controlling_factions:
+  - fel_empire
+  planet: Bastion
+  description: Emperor Roan Fel's palace and seat of power in exile. A fortified stronghold
+    combining military effectiveness with Imperial elegance. The palace coordinates
+    the Fel Empire's government-in-exile and serves as the strategic center for the
+    fight against Krayt's One Sith.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  - combat
+  security:
+    controlling_faction: fel_empire
+    security_level: 85
+    patrol_intensity: high
+    inspection_chance: high
+  services:
+  - briefing_room
+  - medbay
+  - transport
+  access_points:
+  - id: loc-imperial_palace_main_gate
+    visibility: restricted
+    type: door
+  - id: loc-imperial_palace_service_corridors
+    visibility: hidden
+    type: door
+  encounter_table:
+  - template_id: imperial_knight_template
+    weight: 2
+  - template_id: imperial_diplomat
+    weight: 1
+  keywords:
+  - imperial
+  - palace
+  - capital
+  - fortress
+  - high
+  travel_links: []
+- id: loc-malachor_v_nexus
+  name: Malachor V (Ancient Nexus)
+  tags:
+  - sith
+  - dark_side
+  - ancient
+  - nexus
+  - forbidden
+  - outer_rim
+  region: Outer Rim
+  controlling_factions:
+  - one_sith
+  planet: Malachor V
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  description: 'Malachor V is a dark side nexus of unimaginable age—a world where
+    the Sith Empire conducted rituals so vast
+
+    and terrible that the entire planet became cursed. The surface is scarred by impact
+    craters from orbital bombardment,
+
+    and the sky churns with perpetual lightning. Massive structures jut from the ground:
+    pyramids that serve no
+
+    architectural purpose, obelisks carved in pre-Sith glyphs, and chambers deep underground
+    where the fabric of space
+
+    itself seems thin. Krayt has claimed Malachor V as a shrine to Sith ascendancy.
+    The dark side here is so concentrated
+
+    that it manifests physically—dark tendrils in the air, shadows that move independently,
+    and whispers that drive the
+
+    weak-minded to madness. The Sith believe Malachor V is a doorway to something
+    beyond the known galaxy.
+
+    '
+  security:
+    controlling_faction: one_sith
+    security_level: 95
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points:
+  - id: loc-malachor_v_nexus_orbital_landing_zone
+    visibility: hidden
+    type: door
+  - id: loc-malachor_v_nexus_pyramid_main_entrance
+    visibility: restricted
+    type: door
+  - id: loc-malachor_v_nexus_underground_cavern_network
+    visibility: restricted
+    type: door
+  encounter_table:
+  - template_id: krayt_zealot
+    weight: 2
+  - template_id: sith_scholar_artifact_hunter
+    weight: 2
+  keywords:
+  - sith
+  - dark_side
+  - ancient
+  - nexus
+  - forbidden
+  - outer_rim
+  - extreme
+  travel_links: []
+- id: loc-rakatan_megastructure
+  name: Rakatan Megastructure
+  tags:
+  - ancient
+  - precursor
+  - ruins
+  - technology
+  - mysterious
+  region: Outer Rim
+  controlling_factions:
+  - neutral
+  planet: null
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - investigation
+  - exploration
+  description: 'A Rakatan megastructure spanning multiple star systems—partially submerged,
+    partially operational, partially
+
+    decaying. The structure defies modern engineering comprehension. Some sections
+    seem to exist in multiple dimensions
+
+    simultaneously. Ancient control panels still function despite millions of years
+    of dormancy. The structure''s purpose
+
+    remains unknown: weapon, transportation network, research facility, or something
+    for which no modern category exists.
+
+    Explorers within the structure report temporal distortions and spatial anomalies.
+    Some never return.
+
+    '
+  security:
+    controlling_faction: null
+    security_level: 75
+    patrol_intensity: low
+    inspection_chance: low
+  services: []
+  access_points:
+  - id: loc-rakatan_megastructure_main_entry_portal
+    visibility: hidden
+    type: door
+  - id: loc-rakatan_megastructure_deep_interior_passages
+    visibility: restricted
+    type: door
+  encounter_table:
+  - template_id: ancient_scholar_template
+    weight: 2
+  keywords:
+  - ancient
+  - precursor
+  - ruins
+  - technology
+  - mysterious
+  - extreme
+  travel_links: []
+- id: loc-shadow_nexus
+  name: Shadow Nexus (Dark Side Concentration)
+  tags:
+  - dark_side
+  - nexus
+  - dimensional
+  - force_nexus
+  region: Outer Rim
+  controlling_factions:
+  - neutral
+  planet: null
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  description: 'A location where the dark side of the Force is so concentrated that
+    reality itself becomes twisted. The Shadow Nexus
+
+    is not a planet but a region of space where multiple dimensions overlap. Those
+    with Force sensitivity can feel the
+
+    oppressive weight of the dark side pressing against their minds. Some say the
+    Shadow Nexus is a wound in the fabric
+
+    of the Force itself—a place where something ancient and terrible scratches at
+    the barriers between worlds.
+
+    '
+  security:
+    controlling_faction: null
+    security_level: 50
+    patrol_intensity: low
+    inspection_chance: low
+  services: []
+  access_points:
+  - id: loc-shadow_nexus_primary_convergence_point
+    visibility: hidden
+    type: door
+  encounter_table:
+  - template_id: force_hermit_template
+    weight: 1
+  keywords:
+  - dark_side
+  - nexus
+  - dimensional
+  - force_nexus
+  - high
+  travel_links: []
+- id: loc-city_of_precursors
+  name: City of the Precursors
+  tags:
+  - ancient
+  - precursor
+  - ruins
+  - mysterious
+  - nexus
+  region: Outer Rim
+  controlling_factions:
+  - neutral
+  planet: null
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - investigation
+  - exploration
+  description: 'An ancient city built by the Precursor civilization—beings who existed
+    before the Rakatans. The city appears impossibly
+
+    old yet still partially operational. Architecture defies understanding. Some sections
+    seem to exist in non-Euclidean
+
+    space. Explorers report that time flows differently in different areas of the
+    city. The Precursor civilization may have
+
+    transcended physical form; what remains is their legacy—technology, knowledge,
+    and possibly warnings.
+
+    '
+  security:
+    controlling_faction: null
+    security_level: 50
+    patrol_intensity: low
+    inspection_chance: low
+  services: []
+  access_points:
+  - id: loc-city_of_precursors_central_plaza
+    visibility: hidden
+    type: door
+  - id: loc-city_of_precursors_deep_archives
+    visibility: restricted
+    type: door
+  encounter_table:
+  - template_id: ancient_scholar_template
+    weight: 2
+  keywords:
+  - ancient
+  - precursor
+  - ruins
+  - mysterious
+  - nexus
+  - extreme
+  travel_links: []

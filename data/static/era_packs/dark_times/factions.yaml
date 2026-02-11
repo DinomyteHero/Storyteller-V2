@@ -1,0 +1,189 @@
+# The Dark Times — Factions (19–0 BBY)
+# Empire, Jedi survivors, early resistance, underworld, neutrals.
+
+factions:
+  - id: neutral
+    name: Neutral / Independents
+    tags:
+      - neutral
+    home_locations: []
+    goals:
+      - Survive, profit, and avoid Imperial notice.
+    metadata:
+      flavor: "Civilians, traders, and those who refuse to choose a side in the purge."
+
+  - id: galactic_empire
+    name: Galactic Empire
+    tags:
+      - imperial
+      - hostile
+      - authoritarian
+    home_locations:
+      - loc-imperial_palace
+      - loc-imperial_academy
+      - loc-stormtrooper_barracks
+      - loc-isb_headquarters
+    goals:
+      - Enforce the New Order and crush all Jedi and dissent.
+      - Convert Republic military and clone units into Imperial forces.
+      - Hunt Force-sensitives and eliminate the Jedi legacy.
+    metadata:
+      flavor: "Palpatine's New Order: the Republic is dead; the Empire is law."
+
+  - id: imperial_intelligence
+    name: Imperial Security Bureau
+    tags:
+      - imperial
+      - intelligence
+      - hostile
+    home_locations:
+      - loc-isb_headquarters
+      - loc-imperial_palace
+    goals:
+      - Identify and eliminate Jedi survivors and sympathizers.
+      - Infiltrate refugee networks and safe houses.
+      - Maintain dossiers on dissidents and potential defectors.
+    metadata:
+      flavor: "The Emperor's eyes and fists; they make the galaxy afraid to speak."
+
+  - id: jedi_survivors
+    name: Jedi Survivors & Refugees
+    tags:
+      - jedi
+      - hunted
+      - force
+    home_locations:
+      - loc-jedi_safe_house
+      - loc-ossus_archives_ruin
+      - loc-meditation_sanctuary
+    goals:
+      - Survive the purge and protect Force-sensitive refugees.
+      - Preserve Jedi knowledge and artifacts from destruction.
+      - Stay hidden and avoid drawing Imperial attention.
+    metadata:
+      flavor: "The last of the Order, scattered and hunted, clinging to what remains."
+
+  - id: early_resistance
+    name: Early Resistance Cells
+    tags:
+      - rebel
+      - underground
+      - desperate
+    home_locations:
+      - loc-rebel_cell_safe_house
+      - loc-refugee_camp
+      - loc-underground_cantina
+    goals:
+      - Move refugees and hunted Jedi to safety.
+      - Build networks of trust and deniable supply lines.
+      - Lay the groundwork for future opposition to the Empire.
+    metadata:
+      flavor: "Not yet the Rebellion—just people who refuse to collaborate."
+
+  - id: underworld
+    name: Smugglers & Black Market
+    tags:
+      - criminal
+      - opportunist
+      - neutral
+    home_locations:
+      - loc-black_market_hub
+      - loc-smuggler_den
+      - loc-underground_cantina
+    goals:
+      - Profit from Imperial shortages and refugee desperation.
+      - Run escape routes for those who can pay.
+      - Avoid official allegiance to Empire or resistance.
+    metadata:
+      flavor: "Smugglers and fixers who thrive when law breaks down."
+
+  - id: corporate_remnant
+    name: Corporate & Neutral Worlds
+    tags:
+      - corporate
+      - neutral
+    home_locations:
+      - loc-corporate_hq
+      - loc-spaceport_neutral
+      - loc-mining_colony
+    goals:
+      - Maintain trade and production under the new regime.
+      - Avoid Imperial confiscation and rebel entanglements.
+    metadata:
+      flavor: "Business adapts; the Empire is just another customer and threat."
+
+faction_relationships:
+  galactic_empire:
+    relationships:
+      jedi_survivors: -100
+      early_resistance: -100
+      imperial_intelligence: 90
+      underworld: -50
+      corporate_remnant: 20
+      neutral: -30
+    cascades:
+      jedi_survivors: -0.7
+      early_resistance: -0.6
+
+  imperial_intelligence:
+    relationships:
+      galactic_empire: 90
+      jedi_survivors: -100
+      early_resistance: -100
+      underworld: -40
+      corporate_remnant: 0
+      neutral: -20
+    cascades:
+      galactic_empire: 0.5
+
+  jedi_survivors:
+    relationships:
+      galactic_empire: -100
+      imperial_intelligence: -100
+      early_resistance: 80
+      underworld: 30
+      corporate_remnant: 0
+      neutral: 10
+    cascades:
+      early_resistance: 0.4
+
+  early_resistance:
+    relationships:
+      galactic_empire: -100
+      imperial_intelligence: -100
+      jedi_survivors: 80
+      underworld: 40
+      corporate_remnant: -10
+      neutral: 20
+    cascades:
+      jedi_survivors: 0.3
+
+  underworld:
+    relationships:
+      galactic_empire: -50
+      imperial_intelligence: -40
+      jedi_survivors: 30
+      early_resistance: 40
+      corporate_remnant: 50
+      neutral: 30
+    cascades: {}
+
+  corporate_remnant:
+    relationships:
+      galactic_empire: 20
+      imperial_intelligence: 0
+      jedi_survivors: 0
+      early_resistance: -10
+      underworld: 50
+      neutral: 40
+    cascades: {}
+
+  neutral:
+    relationships:
+      galactic_empire: -30
+      imperial_intelligence: -20
+      jedi_survivors: 10
+      early_resistance: 20
+      underworld: 30
+      corporate_remnant: 40
+    cascades: {}

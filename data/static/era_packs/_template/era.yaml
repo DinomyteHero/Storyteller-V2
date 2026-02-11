@@ -1,0 +1,101 @@
+# ============================================================
+# era.yaml -- Era Pack Manifest (TEMPLATE)
+# ============================================================
+#
+# PURPOSE:
+#   Root manifest file for an era pack. Declares the era ID, schema version,
+#   and indexes all other files. Also defines starting locations, global events,
+#   travel graph, and display metadata.
+#
+# USED BY:
+#   - Era pack loader (backend/app/world/era_pack_loader.py)
+#   - Architect node (campaign setup — reads start_location_pool)
+#   - Director & Narrator (reads metadata.tone, metadata.themes for prompt context)
+#
+# INSTRUCTIONS:
+#   1. Copy this entire _template/ directory to data/static/era_packs/<your_era_key>/
+#   2. Replace "_TEMPLATE" with your era key (UPPERCASE convention: REBELLION, OLD_REPUBLIC, etc.)
+#   3. Fill in metadata, then author the other files
+#   4. Run the test suite to validate cross-references:
+#      python -m pytest backend/tests/ -k "era_pack" -q --tb=short
+#
+# GOTCHAS:
+#   - file_index keys MUST exactly match: era, locations, npcs, factions, backgrounds,
+#     namebanks, quests, events, rumors, meters, facts, companions
+#   - start_location_pool IDs MUST exist in locations.yaml
+#   - era_id should be UPPERCASE by convention (e.g., REBELLION, OLD_REPUBLIC)
+#   - style_ref path is relative to the project root
+# ============================================================
+
+# --- REQUIRED: Unique era identifier (UPPERCASE convention) ---
+era_id: _TEMPLATE
+
+# --- Schema version (current: 2) ---
+schema_version: 2
+
+# --- Optional: path to a prose style guide for this era ---
+# The Narrator uses this to match tone and vocabulary.
+# style_ref: data/style/my_era_style.md
+style_ref: null
+
+# --- REQUIRED: Maps logical file names to actual filenames ---
+# Every key listed here must have a corresponding .yaml file in this directory.
+# The loader reads these to assemble the full EraPack model.
+file_index:
+  era: era.yaml
+  locations: locations.yaml
+  npcs: npcs.yaml
+  factions: factions.yaml
+  backgrounds: backgrounds.yaml
+  namebanks: namebanks.yaml
+  quests: quests.yaml
+  events: events.yaml
+  rumors: rumors.yaml
+  meters: meters.yaml
+  facts: facts.yaml
+  companions: companions.yaml
+
+# --- REQUIRED: Location IDs eligible as starting positions ---
+# The Architect picks from this pool when creating a new campaign.
+# Each ID must exist in locations.yaml.
+start_location_pool:
+  - loc-main_hub
+  - loc-secondary_hub
+
+# --- Global event template IDs (usually empty) ---
+# Event IDs that fire globally regardless of location. Referenced from events.yaml.
+global_event_templates: []
+
+# --- Era-level travel connections (usually empty; prefer per-location travel_links) ---
+travel_graph: []
+
+# --- Default scene pacing parameters (usually empty) ---
+default_scene_pacing: {}
+
+# --- Freeform metadata (display info for the frontend and prompt context) ---
+metadata:
+  # display_name: shown in the era selection UI
+  display_name: "Template Era"
+
+  # time_period: narrative time range for this era
+  time_period: "XXXX - XXXX BBY/ABY"
+
+  # calendar_note: optional clarification of the era's dating system
+  calendar_note: "Brief note about when this era takes place relative to major events."
+
+  # summary: 3-5 sentence overview of the era (used in Director/Narrator prompts)
+  # Use single quotes for strings containing em dashes or colons.
+  summary: 'A brief summary of the era. Describe the political landscape, major conflicts, and the state of the galaxy. This text is injected into Director and Narrator prompts to set the tone.'
+
+  # tone: short phrase describing the era's emotional register
+  tone: "Descriptive tone phrase; e.g., Gritty hope; dark intrigue; mythic grandeur."
+
+  # key_conflicts: list of 2-4 major tensions driving stories in this era
+  key_conflicts:
+    - "Faction A vs. Faction B: describe the core struggle."
+    - "Internal tension: describe a secondary conflict."
+
+  # themes: list of 2-4 thematic throughlines
+  themes:
+    - "Theme one: e.g., Sacrifice and duty."
+    - "Theme two: e.g., The cost of power."

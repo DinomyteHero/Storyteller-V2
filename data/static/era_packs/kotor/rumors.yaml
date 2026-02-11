@@ -1,0 +1,113 @@
+# KOTOR Era Rumors — 20+ rumors (artifacts, Sith, Jedi, prophecies)
+
+rumors:
+  - id: rumor_kotor_star_forge_echoes
+    text: The Star Forge is gone, but something in the Unknown Regions still echoes its call—Sith cultists and scavengers hunt for fragments.
+    tags: [star_forge, sith, unknown_regions]
+    scope: global
+    credibility: rumor
+  - id: rumor_kotor_taris_underground
+    text: The Lower City on Taris has a network of tunnels that connect the gangs; someone who knows them can move without being seen.
+    tags: [taris, underworld, tunnels]
+    scope: location
+    credibility: likely
+  - id: rumor_kotor_mandalorian_remnant
+    text: Mandalorian clans are gathering again—not for war, but to rebuild. Canderous Ordo is said to be among them.
+    tags: [mandalorian, canderous]
+    scope: global
+    credibility: confirmed
+  - id: rumor_kotor_nihilus_echo
+    text: A wound in the Force still bleeds; those sensitive to it say they feel hunger where Malachor once was.
+    tags: [force, nihilus, malachor]
+    scope: global
+    credibility: rumor
+  - id: rumor_kotor_revan_alive
+    text: Revan never died—they went into the Unknown Regions to face the true Sith Empire.
+    tags: [revan, sith_empire]
+    scope: global
+    credibility: likely
+  - id: rumor_kotor_korriban_tombs
+    text: The tombs on Korriban still hold Sith spirits that speak to acolytes—and sometimes strike them dead.
+    tags: [korriban, sith, tombs]
+    scope: global
+    credibility: confirmed
+  - id: rumor_kotor_holocron_hidden
+    text: A Jedi holocron was hidden on Dantooine before Malak's bombardment; no one has found it yet.
+    tags: [holocron, jedi, dantooine]
+    scope: global
+    credibility: rumor
+  - id: rumor_kotor_sith_academy_secret
+    text: There is a second Sith academy—not on Korriban—where the most promising acolytes are sent.
+    tags: [sith, academy, secret]
+    scope: global
+    credibility: rumor
+  - id: rumor_kotor_rakata_survivors
+    text: Rakata still live in the depths of Lehon or other ancient worlds; they remember the Infinite Empire.
+    tags: [rakata, lehon, ancient]
+    scope: global
+    credibility: rumor
+  - id: rumor_kotor_exile_wound
+    text: The Exile is a wound in the Force—they don't feel it, but others do. The Jedi Council feared them for it.
+    tags: [exile, force, jedi]
+    scope: global
+    credibility: likely
+  - id: rumor_kotor_bastila_bond
+    text: Bastila Shan's battle meditation saved the Republic at the Star Forge—and her bond with Revan changed her forever.
+    tags: [bastila, revan, battle_meditation]
+    scope: global
+    credibility: confirmed
+  - id: rumor_kotor_malak_jaw
+    text: Darth Malak lost his jaw to Revan's lightsaber—that's why he wears the mechanical apparatus.
+    tags: [malak, revan]
+    scope: global
+    credibility: confirmed
+  - id: rumor_kotor_artifact_korriban
+    text: An artifact of Ajunta Pall is still inside his tomb; acolytes are sent to retrieve it and rarely return.
+    tags: [artifact, ajunta_pall, korriban]
+    scope: global
+    credibility: likely
+  - id: rumor_kotor_jedi_council_wipe
+    text: The Jedi Council wiped Revan's memory—some say to save them, others say to make a weapon.
+    tags: [jedi, revan, council]
+    scope: global
+    credibility: likely
+  - id: rumor_kotor_star_map_fragment
+    text: One of the old Star Map fragments was never destroyed; it's in the hands of a collector or a Sith lord.
+    tags: [star_map, rakata]
+    scope: global
+    credibility: rumor
+  - id: rumor_kotor_dromund_kaas
+    text: The Sith have a hidden capital—a jungle world where the true Empire is rebuilding.
+    tags: [sith_empire, dromund_kaas]
+    scope: global
+    credibility: rumor
+  - id: rumor_kotor_hk_factory
+    text: HK-47 wasn't the only assassin droid of his line; there are others, or a factory that could build more.
+    tags: [hk47, droid, assassin]
+    scope: global
+    credibility: rumor
+  - id: rumor_kotor_manaan_friction
+    text: The Selkath are under pressure from both Republic and Sith to choose a side; so far they hold the line.
+    tags: [manaan, selkath]
+    scope: global
+    credibility: confirmed
+  - id: rumor_kotor_prophecy_true_sith
+    text: An old prophecy says the true Sith will return from the Unknown Regions—and they will be worse than Malak.
+    tags: [prophecy, sith, unknown_regions]
+    scope: global
+    credibility: rumor
+  - id: rumor_kotor_ossus_holocrons
+    text: The Jedi library on Ossus holds holocrons that predate the Jedi Civil War; access is restricted.
+    tags: [ossus, jedi, holocron]
+    scope: global
+    credibility: confirmed
+  - id: rumor_kotor_gray_jedi_circle
+    text: A circle of Gray Jedi meets in secret—they believe the Order's rigidity will doom the galaxy again.
+    tags: [gray_jedi, jedi]
+    scope: global
+    credibility: rumor
+  - id: rumor_kotor_leviathan_captive
+    text: The Sith flagship Leviathan is still in service; its detention block is where Republic prisoners disappear.
+    tags: [leviathan, sith, republic]
+    scope: global
+    credibility: likely

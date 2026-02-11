@@ -1,0 +1,534 @@
+# New Jedi Order Companions (v2.20)
+# 10 companion archetypes designed for NJO era
+# All companions tied to Vong war themes: trauma, sacrifice, hope
+
+companions:
+- id: comp-njo-master_joren
+  name: Master Joren Tal
+  species: Human
+  gender: male
+  archetype: Serene Force Master
+  faction_id: jedi_order
+  role_in_party: mentor
+  voice_tags: [calm, wise, haunted]
+  motivation: Preserve the Jedi legacy and guide the next generation through impossible times
+  speech_quirk: Often pauses mid-sentence as if listening to something no one else can hear
+  voice:
+    belief: The Force binds all life; even in darkness, connection endures.
+    wound: Watched his entire apprenticeship cohort fall to the Vong; feels responsible for their deaths
+    taboo: Never destroys artifacts—they carry the memories of fallen Jedi
+    rhetorical_style: meditative
+    tell: His hand trembles slightly when discussing the war
+  traits:
+    idealist_pragmatic: 35
+    merciful_ruthless: -40
+    lawful_rebellious: 20
+  default_affinity: 10
+  recruitment:
+    unlock_conditions: Reach Yavin Academy; Joren identifies player as someone who might survive the war
+    first_meeting_location: loc-yavin_academy
+  tags: [jedi, mentor, spiritual, healer]
+  enables_affordances: [meditation, force_sense, emergency_healing]
+  blocks_affordances: [aggressive_combat, interrogation]
+  influence:
+    starts_at: 10
+    min: -100
+    max: 100
+    triggers:
+    - intent: protect_innocents
+      delta: 3
+    - intent: preserve_knowledge
+      delta: 2
+    - intent: use_dark_side
+      delta: -5
+    - meaning_tag: sacrifice
+      delta: 4
+    - meaning_tag: abandonment
+      delta: -3
+  banter:
+    frequency: occasional
+    style: wise
+    triggers: [meditation, jedi_lore, loss, force_connection]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Seeking a student worthy of his final teachings before age claims him
+    recruitment_context: Meditating in Yavin Academy's sanctuary; has accepted his likely death
+    banter_style: wise
+    faction_interest: [Jedi Order, Force scholars]
+
+- id: comp-njo-jaina_warrior
+  name: Kelle Voss
+  species: Zabrak
+  gender: female
+  archetype: Passionate Jedi Warrior
+  faction_id: jedi_order
+  role_in_party: striker
+  voice_tags: [intense, determined, fierce]
+  motivation: Fight the Vong with every ounce of strength; no surrender, no retreat
+  speech_quirk: Makes aggressive hand gestures when excited, often gestures with lightsaber
+  voice:
+    belief: The only good Vong is a dead Vong; hesitation kills
+    wound: Lost her entire family to a Vong assault; only survivor of her village
+    taboo: Never negotiate with the enemy or show mercy to Vong
+    rhetorical_style: aggressive
+    tell: Eyes go cold and distant when violence is discussed
+  traits:
+    idealist_pragmatic: 50
+    merciful_ruthless: 60
+    lawful_rebellious: 45
+  default_affinity: 5
+  recruitment:
+    unlock_conditions: Encounter Kelle in active combat against Vong forces; prove your combat worth
+    first_meeting_location: loc-mon_calamari
+  tags: [jedi, warrior, combat, passionate]
+  enables_affordances: [lightsaber_mastery, vong_slaying, aerial_combat]
+  blocks_affordances: [diplomacy, stealth, mercy]
+  influence:
+    starts_at: 5
+    min: -100
+    max: 100
+    triggers:
+    - intent: destroy_vong
+      delta: 3
+    - intent: protect_civilians
+      delta: 2
+    - intent: negotiate_peace
+      delta: -4
+    - meaning_tag: rage
+      delta: 2
+    - meaning_tag: mercy
+      delta: -3
+  banter:
+    frequency: frequent
+    style: fierce
+    triggers: [combat, vong, death, revenge]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Seeking companions to witness her vengeance; wants them to know why she fights
+    recruitment_context: Leading Jedi strike force against Vong assault craft
+    banter_style: fierce
+    faction_interest: [Jedi Order, Military Alliance]
+
+- id: comp-njo-healer_force
+  name: Master Thren Vik
+  species: Mon Calamari
+  gender: male
+  archetype: Gentle Force Healer
+  faction_id: jedi_order
+  role_in_party: support
+  voice_tags: [gentle, melodic, calm]
+  motivation: Heal the wounds of body and soul; understand suffering through compassion
+  speech_quirk: Often hums when focusing on healing; the melody changes based on his patient's condition
+  voice:
+    belief: All suffering can be eased; compassion is the deepest Force power
+    wound: Failed to save his children from a Vong bioweapon; they died in agony
+    taboo: Never refuse to heal anyone, even enemies, even the Vong
+    rhetorical_style: compassionate
+    tell: His humming falters when discussing children or families
+  traits:
+    idealist_pragmatic: 25
+    merciful_ruthless: -70
+    lawful_rebellious: 10
+  default_affinity: 15
+  recruitment:
+    unlock_conditions: Reach a medical facility or refugee camp; Thren approaches seeking able-bodied help
+    first_meeting_location: loc-mon_calamari
+  tags: [jedi, healer, support, compassionate]
+  enables_affordances: [force_healing, diagnostics, medical_supplies]
+  blocks_affordances: [aggressive_tactics, poisoning, psychological_manipulation]
+  influence:
+    starts_at: 15
+    min: -100
+    max: 100
+    triggers:
+    - intent: help_wounded
+      delta: 3
+    - intent: protect_refugees
+      delta: 2
+    - intent: cause_suffering
+      delta: -5
+    - meaning_tag: compassion
+      delta: 3
+    - meaning_tag: cruelty
+      delta: -4
+  banter:
+    frequency: moderate
+    style: warm
+    triggers: [healing, suffering, loss, hope]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Searching for a way to heal the incurable; might find hope in player's journey
+    recruitment_context: Running underground medical sanctuary; visibly exhausted
+    banter_style: warm
+    faction_interest: [Jedi Order, Refugees, Medical networks]
+
+- id: comp-njo-vong_translator
+  name: Kess Vorn
+  species: Human
+  gender: female
+  archetype: Vong Language Scholar
+  faction_id: neutral
+  role_in_party: specialist
+  voice_tags: [precise, analytical, cautious]
+  motivation: Understand the Vong; prevent misunderstandings that lead to unnecessary death
+  speech_quirk: Sometimes uses Vong words when excited or stressed; catches herself and apologizes
+  voice:
+    belief: Understanding your enemy is the first step to survival
+    wound: Captured by Vong; spent years as a prisoner studying their language
+    taboo: Never speak Vong names outside of academic study; too much power in the words
+    rhetorical_style: analytical
+    tell: Flinches at sudden loud noises; trauma from captivity
+  traits:
+    idealist_pragmatic: 60
+    merciful_ruthless: -10
+    lawful_rebellious: 35
+  default_affinity: 0
+  recruitment:
+    unlock_conditions: Encounter Kess in a library or academic setting; prove you respect knowledge
+    first_meeting_location: loc-coruscant
+  tags: [scholar, linguist, vong_specialist, survivor]
+  enables_affordances: [vong_communication, language_decode, cultural_understanding]
+  blocks_affordances: [stealth, deception]
+  influence:
+    starts_at: 0
+    min: -100
+    max: 100
+    triggers:
+    - intent: understand_vong
+      delta: 2
+    - intent: destroy_knowledge
+      delta: -4
+    - intent: share_information
+      delta: 2
+    - meaning_tag: knowledge
+      delta: 3
+    - meaning_tag: ignorance
+      delta: -2
+  banter:
+    frequency: moderate
+    style: analytical
+    triggers: [vong, language, knowledge, academic]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Wants to publish findings about Vong civilization; needs player's protection
+    recruitment_context: Hiding in library after escaping Vong captivity
+    banter_style: analytical
+    faction_interest: [Jedi scholars, Academic institutions, Refugees]
+
+- id: comp-njo-refugee_guide
+  name: Tel'kas Dren
+  species: Twi'lek
+  gender: male
+  archetype: Refugee Escape Guide
+  faction_id: neutral
+  role_in_party: specialist
+  voice_tags: [urgent, practical, street-smart]
+  motivation: Get people out alive; money is just the means to that end
+  speech_quirk: Always counting something—refugees, credits, hours until Vong arrive—never stops
+  voice:
+    belief: The only wrong move is giving up; everything else can be survived
+    wound: His family was split across three worlds in the evacuation; probably dead by now
+    taboo: Never leave a refugee behind; no exceptions, no exceptions
+    rhetorical_style: pragmatic
+    tell: His lekku tense when discussing his family
+  traits:
+    idealist_pragmatic: 75
+    merciful_ruthless: 20
+    lawful_rebellious: 60
+  default_affinity: 5
+  recruitment:
+    unlock_conditions: Meet Tel'kas organizing evacuations; help him move a refugee convoy
+    first_meeting_location: loc-mon_calamari
+  tags: [refugee, guide, survivor, pragmatist]
+  enables_affordances: [escape_routes, refugee_movement, underworld_contacts]
+  blocks_affordances: [long_term_commitment, slow_travel]
+  influence:
+    starts_at: 5
+    min: -100
+    max: 100
+    triggers:
+    - intent: save_refugees
+      delta: 3
+    - intent: abandon_innocent
+      delta: -5
+    - intent: move_quickly
+      delta: 2
+    - meaning_tag: survival
+      delta: 2
+    - meaning_tag: sacrifice_others
+      delta: -4
+  banter:
+    frequency: frequent
+    style: pragmatic
+    triggers: [escape, danger, refugees, family]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Searching for his family across refugee networks; player's help is his only hope
+    recruitment_context: Coordinating evacuation of a doomed world
+    banter_style: pragmatic
+    faction_interest: [Refugee networks, Smugglers, Underground resistance]
+
+- id: comp-njo-military_liaison
+  name: Commander Vex Tallis
+  species: Human
+  gender: male
+  archetype: Weary Military Officer
+  faction_id: new_republic
+  role_in_party: strategist
+  voice_tags: [weary, professional, determined]
+  motivation: Coordinate Jedi efforts with military operations; win even one more victory
+  speech_quirk: Constantly checks for communication devices; seems paranoid about oversight
+  voice:
+    belief: Discipline and strategy are what separate soldiers from corpses
+    wound: Watched his entire command die in an ambush due to faulty intelligence
+    taboo: Never disobey direct orders, even if you disagree with them
+    rhetorical_style: tactical
+    tell: His jaw tightens when discussing command decisions
+  traits:
+    idealist_pragmatic: 45
+    merciful_ruthless: 35
+    lawful_rebellious: -20
+  default_affinity: 10
+  recruitment:
+    unlock_conditions: Reach a Republic military station; Tallis recruits player for operation
+    first_meeting_location: loc-mon_calamari
+  tags: [military, officer, strategist, weary]
+  enables_affordances: [military_tactics, authority, resource_requisition]
+  blocks_affordances: [independent_action, mercy]
+  influence:
+    starts_at: 10
+    min: -100
+    max: 100
+    triggers:
+    - intent: follow_orders
+      delta: 2
+    - intent: save_military
+      delta: 2
+    - intent: disobey_command
+      delta: -3
+    - meaning_tag: duty
+      delta: 2
+    - meaning_tag: rebellion
+      delta: -2
+  banter:
+    frequency: moderate
+    style: tactical
+    triggers: [strategy, military, loss, command_decisions]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Seeking redemption for the command he lost; player is his second chance
+    recruitment_context: Briefing player on a dangerous military operation
+    banter_style: tactical
+    faction_interest: [New Republic, Jedi Order, Imperial Remnant]
+
+- id: comp-njo-archaeologist
+  name: Scholar Jen Toras
+  species: Human
+  gender: female
+  archetype: Jedi Artifact Scholar
+  faction_id: jedi_order
+  role_in_party: specialist
+  voice_tags: [enthusiastic, scholarly, passionate]
+  motivation: Find ancient Jedi knowledge that could save the Order and the galaxy
+  speech_quirk: Gets animated when discussing historical artifacts; quotes random historical figures
+  voice:
+    belief: Knowledge from the past illuminates the future; we must not lose our history
+    wound: The Coruscant Jedi Archives are lost; irreplaceable knowledge destroyed
+    taboo: Never destroy or disrespect historical artifacts, no matter the cost
+    rhetorical_style: scholarly
+    tell: Eyes light up when discussing ancient texts; grows distressed about lost archives
+  traits:
+    idealist_pragmatic: 20
+    merciful_ruthless: -30
+    lawful_rebellious: 25
+  default_affinity: 5
+  recruitment:
+    unlock_conditions: Find Jen searching ruins or archives; she needs protection for research
+    first_meeting_location: loc-coruscant
+  tags: [scholar, archaeologist, jedi, academic]
+  enables_affordances: [ancient_knowledge, artifact_identification, lore_expertise]
+  blocks_affordances: [pragmatic_destruction, military_tactics]
+  influence:
+    starts_at: 5
+    min: -100
+    max: 100
+    triggers:
+    - intent: preserve_knowledge
+      delta: 3
+    - intent: destroy_artifacts
+      delta: -5
+    - intent: explore_ruins
+      delta: 2
+    - meaning_tag: history
+      delta: 2
+    - meaning_tag: loss
+      delta: 1
+  banter:
+    frequency: occasional
+    style: scholarly
+    triggers: [ancient_knowledge, artifacts, coruscant, archives]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Seeking to rebuild the Jedi Archives; player's help could save knowledge
+    recruitment_context: Salvaging Jedi artifacts from Vong-ravaged worlds
+    banter_style: scholarly
+    faction_interest: [Jedi Order, Scholars, Preservation societies]
+
+- id: comp-njo-resistance_fighter
+  name: Kael Drek
+  species: Zabrak
+  gender: male
+  archetype: Burned-Out Saboteur
+  faction_id: neutral
+  role_in_party: guerrilla
+  voice_tags: [bitter, cynical, explosive]
+  motivation: Destabilize Vong occupation; make them bleed for every world they conquer
+  speech_quirk: Laughs at inappropriate moments; dark humor is his coping mechanism
+  voice:
+    belief: The Vong will never negotiate; they only understand pain and loss
+    wound: His resistance cell was decimated; he's the only survivor still fighting
+    taboo: Never retreat without causing maximum damage; always leave burning bridges
+    rhetorical_style: aggressive
+    tell: Trembles with barely-contained rage when discussing Vong
+  traits:
+    idealist_pragmatic: 40
+    merciful_ruthless: 50
+    lawful_rebellious: 70
+  default_affinity: 0
+  recruitment:
+    unlock_conditions: Meet Kael on underground resistance operation; earn trust through combat
+    first_meeting_location: loc-coruscant_underworld
+  tags: [resistance, saboteur, guerrilla, survivor]
+  enables_affordances: [explosives, covert_operations, sabotage]
+  blocks_affordances: [diplomacy, political_maneuvering, mercy]
+  influence:
+    starts_at: 0
+    min: -100
+    max: 100
+    triggers:
+    - intent: sabotage_vong
+      delta: 3
+    - intent: negotiate
+      delta: -3
+    - intent: cause_vong_pain
+      delta: 2
+    - meaning_tag: rebellion
+      delta: 2
+    - meaning_tag: authority
+      delta: -2
+  banter:
+    frequency: frequent
+    style: aggressive
+    triggers: [sabotage, vong_damage, loss, revenge]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Seeking vengeance and purpose; player offers him both
+    recruitment_context: Planning a dangerous sabotage operation against Vong installations
+    banter_style: aggressive
+    faction_interest: [Underground resistance, Revolutionaries, Anti-Vong alliances]
+
+- id: comp-njo-force_sensitive_refugee
+  name: Lyris Venn
+  species: Human
+  gender: female
+  archetype: Frightened Untrained Force User
+  faction_id: jedi_order
+  role_in_party: potential
+  voice_tags: [frightened, hopeful, young]
+  motivation: Learn to control her Force abilities; find safety and belonging
+  speech_quirk: Speaks quietly; sometimes phrases things as questions when she's confident
+  voice:
+    belief: The Force is beautiful when it's not hurting people
+    wound: Her uncontrolled powers killed her family; she blames herself completely
+    taboo: Never mention the accident; she can't bear to discuss it
+    rhetorical_style: hesitant
+    tell: Guilt-ridden expression when others are hurt around her
+  traits:
+    idealist_pragmatic: 20
+    merciful_ruthless: -60
+    lawful_rebellious: 10
+  default_affinity: 5
+  recruitment:
+    unlock_conditions: Rescue Lyris from danger; she recognizes player as her path to redemption
+    first_meeting_location: loc-yavin_academy
+  tags: [force_sensitive, refugee, young, potential]
+  enables_affordances: [force_assistance, healing_touch, empathic_sense]
+  blocks_affordances: [aggressive_force_powers, combat]
+  influence:
+    starts_at: 5
+    min: -100
+    max: 100
+    triggers:
+    - intent: teach_control
+      delta: 3
+    - intent: show_compassion
+      delta: 2
+    - intent: push_to_danger
+      delta: -4
+    - meaning_tag: redemption
+      delta: 3
+    - meaning_tag: guilt
+      delta: 1
+  banter:
+    frequency: moderate
+    style: warm
+    triggers: [force_learning, guilt, hope, family]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Seeking to earn redemption for deaths she caused; player is her hope
+    recruitment_context: Rescued from kidnappers who wanted to exploit her Force potential
+    banter_style: warm
+    faction_interest: [Jedi Order, Refugees, Redemption-seekers]
+
+- id: comp-njo-vong_defector
+  name: Vax Kel
+  species: Yuuzhan Vong
+  gender: male
+  archetype: Vong Heretic Defector
+  faction_id: neutral
+  role_in_party: translator
+  voice_tags: [uncertain, conflicted, desperate]
+  motivation: Find redemption by helping the Vong's enemies; understand truth beyond fanaticism
+  speech_quirk: Sometimes growls or makes guttural sounds; suppresses them with effort
+  voice:
+    belief: The gods do not demand conquest; we have been lied to
+    wound: Discovered the Vong hierarchy is a lie; feels betrayed by everything he believed
+    taboo: Never kill in the old Vong way; never participate in rituals that require sacrifice
+    rhetorical_style: conflicted
+    tell: Physical discomfort visible when discussing Vong traditions or beliefs
+  traits:
+    idealist_pragmatic: 25
+    merciful_ruthless: -40
+    lawful_rebellious: 60
+  default_affinity: -25
+  recruitment:
+    unlock_conditions: Encounter Vax in combat; he surrenders and asks for asylum with conviction
+    first_meeting_location: loc-worldship
+  tags: [vong, defector, heretic, conflicted]
+  enables_affordances: [vong_warfare_knowledge, biological_systems, internal_resistance_intel]
+  blocks_affordances: [vong_stealth, vong_disguise]
+  influence:
+    starts_at: -25
+    min: -100
+    max: 75
+    triggers:
+    - intent: understand_vong
+      delta: 2
+    - intent: accept_vong_defector
+      delta: 2
+    - intent: betray_vong
+      delta: 2
+    - meaning_tag: redemption
+      delta: 3
+    - meaning_tag: alien_distrust
+      delta: -3
+  banter:
+    frequency: occasional
+    style: conflicted
+    triggers: [vong_beliefs, redemption, cultural_differences, internal_conflict]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Seeking to prove his defection is genuine; needs player to believe in him
+    recruitment_context: Captured Vong warrior questioning everything; wants to help
+    banter_style: conflicted
+    faction_interest: [Vong heretics, Anti-Vong factions, Redemption seekers]

@@ -1,0 +1,154 @@
+rumors:
+- id: rumor_legendary_artifact_location
+  text: A traveling merchant claims ancient star charts indicate a lost world containing
+    the Shadow Stone—an artifact capable of creating areas of absolute darkness where
+    even the Force cannot penetrate.
+  tags:
+  - artifacts_and_relics
+  scope: global
+  credibility: likely
+- id: rumor_sith_conspiracy_internal
+  text: Multiple sources report that several of Krayt's top Sith Lords are quietly
+    working against him. Some whisper that Krayt's health problem is being deliberately
+    exacerbated through subtle poisoning.
+  tags:
+  - sith_conspiracy
+  scope: global
+  credibility: likely
+- id: rumor_ancient_entity_awakening
+  text: Force-sensitives across the galaxy report sensing something massive stirring
+    in the depths of reality. Something so ancient and alien that it predates the
+    Sith, Jedi, and even the Precursors.
+  tags:
+  - cosmic_horror
+  scope: global
+  credibility: rumor
+- id: rumor_jedi_developing_weapon
+  text: Jedi archives supposedly contain designs for a weapon that could destroy the
+    One Sith entirely. Multiple independent witnesses have reported expeditions to
+    ancient weapons laboratories.
+  tags:
+  - military_secrets
+  scope: global
+  credibility: likely
+- id: rumor_revan_still_alive
+  text: Multiple sightings of a figure matching Revan's description have been reported
+    across the galaxy over the past decade. If Revan is indeed alive, their return
+    could reshape galactic destiny.
+  tags:
+  - legendary_figures
+  scope: global
+  credibility: rumor
+- id: rumor_ysalamiri_spreading
+  text: Traders report finding ysalamiri on worlds far from Myrkr. If ysalamiri populations
+    expand, Force-dead zones could cover large portions of the galaxy.
+  tags:
+  - biological_threat
+  scope: global
+  credibility: likely
+- id: rumor_carbonite_freeze_technique_rediscovered
+  text: Ancient records mention carbonite freezing—a technique for preserving beings
+    in suspended animation. Sith scholars may have found records and are attempting
+    to recreate it.
+  tags:
+  - technology
+  scope: global
+  credibility: likely
+- id: rumor_skywalker_healing_power_reproducible
+  text: Some researchers believe Cade's unique healing ability could be learned or
+    replicated through intensive dark side training combined with Skywalker bloodline
+    genetics.
+  tags:
+  - force_powers
+  scope: global
+  credibility: likely
+- id: rumor_malachor_v_seal_failing
+  text: Scholars report that the mystical seals on Malachor V—supposedly placed to
+    contain something apocalyptic—are deteriorating. If they break, something imprisoned
+    billions of years ago could escape.
+  tags:
+  - ancient_seals
+  scope: global
+  credibility: likely
+- id: rumor_corporate_mega_weapon
+  text: Intelligence reports suggest a major corporation is developing a weapon of
+    staggering power in secret facilities. Multiple factions are attempting to acquire
+    or destroy it.
+  tags:
+  - corporate_espionage
+  scope: global
+  credibility: likely
+- id: rumor_dimensional_gateway_opened
+  text: Explorers report discovering a stable dimensional gateway leading to what
+    appears to be an alternate version of known space with different histories and
+    factions.
+  tags:
+  - dimensional_anomaly
+  scope: global
+  credibility: rumor
+- id: rumor_jedi_assassination_conspiracy
+  text: Sith intelligence suggests the Jedi have identified key Sith Lords and are
+    planning covert assassination operations. A shadow war is emerging within the
+    larger conflict.
+  tags:
+  - military_operations
+  scope: global
+  credibility: likely
+- id: rumor_ancient_force_temple_discovered
+  text: Explorers report finding evidence of a Force temple that predates both Sith
+    and Jedi. The site contains teachings from an unknown Force tradition.
+  tags:
+  - archaeological_discovery
+  scope: global
+  credibility: likely
+- id: rumor_krayt_seeking_cade_desperately
+  text: Multiple sources confirm Krayt is intensifying efforts to locate Cade Skywalker.
+    Krayt requires Cade's unique healing ability to maintain his immortality.
+  tags:
+  - sith_conspiracy
+  scope: global
+  credibility: likely
+- id: rumor_hidden_jedi_fleet_exists
+  text: Some sources claim the Jedi possess a secret fleet comparable in size to the
+    Alliance Remnant, operating in uncharted space for covert operations.
+  tags:
+  - military_secrets
+  scope: global
+  credibility: likely
+- id: rumor_fel_loyalists_infiltrating_sith
+  text: Intelligence suggests the Fel Empire has successfully placed sleeper agents
+    within One Sith command structures. Sabotage from within may be imminent.
+  tags:
+  - espionage
+  scope: global
+  credibility: likely
+- id: rumor_mandalorian_super_beskar_deposit
+  text: Rumors speak of a massive beskar deposit on an unexplored world. Control of
+    this deposit could give any faction a decisive military advantage.
+  tags:
+  - resource_discovery
+  scope: global
+  credibility: likely
+- id: rumor_underworld_arms_embargo_planned
+  text: Some sources claim major underworld syndicates are considering stopping weapons
+    shipments to the Sith. This could cripple Sith operations, but the Sith would
+    never tolerate it.
+  tags:
+  - criminal_operations
+  scope: global
+  credibility: rumor
+- id: rumor_prophecy_interpretation_conflict
+  text: Ancient prophecies are being cited by both Jedi and Sith to justify their
+    actions. No one agrees on what the prophecies truly mean or which interpretation
+    is correct.
+  tags:
+  - prophecy_and_destiny
+  scope: global
+  credibility: likely
+- id: rumor_time_distortion_spreading
+  text: Force-sensitive scholars report increasing instances of time flowing differently
+    in certain regions. Some fear reality itself is becoming unstable.
+  tags:
+  - dimensional_anomaly
+  scope: global
+  credibility: rumor

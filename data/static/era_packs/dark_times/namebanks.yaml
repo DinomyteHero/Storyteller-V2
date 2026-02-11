@@ -1,0 +1,148 @@
+# The Dark Times — Namebanks
+# For procedural NPC generation (templates reference these keys).
+
+namebanks:
+  dark_times_jedi_names:
+    - Ferren
+    - Kira
+    - Maren
+    - Ren
+    - Barr
+    - Sera
+    - Jax
+    - Nari
+    - Kael
+    - Voss
+    - Tera
+    - Quin
+    - Lira
+    - Obi
+    - Yoda
+  dark_times_refugee_names:
+    - Sela
+    - Bren
+    - Nesta
+    - Orin
+    - Lyda
+    - Galen
+    - Tala
+    - Fim
+    - Mara
+    - Jem
+    - Krin
+    - Vorr
+    - Zara
+    - Pella
+    - Dax
+  dark_times_imperial_names:
+    - Kallus
+    - Tarkin
+    - Varis
+    - Korr
+    - Damar
+    - Sarne
+    - Roth
+    - Marek
+    - Kress
+    - Vesk
+    - Jerrod
+    - Pryce
+    - Yularen
+    - Piett
+    - Veers
+    - Ozzel
+    - Tenn
+  dark_times_clone_names:
+    - Cody
+    - Ox
+    - Stak
+    - Rex
+    - Gree
+    - Wolffe
+    - Fives
+    - Echo
+    - Waxer
+    - Boil
+    - Hardcase
+    - Jesse
+    - Kix
+    - Tup
+    - Dogma
+  dark_times_rebel_names:
+    - Jax
+    - Kessa
+    - Taro
+    - Mira
+    - Venn
+    - Caro
+    - Lysa
+    - Rianna
+    - Toryn
+    - Pel
+    - Nia
+    - Syla
+    - Daven
+    - Kess
+  dark_times_smuggler_names:
+    - Verena
+    - Rake
+    - Jax
+    - Sel
+    - Kira
+    - Davo
+    - Nox
+    - Vela
+    - Kest
+    - Rinn
+    - Orr
+    - Cho
+    - Hondo
+    - Vizago
+  dark_times_corporate_names:
+    - Tren
+    - Voss
+    - Marek
+    - Kress
+    - Varis
+    - Damar
+    - Sarne
+    - Roth
+    - Tenn
+    - Jerrod
+    - Pryce
+    - Lira
+    - Nema
+    - Galen
+  # Aliases for compatibility with any generic namebank references
+  rebel_names:
+    - Kessa
+    - Taro
+    - Mira
+    - Venn
+    - Caro
+    - Lysa
+    - Rianna
+    - Toryn
+    - Nia
+    - Syla
+  imperial_names:
+    - Korr
+    - Damar
+    - Sarne
+    - Kall
+    - Roth
+    - Varis
+    - Vesk
+    - Jerrod
+    - Pryce
+  underworld_names:
+    - Rake
+    - Jax
+    - Sel
+    - Kira
+    - Davo
+    - Nox
+    - Vela
+    - Kest
+    - Rinn
+    - Orr

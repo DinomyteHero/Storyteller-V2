@@ -1,0 +1,147 @@
+# ============================================================
+# namebanks.yaml -- Name Pools (TEMPLATE)
+# ============================================================
+#
+# PURPOSE:
+#   Provides name lists for procedural NPC generation. Each key is a pool
+#   that can be referenced by NPC templates via the `namebank` field.
+#
+# USED BY:
+#   - NPC generator (backend/app/world/npc_generator.py): selects names from
+#     the pool specified by a template's `namebank` field
+#
+# CONVENTIONS:
+#   - Keys are referenced by NPC templates: namebank: military_names
+#   - Include species-specific name lists for diverse NPC generation
+#   - Include rank/title lists for procedural name construction
+#   - Minimum 10-15 names per pool for variety (more is better)
+#   - Use lore-appropriate names for the era
+#
+# GOTCHAS:
+#   - YAML integer aliases need quoting: "81" not 81
+#   - Em dashes in names should be avoided or single-quoted
+#   - Namebank keys must match exactly what NPC templates reference
+#   - Names should be diverse in gender and species representation
+# ============================================================
+
+namebanks:
+
+  # ----------------------------------------------------------
+  # Military / authority names
+  # Referenced by templates with: namebank: military_names
+  # ----------------------------------------------------------
+  military_names:
+    - Kael
+    - Sarne
+    - Damar
+    - Roth
+    - Kress
+    - Varis
+    - Maren
+    - Dorran
+    - Tallis
+    - Prynn
+    - Korr
+    - Vesk
+    - Ashara
+    - Bren
+
+  # ----------------------------------------------------------
+  # Civilian / common names
+  # Referenced by templates with: namebank: civilian_names
+  # ----------------------------------------------------------
+  civilian_names:
+    - Tala
+    - Mira
+    - Joren
+    - Syla
+    - Venn
+    - Caro
+    - Lysa
+    - Daven
+    - Rianna
+    - Pel
+    - Nia
+    - Kessa
+    - Taro
+    - Brin
+
+  # ----------------------------------------------------------
+  # Species-specific name pools
+  # Add pools for each species your NPC templates use
+  # ----------------------------------------------------------
+  twilek_names:
+    - Hera
+    - Numa
+    - Aayla
+    - Bib
+    - Oola
+    - Lyn
+    - Tann
+    - Xiaan
+    - Nawara
+    - Nerra
+
+  rodian_names:
+    - Greedo
+    - Navik
+    - Wald
+    - Beedo
+    - Onaconda
+    - Greeata
+    - Ponda
+    - Doda
+    - Teeku
+    - Reelo
+
+  zabrak_names:
+    - Javik
+    - Sarn
+    - Maris
+    - Eeth
+    - Agen
+    - Sugi
+    - Koth
+    - Bao
+    - Kao
+    - Sirak
+
+  # ----------------------------------------------------------
+  # Title / rank pools (for procedural name construction)
+  # ----------------------------------------------------------
+  military_ranks:
+    - Commander
+    - Captain
+    - Lieutenant
+    - Sergeant
+    - General
+    - Admiral
+    - Colonel
+    - Corporal
+
+  civilian_titles:
+    - Elder
+    - Merchant
+    - Healer
+    - Artisan
+    - Pilot
+    - Technician
+    - Scholar
+    - Farmer
+
+  # ----------------------------------------------------------
+  # Surname pools (for procedural name construction)
+  # ----------------------------------------------------------
+  common_surnames:
+    - Korin
+    - Raal
+    - Voss
+    - Tann
+    - Drex
+    - Neld
+    - Shan
+    - Vrynn
+    - Cade
+    - Torr
+    - Kelso
+    - Mand

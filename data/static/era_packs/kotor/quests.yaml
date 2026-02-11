@@ -1,0 +1,131 @@
+# KOTOR Era Quests — 5 multi-stage quests (artifact, Sith-Jedi, prophecy, ancient, moral)
+
+quests:
+  - id: quest_kotor_artifact_hunt
+    title: The Lost Holocron
+    description: A Jedi holocron containing teachings of the ancient Masters was lost during Malak's bombardment of Dantooine. Recover it before the Sith do.
+    entry_conditions:
+      turn:
+        min: 2
+    stages:
+      - stage_id: learn_location
+        objective: Learn where the holocron was last seen—archives or a survivor on Dantooine.
+        success_conditions:
+          npc_met: npc_kotor_jedi_knight_1
+          or: [fact_learned: fact_kotor_holocron_dantooine]
+      - stage_id: reach_site
+        objective: Travel to the ruins or cache where the holocron is hidden.
+        success_conditions:
+          location_visited: loc-kotor-dantooine_ruins
+      - stage_id: recover_holocron
+        objective: Recover the holocron and fend off Sith or scavengers.
+        success_conditions:
+          action_taken: recover_artifact
+      - stage_id: deliver
+        objective: Deliver the holocron to the Jedi Order or keep it for study.
+        success_conditions:
+          npc_met: vrook_lamar
+          or: [decision: keep_holocron]
+    consequences:
+      reputation_jedi_order: "+15"
+      or: [reputation_sith_empire: "-10"]
+    metadata: {}
+
+  - id: quest_kotor_sith_jedi_conflict
+    title: Shadows of Korriban
+    description: The Sith Academy on Korriban is recruiting and eliminating Jedi scouts. Infiltrate, gather intelligence, or strike—and survive.
+    entry_conditions:
+      turn:
+        min: 3
+    stages:
+      - stage_id: gain_entry
+        objective: Find a way onto Korriban—credentials, disguise, or force.
+        success_conditions:
+          location_visited: loc-kotor-korriban_academy_entrance
+      - stage_id: gather_intel
+        objective: Learn the Academy's current objectives and leadership.
+        success_conditions:
+          action_taken: gather_intel
+      - stage_id: choice
+        objective: Choose to sabotage the Academy, rescue a prisoner, or leave without blowing cover.
+        success_conditions:
+          or: [action_taken: sabotage, action_taken: rescue, action_taken: leave]
+    consequences:
+      reputation_sith_empire: "-20"
+      or: [reputation_jedi_order: "+10"]
+    metadata: {}
+
+  - id: quest_kotor_prophecy
+    title: The Prophecy of the True Sith
+    description: An old prophecy speaks of the true Sith returning from the Unknown Regions. Find the source of the prophecy and decide what to do with the knowledge.
+    entry_conditions:
+      turn:
+        min: 4
+    stages:
+      - stage_id: hear_prophecy
+        objective: Hear the prophecy from a scholar, Jedi, or Sith defector.
+        success_conditions:
+          rumor_heard: rumor_kotor_prophecy_true_sith
+      - stage_id: find_source
+        objective: Trace the prophecy to an ancient text or vision.
+        success_conditions:
+          location_visited: loc-kotor-ossus_library
+          or: [location_visited: loc-kotor-ancient_archive_chamber]
+      - stage_id: interpret
+        objective: Decide whether to warn the Republic, destroy the record, or seek the Sith yourself.
+        success_conditions:
+          or: [decision: warn_republic, decision: destroy_record, decision: seek_sith]
+    consequences:
+      reputation_galactic_republic: "+5"
+      or: []
+    metadata: {}
+
+  - id: quest_kotor_ancient_awakening
+    title: The Rakata Echo
+    description: A Rakata temple has shown signs of activity—energy readings, voices. Investigate and determine whether something ancient is awakening.
+    entry_conditions:
+      turn:
+        min: 5
+    stages:
+      - stage_id: reach_temple
+        objective: Travel to the Rakata temple or ruin.
+        success_conditions:
+          location_visited: loc-kotor-rakata_primordial_temple
+      - stage_id: investigate
+        objective: Explore the temple and interpret the signs.
+        success_conditions:
+          action_taken: investigate_ancient
+      - stage_id: confront
+        objective: Confront the source—surviving Rakata, a spirit, or a trap.
+        success_conditions:
+          or: [action_taken: negotiate_rakata, action_taken: destroy_entity, action_taken: seal_temple]
+    consequences:
+      reputation_rakata_remnant: "+10"
+      or: [reputation_rakata_remnant: "-20"]
+    metadata: {}
+
+  - id: quest_kotor_moral_reckoning
+    title: Between Light and Dark
+    description: A former Jedi has fallen to the Sith and now seeks redemption—or power. Your choices will push them toward the light or the dark.
+    entry_conditions:
+      turn:
+        min: 6
+    stages:
+      - stage_id: encounter
+        objective: Meet the fallen Jedi—in a cantina, a Sith outpost, or a neutral world.
+        success_conditions:
+          npc_met: npc_kotor_gray_jedi_1
+          or: [npc_met: npc_kotor_sith_assassin_1]
+      - stage_id: influence
+        objective: Through dialogue and deeds, influence their path—compassion or strength, mercy or ruthlessness.
+        success_conditions:
+          affinity_changed: true
+      - stage_id: reckoning
+        objective: Witness their choice—return to the Jedi, embrace the Sith, or walk away from both.
+        success_conditions:
+          or: [decision: jedi_path, decision: sith_path, decision: gray_path]
+    consequences:
+      reputation_jedi_order: "+10"
+      or: [reputation_sith_empire: "+10"]
+      or: []
+    metadata: {}

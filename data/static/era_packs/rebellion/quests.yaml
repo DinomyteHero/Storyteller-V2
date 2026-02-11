@@ -1,0 +1,23 @@
+quests:
+- id: quest_first_contact
+  title: First Contact
+  description: Make contact with the local Rebel cell and prove yourself.
+  entry_conditions:
+    turn:
+      min: 3
+  stages:
+  - stage_id: locate_contact
+    objective: Find the Rebel contact in the local cantina
+    success_conditions:
+      npc_met: rebel_contact
+  - stage_id: prove_loyalty
+    objective: Complete a task to prove your loyalty to the Rebellion
+    success_conditions:
+      action_taken: assist_rebellion
+  - stage_id: report_back
+    objective: Return to the contact and report your success
+    success_conditions:
+      npc_met: rebel_contact
+      stage_completed: prove_loyalty
+  consequences:
+    reputation_rebel_alliance: '+10'

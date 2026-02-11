@@ -1,0 +1,50 @@
+# KOTOR Era Pack — Knights of the Old Republic (~3954 BBY, Post-KOTOR 2)
+# Ancient Old Republic: Sith Empire, Jedi Order, Revan, the Exile, and legendary artifacts.
+
+era_id: KOTOR
+style_ref: data/style/kotor_style.md
+schema_version: 2
+file_index:
+  era: era.yaml
+  locations: locations.yaml
+  npcs: npcs.yaml
+  factions: factions.yaml
+  backgrounds: backgrounds.yaml
+  namebanks: namebanks.yaml
+  quests: quests.yaml
+  events: events.yaml
+  rumors: rumors.yaml
+  meters: meters.yaml
+  facts: facts.yaml
+  companions: companions.yaml
+start_location_pool:
+  - loc-kotor-dantooine_encampment
+  - loc-kotor-taris_lower_city
+  - loc-kotor-ebon_hawk_docking
+  - loc-kotor-korriban_academy_entrance
+  - loc-kotor-coruscant_jedi_temple
+global_event_templates: []
+travel_graph: []
+default_scene_pacing: {}
+metadata:
+  display_name: Knights of the Old Republic
+  time_period: ~3954 BBY (Post-KOTOR 2)
+  calendar_note: After the Jedi Civil War and the fall of Darth Malak; the Republic and Jedi Order rebuild while Sith remnants and ancient mysteries stir.
+  summary: |
+    The galaxy is still reeling from the Jedi Civil War. Revan and Malak fell; the Star Forge is destroyed,
+    but the Sith Empire's remnants lurk in the Unknown Regions. The Jedi Order, decimated on Dantooine,
+    trains in hidden enclaves and on Coruscant. Ancient Sith tombs on Korriban pulse with dark power.
+    Mandalorian clans, Hutts, and smugglers thrive in the margins. Force-wielders—Jedi, Sith, and those
+    who walk the line—seek artifacts, prophecies, and forbidden knowledge. It is an age of ancient mystery,
+    moral ambiguity, and cosmic stakes: the fate of the galaxy hinges on choices made in the shadows of
+    fallen empires.
+  tone: Ancient mystery; Force mastery; Sith–Jedi eternal conflict; moral ambiguity; artifact-seeking; prophecy and destiny.
+  key_conflicts:
+    - "Sith remnants vs. Republic and Jedi: hidden academies, assassins, and ancient Sith lords."
+    - "Light vs. Dark: Jedi restoration versus Sith resurgence; Gray Jedi and balance-seekers."
+    - "Ancient powers: Rakata ruins, Star Maps, and artifacts that could reshape the galaxy."
+  themes:
+    - Ancient wisdom and lost civilizations; pre-Sith and pre-Jedi mysteries.
+    - Force philosophy: Light, Dark, and the gray path; power and corruption.
+    - Moral ambiguity; redemption and fall; prophecy and free will.
+    - Artifact-seeking and secret knowledge; cosmic scale of decisions.

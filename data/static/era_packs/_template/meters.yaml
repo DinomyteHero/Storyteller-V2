@@ -1,0 +1,75 @@
+# ============================================================
+# meters.yaml -- World Meter Definitions (TEMPLATE)
+# ============================================================
+#
+# PURPOSE:
+#   Defines bounds, defaults, and decay rates for persistent world-state meters.
+#   Meters track global and per-location threat levels, faction reputation, and
+#   territory control.
+#
+# USED BY:
+#   - WorldSim node: reads meter bounds for state updates
+#   - Mechanic node: reads meters for DC calculations
+#   - Events: triggers reference meter thresholds (e.g., heat_global.min: 50)
+#
+# STANDARD METERS:
+#   reputation_by_faction -- per-faction reputation (-100 to +100)
+#   heat_global          -- global threat/attention level (0-100)
+#   heat_by_location     -- per-location threat level (0-100)
+#   control_shift        -- territory control mechanics (usually disabled)
+#
+# GOTCHAS:
+#   - min must be <= max
+#   - default must be within [min, max]
+#   - decay_per_tick: how much the meter decays each game tick (optional)
+#   - control_shift uses a different schema: {enabled: false/true}
+#     Leave as {enabled: false} unless implementing territory control
+#   - Meter names are referenced by events.yaml triggers and the WorldSim
+# ============================================================
+
+meters:
+
+  # ----------------------------------------------------------
+  # reputation_by_faction: per-faction reputation tracking
+  # ----------------------------------------------------------
+  # Range: -100 (hated) to +100 (revered)
+  # Default: 0 (neutral)
+  # No decay: reputation is persistent until changed by player actions
+  reputation_by_faction:
+    min: -100
+    max: 100
+    default: 0
+
+  # ----------------------------------------------------------
+  # heat_global: global threat/attention level
+  # ----------------------------------------------------------
+  # Range: 0 (invisible) to 100 (most wanted)
+  # Default: 0
+  # decay_per_tick: slowly decreases over time (1 point per tick)
+  # Used by events to trigger faction responses (e.g., inspections at heat >= 50)
+  heat_global:
+    min: 0
+    max: 100
+    default: 0
+    decay_per_tick: 1
+
+  # ----------------------------------------------------------
+  # heat_by_location: per-location threat level
+  # ----------------------------------------------------------
+  # Range: 0 to 100
+  # Default: 0
+  # decay_per_tick: decays faster than global heat (2 points per tick)
+  # Represents local awareness of the player's activities
+  heat_by_location:
+    min: 0
+    max: 100
+    default: 0
+    decay_per_tick: 2
+
+  # ----------------------------------------------------------
+  # control_shift: territory control mechanics
+  # ----------------------------------------------------------
+  # Usually disabled. Set enabled: true to activate faction territory
+  # control mechanics (requires additional implementation).
+  control_shift:
+    enabled: false

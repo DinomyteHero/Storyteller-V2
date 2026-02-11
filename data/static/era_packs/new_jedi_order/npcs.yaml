@@ -1,0 +1,1270 @@
+npcs:
+  anchors:
+  - id: jacen_solo
+    name: Jacen Solo
+    aliases:
+    - Jacen
+    - Solo
+    tags:
+    - jedi
+    - philosopher
+    - empath
+    - conflicted
+    faction_id: jedi_order
+    default_location_id: loc-coruscant
+    role: Jedi Knight
+    archetype: Philosophical hero
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - empathetic
+    - thoughtful
+    - powerful
+    motivation: Find a peaceful solution to the war and understand the Vong
+    secret: Exploring esoteric Force philosophies that worry the Masters
+    voice_tags:
+    - gentle
+    - thoughtful
+    - troubled
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: jaina_solo
+    name: Jaina Solo
+    aliases:
+    - Jaina
+    - Sticks
+    - Sword of the Jedi
+    tags:
+    - jedi
+    - pilot
+    - rogue_squadron
+    - warrior
+    faction_id: jedi_order
+    default_location_id: loc-mon_calamari
+    role: Jedi Knight / Pilot
+    archetype: Warrior ace
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - brave
+    - aggressive
+    - pragmatic
+    motivation: Defeat the Vong militarily and protect her twin
+    secret: Struggles with the temptation of using anger to fight the Vong
+    voice_tags:
+    - sharp
+    - confident
+    - intense
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: anakin_solo
+    name: Anakin Solo
+    aliases:
+    - Anakin
+    tags:
+    - jedi
+    - hero
+    - leader
+    - prodigy
+    faction_id: jedi_order
+    default_location_id: loc-yavin_academy
+    role: Jedi Knight
+    archetype: Chosen hero
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - humble
+    - heroic
+    - determined
+    motivation: Save the galaxy and live up to his name (redeem it)
+    secret: Willing to sacrifice himself to end the war
+    voice_tags:
+    - earnest
+    - young
+    - brave
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: luke_skywalker_gm
+    name: Luke Skywalker
+    aliases:
+    - Master Skywalker
+    - Luke
+    tags:
+    - jedi
+    - grand_master
+    - leader
+    faction_id: jedi_order
+    default_location_id: loc-coruscant
+    role: Grand Master
+    archetype: Burdened leader
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - wise
+    - burdened
+    - cautious
+    motivation: Guide the Jedi Order through its darkest hour
+    secret: Fears the Vong war will turn the Jedi to the dark side
+    voice_tags:
+    - calm
+    - weary
+    - authoritative
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: mara_jade_skywalker
+    name: Mara Jade Skywalker
+    aliases:
+    - Mara
+    - Master Jade
+    tags:
+    - jedi
+    - mother
+    - warrior
+    faction_id: jedi_order
+    default_location_id: loc-coruscant
+    role: Jedi Master
+    archetype: Fierce protector
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - fierce
+    - pragmatic
+    - protective
+    motivation: Protect her son Ben and support Luke
+    secret: Battling a Vong-induced illness
+    voice_tags:
+    - sharp
+    - strong
+    - blunt
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: tsavong_lah
+    name: Tsavong Lah
+    aliases:
+    - Warmaster Lah
+    - Lah
+    banned_aliases:
+    - Warmaster
+    tags:
+    - vong
+    - warmaster
+    - leader
+    - fanatic
+    faction_id: yuuzhan_vong
+    default_location_id: loc-worldship
+    role: Warmaster
+    archetype: Fanatical conqueror
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - ruthless
+    - fanatical
+    - brilliant
+    motivation: Conquer the galaxy for the gods and exterminate the Jeedai
+    secret: Respects the Jedi's fighting prowess despite hating them
+    voice_tags:
+    - guttural
+    - commanding
+    - harsh
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: nom_anor
+    name: Nom Anor
+    aliases:
+    - Executor Anor
+    - Anor
+    tags:
+    - vong
+    - spy
+    - politician
+    - manipulator
+    faction_id: yuuzhan_vong
+    default_location_id: loc-coruscant
+    role: Executor / Intendant
+    archetype: Slippery manipulator
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - cunning
+    - treacherous
+    - cowardly
+    motivation: Survive and advance his own position in the hierarchy
+    secret: Has no true faith in the gods, only in power
+    voice_tags:
+    - smooth
+    - deceitful
+    - sneering
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: gilad_pellaeon_admiral
+    name: Gilad Pellaeon
+    aliases:
+    - Grand Admiral Pellaeon
+    - Pellaeon
+    tags:
+    - imperial
+    - grand_admiral
+    - leader
+    faction_id: imperial_remnant
+    default_location_id: loc-bastion
+    role: Grand Admiral
+    archetype: Elder statesman
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - honorable
+    - pragmatic
+    - weary
+    motivation: Preserve the Imperial Remnant and protect his people
+    secret: Believes the Empire must change to survive
+    voice_tags:
+    - gravelly
+    - authoritative
+    - respectful
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: borsk_feylya_chief
+    name: Borsk Fey'lya
+    aliases:
+    - Chief of State Fey'lya
+    - Fey'lya
+    tags:
+    - republic
+    - leader
+    - politician
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Chief of State
+    archetype: Desperate politician
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - stubborn
+    - proud
+    - political
+    motivation: Maintain his power and the Republic's stability
+    secret: Realizes too late that politics cannot stop the Vong
+    voice_tags:
+    - desperate
+    - commanding
+    - proud
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: vergere
+    name: Vergere
+    aliases:
+    - Vergere
+    tags:
+    - fosh
+    - jedi
+    - mysterious
+    - pet
+    faction_id: yuuzhan_vong
+    default_location_id: loc-worldship
+    role: Mysterious Advisor
+    archetype: Enigmatic mentor
+    match_rules:
+      min_tokens: 1
+    traits:
+    - cryptic
+    - wise
+    - manipulative
+    motivation: Guide Jacen Solo to a new understanding of the Force
+    secret: Is a Jedi from the Old Republic hiding among the Vong
+    voice_tags:
+    - odd
+    - cryptic
+    - bird-like
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  rotating:
+  - id: ganner_rhysode
+    name: Ganner Rhysode
+    aliases:
+    - Ganner
+    - The Ganner
+    tags:
+    - jedi
+    - arrogant
+    - hero
+    faction_id: jedi_order
+    default_location_id: loc-coruscant
+    role: Jedi Knight
+    archetype: Redeemed braggart
+    match_rules:
+      min_tokens: 1
+    traits:
+    - theatrical
+    - brave
+    - strong
+    motivation: Become a legend
+    secret: Fears he is all style and no substance
+    voice_tags:
+    - booming
+    - dramatic
+    - confident
+    spawn:
+      location_tags_any:
+      - arrogant
+      - hero
+      - jedi
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: tahiri_veila
+    name: Tahiri Veila
+    aliases:
+    - Tahiri
+    tags:
+    - jedi
+    - tusken
+    - shaped
+    faction_id: jedi_order
+    default_location_id: loc-yavin_academy
+    role: Jedi Knight
+    archetype: Wild child
+    match_rules:
+      min_tokens: 1
+    traits:
+    - fierce
+    - loyal
+    - traumatized
+    motivation: Fight alongside Anakin
+    secret: Was tortured and 'shaped' by the Vong
+    voice_tags:
+    - intense
+    - raw
+    - fierce
+    spawn:
+      location_tags_any:
+      - jedi
+      - shaped
+      - tusken
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: kyp_durron_njo
+    name: Kyp Durron
+    aliases:
+    - Kyp
+    - Durron
+    tags:
+    - jedi
+    - controversial
+    - hawkish
+    faction_id: jedi_order
+    default_location_id: loc-coruscant
+    role: Jedi Master
+    archetype: Militant idealist
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - aggressive
+    - powerful
+    - guilt-ridden
+    motivation: Lead the Jedi into open war against the Vong
+    secret: Uses the memory of his past crimes to justify risking everything now
+    voice_tags:
+    - intense
+    - impatient
+    - passionate
+    spawn:
+      location_tags_any:
+      - controversial
+      - hawkish
+      - jedi
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: corran_horn_njo
+    name: Corran Horn
+    aliases:
+    - Corran
+    - Horn
+    tags:
+    - jedi
+    - detective
+    - pilot
+    faction_id: jedi_order
+    default_location_id: loc-coruscant
+    role: Jedi Master
+    archetype: Principled warrior
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - stubborn
+    - righteous
+    - courageous
+    motivation: Protect civilians and stand against the Vong invasion
+    secret: Lost his best friend to the Vong and channels that rage carefully
+    voice_tags:
+    - sardonic
+    - sharp
+    - determined
+    spawn:
+      location_tags_any:
+      - detective
+      - jedi
+      - pilot
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: tenel_ka
+    name: Tenel Ka Djo
+    aliases:
+    - Tenel Ka
+    - Queen Mother
+    tags:
+    - jedi
+    - hapan
+    - royalty
+    - warrior
+    faction_id: jedi_order
+    default_location_id: loc-hapes_cluster
+    role: Jedi Knight / Queen Mother of Hapes
+    archetype: Warrior queen
+    match_rules:
+      min_tokens: 2
+    traits:
+    - stoic
+    - powerful
+    - duty-bound
+    motivation: Balance her responsibilities to Hapes and the Jedi
+    secret: Lost her arm in a training accident and refuses a prosthetic as penance
+    voice_tags:
+    - terse
+    - regal
+    - fierce
+    spawn:
+      location_tags_any:
+      - hapan
+      - jedi
+      - royalty
+      - warrior
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: lowbacca
+    name: Lowbacca
+    aliases:
+    - Lowie
+    - Lowbacca
+    tags:
+    - jedi
+    - wookiee
+    - mechanic
+    faction_id: jedi_order
+    default_location_id: loc-yavin_academy
+    role: Jedi Knight
+    archetype: Gentle giant
+    match_rules:
+      min_tokens: 1
+      allow_single_token: true
+    traits:
+    - intelligent
+    - gentle
+    - fierce
+    motivation: Honor his uncle Chewbacca's legacy and protect his friends
+    secret: Struggles with Wookiee rage when his friends are threatened
+    voice_tags:
+    - growling
+    - expressive
+    - rumbling
+    spawn:
+      location_tags_any:
+      - jedi
+      - mechanic
+      - wookiee
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: saba_sebatyne
+    name: Saba Sebatyne
+    aliases:
+    - Saba
+    - Master Sebatyne
+    tags:
+    - jedi
+    - barabel
+    - hunter
+    faction_id: jedi_order
+    default_location_id: loc-coruscant
+    role: Jedi Knight
+    archetype: Feral hunter
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - primal
+    - loyal
+    - fierce
+    motivation: Avenge her hatchlings killed by the Vong
+    secret: Finds hunting Vong intoxicating in a way that worries her
+    voice_tags:
+    - hissing
+    - blunt
+    - amused
+    spawn:
+      location_tags_any:
+      - barabel
+      - hunter
+      - jedi
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: traest_krefey
+    name: Traest Kre'fey
+    aliases:
+    - Admiral Kre'fey
+    - Kre'fey
+    banned_aliases:
+    - Admiral
+    tags:
+    - republic
+    - military
+    - bothan
+    faction_id: new_republic
+    default_location_id: loc-mon_calamari
+    role: Fleet Admiral
+    archetype: Bold commander
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - bold
+    - strategic
+    - honorable
+    motivation: Prove Bothans can be soldiers, not just spies
+    secret: Fears his species' reputation as schemers undermines his command
+    voice_tags:
+    - clipped
+    - commanding
+    - proud
+    spawn:
+      location_tags_any:
+      - bothan
+      - military
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: shimrra_jamaane
+    name: Shimrra Jamaane
+    aliases:
+    - Supreme Overlord Shimrra
+    - Shimrra
+    banned_aliases:
+    - Supreme Overlord
+    tags:
+    - vong
+    - leader
+    - supreme_overlord
+    faction_id: yuuzhan_vong
+    default_location_id: loc-worldship
+    role: Supreme Overlord
+    archetype: God-king
+    match_rules:
+      min_tokens: 1
+      allow_single_token: true
+    traits:
+    - imperious
+    - cunning
+    - divine
+    motivation: Complete the conquest of the galaxy as the gods demand
+    secret: Is a puppet controlled by the jester Onimi
+    voice_tags:
+    - thunderous
+    - formal
+    - ancient
+    spawn:
+      location_tags_any:
+      - leader
+      - supreme_overlord
+      - vong
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: nen_yim
+    name: Nen Yim
+    aliases:
+    - Nen Yim
+    - Yim
+    tags:
+    - vong
+    - shaper
+    - heretic
+    faction_id: yuuzhan_vong
+    default_location_id: loc-worldship
+    role: Master Shaper
+    archetype: Scientific heretic
+    match_rules:
+      min_tokens: 2
+    traits:
+    - brilliant
+    - questioning
+    - brave
+    motivation: Discover the truth about Vong biotechnology at any cost
+    secret: Secretly practices heretical eighth cortex shaping techniques
+    voice_tags:
+    - precise
+    - curious
+    - defiant
+    spawn:
+      location_tags_any:
+      - heretic
+      - shaper
+      - vong
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  templates:
+  - id: vong_warrior
+    role: Yuuzhan Vong Warrior
+    archetype: Fanatical berserker
+    traits:
+    - masochistic
+    - hateful
+    - fearless
+    motivations:
+    - pain
+    - honor
+    - sacrifice
+    - please the gods through violence
+    secrets:
+    - fears shamed status
+    - doubts the gods' silence
+    voice_tags:
+    - guttural
+    - aggressive
+    species:
+    - Yuuzhan Vong
+    tags:
+    - vong
+    - warrior
+    namebank: vong_names
+    spawn:
+      location_tags_any:
+      - vong
+      - warrior
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: peace_brigade_thug
+    role: Peace Brigade Thug
+    archetype: Traitorous bully
+    traits:
+    - cowardly
+    - cruel
+    - opportunistic
+    motivations:
+    - profit
+    - survival
+    - power over the weak
+    secrets:
+    - hates himself
+    - terrified of the Vong
+    voice_tags:
+    - rough
+    - sneering
+    species:
+    - Human
+    - Rodian
+    tags:
+    - peace_brigade
+    - criminal
+    namebank: collaborator_names
+    spawn:
+      location_tags_any:
+      - criminal
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: vong_priest
+    role: Yuuzhan Vong Priest
+    archetype: Fanatical zealot
+    traits:
+    - devout
+    - cruel
+    - calculating
+    motivations:
+    - enforce religious doctrine
+    - root out heresy
+    - please Yun-Yuuzhan
+    secrets:
+    - privately questions the Supreme Overlord's sanity
+    - uses rituals to consolidate personal power
+    voice_tags:
+    - chanting
+    - formal
+    - fanatical
+    species:
+    - Yuuzhan Vong
+    tags:
+    - vong
+    - priest
+    namebank: vong_names
+    spawn:
+      location_tags_any:
+      - priest
+      - vong
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: ga_soldier
+    role: Galactic Alliance Soldier
+    archetype: War-weary grunt
+    traits:
+    - exhausted
+    - determined
+    - cynical
+    motivations:
+    - protect their sector
+    - survive until rotation
+    - avenge a fallen comrade
+    secrets:
+    - addicted to stimulants to keep fighting
+    - carries a Vong trophy they're ashamed of
+    - lost faith in the politicians
+    voice_tags:
+    - terse
+    - bitter
+    - professional
+    species:
+    - Human
+    - Mon Calamari
+    - Bothan
+    - Sullustan
+    tags:
+    - alliance
+    - soldier
+    namebank: alliance_names
+    spawn:
+      location_tags_any:
+      - alliance
+      - soldier
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: refugee
+    role: Displaced Refugee
+    archetype: Desperate survivor
+    traits:
+    - frightened
+    - resourceful
+    - desperate
+    motivations:
+    - find safety
+    - reunite with family
+    - survive one more day
+    secrets:
+    - knows a hidden route through Vong territory
+    - carrying something valuable stolen from the Vong
+    - collaborating with the Peace Brigade under duress
+    voice_tags:
+    - hoarse
+    - pleading
+    - haunted
+    species:
+    - Human
+    - Duros
+    - Ithorian
+    - Twi'lek
+    - Ryn
+    tags:
+    - civilian
+    - refugee
+    namebank: refugee_names
+    spawn:
+      location_tags_any:
+      - civilian
+      - refugee
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: jedi_strike_team
+    role: Jedi Strike Fighter
+    archetype: Force warrior
+    traits:
+    - focused
+    - driven
+    - reckless
+    motivations:
+    - destroy Vong war infrastructure
+    - push back the invasion front
+    - protect innocents
+    secrets:
+    - flirting with the dark side to gain an edge
+    - grieving a fellow Jedi lost on a mission
+    - questioning Luke's cautious leadership
+    voice_tags:
+    - intense
+    - calm
+    - resolute
+    species:
+    - Human
+    - Twi'lek
+    - Zabrak
+    tags:
+    - jedi
+    - warrior
+    namebank: jedi_names
+    spawn:
+      location_tags_any:
+      - jedi
+      - warrior
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: smuggler_blockade_runner
+    role: Blockade Runner
+    archetype: Daring smuggler
+    traits:
+    - bold
+    - reckless
+    - profit-driven
+    motivations:
+    - run supplies through Vong blockades
+    - make a fortune in wartime
+    - prove they can outfly anyone
+    secrets:
+    - carrying Vong bioweapon samples unknowingly
+    - running intelligence for both sides
+    - lost their old crew to a coralskipper ambush
+    voice_tags:
+    - cocky
+    - fast-talking
+    - nervous
+    species:
+    - Human
+    - Duros
+    - Sullustan
+    tags:
+    - smuggler
+    - pilot
+    namebank: underworld_names
+    spawn:
+      location_tags_any:
+      - pilot
+      - smuggler
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: shamed_one
+    role: Shamed One
+    archetype: Vong outcast
+    traits:
+    - broken
+    - desperate
+    - hopeful
+    motivations:
+    - regain honor
+    - find acceptance
+    - follow the Jeedai heresy
+    secrets:
+    - secretly worships the Jedi as saviors
+    - knows locations of hidden Vong resistance cells
+    - was once a high-caste warrior before shaming
+    voice_tags:
+    - whispering
+    - fearful
+    - reverent
+    species:
+    - Yuuzhan Vong
+    tags:
+    - vong
+    - outcast
+    namebank: vong_names
+    spawn:
+      location_tags_any:
+      - outcast
+      - vong
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: imperial_remnant_officer
+    role: Remnant Officer
+    archetype: Reluctant ally
+    traits:
+    - professional
+    - suspicious
+    - capable
+    motivations:
+    - defend Imperial space from the Vong
+    - maintain the alliance with the Republic
+    - follow Pellaeon's lead
+    secrets:
+    - distrusts Republic officers
+    - hoarding supplies for a potential retreat
+    - privately blames Republic weakness for the invasion
+    voice_tags:
+    - formal
+    - clipped
+    - condescending
+    species:
+    - Human
+    tags:
+    - imperial
+    - officer
+    namebank: alliance_names
+    spawn:
+      location_tags_any:
+      - imperial
+      - officer
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: wartime_medic
+    role: Field Medic
+    archetype: Reluctant healer
+    traits:
+    - compassionate
+    - exhausted
+    - haunted
+    motivations:
+    - save as many lives as possible
+    - keep medical supplies flowing
+    - find a cure for Vong bioplagues
+    secrets:
+    - performing triage that means choosing who lives and dies
+    - hoarding bacta for critical cases
+    - treating wounded Vong in secret
+    voice_tags:
+    - tired
+    - gentle
+    - clipped
+    species:
+    - Human
+    - Mon Calamari
+    - Ithorian
+    tags:
+    - civilian
+    - medic
+    namebank: alliance_names
+    spawn:
+      location_tags_any:
+      - civilian
+      - medic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []

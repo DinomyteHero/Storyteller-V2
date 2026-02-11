@@ -1,0 +1,819 @@
+quests:
+  - id: quest_nr_customs_quota
+    title: Seizure Quota
+    description: Coruscant Customs is “losing” cargo to impounds and auctions. Find out who set the quota—and who profits.
+    entry_conditions:
+      location_any: [loc-coruscant]
+      rumors_any: [rumor_customs_quota]
+    suggested_locations: [loc-coruscant, loc-coruscant_underworld]
+    stages:
+      - stage_id: hook
+        objective: Get a seized manifest number and identify the impound officer of record.
+        success_conditions:
+          clue_found: manifest_number
+        on_enter_effects:
+          heat_by_location: "+5"
+      - stage_id: paper_trail
+        objective: Trace the auction pipeline from Customs to an underworld fence.
+        success_conditions:
+          npc_met_any: [nr_customs_inspector, black_sun_fence]
+        branch_points:
+          - id: branch_senate_cover
+            prompt: "A Senate aide calls it 'oversight'. Do you press for names or take a deal?"
+            choices:
+              - id: expose
+                label: Expose the aide and trigger a hearing.
+              - id: blackmail
+                label: Keep the file and leverage it later.
+      - stage_id: sting
+        objective: Run a controlled shipment and catch the buyers with proof.
+        success_conditions:
+          action_taken: staged_delivery
+      - stage_id: resolution
+        objective: "Decide where the proof goes: Senate committee, NRI, or the street."
+        success_conditions:
+          choice_made_any: [expose, blackmail]
+    consequences:
+      on_expose:
+        faction_reputation_delta: {new_republic: 6, black_sun: -4}
+        heat_global_delta: 8
+      on_blackmail:
+        faction_reputation_delta: {underworld: 4, new_republic: -2}
+        heat_global_delta: 4
+
+  - id: quest_nr_refugee_corridor
+    title: The Refugee Corridor
+    description: A convoy of displaced families needs escort through a hyperspace lane rumored to be mapped by Thrawn.
+    entry_conditions:
+      turn: {min: 4}
+    suggested_locations: [loc-coruscant, loc-borleias, loc-ord_mantell]
+    stages:
+      - stage_id: briefing
+        objective: Secure an escort authorization and an updated nav solution.
+        success_conditions:
+          npc_met_any: [republic_convoy_officer, intelligence_analyst]
+      - stage_id: in_transit
+        objective: Keep the convoy intact through interdiction attempts and “inspection” demands.
+        branch_points:
+          - id: branch_inspection
+            prompt: "A patrol claims jurisdiction. Do you comply, bluff, or run?"
+            choices:
+              - id: comply
+                label: Submit to inspection and protect civilians first.
+              - id: bluff
+                label: Produce forged warrants and keep moving.
+              - id: run
+                label: Jump early and risk misjump damage.
+      - stage_id: aftermath
+        objective: Deliver the convoy and decide whether to report the corridor as compromised.
+        success_conditions:
+          convoy_delivered: true
+    consequences:
+      on_comply:
+        faction_reputation_delta: {new_republic: 4, underworld: -1}
+        heat_global_delta: -2
+      on_bluff:
+        faction_reputation_delta: {new_republic: 1, underworld: 2}
+        heat_global_delta: 3
+      on_run:
+        faction_reputation_delta: {new_republic: -1}
+        heat_global_delta: 6
+
+  - id: quest_nr_shipyard_sabotage
+    title: Fires in Drydock
+    description: Sluis Van shipyards on Nkllon suffer “accidents” that stall the fleet rebuild. Find the saboteur before the next keel snaps.
+    entry_conditions:
+      rumors_any: [rumor_sluis_van_sabotage]
+    suggested_locations: [loc-nkllon]
+    stages:
+      - stage_id: inspection
+        objective: Audit the safety logs and identify who keeps bypassing alarms.
+        success_conditions:
+          clue_found_any: [tampered_alarms, forged_work_orders]
+      - stage_id: counter_sabotage
+        objective: Set a trap in the maintenance tunnels and catch the infiltrator alive.
+        success_conditions:
+          npc_captured: remnant_saboteur
+        branch_points:
+          - id: branch_interrogate
+            prompt: "The saboteur offers names in exchange for amnesty. Do you take the deal?"
+            choices:
+              - id: amnesty
+                label: Offer amnesty to roll up the cell.
+              - id: tribunal
+                label: Turn them over for a public trial.
+      - stage_id: shipyard_vote
+        objective: Decide whether the shipyard stays under New Republic oversight or local guild control.
+        success_conditions:
+          choice_made_any: [amnesty, tribunal]
+    consequences:
+      on_amnesty:
+        faction_reputation_delta: {new_republic: 2, imperial_remnant: -2}
+        heat_global_delta: 2
+      on_tribunal:
+        faction_reputation_delta: {new_republic: 4, underworld: -1}
+        heat_global_delta: 5
+
+  - id: quest_nr_senate_leak
+    title: The Hearing That Never Happens
+    description: A committee inquiry is being quietly smothered. Find who is killing the docket—and why.
+    entry_conditions:
+      location_any: [loc-coruscant]
+      rumors_any: [rumor_senate_amnesty_backroom]
+    suggested_locations: [loc-coruscant, loc-coruscant_underworld, loc-bothawui_capital]
+    stages:
+      - stage_id: docket
+        objective: Obtain the docket number and the clerk's routing history.
+        success_conditions:
+          clue_found: docket_history
+      - stage_id: pressure
+        objective: "Survive the pressure campaign: favors, threats, and a smear packet."
+        branch_points:
+          - id: branch_backer
+            prompt: "A Bothan aide offers protection—at a price. Do you accept?"
+            choices:
+              - id: accept
+                label: Take the Bothan shield and owe them.
+              - id: refuse
+                label: Refuse and go to the press.
+      - stage_id: hearing
+        objective: Force the hearing to happen or burn the evidence to save a witness.
+        success_conditions:
+          choice_made_any: [accept, refuse]
+    consequences:
+      on_accept:
+        faction_reputation_delta: {bothan_spynet: 4, new_republic: 2}
+        heat_global_delta: 4
+      on_refuse:
+        faction_reputation_delta: {new_republic: 3, bothan_spynet: -2}
+        heat_global_delta: 6
+
+  - id: quest_nr_amnesty_dossier
+    title: Amnesty, Signed in Ink
+    description: A defector offers a list of sleeper agents—but insists on due process. The Senate wants results, not paperwork.
+    entry_conditions:
+      rumors_any: [rumor_nri_black_budget]
+    suggested_locations: [loc-coruscant, loc-lusankya]
+    stages:
+      - stage_id: intake
+        objective: Secure temporary amnesty and protective custody for the defector.
+        success_conditions:
+          access_granted: protective_custody
+      - stage_id: dossier
+        objective: Verify one name on the list without alerting the network.
+        success_conditions:
+          sleeper_confirmed: true
+      - stage_id: choice
+        objective: "Decide: public arrests (political) or quiet removals (clean)."
+        branch_points:
+          - id: branch_method
+            prompt: "Do you want justice or certainty?"
+            choices:
+              - id: due_process
+                label: Public arrests and trials.
+              - id: quiet
+                label: Quiet removals and sealed files.
+        success_conditions:
+          choice_made_any: [due_process, quiet]
+    consequences:
+      on_due_process:
+        faction_reputation_delta: {new_republic: 4, underworld: -1}
+        heat_global_delta: 7
+      on_quiet:
+        faction_reputation_delta: {new_republic: 2, imperial_intelligence: -2}
+        heat_global_delta: 3
+
+  - id: quest_nr_holonet_packet
+    title: Packet Run
+    description: A journalist has a packet that will ignite Coruscant. Getting it offworld means dodging customs, censors, and assassins.
+    entry_conditions:
+      location_any: [loc-coruscant]
+      rumors_any: [rumor_coruscant_refugee_riot]
+    suggested_locations: [loc-coruscant, loc-coruscant_underworld]
+    stages:
+      - stage_id: acquire
+        objective: Retrieve the packet and validate it isn't a forgery.
+        success_conditions:
+          clue_found: verified_packet
+      - stage_id: evasion
+        objective: Cross a customs cordon with the packet intact.
+        branch_points:
+          - id: branch_transmit
+            prompt: "Transmit now (risk trace) or carry to a dead drop (risk loss)?"
+            choices:
+              - id: transmit
+                label: Transmit immediately.
+              - id: dead_drop
+                label: Use an underworld relay.
+      - stage_id: fallout
+        objective: "Handle the fallout: riots, denials, and a sudden Senate speech."
+        success_conditions:
+          choice_made_any: [transmit, dead_drop]
+    consequences:
+      on_transmit:
+        faction_reputation_delta: {new_republic: -1, underworld: -1}
+        heat_global_delta: 10
+      on_dead_drop:
+        faction_reputation_delta: {underworld: 3}
+        heat_global_delta: 5
+
+  - id: quest_nr_mount_tantiss
+    title: The Emperor's Storehouse
+    description: Mount Tantiss on Wayland holds cloning tanks and stolen relics. Infiltrate, extract, and decide what must never exist.
+    entry_conditions:
+      rumors_any: [rumor_spaarti_cylinders]
+    suggested_locations: [loc-wayland]
+    stages:
+      - stage_id: approach
+        objective: Reach Wayland without triggering Remnant interdiction.
+        success_conditions:
+          action_taken_any: [sneak_in, forged_clearance, force_diversion]
+      - stage_id: vault
+        objective: Enter Mount Tantiss and locate the Spaarti cylinders.
+        success_conditions:
+          site_reached: loc-wayland
+      - stage_id: choice
+        objective: "Decide: destroy the facility, steal the tech, or free a captive."
+        branch_points:
+          - id: branch_tantiss
+            prompt: "What do you take from an evil that can be rebuilt?"
+            choices:
+              - id: destroy
+                label: Burn it all down.
+              - id: steal
+                label: Steal the tech for the Republic.
+              - id: rescue
+                label: Rescue the captive and leave the tech.
+        success_conditions:
+          choice_made_any: [destroy, steal, rescue]
+      - stage_id: escape
+        objective: Escape before the garrison seals the mountain.
+        success_conditions:
+          escaped: true
+    consequences:
+      on_destroy:
+        faction_reputation_delta: {jedi_order: 3, imperial_remnant: -5}
+        heat_global_delta: 8
+      on_steal:
+        faction_reputation_delta: {new_republic: 5, jedi_order: -1}
+        heat_global_delta: 10
+      on_rescue:
+        faction_reputation_delta: {new_republic: 1, jedi_order: 2}
+        heat_global_delta: 6
+
+  - id: quest_nr_honoghr_debt
+    title: A Debt in Poisoned Soil
+    description: The Noghri serve the Empire out of debt and deception. Bring proof to Honoghr and decide what “freedom” looks like.
+    entry_conditions:
+      rumors_any: [rumor_noghri_debt]
+    suggested_locations: [loc-coruscant, loc-honoghr]
+    stages:
+      - stage_id: evidence
+        objective: Acquire proof the Empire poisoned Honoghr and controlled the medicine supply.
+        success_conditions:
+          clue_found_any: [med_manifest, imperial_directive]
+      - stage_id: audience
+        objective: Secure a meeting with a Noghri clan leader without starting a blood feud.
+        success_conditions:
+          npc_met_any: [noghri_liaison, clan_elder]
+      - stage_id: decision
+        objective: "Decide: reveal the truth publicly, quietly, or trade it for an alliance."
+        branch_points:
+          - id: branch_truth
+            prompt: "Truth can free people—or make them kill."
+            choices:
+              - id: public
+                label: Reveal publicly and accept the consequences.
+              - id: quiet
+                label: Reveal quietly to prevent a massacre.
+              - id: bargain
+                label: Trade proof for immediate aid.
+        success_conditions:
+          choice_made_any: [public, quiet, bargain]
+    consequences:
+      on_public:
+        faction_reputation_delta: {imperial_remnant: -4, new_republic: 2}
+        heat_global_delta: 6
+      on_quiet:
+        faction_reputation_delta: {new_republic: 3}
+        heat_global_delta: 2
+      on_bargain:
+        faction_reputation_delta: {underworld: 1, new_republic: 1}
+        heat_global_delta: 4
+
+  - id: quest_nr_bakura_truce
+    title: The Truce at Bakura
+    description: Bakura's treaty is a thin wall. A border incident can become a war if the wrong people interpret it first.
+    entry_conditions:
+      rumors_any: [rumor_bakura_truce_frays]
+    suggested_locations: [loc-bakura_truce]
+    stages:
+      - stage_id: incident
+        objective: Investigate a skirmish report and identify who fired first.
+        success_conditions:
+          clue_found_any: [ballistics, comms_log]
+      - stage_id: talks
+        objective: Keep negotiators alive long enough to speak.
+        branch_points:
+          - id: branch_response
+            prompt: "Do you push for enforcement, apology, or preemption?"
+            choices:
+              - id: enforce
+                label: Enforce the treaty to the letter.
+              - id: apologize
+                label: Offer apology to buy time.
+              - id: preempt
+                label: Strike first to prevent escalation.
+        success_conditions:
+          choice_made_any: [enforce, apologize, preempt]
+      - stage_id: border
+        objective: "Stabilize the border -- by patrols, liaison, or deterrence."
+        success_conditions:
+          border_stable: true
+    consequences:
+      on_enforce:
+        faction_reputation_delta: {new_republic: 3}
+        heat_global_delta: 4
+      on_apologize:
+        faction_reputation_delta: {new_republic: 1, smugglers_alliance: 1}
+        heat_global_delta: 2
+      on_preempt:
+        faction_reputation_delta: {new_republic: -2, imperial_remnant: -1}
+        heat_global_delta: 9
+
+  - id: quest_nr_dockside_tribunal
+    title: Dockside Tribunal
+    description: A local tribunal is about to execute a “pirate” without a hearing. The New Republic is watching. So are the pirates.
+    entry_conditions:
+      location_any: [loc-ord_mantell]
+    suggested_locations: [loc-ord_mantell]
+    stages:
+      - stage_id: intervene
+        objective: Stop the execution without triggering a riot.
+        success_conditions:
+          action_taken_any: [negotiate_stay, intimidation_show, paid_bail]
+      - stage_id: hearing
+        objective: "Build a case: evidence, witnesses, and jurisdiction."
+        branch_points:
+          - id: branch_jurisdiction
+            prompt: "Do you insist on New Republic jurisdiction or accept local law?"
+            choices:
+              - id: nr_court
+                label: New Republic jurisdiction.
+              - id: local_court
+                label: Local jurisdiction.
+        success_conditions:
+          choice_made_any: [nr_court, local_court]
+      - stage_id: verdict
+        objective: Deliver a verdict that doesn't ignite the docks.
+        success_conditions:
+          verdict_delivered: true
+    consequences:
+      on_nr_court:
+        faction_reputation_delta: {new_republic: 3, underworld: -1}
+        heat_global_delta: 3
+      on_local_court:
+        faction_reputation_delta: {new_republic: 1, underworld: 1}
+        heat_global_delta: 1
+
+  - id: quest_nr_bothan_blackmail
+    title: Many Bothans Lied
+    description: A spy network wants your loyalty. Someone else wants your silence. Figure out which offer is the trap.
+    entry_conditions:
+      rumors_any: [rumor_bothan_dead_drop]
+    suggested_locations: [loc-bothawui_capital, loc-coruscant]
+    stages:
+      - stage_id: identify
+        objective: Identify the dead drop and who services it.
+        success_conditions:
+          clue_found: drop_operator
+      - stage_id: counterplay
+        objective: Plant a decoy and see which faction bites first.
+        success_conditions:
+          action_taken: planted_decoy
+      - stage_id: choice
+        objective: Decide who gets the real file.
+        branch_points:
+          - id: branch_file
+            prompt: "Who do you trust with a secret that can start a war?"
+            choices:
+              - id: nri
+                label: Give it to New Republic Intelligence.
+              - id: spynet
+                label: Give it to SpyNet.
+              - id: karrde
+                label: Sell it through Karrde.
+        success_conditions:
+          choice_made_any: [nri, spynet, karrde]
+    consequences:
+      on_nri:
+        faction_reputation_delta: {new_republic: 3, bothan_spynet: -2}
+        heat_global_delta: 5
+      on_spynet:
+        faction_reputation_delta: {bothan_spynet: 4, new_republic: 1}
+        heat_global_delta: 4
+      on_karrde:
+        faction_reputation_delta: {smugglers_alliance: 4}
+        heat_global_delta: 2
+
+  # ============================================================
+  # PHASE 3: NEW COMPANION QUESTS (Companions 9-10)
+  # ============================================================
+
+  - id: quest_nr_chiss_defection
+    title: Thrawn's Ghost
+    description: A Chiss commander defects from the Imperial Remnant with classified doctrine on Thrawn's strategy. The Empire wants him dead before he can talk.
+    entry_conditions:
+      location_any: [loc-ord_mantell]
+      rumors_any: [rumor_chiss_defection]
+    suggested_locations: [loc-ord_mantell, loc-coruscant, loc-bilbringi]
+    stages:
+      - stage_id: extraction
+        objective: Extract Lex Meridian from an Imperial assassination cell before they close the net.
+        success_conditions:
+          action_taken_any: [combat_victory, negotiate_safe_passage, intel_misdirection]
+        on_enter_effects:
+          heat_by_location: "+8"
+      - stage_id: interrogation
+        objective: Secure him in a safe house and verify his intel is genuine, not deception.
+        branch_points:
+          - id: branch_debriefing
+            prompt: "Do you trust his offer or verify first?"
+            choices:
+              - id: trust
+                label: Accept his oath and integrate immediately.
+              - id: verify
+                label: Verify his credentials through independent channels.
+        success_conditions:
+          clue_found_any: [thrawn_doctrine, chiss_authorization]
+      - stage_id: integration
+        objective: "Decide where he fits: as advisor, operative, or bargaining chip."
+        branch_points:
+          - id: branch_role
+            prompt: "How do you use a Chiss defector without starting a war?"
+            choices:
+              - id: advisor
+                label: "Keep him as tactical advisor -- high value, high risk."
+              - id: operative
+                label: "Send him back as a sleeper agent -- infiltration over trust."
+              - id: bargain
+                label: Trade him to the New Republic for concessions.
+        success_conditions:
+          choice_made_any: [advisor, operative, bargain]
+    consequences:
+      on_trust:
+        faction_reputation_delta: {new_republic: 2, imperial_remnant: -4}
+        heat_global_delta: 6
+      on_verify:
+        faction_reputation_delta: {chiss_ascendancy: -1, new_republic: 1}
+        heat_global_delta: 3
+      on_advisor:
+        faction_reputation_delta: {new_republic: 3}
+        heat_global_delta: 8
+      on_operative:
+        faction_reputation_delta: {new_republic: 1, chiss_ascendancy: 1}
+        heat_global_delta: 4
+      on_bargain:
+        faction_reputation_delta: {new_republic: 5, imperial_remnant: -3}
+        heat_global_delta: 5
+
+  - id: quest_nr_gungan_wayshrine
+    title: Honoring What Was Lost
+    description: A hidden Jedi sanctuary on Naboo holds statues of the fallen—and a Gungan who refuses to let his brother's shame destroy an entire people.
+    entry_conditions:
+      location_any: [loc-naboo_sanctuary]
+    suggested_locations: [loc-naboo_sanctuary, loc-naboo, loc-coruscant]
+    stages:
+      - stage_id: discovery
+        objective: Reach the Jedi sanctuary and locate the memorial to Gungan defectors.
+        success_conditions:
+          site_reached: loc-naboo_sanctuary
+      - stage_id: memorial
+        objective: "Decide what to inscribe on the memorial: names of the fallen or names of those redeemed."
+        branch_points:
+          - id: branch_inscription
+            prompt: "How do you honor the dead without condemning the living?"
+            choices:
+              - id: fallen
+                label: List the names of those who betrayed the Gungans.
+              - id: redeemed
+                label: List the names of those who turned back and chose redemption.
+              - id: blank
+                label: Leave the memorial blank—let each Gungan decide what it means.
+        success_conditions:
+          choice_made_any: [fallen, redeemed, blank]
+      - stage_id: pilgrimage
+        objective: Escort Torven through meditation and confrontation with his brother's legacy.
+        success_conditions:
+          action_taken_any: [meditation_completed, memory_processed, vision_attained]
+    consequences:
+      on_fallen:
+        faction_reputation_delta: {jedi_order: 2, new_republic: 1}
+        heat_global_delta: 3
+      on_redeemed:
+        faction_reputation_delta: {jedi_order: 3}
+        heat_global_delta: 2
+      on_blank:
+        faction_reputation_delta: {jedi_order: 1}
+        heat_global_delta: 1
+      on_meditation_completed:
+        faction_reputation_delta: {jedi_order: 2}
+        heat_global_delta: 2
+
+  # ============================================================
+  # PHASE 4: QUEST CREATION (5 New Quests)
+  # ============================================================
+
+  - id: quest_nr_diplomatic_mission
+    title: Bringing Worlds Home
+    description: Convince a frontier world to formally join the New Republic by demonstrating value and security. Different negotiation paths trigger different Senate reactions.
+    entry_conditions:
+      location_any: [loc-coruscant]
+      turn: {min: 3}
+    suggested_locations: [loc-coruscant, loc-pesegam, loc-ord_mantell]
+    stages:
+      - stage_id: briefing
+        objective: Meet with a New Republic diplomat and learn the frontier colony's concerns.
+        success_conditions:
+          npc_met_any: [diplomatic_liaison, governor_tann]
+      - stage_id: assessment
+        objective: Travel to the colony and assess their real vulnerabilities—Remnant raids, resource shortage, or independence pride.
+        success_conditions:
+          location_reached_any: [loc-pesegam, loc-ord_mantell]
+        branch_points:
+          - id: branch_concern
+            prompt: "What is this colony's deepest fear?"
+            choices:
+              - id: military_threat
+                label: "They fear Thrawn's raids more than they value independence."
+              - id: economic_collapse
+                label: "They need stable trade routes and credits to survive."
+              - id: autonomy_jealous
+                label: "They'd rather starve than lose their self-determination."
+      - stage_id: negotiation
+        objective: Present terms or defend against competing offers from smugglers or Remnant agents.
+        success_conditions:
+          choice_made_any: [generous_terms, harsh_terms, protection_pledge]
+        branch_points:
+          - id: branch_terms
+            prompt: "What do you offer the colony?"
+            choices:
+              - id: generous_terms
+                label: "Generous credits, aid, and genuine partnership—at cost to the New Republic budget."
+              - id: harsh_terms
+                label: "Protection and legitimacy, but the colony pays heavy taxes."
+              - id: protection_pledge
+                label: "Pledge personal military support—you will personally defend them."
+      - stage_id: finalization
+        objective: Seal the agreement officially or lose the colony to another faction.
+        success_conditions:
+          treaty_signed: true
+    consequences:
+      on_generous_terms:
+        faction_reputation_delta: {new_republic: 3, neutral: 2}
+        heat_global_delta: 2
+      on_harsh_terms:
+        faction_reputation_delta: {new_republic: 2, neutral: -2}
+        heat_global_delta: 4
+      on_protection_pledge:
+        faction_reputation_delta: {new_republic: 4}
+        heat_global_delta: 6
+
+  - id: quest_nr_investigate_sleeper_cells
+    title: "Sleeper Agents"
+    description: Uncover and dismantle a deep-cover Imperial spy ring embedded in New Republic government. Multiple suspects, conflicting intelligence, and moral complexity.
+    entry_conditions:
+      rumors_any: [rumor_nri_black_budget, rumor_thrawn_returns]
+      turn: {min: 5}
+    suggested_locations: [loc-coruscant, loc-coruscant_underworld, loc-bothawui_capital]
+    stages:
+      - stage_id: discovery
+        objective: Find evidence of espionage before alerting the network. One wrong move and operatives flee or sabotage key infrastructure.
+        success_conditions:
+          clue_found_any: [encrypted_transmissions, defector_contact, financial_trail]
+        on_enter_effects:
+          heat_by_location: "+6"
+      - stage_id: investigation
+        objective: Identify network members from a pool of 5-7 suspects. Some are true believers, others are blackmailed or defectors.
+        success_conditions:
+          sleeper_agents_identified: {min: 3}
+        branch_points:
+          - id: branch_methods
+            prompt: "How do you identify the real agents?"
+            choices:
+              - id: surveillance
+                label: "Surveillance and signal interception—slow but thorough."
+              - id: interrogation
+                label: "Confrontation and interrogation—fast but risks scattering the cell."
+              - id: bait
+                label: "Plant false intelligence and see who bites."
+      - stage_id: extraction_trial
+        objective: Capture agents and prevent sabotage of critical systems. Choose between execution, imprisonment, or interrogation.
+        success_conditions:
+          choice_made_any: [execute_cells, imprison_interrogate, rehabilitation_offer]
+        branch_points:
+          - id: branch_fate
+            prompt: "What do you do with Imperial sleeper agents?"
+            choices:
+              - id: execute_cells
+                label: "Execute all cells—they chose the Empire."
+              - id: imprison_interrogate
+                label: "Imprison and interrogate for intelligence."
+              - id: rehabilitation_offer
+                label: "Offer rehabilitation to defectors, execute core loyalists only."
+    consequences:
+      on_surveillance:
+        faction_reputation_delta: {new_republic: 2}
+        heat_global_delta: 2
+      on_interrogation:
+        faction_reputation_delta: {new_republic: 1, imperial_remnant: -2}
+        heat_global_delta: 5
+      on_bait:
+        faction_reputation_delta: {new_republic: 3}
+        heat_global_delta: 3
+      on_execute_cells:
+        faction_reputation_delta: {new_republic: 4, imperial_remnant: -5}
+        heat_global_delta: 8
+      on_imprison_interrogate:
+        faction_reputation_delta: {new_republic: 3, imperial_remnant: -3}
+        heat_global_delta: 5
+      on_rehabilitation_offer:
+        faction_reputation_delta: {new_republic: 2}
+        heat_global_delta: 4
+
+  - id: quest_nr_artifact_recovery
+    title: "Keeper of the Temple"
+    description: Recover ancient Jedi artifacts from a contested site to strengthen Luke's academy. Multiple factions seek the same treasures; Force-sensitive meditation options available.
+    entry_conditions:
+      rumors_any: [rumor_dantooine_archive, rumor_spaarti_cylinders]
+      location_any: [loc-yavin_praxeum]
+    suggested_locations: [loc-dantooine_academy, loc-wayland, loc-yavin_praxeum]
+    stages:
+      - stage_id: expedition
+        objective: Reach Dantooine or Wayland and locate ancient Jedi artifacts.
+        success_conditions:
+          site_reached_any: [loc-dantooine_academy, loc-wayland]
+        on_enter_effects:
+          heat_by_location: "+5"
+      - stage_id: competition
+        objective: Navigate rival factions seeking artifacts—Imperial scavengers, smugglers, and dark-side cultists.
+        success_conditions:
+          artifact_secured: {min: 2}
+        branch_points:
+          - id: branch_approach
+            prompt: "How do you handle competing factions?"
+            choices:
+              - id: diplomacy
+                label: "Negotiate with rivals for shared access."
+              - id: combat
+                label: "Fight for exclusive possession."
+              - id: deception
+                label: "Use stealth and misdirection to slip away with artifacts."
+      - stage_id: disposition
+        objective: "Decide artifact fate: deliver to Luke's academy, trade for political concessions, or sell to highest bidder."
+        success_conditions:
+          choice_made_any: [jedi_academy, political_trade, black_market_sale]
+        branch_points:
+          - id: branch_choice
+            prompt: "What do you do with ancient Jedi power?"
+            choices:
+              - id: jedi_academy
+                label: "Deliver to Luke—strengthen the Jedi Order."
+              - id: political_trade
+                label: "Trade to New Republic Senate for political capital."
+              - id: black_market_sale
+                label: "Sell privately for credits and favor."
+    consequences:
+      on_diplomacy:
+        faction_reputation_delta: {jedi_order: 1}
+        heat_global_delta: 2
+      on_combat:
+        faction_reputation_delta: {jedi_order: 2}
+        heat_global_delta: 6
+      on_deception:
+        faction_reputation_delta: {smugglers_alliance: 1}
+        heat_global_delta: 3
+      on_jedi_academy:
+        faction_reputation_delta: {jedi_order: 4, new_republic: 1}
+        heat_global_delta: 3
+      on_political_trade:
+        faction_reputation_delta: {new_republic: 4, jedi_order: -2}
+        heat_global_delta: 2
+      on_black_market_sale:
+        faction_reputation_delta: {underworld: 3, jedi_order: -3}
+        heat_global_delta: 4
+
+  - id: quest_nr_frontier_rescue
+    title: "Red Tide Rising"
+    description: Save a frontier settlement from Imperial Remnant attack. Coordinate defense, evacuation, or sacrifice settlement to trap enemy fleet. Public opinion shifts with casualty count.
+    entry_conditions:
+      rumors_any: [rumor_thrawn_returns, rumor_bilbringi_buildup]
+      turn: {min: 6}
+    suggested_locations: [loc-bilbringi, loc-ord_mantell, loc-nkllon]
+    stages:
+      - stage_id: warning
+        objective: Learn the Remnant plans imminent attack. Choose immediate preparation vs. civilian evacuation.
+        success_conditions:
+          action_taken_any: [fortify_settlement, evacuate_civilians, call_reinforcements]
+        on_enter_effects:
+          heat_by_location: "+8"
+        branch_points:
+          - id: branch_preparation
+            prompt: "How do you respond to the imminent attack?"
+            choices:
+              - id: fortify_settlement
+                label: "Fortify defenses and prepare for siege—save the settlement itself."
+              - id: evacuate_civilians
+                label: "Evacuate all civilians; sacrificing infrastructure is acceptable."
+              - id: call_reinforcements
+                label: "Call for New Republic fleet support—risky if they arrive late."
+      - stage_id: defense
+        objective: Hold settlement against overwhelming odds or coordinate successful evacuation. Track casualty count for reputation impact.
+        success_conditions:
+          choice_made_any: [defend_successfully, evacuate_successfully, sacrifice_trap_fleet]
+        branch_points:
+          - id: branch_tactic
+            prompt: "How do you execute your strategy?"
+            choices:
+              - id: defend_successfully
+                label: "Use local terrain and guerrilla tactics to repel the attack."
+              - id: evacuate_successfully
+                label: "Get civilians to safety before Remnant forces arrive."
+              - id: sacrifice_trap_fleet
+                label: "Lure Remnant into an orbital ambush—accept settlement loss."
+      - stage_id: aftermath
+        objective: Handle survivors, political fallout, and public opinion. Casualty count determines Senate and faction response.
+        success_conditions:
+          settlement_status_decided: true
+    consequences:
+      on_fortify_settlement:
+        faction_reputation_delta: {new_republic: 4}
+        heat_global_delta: 10
+      on_evacuate_civilians:
+        faction_reputation_delta: {new_republic: 3, neutral: 1}
+        heat_global_delta: 7
+      on_call_reinforcements:
+        faction_reputation_delta: {new_republic: 2}
+        heat_global_delta: 6
+      on_defend_successfully:
+        faction_reputation_delta: {new_republic: 5, imperial_remnant: -4}
+        heat_global_delta: 8
+      on_evacuate_successfully:
+        faction_reputation_delta: {new_republic: 3}
+        heat_global_delta: 4
+      on_sacrifice_trap_fleet:
+        faction_reputation_delta: {new_republic: 2, imperial_remnant: -6}
+        heat_global_delta: 12
+
+  - id: quest_nr_corporate_intrigue
+    title: "Market Manipulation"
+    description: Uncover and stop a corporate plot threatening New Republic economic stability—or exploit it for profit. Three distinct resolution paths with political consequences.
+    entry_conditions:
+      location_any: [loc-coruscant]
+      rumors_any: [rumor_bacta_cartel]
+      turn: {min: 4}
+    suggested_locations: [loc-coruscant, loc-coruscant_underworld, loc-thyferra]
+    stages:
+      - stage_id: investigation
+        objective: Discover that a major corporation is monopolizing critical trade routes—likely bacta or starship components.
+        success_conditions:
+          clue_found_any: [corporate_memo, smuggler_contact, financial_records]
+      - stage_id: intelligence
+        objective: Determine scope of conspiracy—which factions benefit? Who is being economically destroyed?
+        success_conditions:
+          choice_made_any: [expose_senate, join_conspiracy, redirect_conspiracy]
+        branch_points:
+          - id: branch_intelligence
+            prompt: "What's the conspiracy's true target?"
+            choices:
+              - id: expose_senate
+                label: "Build a case for Senate prosecution."
+              - id: join_conspiracy
+                label: "Join the conspiracy and profit personally."
+              - id: redirect_conspiracy
+                label: "Turn the conspiracy against Imperial sympathizers instead."
+      - stage_id: intervention
+        objective: Execute your chosen strategy. Each path has distinct political and personal consequences.
+        success_conditions:
+          choice_made_any: [public_exposure, personal_profit, redirected_conspiracy]
+        branch_points:
+          - id: branch_method
+            prompt: "How do you resolve this?"
+            choices:
+              - id: public_exposure
+                label: "Expose conspiracy to Senate and media—create corporate enemies."
+              - id: personal_profit
+                label: "Profit from the conspiracy while staying silent—gain credits and underworld favor."
+              - id: redirected_conspiracy
+                label: "Redirect the conspiracy to target Remnant sympathizers—gain NR favor, stay hidden."
+    consequences:
+      on_expose_senate:
+        faction_reputation_delta: {new_republic: 5, underworld: -2}
+        heat_global_delta: 6
+      on_join_conspiracy:
+        faction_reputation_delta: {new_republic: -3, underworld: 3}
+        heat_global_delta: 3
+      on_redirect_conspiracy:
+        faction_reputation_delta: {new_republic: 4, underworld: 1}
+        heat_global_delta: 4
+

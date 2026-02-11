@@ -1,0 +1,1401 @@
+# Character alias mapping: canonical ID -> list of display names / aliases.
+# Used during ingestion to extract characters[] from chunk text (word-boundary matches).
+# Add new characters by editing this file.
+# See USER_GUIDE.md "Character Alias System" for details.
+
+luke_skywalker:
+  - "Luke"
+  - "Luke Skywalker"
+  - "Master Skywalker"
+
+leia_organa:
+  - "Leia"
+  - "Leia Organa"
+  - "Leia Organa Solo"
+
+revan:
+  - "Revan"
+  - "Darth Revan"
+  - "Revan the Redeemed"
+  - "Revan Reborn"
+darth_malak:
+  - "Darth Malak"
+  - "Malak"
+  - "Lord Malak"
+bastila_shan:
+  - "Bastila Shan"
+  - "Bastila"
+  - "Jedi Knight Bastila Shan"
+  - "Jedi Bastila Shan"
+carth_onasi:
+  - "Carth Onasi"
+  - "Carth"
+  - "Captain Carth Onasi"
+hk_47:
+  - "HK-47"
+  - "HK 47"
+  - "Assassin droid HK-47"
+  - "Assassin droid HK 47"
+mission_vao:
+  - "Mission Vao"
+  - "Mission"
+zalbaar:
+  - "Zaalbar"
+  - "Big Z"
+  - "Zaalbar of Kashyyyk"
+canderous_ordo:
+  - "Canderous Ordo"
+  - "Canderous"
+  - "Mandalorian Canderous Ordo"
+jolee_bindo:
+  - "Jolee Bindo"
+  - "Jolee"
+  - "Jedi Master Jolee Bindo"
+meettra_surik:
+  - "Meetra Surik"
+  - "The Jedi Exile"
+  - "Jedi Exile Meetra Surik"
+  - "General Meetra Surik"
+kreia:
+  - "Kreia"
+  - "Darth Traya"
+  - "Lady Traya"
+  - "Traya"
+darth_nihilus:
+  - "Darth Nihilus"
+  - "Nihilus"
+  - "Lord Nihilus"
+darth_sion:
+  - "Darth Sion"
+  - "Sion"
+  - "Lord Sion"
+atton_rand:
+  - "Atton Rand"
+  - "Atton"
+bao_dur:
+  - "Bao-Dur"
+  - "Bao Dur"
+  - "Zabrak engineer Bao-Dur"
+  - "Zabrak engineer Bao Dur"
+visas_marr:
+  - "Visas Marr"
+  - "Visas"
+  - "Handmaiden of Nihilus"
+mandalore_the_preserver:
+  - "Mandalore the Preserver"
+  - "Mandalore"
+  - "Canderous Ordo as Mandalore"
+  - "Mandalore Canderous"
+exar_kun:
+  - "Exar Kun"
+  - "Lord Exar Kun"
+  - "Dark Lord Exar Kun"
+  - "Sith Lord Exar Kun"
+ulic_qel_droma:
+  - "Ulic Qel-Droma"
+  - "Ulic Qel Droma"
+  - "Ulic"
+  - "Jedi Knight Ulic Qel-Droma"
+nomi_sunrider:
+  - "Nomi Sunrider"
+  - "Nomi"
+  - "Jedi Master Nomi Sunrider"
+  - "Jedi Master Nomi"
+marka_ragnos:
+  - "Marka Ragnos"
+  - "Lord Marka Ragnos"
+  - "Dark Lord Marka Ragnos"
+freedon_nadd:
+  - "Freedon Nadd"
+  - "Dark Lord Freedon Nadd"
+  - "Sith Lord Freedon Nadd"
+  - "King Freedon Nadd"
+ajunta_pall:
+  - "Ajunta Pall"
+  - "Dark Lord Ajunta Pall"
+  - "Sith Lord Ajunta Pall"
+tulak_hord:
+  - "Tulak Hord"
+  - "Lord Tulak Hord"
+  - "Dark Lord Tulak Hord"
+naga_sadow:
+  - "Naga Sadow"
+  - "Lord Naga Sadow"
+  - "Dark Lord Naga Sadow"
+ludo_kressh:
+  - "Ludo Kressh"
+  - "Lord Ludo Kressh"
+  - "Dark Lord Ludo Kressh"
+vitiate:
+  - "Emperor Vitiate"
+  - "Vitiate"
+  - "Sith Emperor Vitiate"
+  - "Immortal Emperor Vitiate"
+satele_shan:
+  - "Satele Shan"
+  - "Jedi Master Satele Shan"
+  - "Grand Master Satele Shan"
+darth_bane:
+  - "Darth Bane"
+  - "Bane"
+  - "Dessel"
+  - "Dark Lord of the Sith Darth Bane"
+darth_zannah:
+  - "Darth Zannah"
+  - "Zannah"
+  - "Rain"
+  - "Dark Lady Darth Zannah"
+darth_cognus:
+  - "Darth Cognus"
+  - "Cognus"
+  - "The Huntress"
+  - "Dark Lady Darth Cognus"
+darth_andeddu:
+  - "Darth Andeddu"
+  - "Andeddu"
+  - "Dark Lord Darth Andeddu"
+darth_tenebrous:
+  - "Darth Tenebrous"
+  - "Tenebrous"
+  - "Rugess Nome"
+  - "Dark Lord Darth Tenebrous"
+darth_plagueis:
+  - "Darth Plagueis"
+  - "Plagueis"
+  - "Hego Damask"
+  - "Hego Damask II"
+  - "Dark Lord Darth Plagueis"
+qui_gon_jinn:
+  - "Qui-Gon Jinn"
+  - "Qui Gon Jinn"
+  - "Qui-Gon"
+  - "Jedi Master Qui-Gon Jinn"
+obi_wan_kenobi:
+  - "Obi-Wan Kenobi"
+  - "Obi Wan Kenobi"
+  - "Obi-Wan"
+  - "Ben Kenobi"
+  - "General Obi-Wan Kenobi"
+  - "Jedi Master Obi-Wan Kenobi"
+anakin_skywalker:
+  - "Anakin Skywalker"
+  - "Anakin"
+  - "General Anakin Skywalker"
+  - "Jedi Knight Anakin Skywalker"
+  - "Darth Vader"
+  - "Lord Vader"
+darth_vader:
+  - "Darth Vader"
+  - "Lord Vader"
+  - "Dark Lord of the Sith Darth Vader"
+  - "Vader"
+sheev_palpatine:
+  - "Sheev Palpatine"
+  - "Palpatine"
+  - "Senator Palpatine"
+  - "Chancellor Palpatine"
+  - "Supreme Chancellor Palpatine"
+  - "Emperor Palpatine"
+  - "Darth Sidious"
+  - "Lord Sidious"
+darth_sidious:
+  - "Darth Sidious"
+  - "Lord Sidious"
+  - "Dark Lord Darth Sidious"
+  - "Emperor Palpatine"
+padme_amidala:
+  - "Padmé Amidala"
+  - "Padme Amidala"
+  - "Padmé Naberrie"
+  - "Padme Naberrie"
+  - "Queen Amidala"
+  - "Senator Amidala"
+  - "Senator Padmé Amidala"
+  - "Senator Padme Amidala"
+jar_jar_binks:
+  - "Jar Jar Binks"
+  - "Representative Binks"
+  - "Senator Binks"
+mace_windu:
+  - "Mace Windu"
+  - "Master Windu"
+  - "Jedi Master Mace Windu"
+yoda:
+  - "Yoda"
+  - "Master Yoda"
+  - "Grand Master Yoda"
+count_dooku:
+  - "Count Dooku"
+  - "Dooku"
+  - "Darth Tyranus"
+  - "Lord Tyranus"
+  - "Count of Serenno"
+darth_tyranus:
+  - "Darth Tyranus"
+  - "Lord Tyranus"
+  - "Count Dooku"
+  - "Tyranus"
+asajj_ventress:
+  - "Asajj Ventress"
+  - "Ventress"
+  - "Dark Acolyte Asajj Ventress"
+general_grievous:
+  - "General Grievous"
+  - "Grievous"
+  - "Supreme Commander Grievous"
+aayla_secura:
+  - "Aayla Secura"
+  - "Jedi Knight Aayla Secura"
+ki_adi_mundi:
+  - "Ki-Adi-Mundi"
+  - "Ki Adi Mundi"
+  - "Jedi Master Ki-Adi-Mundi"
+plo_koon:
+  - "Plo Koon"
+  - "Master Plo Koon"
+  - "Jedi Master Plo Koon"
+kit_fisto:
+  - "Kit Fisto"
+  - "Jedi Master Kit Fisto"
+  - "Master Fisto"
+shaak_ti:
+  - "Shaak Ti"
+  - "Jedi Master Shaak Ti"
+luminara_unduli:
+  - "Luminara Unduli"
+  - "Jedi Master Luminara Unduli"
+barriss_offee:
+  - "Barriss Offee"
+  - "Barriss"
+  - "Jedi Padawan Barriss Offee"
+quinlan_vos:
+  - "Quinlan Vos"
+  - "Master Vos"
+  - "Jedi Master Quinlan Vos"
+ahsoka_tano:
+  - "Ahsoka Tano"
+  - "Ahsoka"
+  - "Padawan Ahsoka Tano"
+  - "Commander Ahsoka Tano"
+jango_fett:
+  - "Jango Fett"
+  - "Jango"
+  - "Mandalorian Jango Fett"
+boba_fett:
+  - "Boba Fett"
+  - "Boba"
+  - "Bounty hunter Boba Fett"
+  - "Mandalore Boba Fett"
+  - "Mandalore Fett"
+jango_fett_clone:
+  - "Clone of Jango Fett"
+  - "Jango Fett clone"
+  - "Jango clone"
+captain_rex:
+  - "Captain Rex"
+  - "Rex"
+  - "CT-7567"
+  - "CT 7567"
+commander_cody:
+  - "Commander Cody"
+  - "Cody"
+  - "CC-2224"
+  - "CC 2224"
+commander_wolffe:
+  - "Commander Wolffe"
+  - "Wolffe"
+  - "CC-3636"
+  - "CC 3636"
+commander_gree:
+  - "Commander Gree"
+  - "CC-1004"
+  - "CC 1004"
+commander_bly:
+  - "Commander Bly"
+  - "CC-5052"
+  - "CC 5052"
+arc_trooper_fives:
+  - "Fives"
+  - "ARC Trooper Fives"
+  - "CT-5555"
+  - "CT 5555"
+arc_trooper_echo:
+  - "Echo"
+  - "ARC Trooper Echo"
+  - "CT-1409"
+  - "CT 1409"
+clone_commander_fox:
+  - "Commander Fox"
+  - "Clone Commander Fox"
+  - "CC-1010"
+  - "CC 1010"
+clone_trooper_gregor:
+  - "Gregor"
+  - "Clone commando Gregor"
+  - "CC-5576-39"
+  - "CC 5576-39"
+bail_organa:
+  - "Bail Organa"
+  - "Senator Bail Organa"
+  - "Viceroy Bail Organa"
+mon_mothma:
+  - "Mon Mothma"
+  - "Senator Mon Mothma"
+  - "Chief of State Mon Mothma"
+wilhuff_tarkin:
+  - "Wilhuff Tarkin"
+  - "Grand Moff Tarkin"
+  - "Moff Tarkin"
+  - "Governor Tarkin"
+mas_ameeda:
+  - "Mas Amedda"
+  - "Vice Chair Mas Amedda"
+  - "Grand Vizier Mas Amedda"
+sly_moore:
+  - "Sly Moore"
+  - "Advisor Sly Moore"
+nute_gunray:
+  - "Nute Gunray"
+  - "Viceroy Gunray"
+  - "Viceroy Nute Gunray"
+wat_tambor:
+  - "Wat Tambor"
+  - "Foreman Wat Tambor"
+san_hill:
+  - "San Hill"
+  - "Chairman San Hill"
+jabba_desilijic_tiure:
+  - "Jabba Desilijic Tiure"
+  - "Jabba the Hutt"
+  - "Jabba"
+  - "His Excellency Jabba Desilijic Tiure"
+bib_fortuna:
+  - "Bib Fortuna"
+  - "Majordomo Bib Fortuna"
+alexsandr_kallus:
+  - "Alexsandr Kallus"
+  - "Agent Kallus"
+  - "ISB Kallus"
+hera_syndulla:
+  - "Hera Syndulla"
+  - "Hera"
+  - "Captain Syndulla"
+  - "Phoenix Leader"
+kanan_jarrus:
+  - "Kanan Jarrus"
+  - "Kanan"
+  - "Caleb Dume"
+ezra_bridger:
+  - "Ezra Bridger"
+  - "Ezra"
+  - "Commander Bridger"
+sabine_wren:
+  - "Sabine Wren"
+  - "Sabine"
+  - "Artist Sabine"
+garazeb_orrelios:
+  - "Garazeb Orrelios"
+  - "Zeb"
+  - "Zeb Orrelios"
+cassian_andor:
+  - "Cassian Andor"
+  - "Cassian"
+  - "Captain Andor"
+  - "Fulcrum"
+luthen_rael:
+  - "Luthen Rael"
+  - "Luthen"
+  - "Axis"
+dedra_meero:
+  - "Dedra Meero"
+  - "Supervisor Meero"
+  - "Dedra"
+syril_karn:
+  - "Syril Karn"
+  - "Syril"
+  - "Deputy Inspector Karn"
+bossk:
+  - "Bossk"
+  - "Bossk'wassak'Cradossk"
+  - "Trandoshan bounty hunter Bossk"
+dengar:
+  - "Dengar"
+  - "Corellian bounty hunter Dengar"
+ig_88:
+  - "IG-88"
+  - "IG 88"
+  - "Assassin droid IG-88"
+  - "Assassin droid IG 88"
+zuckuss:
+  - "Zuckuss"
+  - "Bounty hunter Zuckuss"
+4lom:
+  - "4-LOM"
+  - "4 LOM"
+  - "Protocol droid 4-LOM"
+  - "Protocol droid 4 LOM"
+han_solo:
+  - "Han Solo"
+  - "Han"
+  - "Captain Han Solo"
+  - "General Han Solo"
+  - "Smuggler Han Solo"
+chewbacca:
+  - "Chewbacca"
+  - "Chewie"
+  - "Wookiee Chewbacca"
+lando_calrissian:
+  - "Lando Calrissian"
+  - "Lando"
+  - "General Calrissian"
+  - "Administrator Lando Calrissian"
+wedge_antilles:
+  - "Wedge Antilles"
+  - "Wedge"
+  - "General Wedge Antilles"
+  - "Commander Wedge Antilles"
+ackbar:
+  - "Gial Ackbar"
+  - "Admiral Ackbar"
+  - "Admiral Gial Ackbar"
+jan_dodonna:
+  - "Jan Dodonna"
+  - "General Dodonna"
+  - "General Jan Dodonna"
+crix_madine:
+  - "Crix Madine"
+  - "General Madine"
+  - "General Crix Madine"
+carlist_rieekan:
+  - "Carlist Rieekan"
+  - "General Rieekan"
+  - "General Carlist Rieekan"
+darth_maul:
+  - "Darth Maul"
+  - "Maul"
+  - "Sith Lord Darth Maul"
+aurra_sing:
+  - "Aurra Sing"
+  - "Bounty hunter Aurra Sing"
+zam_wesell:
+  - "Zam Wesell"
+  - "Assassin Zam Wesell"
+jyn_ersos_mother:
+  - "Lyra Erso"
+  - "Lyra Erso née"
+biggs_darklighter:
+  - "Biggs Darklighter"
+  - "Biggs"
+  - "Lieutenant Biggs Darklighter"
+tycho_celchu:
+  - "Tycho Celchu"
+  - "Tycho"
+  - "Commander Tycho Celchu"
+wes_janson:
+  - "Wes Janson"
+  - "Wes"
+  - "Lieutenant Wes Janson"
+hobbie_klivian:
+  - "Derek Klivian"
+  - "Hobbie Klivian"
+  - "Hobbie"
+  - "Lieutenant Derek Klivian"
+dash_rendar:
+  - "Dash Rendar"
+  - "Rendar"
+  - "Smuggler Dash Rendar"
+kyle_katarn:
+  - "Kyle Katarn"
+  - "Kyle"
+  - "Jedi Master Kyle Katarn"
+  - "Agent Kyle Katarn"
+jan_ors:
+  - "Jan Ors"
+  - "Agent Jan Ors"
+jerec:
+  - "Jerec"
+  - "Inquisitor Jerec"
+  - "Dark Jedi Jerec"
+prince_xizor:
+  - "Prince Xizor"
+  - "Xizor"
+  - "Falleen Prince Xizor"
+  - "Head of Black Sun Prince Xizor"
+guri:
+  - "Guri"
+  - "Human replica droid Guri"
+  - "Xizor's bodyguard Guri"
+palpatines_hand_mara_jade:
+  - "Mara Jade"
+  - "Mara"
+  - "The Emperor's Hand Mara Jade"
+  - "Emperor's Hand Mara Jade"
+  - "Mara Jade Skywalker"
+  - "Jedi Master Mara Jade Skywalker"
+thrawn:
+  - "Mitth'raw'nuruodo"
+  - "Thrawn"
+  - "Grand Admiral Thrawn"
+  - "Admiral Thrawn"
+pellaeon:
+  - "Gilad Pellaeon"
+  - "Pellaeon"
+  - "Captain Pellaeon"
+  - "Admiral Pellaeon"
+  - "Grand Admiral Pellaeon"
+natasi_daala:
+  - "Natasi Daala"
+  - "Admiral Daala"
+  - "Chief of State Natasi Daala"
+tallon_karrde:
+  - "Talon Karrde"
+  - "Karrde"
+  - "Smuggler Talon Karrde"
+  - "Information broker Talon Karrde"
+borsk_feylya:
+  - "Borsk Fey'lya"
+  - "Borsk Feylya"
+  - "Fey'lya"
+  - "Chief of State Borsk Fey'lya"
+  - "Senator Borsk Fey'lya"
+garm_bel_iblis:
+  - "Garm Bel Iblis"
+  - "Bel Iblis"
+  - "General Garm Bel Iblis"
+  - "Senator Garm Bel Iblis"
+winter_retrac:
+  - "Winter Retrac"
+  - "Winter"
+  - "Leia's aide Winter Retrac"
+  - "Agent Winter Retrac"
+corran_horn:
+  - "Corran Horn"
+  - "Corran"
+  - "Rogue Leader Corran Horn"
+  - "Jedi Master Corran Horn"
+mirax_terrik:
+  - "Mirax Terrik"
+  - "Mirax"
+  - "Mirax Terrik Horn"
+booster_terrik:
+  - "Booster Terrik"
+  - "Booster"
+  - "Captain Booster Terrik"
+iella_wessiri:
+  - "Iella Wessiri"
+  - "Iella"
+  - "Iella Wessiri Antilles"
+  - "Agent Iella Wessiri"
+soontir_fel:
+  - "Soontir Fel"
+  - "Baron Soontir Fel"
+  - "Colonel Soontir Fel"
+ysanne_isard:
+  - "Ysanne Isard"
+  - "Isard"
+  - "Director Isard"
+  - "Director Ysanne Isard"
+kyp_durron:
+  - "Kyp Durron"
+  - "Kyp"
+  - "Jedi Knight Kyp Durron"
+  - "Jedi Master Kyp Durron"
+  - "Darksider Kyp Durron"
+kam_solusar:
+  - "Kam Solusar"
+  - "Jedi Master Kam Solusar"
+  - "Master Solusar"
+tionne_solusar:
+  - "Tionne Solusar"
+  - "Tionne"
+  - "Tionne Solusar nee"
+  - "Jedi historian Tionne Solusar"
+cilghal:
+  - "Cilghal"
+  - "Jedi Master Cilghal"
+  - "Mon Calamari Jedi Cilghal"
+dorsk_81:
+  - "Dorsk 81"
+  - "Dorsk Eighty-One"
+  - "Jedi Knight Dorsk 81"
+streen:
+  - "Streen"
+  - "Jedi Master Streen"
+kirana_ti:
+  - "Kirana Ti"
+  - "Jedi Knight Kirana Ti"
+durron_kun_spirit:
+  - "Spirit of Exar Kun"
+  - "Exar Kun's spirit"
+  - "Sith spirit Exar Kun"
+callista_ming:
+  - "Callista Ming"
+  - "Callista"
+  - "Jedi Callista Ming"
+brakiss:
+  - "Brakiss"
+  - "Dark Jedi Brakiss"
+  - "Shadow Academy Brakiss"
+gavin_darklighter:
+  - "Gavin Darklighter"
+  - "Gavin"
+  - "Rogue pilot Gavin Darklighter"
+baron_fel_jaggeds_father:
+  - "Baron Fel"
+  - "Baron Soontir Fel"
+pash_cracken:
+  - "Airen Cracken"
+  - "General Cracken"
+  - "General Airen Cracken"
+admiral_arnor:
+  - "Aril Nunb"
+  - "Arvel Crynyd"
+warlord_zsinj:
+  - "Zsinj"
+  - "Warlord Zsinj"
+  - "Admiral Delak Krennel"
+  - "Warlord Delak Krennel"
+isarad_rogue:
+  - "Erisi Dlarit"
+  - "Lieutenant Erisi Dlarit"
+  - "Wraith Erisi Dlarit"
+garik_face_loran:
+  - "Garik Loran"
+  - "Face Loran"
+  - "Lieutenant Garik Loran"
+  - "Wraith Face Loran"
+kell_tainer:
+  - "Kell Tainer"
+  - "Wraith Kell Tainer"
+ton_phanan:
+  - "Ton Phanan"
+  - "Wraith Ton Phanan"
+lara_notsil:
+  - "Lara Notsil"
+  - "Wraith Lara Notsil"
+  - "Gara Petothel"
+ooryl_qrygg:
+  - "Ooryl Qrygg"
+  - "Ooryl"
+  - "Gand Findsman Ooryl Qrygg"
+janson_hobbie_pair:
+  - "Wes Janson"
+  - "Derek Klivian"
+  - "Hobbie Klivian"
+joruus_cbaoth:
+  - "Joruus C'baoth"
+  - "Joruus Cbaoth"
+  - "Master C'baoth"
+  - "Jedi Master Joruus C'baoth"
+jedi_master_jorus_cbaoth:
+  - "Jorus C'baoth"
+  - "Jorus Cbaoth"
+  - "Jedi Master Jorus C'baoth"
+luuke_skywalker:
+  - "Luuke Skywalker"
+  - "Luuke"
+  - "Clone of Luke Skywalker"
+  - "Luke Skywalker clone"
+moff_ferro:
+  - "Ferroux"
+  - "Moff Ferroux"
+  - "Moff Ferrier"
+grand_moff_pestage:
+  - "Sate Pestage"
+  - "Grand Moff Pestage"
+  - "Sate Pestage as Grand Vizier"
+truce_at_bakura_dev_sibwarra:
+  - "Dev Sibwarra"
+  - "Captain Dev Sibwarra"
+  - "Commander Dev Sibwarra"
+tatooine_lars_owen:
+  - "Owen Lars"
+  - "Uncle Owen"
+beru_lars:
+  - "Beru Lars"
+  - "Aunt Beru"
+cliegg_lars:
+  - "Cliegg Lars"
+  - "Farmer Cliegg Lars"
+shmi_skywalker:
+  - "Shmi Skywalker"
+  - "Shmi Skywalker Lars"
+  - "Shmi"
+darth_ragnos:
+  - "Marka Ragnos"
+  - "Dark Lord Marka Ragnos"
+jacen_solo:
+  - "Jacen Solo"
+  - "Jacen"
+  - "Jedi Knight Jacen Solo"
+  - "Jedi Master Jacen Solo"
+  - "Darth Caedus"
+  - "Lord Caedus"
+  - "Dark Lord Darth Caedus"
+darth_caedus:
+  - "Darth Caedus"
+  - "Lord Caedus"
+  - "Jacen Solo"
+  - "Dark Lord Darth Caedus"
+jaina_solo:
+  - "Jaina Solo"
+  - "Jaina"
+  - "Jedi Knight Jaina Solo"
+  - "Jedi Master Jaina Solo"
+  - "Sword of the Jedi"
+anakin_solo:
+  - "Anakin Solo"
+  - "Jedi Knight Anakin Solo"
+  - "Anakin"
+  - "Young Anakin Solo"
+ben_skywalker:
+  - "Ben Skywalker"
+  - "Ben"
+  - "Jedi Knight Ben Skywalker"
+  - "Jedi Ben Skywalker"
+allana_solo:
+  - "Allana Solo"
+  - "Allana"
+  - "Allana Djo Solo"
+  - "Princess Allana"
+tahiri_veila:
+  - "Tahiri Veila"
+  - "Tahiri"
+  - "Jedi Knight Tahiri Veila"
+  - "Tahiri Solo"
+tenel_ka:
+  - "Tenel Ka"
+  - "Tenel Ka Djo"
+  - "Queen Tenel Ka"
+  - "Jedi Knight Tenel Ka"
+  - "Mother Tenel Ka"
+lowbacca:
+  - "Lowbacca"
+  - "Lowie"
+  - "Wookiee Jedi Lowbacca"
+zekk:
+  - "Zekk"
+  - "King Zekk"
+  - "Jedi Knight Zekk"
+jagged_fel:
+  - "Jagged Fel"
+  - "Jag"
+  - "Colonel Jagged Fel"
+  - "Baron Jagged Fel"
+  - "Head of State Jagged Fel"
+  - "Emperor Jagged Fel"
+  - "Jagged Fel, Emperor"
+vergere:
+  - "Vergere"
+  - "Jedi Vergere"
+  - "Fosh Vergere"
+nom_anor:
+  - "Nom Anor"
+  - "Executor Nom Anor"
+  - "Agent Nom Anor"
+  - "Yuuzhan Vong Nom Anor"
+tsavong_lah:
+  - "Tsavong Lah"
+  - "Warmaster Tsavong Lah"
+  - "Yuuzhan Vong Warmaster Tsavong Lah"
+shimrra_jamaane:
+  - "Shimrra Jamaane"
+  - "Supreme Overlord Shimrra Jamaane"
+  - "Yuuzhan Vong Supreme Overlord Shimrra Jamaane"
+onimi:
+  - "Onimi"
+  - "The true Supreme Overlord Onimi"
+  - "Yuuzhan Vong Onimi"
+elan:
+  - "Elan"
+  - "Yuuzhan Vong Elan"
+  - "Shaper Elan"
+harrar:
+  - "Harrar"
+  - "Yuuzhan Vong Harrar"
+  - "Shaper Harrar"
+nas_choka:
+  - "Nas Choka"
+  - "Warmaster Nas Choka"
+  - "Yuuzhan Vong Warmaster Nas Choka"
+czulkang_lah:
+  - "Czulkang Lah"
+  - "Yuuzhan Vong Czulkang Lah"
+  - "Priest Czulkang Lah"
+saba_sebatyne:
+  - "Saba Sebatyne"
+  - "Barabel Jedi Saba Sebatyne"
+  - "Jedi Master Saba Sebatyne"
+kent_hamner:
+  - "Kenth Hamner"
+  - "Jedi Master Kenth Hamner"
+  - "Master Hamner"
+kamarias:
+  - "Kumar"
+  - "Master Kumar"
+lumiya:
+  - "Lumiya"
+  - "Lady Lumiya"
+  - "Dark Lady Lumiya"
+  - "Shira Brie"
+  - "Agent Shira Brie"
+alema_rar:
+  - "Alema Rar"
+  - "Jedi Knight Alema Rar"
+  - "Dark Jedi Alema Rar"
+  - "Twi'lek Alema Rar"
+seerow:
+  - "Wynn Dorvan"
+  - "Jedi Wynn Dorvan"
+  - "Master Dorvan"
+cal_omas:
+  - "Cal Omas"
+  - "Chief of State Cal Omas"
+  - "Minister Cal Omas"
+pwoeck:
+  - "Pwoeck"
+  - "Jedi Master Pwoeck"
+niathal:
+  - "Cha Niathal"
+  - "Admiral Cha Niathal"
+  - "Admiral Niathal"
+goran_beviin:
+  - "Goran Beviin"
+  - "Mandalorian Goran Beviin"
+boba_fett_mandalore:
+  - "Mandalore"
+  - "Mandalore Boba Fett"
+  - "Mandalore Fett"
+  - "Boba Fett"
+abeloth:
+  - "Abeloth"
+  - "The Bringer of Chaos"
+  - "The Mother"
+vestara_khai:
+  - "Vestara Khai"
+  - "Vestara"
+  - "Sith apprentice Vestara Khai"
+  - "Lost Tribe Sith Vestara Khai"
+ship:
+  - "Ship"
+  - "Sith Ship"
+  - "Lost Tribe Sith Ship"
+darish_vol:
+  - "Darish Vol"
+  - "High Lord Darish Vol"
+  - "Lost Tribe High Lord Darish Vol"
+rhea:
+  - "Rhea"
+  - "Lady Rhea"
+  - "Lost Tribe Lady Rhea"
+tahv:
+  - "Tahv"
+  - "Lost Tribe Sith Tahv"
+raynar_thul:
+  - "Raynar Thul"
+  - "Lord Nyax"
+  - "Jedi Knight Raynar Thul"
+  - "Killik Joiner Raynar Thul"
+lomi_plo:
+  - "Lomi Plo"
+  - "Lady Lomi Plo"
+  - "Killik Joiner Lomi Plo"
+welk:
+  - "Welk"
+  - "Killik Joiner Welk"
+jariah_syn:
+  - "Jariah Syn"
+  - "Syn"
+  - "Captain Jariah Syn"
+deliah_blue:
+  - "Deliah Blue"
+  - "Deliah"
+  - "Deliah Blue Antilles"
+  - "Deliah Blue Syn"
+cade_skywalker:
+  - "Cade Skywalker"
+  - "Cade"
+  - "Jedi Cade Skywalker"
+  - "Bounty hunter Cade Skywalker"
+darth_krayt:
+  - "Darth Krayt"
+  - "Lord Krayt"
+  - "Dark Lord of the Sith Darth Krayt"
+  - "A'Sharad Hett"
+  - "A'Sharad"
+darth_talon:
+  - "Darth Talon"
+  - "Talon"
+  - "Dark Lady Darth Talon"
+darth_nihl:
+  - "Darth Nihl"
+  - "Nihl"
+  - "Sith Lord Darth Nihl"
+darth_wyyrlok:
+  - "Darth Wyyrlok"
+  - "Wyyrlok"
+  - "Sith Lord Darth Wyyrlok"
+  - "Darth Wyyrlok the First"
+roan_fel:
+  - "Roan Fel"
+  - "Emperor Roan Fel"
+  - "Head of State Roan Fel"
+marasiah_fel:
+  - "Marasiah Fel"
+  - "Princess Marasiah Fel"
+antares_draco:
+  - "Antares Draco"
+  - "Draco"
+  - "Imperial Knight Antares Draco"
+wolf_sazen:
+  - "Wolf Sazen"
+  - "Jedi Master Wolf Sazen"
+  - "Master Sazen"
+shado_vao:
+  - "Shado Vao"
+  - "Shado"
+  - "Mandalorian Shado Vao"
+azlyn_rae:
+  - "Azlyn Rae"
+  - "Jedi Azlyn Rae"
+ganner_krieg:
+  - "Ganner Krieg"
+  - "Imperial Knight Ganner Krieg"
+morrigan_corde:
+  - "Morrigan Corde"
+  - "Moff Morrigan Corde"
+  - "Darth Nyna Calixte"
+  - "Nyna Calixte"
+  - "Darth Calixte"
+nyna_calixte:
+  - "Nyna Calixte"
+  - "Darth Nyna Calixte"
+  - "Darth Calixte"
+jag_fel_emperor:
+  - "Emperor Jagged Fel"
+  - "Jagged Fel, Emperor"
+  - "Jagged Fel"
+kenth_hamner_foj:
+  - "Kenth Hamner"
+  - "Master Hamner"
+  - "Jedi Master Kenth Hamner"
+tresina_lobi:
+  - "Tresina Lobi"
+  - "Jedi Master Tresina Lobi"
+daeshara_corr:
+  - "Daeshara'cor"
+  - "Daeshara cor"
+  - "Jedi Knight Daeshara'cor"
+brent:
+  - "Brent"
+  - "Brent the"
+dooku_dias:
+  - "Count Dooku"
+  - "Master Dooku"
+  - "Jedi Master Dooku"
+  - "Darth Tyranus"
+captain_piett:
+  - "Firmus Piett"
+  - "Captain Piett"
+  - "Admiral Piett"
+  - "Fleet Admiral Piett"
+general_veers:
+  - "Maximilian Veers"
+  - "General Veers"
+  - "General Maximilian Veers"
+admiral_ozzel:
+  - "Kendal Ozzel"
+  - "Admiral Ozzel"
+  - "Admiral Kendal Ozzel"
+boss_nass:
+  - "Boss Nass"
+  - "Boss Nass of Otoh Gunga"
+watto:
+  - "Watto"
+  - "Toydarian Watto"
+sebulba:
+  - "Sebulba"
+  - "Podracer Sebulba"
+dexter_jettster:
+  - "Dexter Jettster"
+  - "Dex"
+  - "Cook Dexter Jettster"
+shmi_lars:
+  - "Shmi Skywalker Lars"
+  - "Shmi Lars"
+  - "Shmi Skywalker"
+bail_prestor_organa:
+  - "Bail Prestor Organa"
+  - "Bail Organa"
+  - "Senator Bail Organa"
+mon_mothma_chief:
+  - "Chief of State Mon Mothma"
+  - "Mon Mothma"
+  - "Senator Mon Mothma"
+tarkin_grand_moff:
+  - "Grand Moff Tarkin"
+  - "Wilhuff Tarkin"
+  - "Governor Tarkin"
+x_wing_rogue_tycho:
+  - "Commander Tycho Celchu"
+  - "Tycho Celchu"
+rogue_corran:
+  - "Rogue Leader Corran Horn"
+  - "Corran Horn"
+  - "Jedi Corran Horn"
+booster_sk:
+  - "Captain Booster Terrik"
+  - "Booster Terrik"
+karrde_talon:
+  - "Information broker Talon Karrde"
+  - "Talon Karrde"
+kyle_je_di:
+  - "Jedi Master Kyle Katarn"
+  - "Kyle Katarn"
+mara_jade_skywalker:
+  - "Mara Jade Skywalker"
+  - "Mara Jade"
+  - "Emperor's Hand Mara Jade"
+  - "The Emperor's Hand Mara Jade"
+  - "Jedi Master Mara Jade Skywalker"
+nom_anor_executor:
+  - "Executor Nom Anor"
+  - "Nom Anor"
+tsavong_lah_warmaster:
+  - "Warmaster Tsavong Lah"
+  - "Tsavong Lah"
+jaina_sword:
+  - "Sword of the Jedi"
+  - "Jaina Solo"
+jacen_caedus:
+  - "Darth Caedus"
+  - "Jacen Solo"
+ben_jedi:
+  - "Jedi Knight Ben Skywalker"
+  - "Ben Skywalker"
+lumiya_shira:
+  - "Shira Brie"
+  - "Lumiya"
+  - "Lady Lumiya"
+daala_chief:
+  - "Chief of State Natasi Daala"
+  - "Natasi Daala"
+  - "Admiral Daala"
+pellaeon_grand:
+  - "Grand Admiral Gilad Pellaeon"
+  - "Gilad Pellaeon"
+  - "Admiral Pellaeon"
+feylya_chief:
+  - "Chief of State Borsk Fey'lya"
+  - "Borsk Fey'lya"
+  - "Senator Borsk Fey'lya"
+thrawn_mitth:
+  - "Mitth'raw'nuruodo"
+  - "Grand Admiral Thrawn"
+  - "Thrawn"
+kyp_master:
+  - "Jedi Master Kyp Durron"
+  - "Kyp Durron"
+corran_master:
+  - "Jedi Master Corran Horn"
+  - "Corran Horn"
+jag_head_of_state:
+  - "Head of State Jagged Fel"
+  - "Jagged Fel"
+allana_djo:
+  - "Allana Djo Solo"
+  - "Allana Solo"
+vestara_tribe:
+  - "Lost Tribe Sith Vestara Khai"
+  - "Vestara Khai"
+abeloth_mother:
+  - "The Mother"
+  - "Abeloth"
+darth_krayt_hett:
+  - "A'Sharad Hett"
+  - "Darth Krayt"
+  - "Lord Krayt"
+darth_talon_twilek:
+  - "Darth Talon"
+  - "Dark Lady Darth Talon"
+cade_bounty:
+  - "Bounty hunter Cade Skywalker"
+  - "Cade Skywalker"
+
+# ============================================================
+# REBELLION ERA EXPANSION (V2.9)
+# ============================================================
+
+lobot:
+  - "Lobot"
+  - "Chief Administrative Aide Lobot"
+  - "Lando's aide Lobot"
+  - "Cyborg Lobot"
+
+moff_jerjerrod:
+  - "Moff Jerjerrod"
+  - "Tiaan Jerjerrod"
+  - "Commander Jerjerrod"
+  - "Moff Tiaan Jerjerrod"
+
+sate_pestage:
+  - "Sate Pestage"
+  - "Grand Vizier Sate Pestage"
+  - "Grand Moff Pestage"
+
+carnor_jax:
+  - "Carnor Jax"
+  - "Royal Guard Carnor Jax"
+  - "Dark Jedi Carnor Jax"
+
+grand_admiral_zaarin:
+  - "Grand Admiral Zaarin"
+  - "Zaarin"
+  - "Rogue Admiral Zaarin"
+
+zev_senesca:
+  - "Zev Senesca"
+  - "Zev"
+  - "Rogue Two Zev Senesca"
+  - "Lieutenant Zev Senesca"
+
+jek_porkins:
+  - "Jek Porkins"
+  - "Porkins"
+  - "Red Six Jek Porkins"
+
+narra:
+  - "Narra"
+  - "Lieutenant Narra"
+  - "Red Leader Narra"
+
+garven_dreis:
+  - "Garven Dreis"
+  - "Red Leader Garven Dreis"
+  - "Red Leader"
+
+admiral_chiraneau:
+  - "Admiral Chiraneau"
+  - "Chiraneau"
+  - "Captain Chiraneau"
+
+ponda_baba:
+  - "Ponda Baba"
+  - "Walrus Man"
+  - "Aqualish Ponda Baba"
+
+dr_evazan:
+  - "Dr. Evazan"
+  - "Doctor Evazan"
+  - "Cornelius Evazan"
+  - "Dr. Cornelius Evazan"
+
+moff_landor:
+  - "Moff Landor"
+  - "Landor"
+
+admiral_motti:
+  - "Admiral Motti"
+  - "Conan Antonio Motti"
+  - "Chief Motti"
+
+general_tagge:
+  - "General Tagge"
+  - "Cassio Tagge"
+  - "General Cassio Tagge"
+
+admiral_needa:
+  - "Admiral Needa"
+  - "Captain Needa"
+  - "Lorth Needa"
+
+colonel_yularen:
+  - "Colonel Yularen"
+  - "Wulff Yularen"
+  - "Admiral Yularen"
+  - "ISB Colonel Yularen"
+
+governor_pryce:
+  - "Governor Pryce"
+  - "Arihnda Pryce"
+  - "Governor Arihnda Pryce"
+
+admiral_konstantine:
+  - "Admiral Konstantine"
+  - "Kassius Konstantine"
+  - "Admiral Kassius Konstantine"
+
+admiral_titus:
+  - "Admiral Titus"
+  - "Brom Titus"
+  - "Admiral Brom Titus"
+
+commandant_aresko:
+  - "Commandant Aresko"
+  - "Taskmaster Grint"
+
+grint:
+  - "Taskmaster Grint"
+  - "Grint"
+
+maketh_tua:
+  - "Minister Maketh Tua"
+  - "Maketh Tua"
+  - "Minister Tua"
+
+general_draven:
+  - "General Draven"
+  - "Davits Draven"
+  - "General Davits Draven"
+
+hondo_ohnaka:
+  - "Hondo Ohnaka"
+  - "Hondo"
+  - "Pirate Hondo Ohnaka"
+  - "Captain Hondo Ohnaka"
+
+cikatro_vizago:
+  - "Cikatro Vizago"
+  - "Vizago"
+  - "Crime boss Vizago"
+
+azmorigan:
+  - "Azmorigan"
+  - "Jablogian merchant Azmorigan"
+
+embo:
+  - "Embo"
+  - "Bounty hunter Embo"
+  - "Kyuzo Embo"
+
+cad_bane:
+  - "Cad Bane"
+  - "Duros bounty hunter Cad Bane"
+  - "Bane"
+
+aurra_sing_hunter:
+  - "Aurra Sing"
+  - "Bounty hunter Aurra Sing"
+  - "Palliduvan Aurra Sing"
+
+greedo:
+  - "Greedo"
+  - "Rodian Greedo"
+  - "Bounty hunter Greedo"
+
+# NEW_JEDI_ORDER Era Characters
+jacen_solo:
+  - "Jacen Solo"
+  - "Jacen"
+  - "Jedi Knight Jacen Solo"
+
+jaina_solo:
+  - "Jaina Solo"
+  - "Jaina"
+  - "Sword of the Jedi"
+
+anakin_solo:
+  - "Anakin Solo"
+  - "Anakin"
+
+tsavong_lah:
+  - "Tsavong Lah"
+  - "Warmaster Tsavong Lah"
+  - "Warmaster"
+
+nom_anor:
+  - "Nom Anor"
+  - "Executor Nom Anor"
+
+vergere:
+  - "Vergere"
+  - "Master Vergere"
+
+shimrra:
+  - "Shimrra"
+  - "Supreme Overlord Shimrra"
+
+ganner_rhysode:
+  - "Ganner Rhysode"
+  - "Ganner"
+  - "Jedi Knight Ganner"
+
+tahiri_veila:
+  - "Tahiri Veila"
+  - "Tahiri"
+
+kyp_durron:
+  - "Kyp Durron"
+  - "Kyp"
+  - "Master Kyp Durron"
+
+# LEGACY Era Characters
+cade_skywalker:
+  - "Cade Skywalker"
+  - "Cade"
+
+darth_krayt:
+  - "Darth Krayt"
+  - "Krayt"
+  - "Dark Lord Krayt"
+  - "A'Sharad Hett"
+
+darth_talon:
+  - "Darth Talon"
+  - "Talon"
+
+roan_fel:
+  - "Roan Fel"
+  - "Emperor Fel"
+  - "Emperor Roan Fel"
+
+marasiah_fel:
+  - "Marasiah Fel"
+  - "Sia"
+  - "Princess Marasiah"
+
+gar_stazi:
+  - "Gar Stazi"
+  - "Admiral Stazi"
+  - "Stazi"
+
+wolf_sazen:
+  - "Wolf Sazen"
+  - "Master Sazen"
+  - "Sazen"
+
+shado_vao:
+  - "Shado Vao"
+  - "Shado"
+
+darth_nihl:
+  - "Darth Nihl"
+  - "Nihl"
+
+antares_draco:
+  - "Antares Draco"
+  - "Draco"
+
+azlyn_rae:
+  - "Azlyn Rae"
+  - "Azlyn"
+
+kkruhk:
+  - "K'Kruhk"
+  - "Master K'Kruhk"
+
+darth_stryfe:
+  - "Darth Stryfe"
+  - "Stryfe"
+
+darth_maladi:
+  - "Darth Maladi"
+  - "Maladi"
+
+jariah_syn:
+  - "Jariah Syn"
+  - "Syn"
+
+deliah_blue:
+  - "Deliah Blue"
+  - "Blue"

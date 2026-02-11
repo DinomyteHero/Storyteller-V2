@@ -1,0 +1,68 @@
+# ============================================================
+# rumors.yaml -- Rumors (TEMPLATE)
+# ============================================================
+#
+# PURPOSE:
+#   Information that NPCs can share with the player. Rumors serve as narrative
+#   hooks, world-building flavor, and quest hints. The Director uses rumors
+#   to drive NPC dialogue and reveal information gradually.
+#
+# USED BY:
+#   - Director node: reads text and tags for NPC dialogue hooks
+#   - NPC knowledge: rumor IDs are referenced by npcs.yaml knowledge.rumors
+#
+# CONVENTIONS:
+#   - Rumor IDs use "rumor_" prefix with snake_case: rumor_hidden_cache
+#   - Keep rumor text concise: 1-2 sentences
+#   - Aim for 5+ rumors per era for variety
+#   - Tag rumors by theme so the Director can match them to scene context
+#
+# GOTCHAS:
+#   - Rumor IDs are referenced by NPCs via knowledge.rumors -- must match exactly
+#   - scope: "global" (known everywhere) or "location" (only at specific places)
+#   - credibility: "rumor" (unverified), "likely" (probably true), "confirmed" (verified)
+#   - Always quote strings containing colons
+# ============================================================
+
+rumors:
+
+  # ----------------------------------------------------------
+  # RUMOR 1: A global rumor about hidden resources
+  # ----------------------------------------------------------
+  - id: rumor_hidden_cache
+    # text: the rumor text (1-2 sentences, what the NPC tells the player)
+    text: "There's a supply cache hidden somewhere in the outer sectors. Whoever finds it first gets enough gear to arm a small army."
+    # tags: thematic keywords for Director matching
+    tags:
+      - supplies
+      - cache
+      - outer_rim
+    # scope: "global" = known everywhere; "location" = only at specific locations
+    scope: global
+    # credibility: "rumor" = unverified; "likely" = probably true; "confirmed" = verified
+    credibility: rumor
+
+  # ----------------------------------------------------------
+  # RUMOR 2: A rumor about factional tension
+  # ----------------------------------------------------------
+  - id: rumor_faction_tension
+    text: "Faction Alpha and Faction Beta are on the verge of open conflict. Both sides are recruiting -- and neither is picky about who they take."
+    tags:
+      - factions
+      - conflict
+      - recruitment
+    scope: global
+    credibility: likely
+
+  # ----------------------------------------------------------
+  # RUMOR 3: A location-scoped rumor
+  # ----------------------------------------------------------
+  - id: rumor_local_danger
+    text: "People have been disappearing near the old maintenance tunnels. Nobody who goes in comes back the same."
+    tags:
+      - danger
+      - mystery
+      - tunnels
+    # scope: "location" means this rumor is only shared by NPCs at specific locations
+    scope: location
+    credibility: rumor

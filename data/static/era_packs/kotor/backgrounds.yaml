@@ -1,0 +1,197 @@
+# KOTOR Era Backgrounds — Jedi, Republic, Smuggler, Sith Acolyte, Mandalorian
+
+backgrounds:
+  - id: jedi_padawan
+    name: "Jedi Padawan"
+    description: "You are training under the Jedi Order in the wake of the Jedi Civil War. The Council is cautious; the galaxy still trembles from Revan and Malak."
+    icon: "jedi"
+    starting_stats:
+      Combat: 2
+      Stealth: 1
+      Charisma: 2
+      Tech: 1
+      General: 2
+    questions:
+      - id: path
+        title: "Where does your loyalty lie?"
+        subtitle: "The Order is fractured; some Jedi have left or fallen."
+        choices:
+          - label: "The Order is my family. I will help rebuild it."
+            concept: "a loyal Jedi Padawan committed to the light"
+            tone: PARAGON
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-kotor-dantooine_academy
+              thread_seed: "Your Master has sent you to recover a holocron from a contested world. The Sith may be watching."
+          - label: "I have doubts. The Council's choices during the war trouble me."
+            concept: "a questioning Padawan who may walk a gray path"
+            tone: NEUTRAL
+            effects:
+              faction_hint: neutral
+              location_hint: loc-kotor-jedi_sanctuary
+              thread_seed: "You've been given a mission that doesn't quite add up. Someone is hiding something—maybe the Council."
+          - label: "Power is the only truth. I will take what I need."
+            concept: "a Padawan drawn to the dark side"
+            tone: RENEGADE
+            effects:
+              faction_hint: sith_empire
+              location_hint: loc-kotor-korriban_academy_entrance
+              thread_seed: "You've stolen a holocron and fled the Order. The Sith Academy on Korriban might accept you—if you survive the trials."
+    starting_starship: null
+    starting_reputation: {}
+
+  - id: republic_soldier
+    name: "Republic Soldier"
+    description: "You serve the Galactic Republic—navy, army, or intelligence. The war with the Sith is not over; it has only gone into the shadows."
+    icon: "republic"
+    starting_stats:
+      Combat: 3
+      Stealth: 1
+      Charisma: 2
+      Tech: 2
+      General: 2
+    questions:
+      - id: duty
+        title: "What is your duty?"
+        subtitle: "Republic forces are stretched thin."
+        choices:
+          - label: "I follow orders. The chain of command will see us through."
+            concept: "a disciplined Republic soldier"
+            tone: NEUTRAL
+            effects:
+              faction_hint: galactic_republic
+              location_hint: loc-kotor-republic_fleet_station
+              thread_seed: "Your unit has been assigned to escort a Jedi envoy. The Sith have been sighted in the sector."
+          - label: "I fight for the people the Republic is supposed to protect."
+            concept: "an idealistic soldier who questions command"
+            tone: PARAGON
+            effects:
+              faction_hint: galactic_republic
+              location_hint: loc-kotor-republic_garrison
+              thread_seed: "A refugee convoy is under threat. Your orders say hold position—but the convoy will be destroyed if no one helps."
+          - label: "I'm in it for the credits and the chance to hit back at the Sith."
+            concept: "a cynical soldier with a grudge"
+            tone: RENEGADE
+            effects:
+              faction_hint: underworld
+              location_hint: loc-kotor-smuggler_haven
+              thread_seed: "You've gone AWOL with a stolen ship. A smuggler has a job that pays well—and targets a Sith supply depot."
+    starting_starship: null
+    starting_reputation: {}
+
+  - id: smuggler
+    name: "Smuggler"
+    description: "You run cargo, dodge patrols, and sell to whoever pays. The war is bad for business—unless you know how to work both sides."
+    icon: "smuggler"
+    starting_stats:
+      Combat: 2
+      Stealth: 3
+      Charisma: 2
+      Tech: 2
+      General: 1
+    questions:
+      - id: code
+        title: "What's your code?"
+        subtitle: "Smugglers survive by knowing when to run and when to deal."
+        choices:
+          - label: "I have a code—no slaves, no poison. Everything else is negotiable."
+            concept: "a smuggler with a line they won't cross"
+            tone: PARAGON
+            effects:
+              faction_hint: underworld
+              location_hint: loc-kotor-taris_lower_city
+              thread_seed: "A Hutt wants you to move a 'cargo' that turns out to be people. Refusing will cost you—but so will saying yes."
+          - label: "Credits are the only code. I work for whoever pays."
+            concept: "a ruthless smuggler"
+            tone: RENEGADE
+            effects:
+              faction_hint: underworld
+              location_hint: loc-kotor-black_market_hub
+              thread_seed: "Both the Republic and the Sith want the same artifact. The highest bidder gets it—and your silence."
+          - label: "I stay neutral. War is bad for business; I just want to fly."
+            concept: "a smuggler who avoids the war"
+            tone: NEUTRAL
+            effects:
+              faction_hint: neutral
+              location_hint: loc-kotor-cantina_generic
+              thread_seed: "Your ship has been impounded at a Republic checkpoint. They'll release it if you run one 'simple' errand—into Sith space."
+    starting_starship: null
+    starting_reputation: {}
+
+  - id: sith_acolyte
+    name: "Sith Acolyte"
+    description: "You are training at a Sith academy—Korriban or a hidden site. The strong survive; the weak serve or die."
+    icon: "sith"
+    starting_stats:
+      Combat: 3
+      Stealth: 2
+      Charisma: 1
+      Tech: 1
+      General: 2
+    questions:
+      - id: ambition
+        title: "What do you want?"
+        subtitle: "The Sith reward ambition—and punish failure."
+        choices:
+          - label: "I want power. I will climb over anyone who stands in my way."
+            concept: "a ruthless Sith acolyte"
+            tone: RENEGADE
+            effects:
+              faction_hint: sith_empire
+              location_hint: loc-kotor-korriban_academy
+              thread_seed: "Your master has ordered you to kill a rival acolyte. Succeed and you advance; fail and you are expendable."
+          - label: "I want to survive. I'll serve until I'm strong enough to choose."
+            concept: "a pragmatic acolyte"
+            tone: NEUTRAL
+            effects:
+              faction_hint: sith_empire
+              location_hint: loc-kotor-sith_academy_secondary
+              thread_seed: "A Jedi has been captured. Your master wants them broken—but the Jedi offers you a way out. Trust is a liability; so is blind obedience."
+          - label: "I want to understand the dark side—not just use it as a weapon."
+            concept: "a philosophical acolyte"
+            tone: PARAGON
+            effects:
+              faction_hint: neutral
+              location_hint: loc-kotor-dark_side_nexus
+              thread_seed: "You've begun to question whether the Sith way is the only path. A Gray Jedi has left a message for you—meet them and decide."
+    starting_starship: null
+    starting_reputation: {}
+
+  - id: mandalorian_warrior
+    name: "Mandalorian Warrior"
+    description: "You are a Mandalorian—bound by the Resol'nare and the memory of the Mandalorian Wars. Your people are scattered but not broken."
+    icon: "mandalorian"
+    starting_stats:
+      Combat: 3
+      Stealth: 1
+      Charisma: 2
+      Tech: 2
+      General: 2
+    questions:
+      - id: honor
+        title: "What does honor demand?"
+        subtitle: "The clans are rebuilding; the galaxy has not forgotten the wars."
+        choices:
+          - label: "I fight for my clan. We will rise again with honor."
+            concept: "a clan-focused Mandalorian"
+            tone: NEUTRAL
+            effects:
+              faction_hint: mandalorian_clans
+              location_hint: loc-kotor-mandalore_camp
+              thread_seed: "A rival clan has challenged yours to a duel of honor. The outcome will decide who leads the gathering—and whether the clans unite or fracture."
+          - label: "I fight for those who cannot. The Resol'nare includes protecting the weak."
+            concept: "a merciful Mandalorian"
+            tone: PARAGON
+            effects:
+              faction_hint: mandalorian_clans
+              location_hint: loc-kotor-frontier_settlement
+              thread_seed: "Refugees are being hunted by Sith. Your clan says it's not our war—but the Resol'nare says otherwise."
+          - label: "I fight for the highest bidder. Honor is in the contract."
+            concept: "a mercenary Mandalorian"
+            tone: RENEGADE
+            effects:
+              faction_hint: underworld
+              location_hint: loc-kotor-mercenary_guild
+              thread_seed: "The Republic and the Sith both want the same target eliminated. The pay is good either way—but the target is a former Mandalorian."
+    starting_starship: null
+    starting_reputation: {}

@@ -1,0 +1,182 @@
+# ============================================================
+# companions.yaml -- Party Companions (TEMPLATE)
+# ============================================================
+#
+# PURPOSE:
+#   Defines recruitable companions with voice profiles, influence mechanics,
+#   banter tuning, and recruitment conditions. Companions travel with the player
+#   and react to player choices via the CompanionReaction node.
+#
+# USED BY:
+#   - Narrator: voice, voice_tags for companion dialogue
+#   - CompanionReaction node: traits for reaction calculation
+#   - CompanionReaction node: influence.triggers for influence deltas
+#   - BanterManager: banter settings for banter generation
+#   - Director: recruitment conditions, enables_affordances for unlocked actions
+#
+# CONVENTIONS:
+#   - Companion IDs use the prefix "comp-<era>-<name>": comp-reb-kessa, comp-or-bastila
+#   - Aim for 3-6 companions per era with diverse voice_tags and traits
+#   - Stagger first_meeting_location values so players encounter companions throughout the game
+#   - Each companion should have at least 2-3 influence triggers
+#
+# GOTCHAS:
+#   - voice_tags MUST be values recognized in VOICE_TAG_SPEECH_PATTERNS
+#     Valid voice_tags:
+#       clipped_military, drawling_smuggler, formal_courtly, gruff_veteran,
+#       mystic_cryptic, scholarly_precise, street_tough, warm_maternal,
+#       sardonic_wit, zealous_convert, tech_jargon, bounty_hunter_terse,
+#       pirate_boisterous, noble_diplomatic, child_innocent, droid_logical,
+#       alien_broken_basic, merchant_haggling
+#   - banter.style MUST match BANTER_POOL keys:
+#     Valid banter_styles: dry_wit, earnest, sarcastic, philosophical,
+#                          competitive, protective, teasing, mentor
+#   - recruitment.first_meeting_location must be a valid location ID
+#   - personal_quest_id must reference a quest in quests.yaml (or null)
+#   - faction_id must reference a faction in factions.yaml
+#   - trait axes are: idealist_pragmatic, merciful_ruthless, lawful_rebellious
+#     Range: -100 to 100 (negative = first trait, positive = second trait)
+#     e.g., idealist_pragmatic: -50 means strongly idealistic
+#     e.g., merciful_ruthless: 60 means moderately ruthless
+# ============================================================
+
+companions:
+
+  # ----------------------------------------------------------
+  # COMPANION 1: Example companion with full annotations
+  # ----------------------------------------------------------
+  - id: comp-tpl-example
+    name: "Example Companion"
+
+    # species: companion species (default: Human)
+    species: "Twi'lek"
+
+    # gender: male | female | nonbinary | etc.
+    gender: female
+
+    # archetype: short description of their role/identity
+    archetype: "Resourceful mechanic"
+
+    # faction_id: which faction they belong to (must exist in factions.yaml)
+    faction_id: faction_neutral
+
+    # role_in_party: companion | specialist | mentor | rival
+    # - companion: standard party member
+    # - specialist: provides unique mechanical benefits
+    # - mentor: guides the player (usually temporary)
+    # - rival: creates tension and may leave/betray
+    role_in_party: specialist
+
+    # voice_tags: speech style tags -- MUST be from VOICE_TAG_SPEECH_PATTERNS
+    # These control how the Narrator writes this companion's dialogue.
+    # Valid values: clipped_military, drawling_smuggler, formal_courtly,
+    #   gruff_veteran, mystic_cryptic, scholarly_precise, street_tough,
+    #   warm_maternal, sardonic_wit, zealous_convert, tech_jargon,
+    #   bounty_hunter_terse, pirate_boisterous, noble_diplomatic,
+    #   child_innocent, droid_logical, alien_broken_basic, merchant_haggling
+    voice_tags:
+      - tech_jargon
+      - sardonic_wit
+
+    # motivation: core drive (1 sentence)
+    motivation: "To keep the ship running and prove that brains beat blasters."
+
+    # speech_quirk: distinctive speech habit (used by Narrator for flavor)
+    speech_quirk: "Names every tool and mechanical component like they're old friends."
+
+    # voice: deep voice characterization
+    voice:
+      belief: "Every machine tells you what's wrong if you listen."
+      wound: "Was abandoned by a mentor who said she wasn't good enough."
+      taboo: "Never leave a job half-finished."
+      rhetorical_style: "matter-of-fact"
+      tell: "Unconsciously taps fingers in diagnostic rhythms."
+
+    # traits: trait axes for CompanionReaction calculations
+    # Three axes, each ranging from -100 to 100:
+    #   idealist_pragmatic:  negative = idealistic, positive = pragmatic
+    #   merciful_ruthless:   negative = merciful, positive = ruthless
+    #   lawful_rebellious:   negative = lawful, positive = rebellious
+    traits:
+      idealist_pragmatic: 30    # Slightly pragmatic
+      merciful_ruthless: -40    # Moderately merciful
+      lawful_rebellious: 20     # Slightly rebellious
+
+    # default_affinity: starting affinity score (default: 0)
+    default_affinity: 5
+
+    # recruitment: how and where the player first meets this companion
+    recruitment:
+      # unlock_conditions: free-text description of how to recruit
+      unlock_conditions: "Encounter at the main hub when the player needs a mechanic."
+      # first_meeting_location: location ID for first encounter (must exist in locations.yaml)
+      first_meeting_location: loc-main_hub
+      # first_scene_template: optional template ID for intro scene
+      first_scene_template: null
+
+    # tags: searchable tags
+    tags:
+      - mechanic
+      - tech
+      - independent
+
+    # enables_affordances: abilities this companion unlocks for the player
+    # e.g., astrogation, sensor_sweep, slice_terminal, medic_heal
+    enables_affordances:
+      - slice_terminal
+      - repair_systems
+
+    # blocks_affordances: abilities this companion prevents (e.g., opposing faction actions)
+    blocks_affordances: []
+
+    # influence: tuning for the influence system (PartyState)
+    influence:
+      # starts_at: initial influence value when recruited
+      starts_at: 5
+      # min / max: influence bounds
+      min: -100
+      max: 100
+      # triggers: automatic influence changes based on player actions
+      # Each trigger has either "intent" or "meaning_tag" + a "delta" value
+      # intent: matches player action intents (threaten, help, lie, negotiate, etc.)
+      # meaning_tag: matches semantic tags on player choices (reveal_values, set_boundary, etc.)
+      triggers:
+        - intent: threaten
+          delta: -5           # Threatening lowers influence
+        - intent: help
+          delta: 3            # Helping raises influence
+        - meaning_tag: reveal_values
+          delta: 2            # Sharing values raises influence
+        - meaning_tag: set_boundary
+          delta: -1           # Setting boundaries slightly lowers influence
+        - intent: lie
+          delta: -3           # Lying lowers influence
+
+    # banter: tuning for the BanterManager
+    banter:
+      # frequency: low | normal | high -- how often this companion banters
+      frequency: normal
+      # style: MUST match BANTER_POOL keys
+      # Valid: dry_wit, earnest, sarcastic, philosophical, competitive,
+      #        protective, teasing, mentor
+      style: dry_wit
+      # triggers: topic keywords that trigger banter (e.g., when the scene involves these topics)
+      triggers:
+        - technology
+        - repair
+        - droids
+        - engines
+
+    # personal_quest_id: quest ID for companion personal quest (null if none)
+    # Must reference a quest in quests.yaml
+    personal_quest_id: null
+
+    # metadata: freeform extension
+    # Common metadata keys: loyalty_hook, recruitment_context, banter_style, faction_interest
+    metadata:
+      loyalty_hook: "Abandoned by her mentor; fiercely loyal to anyone who gives her a second chance."
+      recruitment_context: "Found elbow-deep in a broken hyperdrive at the main hub's docking bay."
+      banter_style: dry_wit
+      faction_interest:
+        - "Independents"
+        - "Tech guilds"

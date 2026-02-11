@@ -1,0 +1,381 @@
+# ============================================================
+# npcs.yaml -- NPCs and Templates (TEMPLATE)
+# ============================================================
+#
+# PURPOSE:
+#   Defines three categories of NPCs:
+#     - anchors:   Canonical named characters (e.g., Luke Skywalker). Always present.
+#     - rotating:  Named but non-canonical NPCs. Recurring but era-specific.
+#     - templates: Generic archetypes for dynamically spawned encounters.
+#
+# USED BY:
+#   - NarrativeValidator: anchors' name/aliases/match_rules for entity detection
+#   - Director & Narrator: voice, voice_tags for NPC dialogue style
+#   - Director: levers for social interaction options, knowledge for info reveals
+#   - Mechanic: authority for access checks
+#   - Encounter node: templates' spawn rules for procedural NPC generation
+#   - NPC generator: templates' namebank for name selection
+#
+# CONVENTIONS:
+#   - Anchor/rotating NPC IDs use snake_case: luke_skywalker, rebel_contact
+#   - Template IDs use snake_case with a descriptive prefix: tpl-guard, tpl-civilian
+#     (or without prefix: stormtrooper_patrol, smuggler_contact)
+#   - Canonical characters go in anchors or rotating, NEVER in templates
+#   - Templates are for generic archetypes (soldiers, merchants, criminals)
+#
+# GOTCHAS:
+#   - YAML false is a boolean! Lever values MUST be quoted strings:
+#       bribeable: 'false'    <-- CORRECT (string "false")
+#       bribeable: false      <-- WRONG (boolean False, will cause validation error)
+#   - All voice sub-fields (belief, wound, taboo, rhetorical_style, tell) are
+#     REQUIRED when the voice object is present
+#   - faction_id must reference a faction defined in factions.yaml
+#   - default_location_id must reference a location defined in locations.yaml
+#   - home_locations entries must reference locations defined in locations.yaml
+#   - knowledge.rumors entries must reference rumor IDs from rumors.yaml
+#   - knowledge.secrets entries must reference fact IDs from facts.yaml
+#   - knowledge.quest_facts entries must be quest IDs or "quest_id:stage_id" strings
+#   - encounter_table.template_id in locations.yaml must reference template IDs, NOT anchor IDs
+# ============================================================
+
+npcs:
+
+  # ============================================================
+  # ANCHORS: Canonical named characters
+  # These are well-known, unique individuals in the era.
+  # ============================================================
+  anchors:
+
+    # ----------------------------------------------------------
+    # ANCHOR NPC 1: A major canonical character
+    # ----------------------------------------------------------
+    - id: anchor_leader
+      name: "Leader Name"
+
+      # rarity: common | rare | legendary
+      # Affects how often this NPC appears; legendary = very rare encounters
+      rarity: legendary
+
+      # aliases: alternative names for entity matching in the NarrativeValidator
+      # Include first name, last name, and common titles
+      aliases:
+        - "Leader"
+        - "The Commander"
+
+      # banned_aliases: tokens to EXCLUDE from matching (prevents false positives)
+      # Common titles that might match other NPCs should be banned
+      banned_aliases:
+        - "Commander"
+
+      # match_rules: how the NarrativeValidator matches this NPC's name in prose
+      match_rules:
+        # min_tokens: minimum number of name tokens for a match (2 = "First Last")
+        min_tokens: 2
+        # require_surname: if true, surname must be present for match
+        require_surname: true
+        # case_sensitive: if true, matching is case-sensitive
+        case_sensitive: false
+        # allow_single_token: if true, a single token (e.g., "Vader") can match
+        allow_single_token: false
+
+      # tags: searchable tags for spawning and Director queries
+      tags:
+        - leader
+        - authority
+
+      # faction_id: which faction this NPC belongs to (must exist in factions.yaml)
+      faction_id: faction_alpha
+
+      # default_location_id: where this NPC is typically found (must exist in locations.yaml)
+      default_location_id: loc-secondary_hub
+
+      # home_locations: all locations where this NPC can appear
+      home_locations:
+        - loc-secondary_hub
+        - loc-command_room
+
+      # role: narrative role description
+      role: "Faction Leader"
+
+      # archetype: character archetype for the Director
+      archetype: "Charismatic commander"
+
+      # species: NPC species (Human, Twi'lek, Wookiee, etc.)
+      species: "Human"
+
+      # traits: personality traits (used for dialogue generation)
+      traits:
+        - disciplined
+        - charismatic
+        - strategic
+
+      # motivation: what drives this NPC (1 sentence)
+      motivation: "Unite the factions and defeat the common enemy."
+
+      # secret: hidden information this NPC holds (used by Director for reveals)
+      secret: "Secretly communicating with the enemy faction to negotiate a ceasefire."
+
+      # voice_tags: speech style tags (free-form for anchor NPCs)
+      voice_tags:
+        - commanding
+        - measured
+        - warm
+
+      # voice: deep voice characterization (all 5 fields required when present)
+      voice:
+        # belief: core belief that drives all decisions (1 sentence)
+        belief: "Unity is the only path to survival."
+        # wound: formative wound that shaped this character (1 sentence)
+        wound: "Lost their homeworld to a devastating attack."
+        # taboo: something this NPC will never do or discuss (short phrase)
+        taboo: "abandoning allies"
+        # rhetorical_style: how they speak
+        # Examples: earnest, blunt, Socratic, coldly_practical, poetic, sardonic
+        rhetorical_style: "measured"
+        # tell: physical/verbal mannerism (the Director uses this for flavor)
+        tell: "Clasps hands behind back when making difficult decisions."
+
+      # levers: social interaction levers -- how the player can influence this NPC
+      # Values: 'false' | 'low' | 'medium' | 'high'
+      # IMPORTANT: Always quote 'false' -- YAML false is a boolean!
+      levers:
+        bribeable: 'false'       # Can this NPC be bribed?
+        intimidatable: 'false'   # Can this NPC be intimidated?
+        charmable: medium        # Can this NPC be charmed? (unquoted string OK for non-false values)
+
+      # authority: access control level
+      authority:
+        # clearance_level: 0-5 scale (0=none, 5=supreme)
+        clearance_level: 4
+        # can_grant_access: location IDs this NPC can grant the player access to
+        can_grant_access:
+          - loc-command_room
+
+      # knowledge: what information this NPC can share with the player
+      knowledge:
+        # rumors: rumor IDs from rumors.yaml that this NPC can share
+        rumors:
+          - rumor_hidden_cache
+        # quest_facts: quest IDs or "quest_id:stage_id" strings
+        quest_facts:
+          - "quest_first_mission:find_contact"
+        # secrets: fact IDs from facts.yaml that this NPC knows
+        secrets:
+          - fact_alpha_controls_hub
+
+      # metadata: freeform extension
+      metadata: {}
+
+  # ============================================================
+  # ROTATING: Named but non-canonical NPCs
+  # These are recurring characters specific to this era pack.
+  # Same fields as anchors (EraNpcEntry model).
+  # ============================================================
+  rotating:
+
+    # ----------------------------------------------------------
+    # ROTATING NPC 1: A recurring named NPC
+    # ----------------------------------------------------------
+    - id: informant_vex
+      name: "Vex Toral"
+      rarity: common
+      aliases:
+        - "Vex"
+      banned_aliases: []
+      match_rules:
+        min_tokens: 1
+        allow_single_token: true
+      tags:
+        - informant
+        - underworld
+      faction_id: faction_neutral
+      default_location_id: loc-main_hub
+      home_locations:
+        - loc-main_hub
+      role: "Information Broker"
+      archetype: "Slippery informant"
+      species: "Rodian"
+      traits:
+        - cunning
+        - nervous
+        - greedy
+      motivation: "Sell secrets to the highest bidder and stay alive."
+      secret: "Works as a double agent for Faction Alpha."
+      voice_tags:
+        - fast
+        - nervous
+        - wheedling
+      voice:
+        belief: "Information is the only real currency."
+        wound: "Betrayed by a partner who sold them out."
+        taboo: "working for free"
+        rhetorical_style: "evasive"
+        tell: "Constantly glances at exits."
+      levers:
+        bribeable: high         # Very susceptible to bribes
+        intimidatable: medium   # Can be intimidated with effort
+        charmable: low          # Slightly charmable
+      authority:
+        clearance_level: 0
+        can_grant_access: []
+      knowledge:
+        rumors:
+          - rumor_hidden_cache
+          - rumor_faction_tension
+        quest_facts: []
+        secrets: []
+      metadata: {}
+
+  # ============================================================
+  # TEMPLATES: Generic archetypes for procedural NPC spawning
+  # ============================================================
+  #
+  # Templates differ from anchors/rotating:
+  #   - role is REQUIRED (not just optional)
+  #   - motivations/secrets are LISTS (pools for random selection)
+  #   - species is a LIST (eligible species for generation)
+  #   - namebank references a key in namebanks.yaml
+  #   - spawn rules control where/when this template can appear
+  #
+  # Templates are referenced by encounter_table.template_id in locations.yaml.
+  # The Encounter node uses spawn rules + encounter_table weights to decide
+  # which NPCs appear in a scene.
+  # ============================================================
+  templates:
+
+    # ----------------------------------------------------------
+    # TEMPLATE 1: A guard/soldier archetype
+    # ----------------------------------------------------------
+    - id: tpl-guard
+      # role: REQUIRED for templates -- the functional role label
+      role: "Guard"
+      archetype: "Dutiful enforcer"
+
+      # traits: personality trait pool (random selection during generation)
+      traits:
+        - disciplined
+        - suspicious
+        - loyal
+
+      # motivations: motivation pool (one is randomly selected per spawn)
+      motivations:
+        - "maintain order"
+        - "follow orders"
+        - "protect the perimeter"
+
+      # secrets: secret pool (one is randomly selected per spawn)
+      secrets:
+        - "resents their commanding officer"
+        - "secretly sympathizes with the opposition"
+        - "hides a gambling debt"
+
+      # voice_tags: speech style pool (applied to spawned NPCs)
+      voice_tags:
+        - clipped
+        - formal
+
+      # species: eligible species for this template (random selection)
+      species:
+        - Human
+        - Zabrak
+
+      # tags: used for spawn matching and Director queries
+      tags:
+        - guard
+        - military
+        - patrol
+
+      # namebank: key into namebanks.yaml for name generation
+      namebank: military_names
+
+      # spawn: conditions for when/where this template can appear
+      spawn:
+        # location_tags_any: spawn if location has ANY of these tags
+        location_tags_any:
+          - military
+          - secure
+          - patrol
+        # location_types_any: spawn if location matches these types (usually empty)
+        location_types_any: []
+        # min_alert / max_alert: alert level range (0-100) for spawning
+        # min_alert must be <= max_alert
+        min_alert: 0
+        max_alert: 100
+
+      # levers, authority, knowledge, voice work the same as for anchors
+      levers:
+        bribeable: 'false'
+        intimidatable: medium
+        charmable: 'false'
+      authority:
+        clearance_level: 1
+        can_grant_access: []
+      knowledge:
+        rumors: []
+        quest_facts: []
+        secrets: []
+      voice:
+        belief: "Order must be maintained."
+        wound: "Saw what happens when discipline fails."
+        taboo: "insubordination"
+        rhetorical_style: "clipped"
+        tell: "Keeps one hand near their weapon."
+      metadata: {}
+
+    # ----------------------------------------------------------
+    # TEMPLATE 2: A civilian/merchant archetype
+    # ----------------------------------------------------------
+    - id: tpl-civilian
+      role: "Civilian"
+      archetype: "Local inhabitant"
+      traits:
+        - cautious
+        - friendly
+        - curious
+      motivations:
+        - "make a living"
+        - "keep family safe"
+        - "avoid trouble"
+      secrets:
+        - "knows about a hidden supply cache"
+        - "overheard something dangerous"
+      voice_tags:
+        - casual
+        - warm
+      species:
+        - Human
+        - Twi'lek
+        - Rodian
+      tags:
+        - civilian
+        - social
+        - trade
+      namebank: civilian_names
+      spawn:
+        location_tags_any:
+          - hub
+          - social
+          - trade
+          - cantina
+        location_types_any: []
+        min_alert: 0
+        max_alert: 80
+      levers:
+        bribeable: low
+        intimidatable: high
+        charmable: medium
+      authority:
+        clearance_level: 0
+        can_grant_access: []
+      knowledge:
+        rumors:
+          - rumor_hidden_cache
+        quest_facts: []
+        secrets: []
+      voice:
+        belief: "Just trying to get by."
+        wound: "Lost something precious to the conflict."
+        taboo: "politics"
+        rhetorical_style: "casual"
+        tell: "Avoids eye contact with armed strangers."
+      metadata: {}

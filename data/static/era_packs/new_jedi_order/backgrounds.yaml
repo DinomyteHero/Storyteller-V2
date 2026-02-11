@@ -1,0 +1,454 @@
+# New Jedi Order Era Backgrounds — Yuuzhan Vong War (25-29 ABY)
+# SWTOR-style branching character backgrounds for the extragalactic invasion.
+
+backgrounds:
+  - id: jedi_knight
+    name: "Jedi Knight"
+    description: "The Jedi Order faces its greatest trial. The Vong cannot be sensed in the Force — and they hate your kind."
+    icon: "force"
+    starting_stats:
+      Combat: 2
+      Stealth: 1
+      Charisma: 2
+      Tech: 1
+      General: 4
+    questions:
+      - id: philosophy
+        title: "How do you view the war against the Yuuzhan Vong?"
+        subtitle: "The Jedi are divided on how to fight an enemy invisible to the Force"
+        choices:
+          - label: "We must fight. The Vong will not stop. Every world we lose is billions of lives."
+            concept: "a Jedi warrior who believes in aggressive action against the Vong"
+            tone: RENEGADE
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-eclipse
+              thread_seed: "The Jedi Council urges restraint. But a Vong assault force is heading for a defenseless world. You have hours to act — with or without permission."
+          - label: "There must be a way to understand them. The Force connects all living things."
+            concept: "a Jedi seeker who believes the Force holds the key to understanding the Vong"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-shelter
+              thread_seed: "Vergere's teachings suggest the Vong are not truly absent from the Force — merely hidden. A living world called Zonama Sekot may hold the answers."
+          - label: "The Jedi must protect the refugees first. We serve the people, not the war."
+            concept: "a Jedi healer dedicated to saving civilian lives"
+            tone: PARAGON
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-mon_calamari
+              thread_seed: "A refugee convoy carrying thousands is stranded in Vong-controlled space. The Republic cannot spare ships. Only the Jedi can reach them in time."
+      - id: loss
+        title: "What has the war taken from you?"
+        subtitle: "Every Jedi has paid a price"
+        choices:
+          - label: "My Master fell at Ithor. I carry their lightsaber and their mission."
+            concept: "carrying a fallen Master's legacy through the darkest war"
+            tone: PARAGON
+            effects:
+              thread_seed: "Your Master's final mission was to locate a Jedi artifact that could reveal the Vong's connection to the Force. The trail leads to occupied Coruscant."
+          - label: "I was captured by the Vong. The Embrace of Pain changed me."
+            concept: "a survivor of Vong captivity, scarred but unbroken"
+            tone: RENEGADE
+            effects:
+              thread_seed: "The implant the Vong placed in you during captivity has begun to pulse. It is not pain this time — it is a signal. They are calling you back."
+          - label: "I watched the fall of Coruscant from orbit. I could do nothing."
+            concept: "haunted by the inability to save the capital of the galaxy"
+            tone: NEUTRAL
+            effects:
+              thread_seed: "Intelligence suggests a resistance network still operates in the ruins of Coruscant — now Yuuzhan'tar. They need Jedi support. But going back means entering the heart of Vong power."
+
+  - id: vong_defector
+    name: "Yuuzhan Vong Defector"
+    description: "You are Shamed — cast out by your people for a perceived failure. Now you seek a new path among the infidels."
+    icon: "alien"
+    starting_stats:
+      Combat: 3
+      Stealth: 2
+      Charisma: 1
+      Tech: 0
+      General: 4
+    questions:
+      - id: reason
+        title: "Why did you turn against the Yuuzhan Vong?"
+        subtitle: "Defection is the greatest heresy"
+        choices:
+          - label: "The gods are silent. The Shamed Ones whisper of a prophet — the Jeedai."
+            concept: "a Shamed One who follows the Jedi heresy"
+            tone: PARAGON
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-shelter
+              thread_seed: "The Shamed Ones underground has heard of your defection. They want you to return to Yuuzhan'tar and lead the heretics — but the Vong secret police are everywhere."
+          - label: "My Domain betrayed me. I was sacrificed for a superior's failure."
+            concept: "a warrior cast out by political betrayal within the caste system"
+            tone: RENEGADE
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-mon_calamari
+              thread_seed: "The Domain that betrayed you is leading a new offensive. You know their tactics, their weaknesses, their commander's secrets. The Republic wants your knowledge."
+          - label: "I touched a machine — and it worked. The gods did not strike me down. Everything I was taught is a lie."
+            concept: "a Vong who discovered that technology does not offend the gods"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-duro
+              thread_seed: "Republic scientists want to study you — your biology, your relationship to the Force void. You are a specimen to them. But their research could save millions."
+      - id: adaptation
+        title: "How have you adapted to the infidel galaxy?"
+        subtitle: "Everything here is an abomination — or a revelation"
+        choices:
+          - label: "I fight alongside the infidels. My amphistaff still knows how to kill Vong warriors."
+            concept: "a Vong warrior fighting their own people alongside the Republic"
+            tone: RENEGADE
+            effects:
+              thread_seed: "Your former warleader has placed a personal bounty on you. Vong hunters are closing in — and they carry creatures bred specifically to track defectors."
+          - label: "I study. I learn. The infidels have knowledge my people destroyed millennia ago."
+            concept: "a scholar of the infidel galaxy, hungry to understand what was forbidden"
+            tone: INVESTIGATE
+            effects:
+              thread_seed: "You have discovered a connection between ancient Vong history and the living planet Zonama Sekot. If your theory is correct, the entire war could be built on a lie."
+          - label: "I try to build bridges. If the Shamed Ones and the Jedi can unite, the war could end."
+            concept: "a peacemaker seeking to unite Vong heretics and Jedi"
+            tone: PARAGON
+            effects:
+              thread_seed: "A Shamed One from the worldship has smuggled a message to you. The heresy is growing — but so is the crackdown. They need a symbol. They need you."
+
+  - id: republic_intelligence
+    name: "Republic Intelligence Agent"
+    description: "The New Republic's eyes and ears. The Vong have no technology to intercept — but your HUMINT networks are bleeding."
+    icon: "intelligence"
+    starting_stats:
+      Combat: 2
+      Stealth: 3
+      Charisma: 2
+      Tech: 2
+      General: 1
+    questions:
+      - id: specialty
+        title: "What is your area of expertise?"
+        subtitle: "Intelligence work in wartime requires every skill"
+        choices:
+          - label: "HUMINT — I run agents behind Vong lines."
+            concept: "a spymaster running intelligence networks in occupied territory"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-eclipse
+              thread_seed: "Your best agent on Yuuzhan'tar has sent a burst transmission. The content is encrypted — and the signature suggests they are compromised."
+          - label: "Counter-intelligence — I hunt Peace Brigade traitors."
+            concept: "a hunter of collaborators who sell out their own species to the Vong"
+            tone: RENEGADE
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-hapes_cluster
+              thread_seed: "You have identified a Peace Brigade cell operating inside the refugee camps. Their next target is a Jedi in hiding. You have one chance to intercept."
+          - label: "Strategic analysis — I study the Vong and find their weaknesses."
+            concept: "an analyst who studies alien patterns to predict their next move"
+            tone: NEUTRAL
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-mon_calamari
+              thread_seed: "Your analysis predicts the next Vong target with 90% confidence. Command does not believe you. If you are right and they do nothing, millions die."
+      - id: trust
+        title: "Who do you trust in this war?"
+        subtitle: "Everyone has an agenda — especially your allies"
+        choices:
+          - label: "The Jedi. They are the only ones who cannot be Vong infiltrators."
+            concept: "an intelligence operative who trusts Force-sensitives above all others"
+            tone: PARAGON
+            effects:
+              thread_seed: "A Jedi you trusted has been behaving strangely. Their actions suggest either deep cover work — or Vong manipulation through an implant."
+          - label: "No one. Trust is a vulnerability the Vong exploit."
+            concept: "a paranoid operative who trusts only their own analysis"
+            tone: RENEGADE
+            effects:
+              thread_seed: "Your paranoia has isolated you from allies — but it also saved your life. Someone has been planting false intelligence, and you are the only one who noticed."
+          - label: "The Imperial Remnant. Pellaeon is a professional. The Republic politicians are not."
+            concept: "an intelligence agent who respects the Remnant more than their own government"
+            tone: NEUTRAL
+            effects:
+              thread_seed: "Pellaeon has offered a back-channel intelligence exchange. Your superiors would call it treason. But the Imperials have data that could turn the war."
+
+  - id: fringer
+    name: "Fringer / Trader"
+    description: "The trade routes are burning. The Vong are reshaping the galaxy — and you are caught in the middle."
+    icon: "scoundrel"
+    starting_stats:
+      Combat: 1
+      Stealth: 2
+      Charisma: 3
+      Tech: 2
+      General: 2
+    questions:
+      - id: trade
+        title: "What do you move through the war zone?"
+        subtitle: "Everything has value when the galaxy is on fire"
+        choices:
+          - label: "Refugees — I run people out of occupied space."
+            concept: "a smuggler who evacuates civilians from Vong-occupied worlds"
+            tone: PARAGON
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-dantooine
+              thread_seed: "A thousand refugees are trapped on a world the Vong are about to terraform. You have one ship and twelve hours. You cannot save them all."
+          - label: "Weapons and supplies — the Republic pays well for blockade runners."
+            concept: "a blockade runner supplying the Republic war effort"
+            tone: NEUTRAL
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-hapes_cluster
+              thread_seed: "Your latest cargo is not weapons — it is a Jedi, unconscious and wrapped in ysalamiri. The Republic wants them delivered to a black site. No questions."
+          - label: "Information — I sell to whoever pays. War is the ultimate market."
+            concept: "an information broker who profits from the chaos of galactic war"
+            tone: RENEGADE
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-eclipse
+              thread_seed: "You have intercepted Vong fleet movements. The Republic would pay. The Hapans would pay more. The Peace Brigade would pay most of all."
+      - id: stakes
+        title: "What keeps you in this fight?"
+        subtitle: "Most people with a ship have already run for the Unknown Regions"
+        choices:
+          - label: "My home was one of the first worlds they took. I want it back."
+            concept: "a dispossessed trader fighting to reclaim a lost homeworld"
+            tone: PARAGON
+            effects:
+              thread_seed: "Scouts report that your homeworld has been completely reshaped by Vong terraforming. Nothing you knew remains — but something unexpected is growing there."
+          - label: "I have people depending on me. My crew, my contacts, the refugees on my ship."
+            concept: "driven by responsibility to the people they have gathered"
+            tone: NEUTRAL
+            effects:
+              thread_seed: "Your crew is exhausted and your ship is falling apart. A safe port offers repairs — but the harbormaster is Peace Brigade. They are asking questions."
+          - label: "Because when this war ends, the person who controlled the supply lines controls the future."
+            concept: "positioning for power in the post-war galaxy"
+            tone: RENEGADE
+            effects:
+              thread_seed: "A consortium of traders has offered you a seat in their post-war economic cartel. The price is exclusive supply contracts — which means cutting off the little operators."
+
+  - id: rogue_pilot
+    name: "Rogue Squadron Pilot"
+    description: "The best of the best. Rogue Squadron flies where others will not — against an enemy that defies every tactic."
+    icon: "pilot"
+    starting_stats:
+      Combat: 3
+      Stealth: 1
+      Charisma: 2
+      Tech: 2
+      General: 2
+    questions:
+      - id: reputation
+        title: "What is your reputation in the squadron?"
+        subtitle: "Every Rogue has a legend"
+        choices:
+          - label: "The ace — more kills than anyone in the unit. I live in the cockpit."
+            concept: "a legendary Rogue Squadron ace with a reputation for impossible victories"
+            tone: NEUTRAL
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-borleias_siege
+              thread_seed: "Command wants you to lead a suicide run against a Vong worldship. The plan is insane. But if it works, it could break the siege."
+          - label: "The leader — I bring my pilots home alive. That is what matters."
+            concept: "a Rogue Squadron leader who puts their pilots above all else"
+            tone: PARAGON
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-borleias_siege
+              thread_seed: "You have lost three pilots this week. The replacements are green. The next mission is the most dangerous yet — and Command is not offering a choice."
+          - label: "The wild card — I break formation, I improvise, and I get results."
+            concept: "a brilliant but reckless Rogue who pushes every boundary"
+            tone: RENEGADE
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-borleias_siege
+              thread_seed: "Your last stunt saved the convoy but cost a wingmate their fighter. Command wants to ground you. Your squadron wants you to fly. The Vong are not waiting."
+      - id: vong_war
+        title: "How has the Vong war changed you?"
+        subtitle: "Fighting coralskippers and plasma is not like anything you trained for"
+        choices:
+          - label: "I have adapted. The Vong fight differently — so I have learned to think like them."
+            concept: "a pilot who has studied Vong tactics and developed counter-strategies"
+            tone: INVESTIGATE
+            effects:
+              thread_seed: "Your tactical innovations have reached the ears of the Vong. A warrior commander has issued a personal challenge — single combat, ship to ship. Refusing would be wise. Accepting could reveal their tactics."
+          - label: "Every battle chips away at me. I am running on anger and stims."
+            concept: "a pilot burning out from the relentless pace of total war"
+            tone: RENEGADE
+            effects:
+              thread_seed: "Medical has flagged your stim usage. One more red flag and you are grounded. But without you, your squadron does not survive the next sortie."
+          - label: "I fly for the friends I have lost. Their memory keeps me in the cockpit."
+            concept: "a pilot who flies for fallen comrades and the promise of a better galaxy"
+            tone: PARAGON
+            effects:
+              thread_seed: "A message has arrived from a pilot you thought was killed at Coruscant. They are alive — a prisoner on a Vong worldship. A rescue is impossible. Almost."
+
+  - id: galactic_diplomat
+    name: "Galactic Alliance Diplomat"
+    description: "Negotiation is your weapon. The war has scattered the galaxy — but only unity can stop the Vong."
+    icon: "diplomat"
+    starting_stats:
+      Combat: 1
+      Stealth: 1
+      Charisma: 4
+      Tech: 2
+      General: 2
+    starting_starship: consular_modified
+    questions:
+      - id: philosophy
+        title: "What drives your diplomatic approach?"
+        subtitle: "In a galaxy at war, every word matters"
+        choices:
+          - label: "Idealism — I believe we can forge a united front if we appeal to common values."
+            concept: "an idealist diplomat who believes unity can be achieved through shared principles"
+            tone: PARAGON
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-mon_calamari
+              thread_seed: "The Hapan Consortium refuses to commit forces unless they receive assurances that contradict promises you made to the Imperial Remnant. Both are essential — and both are watching."
+          - label: "Pragmatism — Alliances are transactional. I deliver what each faction wants."
+            concept: "a pragmatic negotiator who trades concessions for cooperation"
+            tone: NEUTRAL
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-hapes_cluster
+              thread_seed: "The Bothans have intelligence that could save millions — but they want Republic support for a covert operation that violates the Coruscant Accords. The choice is yours."
+          - label: "Manipulation — I tell each side what they need to hear to serve the greater good."
+            concept: "a manipulative diplomat who bends truth to achieve strategic outcomes"
+            tone: RENEGADE
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-eclipse
+              thread_seed: "You have orchestrated a fragile alliance through carefully constructed lies. Now one faction has discovered the truth — and they are demanding answers you cannot give."
+      - id: negotiation_moment
+        title: "What was your defining negotiation?"
+        subtitle: "Every diplomat has a moment that defines their career"
+        choices:
+          - label: "I negotiated the Remnant-Republic ceasefire at Bastion. It saved millions."
+            concept: "a diplomat who brokered peace between old enemies to face a greater threat"
+            tone: PARAGON
+            effects:
+              thread_seed: "Imperial hardliners oppose Pellaeon's alliance and are plotting a coup. If the Remnant falls to infighting, the unified front collapses — and the Vong win."
+          - label: "I exposed a Peace Brigade infiltration of the Senate. I made enemies that day."
+            concept: "a diplomat who chose truth over political safety"
+            tone: INVESTIGATE
+            effects:
+              thread_seed: "The Peace Brigade has placed a bounty on you. Your protection detail was compromised. Someone inside the Republic gave them your location."
+          - label: "I convinced a Hutt clan to allow refugee transports through their space. I promised favors I cannot deliver."
+            concept: "a diplomat who makes dangerous promises to save lives in the moment"
+            tone: RENEGADE
+            effects:
+              thread_seed: "The Hutts are calling in your debt. They want Republic military assets 'misplaced' into their territory. Refuse and the refugee corridor closes. Comply and you commit treason."
+
+  - id: vong_biotech_scientist
+    name: "Vong Biotech Scientist"
+    description: "You study what others fear. Yuuzhan Vong biotechnology could save the galaxy — or doom it."
+    icon: "science"
+    starting_stats:
+      Combat: 0
+      Stealth: 2
+      Charisma: 1
+      Tech: 4
+      General: 3
+    starting_starship: freighter_lab
+    questions:
+      - id: research_focus
+        title: "What is your primary research focus?"
+        subtitle: "Vong biotech is unlike anything the galaxy has seen"
+        choices:
+          - label: "Weaponization — If we can reverse-engineer their bioweapons, we can turn them against the Vong."
+            concept: "a scientist developing weapons from captured Vong organisms"
+            tone: RENEGADE
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-mon_calamari
+              thread_seed: "Your prototype bioweapon works — but it requires Vong tissue harvested from living prisoners. Command approves. Your ethics do not."
+          - label: "Medical applications — Vong biotechnology could revolutionize medicine and save billions."
+            concept: "a researcher seeking to adapt Vong healing organisms for galactic medicine"
+            tone: PARAGON
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-eclipse
+              thread_seed: "You have developed a healing organism from Vong biotech that can regenerate lost limbs. The Jedi want it for war casualties. A corporation wants to patent it for profit. You hold the only sample."
+          - label: "Understanding — The Vong relationship to the Force is the key to ending this war."
+            concept: "a theoretical scientist studying the Force void surrounding the Yuuzhan Vong"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-shelter
+              thread_seed: "Your research suggests the Vong are not absent from the Force — they are severed from it, deliberately. If you are correct, they are victims as much as invaders. This changes everything."
+      - id: ethical_line
+        title: "Have you crossed an ethical line in your research?"
+        subtitle: "Science in wartime demands impossible choices"
+        choices:
+          - label: "Yes — I experimented on captured Vong subjects. I regret it, but the data saved lives."
+            concept: "a scientist who committed atrocities for the greater good and lives with the guilt"
+            tone: RENEGADE
+            effects:
+              thread_seed: "A Shamed One defector recognizes you as the scientist who tortured their sibling. They want justice. You need their cooperation to continue your research."
+          - label: "No — I have refused to compromise my principles, even when ordered to."
+            concept: "a scientist who maintains ethical boundaries despite institutional pressure"
+            tone: PARAGON
+            effects:
+              thread_seed: "Command has ordered you to weaponize a disease that would spread through Vong worldships. It would be genocide — but it would end the war. Your refusal has consequences."
+          - label: "Almost — I came close to crossing the line. I stopped myself in time."
+            concept: "a scientist who nearly compromised their ethics but found a way to pull back"
+            tone: INVESTIGATE
+            effects:
+              thread_seed: "Your colleague did not stop where you did. Their research has produced a horror — a hybrid organism that kills indiscriminately. They have been arrested. You hold the only key to stopping it."
+
+  - id: force_sensitive_civilian
+    name: "Force-Sensitive Civilian"
+    description: "The Force has awakened in you during the galaxy's darkest hour. You are untrained — and hunted."
+    icon: "force_awakening"
+    starting_stats:
+      Combat: 1
+      Stealth: 2
+      Charisma: 2
+      Tech: 2
+      General: 3
+    starting_starship: family_transport
+    questions:
+      - id: discovery
+        title: "How did you discover your Force sensitivity?"
+        subtitle: "The Force manifests in unexpected ways"
+        choices:
+          - label: "In a crisis — Vong warriors were about to kill me. I pushed them away without touching them."
+            concept: "a civilian whose Force powers manifested under life-threatening stress"
+            tone: RENEGADE
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-dantooine
+              thread_seed: "Your power is raw and uncontrolled. You reached for the Force again and nearly killed an innocent. The Jedi can train you — but only if you can reach them alive."
+          - label: "A Jedi found me — they sensed my potential and offered training."
+            concept: "a Force-sensitive discovered and guided by a Jedi mentor"
+            tone: PARAGON
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-eclipse
+              thread_seed: "Your Jedi mentor has been called to a suicide mission against the Vong. They want to leave you behind where it is safe. But you have foreseen their death — and you are the only one who can prevent it."
+          - label: "By accident — I touched a Jedi artifact and it reacted to me."
+            concept: "a civilian who stumbled into their Force sensitivity through chance"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-ossus_ruins
+              thread_seed: "The artifact that awakened you is ancient and powerful. The Jedi want to secure it. The Vong want to destroy it. You are the only one who can activate it — but you do not know what it does."
+      - id: reaction
+        title: "How have you responded to your newfound abilities?"
+        subtitle: "The Force is a gift, a curse, or a responsibility"
+        choices:
+          - label: "Fear — I hide what I am. The Vong kill Force users on sight."
+            concept: "a frightened Force-sensitive trying to conceal their abilities to survive"
+            tone: NEUTRAL
+            effects:
+              thread_seed: "You are trapped on a Vong-occupied world. Your Force presence is weak, but a Vong priest is hunting for Force-sensitives. Every use of your power brings them closer."
+          - label: "Embrace — This is who I was meant to be. I want to learn, to fight, to matter."
+            concept: "a Force-sensitive eager to embrace their destiny and join the fight"
+            tone: PARAGON
+            effects:
+              thread_seed: "A Jedi strike team needs a Force-sensitive for a mission behind enemy lines. You have no training, but your raw power is what they need. They are leaving in one hour."
+          - label: "Denial — This is not real. I am not special. I just want my normal life back."
+            concept: "a Force-sensitive in denial about their abilities and their significance"
+            tone: INVESTIGATE
+            effects:
+              thread_seed: "Your denial is breaking down. The visions are getting stronger — and they are showing you atrocities the Vong are about to commit. You cannot stop them alone. But if you seek help, you admit what you are."

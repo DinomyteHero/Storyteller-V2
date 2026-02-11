@@ -1,0 +1,124 @@
+# The Dark Times — Facts (20+)
+# Clone Wars, Order 66, Imperial hierarchy, Jedi Purge, resistance.
+
+facts:
+  - id: fact_empire_controls_palace
+    subject: galactic_empire
+    predicate: controls
+    object: loc-imperial_palace
+    confidence: 1.0
+  - id: fact_empire_controls_isb
+    subject: galactic_empire
+    predicate: controls
+    object: loc-isb_headquarters
+    confidence: 1.0
+  - id: fact_order66_utapau
+    subject: clone_troopers
+    predicate: executed
+    object: Order_66_at_Utapau
+    confidence: 1.0
+  - id: fact_jedi_temple_fell
+    subject: Jedi_Order
+    predicate: fell_at
+    object: Coruscant_Jedi_Temple
+    confidence: 1.0
+  - id: fact_inquisitors_hunt_jedi
+    subject: Inquisitorius
+    predicate: hunts
+    object: jedi_survivors
+    confidence: 1.0
+  - id: fact_501st_march_temple
+    subject: 501st_Legion
+    predicate: marched_on
+    object: Coruscant_Jedi_Temple
+    confidence: 1.0
+  - id: fact_jedi_survivors_hide
+    subject: jedi_survivors
+    predicate: hide_in
+    object: loc-jedi_safe_house
+    confidence: 0.9
+  - id: fact_resistance_safe_house
+    subject: early_resistance
+    predicate: operates
+    object: loc-rebel_cell_safe_house
+    confidence: 0.85
+  - id: fact_ossus_archives_targeted
+    subject: galactic_empire
+    predicate: targets
+    object: loc-ossus_archives_ruin
+    confidence: 0.9
+  - id: fact_smugglers_run_refugees
+    subject: underworld
+    predicate: runs_refugees_via
+    object: loc-smuggler_den
+    confidence: 0.8
+  - id: fact_bail_organa_sympathizer
+    subject: Bail_Organa
+    predicate: supports
+    object: early_resistance
+    confidence: 0.85
+  - id: fact_clone_chips_order66
+    subject: clone_troopers
+    predicate: have
+    object: inhibitor_chip
+    confidence: 0.95
+  - id: fact_vader_hunts_jedi
+    subject: Darth_Vader
+    predicate: hunts
+    object: jedi_survivors
+    confidence: 1.0
+  - id: fact_empire_garrison_coruscant
+    subject: galactic_empire
+    predicate: garrisons
+    object: loc-imperial_garrison_coruscant
+    confidence: 1.0
+  - id: fact_meditation_sanctuary_hidden
+    subject: jedi_survivors
+    predicate: use
+    object: loc-meditation_sanctuary
+    confidence: 0.85
+  - id: fact_refugee_camp_resistance
+    subject: early_resistance
+    predicate: supports
+    object: loc-refugee_camp
+    confidence: 0.8
+  - id: fact_inquisitorius_fortress
+    subject: galactic_empire
+    predicate: operates
+    object: loc-inquisitorius_fortress
+    confidence: 1.0
+  - id: fact_republic_bases_converted
+    subject: galactic_empire
+    predicate: converted
+    object: Republic_military_bases
+    confidence: 1.0
+  - id: fact_black_market_weapons
+    subject: underworld
+    predicate: sells
+    object: weapons_and_papers
+    confidence: 0.9
+  - id: fact_yoda_exile_dagobah
+    subject: Yoda
+    predicate: in_exile_at
+    object: loc-dagobah_swamp
+    confidence: 0.9
+  - id: fact_obi_wan_tatooine
+    subject: Obi_Wan_Kenobi
+    predicate: hides_on
+    object: Tatooine
+    confidence: 0.9
+  - id: fact_empire_blockade_stations
+    subject: galactic_empire
+    predicate: controls
+    object: loc-blockade_station
+    confidence: 1.0
+  - id: fact_munitions_factory_imperial
+    subject: galactic_empire
+    predicate: operates
+    object: loc-munitions_factory
+    confidence: 1.0
+  - id: fact_survival_bunker_jedi
+    subject: jedi_survivors
+    predicate: use
+    object: loc-survival_bunker
+    confidence: 0.85

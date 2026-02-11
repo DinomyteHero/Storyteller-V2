@@ -1,0 +1,5428 @@
+npcs:
+  anchors:
+  - id: luke_skywalker_master
+    name: Luke Skywalker
+    aliases:
+    - Master Skywalker
+    - Luke
+    tags:
+    - jedi
+    - master
+    - legend
+    - hero
+    faction_id: jedi_order
+    default_location_id: loc-yavin_praxeum
+    role: Jedi Grand Master
+    archetype: Wise teacher
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - wise
+    - patient
+    - powerful
+    motivation: Rebuild the Jedi Order and protect the New Republic
+    secret: Fears falling to the dark side like his father
+    voice_tags:
+    - calm
+    - warm
+    - authoritative
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: grand_admiral_thrawn
+    name: Grand Admiral Thrawn
+    aliases:
+    - Thrawn
+    - Mitth'raw'nuruodo
+    tags:
+    - imperial
+    - chiss
+    - genius
+    - leader
+    faction_id: imperial_remnant
+    default_location_id: loc-chimaera
+    role: Grand Admiral
+    archetype: Strategic genius
+    match_rules:
+      min_tokens: 1
+      allow_single_token: true
+    traits:
+    - brilliant
+    - calm
+    - artistic
+    - ruthless
+    motivation: Restore the Empire to bring order and prepare for unknown threats
+    secret: Studies art to understand and defeat species psychologically
+    voice_tags:
+    - soft
+    - precise
+    - cold
+    - cultured
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: mara_jade
+    name: Mara Jade
+    aliases:
+    - Mara
+    - Jade
+    tags:
+    - smuggler
+    - force_sensitive
+    - former_imperial
+    - assassin
+    faction_id: smugglers_alliance
+    default_location_id: loc-myrkr
+    role: Smuggler / Emperor's Hand
+    archetype: Redeeming assassin
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - sharp
+    - competent
+    - conflicted
+    - fiery
+    motivation: Survive and find her own path away from the Emperor's voice
+    secret: 'Still hears the Emperor''s last command: "You will kill Luke Skywalker"'
+    voice_tags:
+    - sarcastic
+    - sharp
+    - confident
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: leia_organa_solo
+    name: Leia Organa Solo
+    aliases:
+    - Councilor Organa Solo
+    - Leia
+    tags:
+    - republic
+    - diplomat
+    - leader
+    - mother
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Chief of State
+    archetype: State leader
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - diplomatic
+    - resolute
+    - visionary
+    motivation: Keep the fragile New Republic together
+    secret: Worries her Jedi training is neglected and fears for her children
+    voice_tags:
+    - commanding
+    - diplomatic
+    - warm
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: han_solo_general
+    name: Han Solo
+    aliases:
+    - General Solo
+    - Han
+    tags:
+    - republic
+    - general
+    - pilot
+    - hero
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: General (Retired)
+    archetype: Reluctant statesman
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - charming
+    - unconventional
+    - loyal
+    motivation: Support Leia and raise their children (and maybe do some "scouting")
+    secret: Misses the simple life of a smuggler
+    voice_tags:
+    - wry
+    - sarcastic
+    - relaxed
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: talon_karrde
+    name: Talon Karrde
+    aliases:
+    - Karrde
+    tags:
+    - smuggler
+    - information_broker
+    - leader
+    faction_id: smugglers_alliance
+    default_location_id: loc-myrkr
+    role: Information Broker
+    archetype: Gentleman thief
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - polite
+    - shrewd
+    - honorable
+    motivation: Keep his organization profitable and neutral
+    secret: Respects the Jedi more than he admits
+    voice_tags:
+    - cultured
+    - polite
+    - calculating
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: gilad_pellaeon
+    name: Gilad Pellaeon
+    aliases:
+    - Captain Pellaeon
+    - Pellaeon
+    tags:
+    - imperial
+    - captain
+    - loyal
+    faction_id: imperial_remnant
+    default_location_id: loc-chimaera
+    role: Ship Captain
+    archetype: Loyal soldier
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - disciplined
+    - loyal
+    - pragmatic
+    motivation: Serve the Empire and learn from Thrawn
+    secret: Admires Thrawn but fears his methods
+    voice_tags:
+    - professional
+    - weary
+    - respectful
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: joruus_cbaoth
+    name: Joruus C'baoth
+    aliases:
+    - Master C'baoth
+    - C'baoth
+    tags:
+    - dark_jedi
+    - clone
+    - insane
+    faction_id: imperial_remnant
+    default_location_id: loc-wayland
+    role: Dark Jedi Master
+    archetype: Mad wizard
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - arrogant
+    - unstable
+    - powerful
+    motivation: Create a new Jedi Order under his absolute control
+    secret: Is an insane clone of a dead Jedi Master
+    voice_tags:
+    - booming
+    - arrogant
+    - unstable
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: garm_bel_iblis
+    name: Garm Bel Iblis
+    aliases:
+    - Bel Iblis
+    - Garm
+    tags:
+    - republic
+    - general
+    - independent
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: General
+    archetype: Maverick commander
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - stubborn
+    - charismatic
+    - tactical
+    motivation: Defeat the Empire his own way
+    secret: Holds a grudge against Mon Mothma's leadership style
+    voice_tags:
+    - gruff
+    - authoritative
+    - passionate
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: rukh
+    name: Rukh
+    aliases:
+    - Rukh
+    tags:
+    - noghri
+    - assassin
+    - bodyguard
+    faction_id: imperial_remnant
+    default_location_id: loc-chimaera
+    role: Bodyguard
+    archetype: Silent killer
+    match_rules:
+      min_tokens: 1
+    traits:
+    - silent
+    - lethal
+    - loyal (to people)
+    motivation: Serve Vader's heir (Thrawn)
+    secret: Unaware that the Empire betrayed his people
+    voice_tags:
+    - guttural
+    - quiet
+    - precise
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_ben_skywalker
+    name: Ben Skywalker
+    rarity: unique
+    aliases:
+    - Ben Solo
+    - Young Jedi
+    faction_id: jedi_order
+    role: Jedi Warrior
+    archetype: Force User
+    traits:
+    - Conflicted
+    - Determined
+    - Isolated
+    motivation: Protect sister and find balance in the Force
+    secret: Struggles with anger and family legacy pressure
+    voice_tags:
+    - determined
+    - cautious
+    - formal
+    default_location_id: loc-yavin_praxeum
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 3
+      can_grant_access:
+      - jedi_academy
+      - training_grounds
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_jaina_solo
+    name: Jaina Solo
+    rarity: unique
+    aliases:
+    - Sword of the Jedi
+    - Jaina
+    faction_id: jedi_order
+    role: Jedi Knight
+    archetype: Force User
+    traits:
+    - Bold
+    - Strategic
+    - Compassionate
+    motivation: Defend the New Republic and lead Jedi efforts
+    secret: Carries guilt from past conflicts with brother
+    voice_tags:
+    - earnest
+    - commanding
+    - diplomatic
+    default_location_id: loc-coruscant
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 4
+      can_grant_access:
+      - jedi_academy
+      - senate
+      - military_command
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_callista_ming
+    name: Callista Ming
+    rarity: rare
+    aliases:
+    - Callista
+    - Lost Jedi
+    faction_id: jedi_order
+    role: Jedi Knight
+    archetype: Force User
+    traits:
+    - Mysterious
+    - Skilled
+    - Troubled
+    motivation: Restore herself and reclaim Jedi identity
+    secret: Struggles with loss of Force connection
+    voice_tags:
+    - thoughtful
+    - melancholic
+    default_location_id: loc-yavin_praxeum
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - jedi_academy
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_garm_bel_iblis
+    name: Garm Bel Iblis
+    rarity: unique
+    aliases:
+    - Admiral Bel Iblis
+    faction_id: new_republic
+    role: Military Admiral
+    archetype: Strategist
+    traits:
+    - Independent
+    - Cunning
+    - Proud
+    motivation: Ensure New Republic military strength
+    secret: Questions civilian leadership
+    voice_tags:
+    - commanding
+    - gruff
+    default_location_id: loc-fleet_base_orbital
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 4
+      can_grant_access:
+      - military_command
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_hiram_drayson
+    name: Admiral Hiram Drayson
+    rarity: unique
+    aliases:
+    - Admiral Drayson
+    faction_id: new_republic
+    role: Intelligence Director
+    archetype: Spymaster
+    traits:
+    - Pragmatic
+    - Secretive
+    - Thorough
+    motivation: Protect New Republic through intelligence
+    secret: Operates beyond official Republic oversight
+    voice_tags:
+    - measured
+    - vague
+    default_location_id: loc-coruscant
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 5
+      can_grant_access:
+      - nri_operations
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_soontir_fel
+    name: Soontir Fel
+    rarity: unique
+    aliases:
+    - Baron Fel
+    faction_id: imperial_remnant
+    role: Military Commander
+    archetype: Pilot
+    traits:
+    - Proud
+    - Skilled
+    - Stubborn
+    motivation: Restore Imperial glory
+    secret: Doubts Remnant viability
+    voice_tags:
+    - commanding
+    - formal
+    default_location_id: loc-bastion
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 4
+      can_grant_access:
+      - imperial_military
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_leia_organa_solo
+    name: Leia Organa Solo
+    rarity: unique
+    aliases:
+    - Chief of State
+    faction_id: new_republic
+    role: Political Leader
+    archetype: Diplomat
+    traits:
+    - Decisive
+    - Principled
+    - Wise
+    motivation: Build lasting peace
+    secret: Carries weight of billions-scale decisions
+    voice_tags:
+    - diplomatic
+    - commanding
+    default_location_id: loc-coruscant
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 5
+      can_grant_access:
+      - senate
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_mon_mothma
+    name: Mon Mothma
+    rarity: unique
+    aliases:
+    - Admiral Mothma
+    faction_id: new_republic
+    role: Military Admiral
+    archetype: Strategist
+    traits:
+    - Careful
+    - Strategic
+    - Diplomatic
+    motivation: Ensure Republic stability
+    secret: Concerns about long-term viability
+    voice_tags:
+    - diplomatic
+    - measured
+    default_location_id: loc-coruscant
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 5
+      can_grant_access:
+      - senate
+      - military_command
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_wedge_antilles
+    name: Wedge Antilles
+    rarity: unique
+    aliases:
+    - General Antilles
+    faction_id: new_republic
+    role: Military General
+    archetype: Pilot
+    traits:
+    - Skilled
+    - Brave
+    - Principled
+    motivation: Protect Republic and train pilots
+    secret: Struggles with war losses
+    voice_tags:
+    - earnest
+    - commanding
+    default_location_id: loc-chandrila_academy
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 4
+      can_grant_access:
+      - military_command
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_talon_karrde
+    name: Talon Karrde
+    rarity: unique
+    aliases:
+    - Smuggler Lord
+    faction_id: smugglers_alliance
+    role: Smuggling Lord
+    archetype: Scoundrel
+    traits:
+    - Cunning
+    - Pragmatic
+    - Connected
+    motivation: Maintain smuggling empire
+    secret: Has leverage over both NR and Remnant
+    voice_tags:
+    - formal
+    - calculated
+    default_location_id: loc-myrkr
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - smuggler_network
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  rotating:
+  - id: winter_celchu
+    name: Winter Celchu
+    aliases:
+    - Winter
+    - Targeter
+    tags:
+    - republic
+    - spy
+    - memory
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Intelligence Operative
+    archetype: Perfect memory spy
+    match_rules:
+      min_tokens: 1
+    traits:
+    - cold
+    - precise
+    - protective
+    motivation: Protect Leia and the children
+    secret: Remembers every detail of her life perfectly, including every trauma
+    voice_tags:
+    - cool
+    - emotionless
+    - precise
+    spawn:
+      location_tags_any:
+      - memory
+      - republic
+      - spy
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: borsk_feylya
+    name: Borsk Fey'lya
+    aliases:
+    - Councilor Fey'lya
+    - Fey'lya
+    tags:
+    - republic
+    - politician
+    - bothan
+    - ambitious
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Councilor
+    archetype: Ambitious politician
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - ambitious
+    - slippery
+    - political
+    motivation: Increase Bothan influence and his own power
+    secret: Willing to sabotage rivals even if it hurts the Republic
+    voice_tags:
+    - smooth
+    - persuasive
+    - insincere
+    spawn:
+      location_tags_any:
+      - ambitious
+      - bothan
+      - politician
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: wedge_antilles_nr
+    name: Wedge Antilles
+    aliases:
+    - Wedge
+    - General Antilles
+    tags:
+    - republic
+    - pilot
+    - ace
+    - rogue_squadron
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Starfighter Commander
+    archetype: Legendary ace
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - skilled
+    - humble
+    - steadfast
+    motivation: Lead Rogue Squadron and keep his pilots alive
+    secret: Turned down a generalship twice because he belongs in a cockpit
+    voice_tags:
+    - calm
+    - professional
+    - understated
+    spawn:
+      location_tags_any:
+      - ace
+      - pilot
+      - republic
+      - rogue_squadron
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: corran_horn
+    name: Corran Horn
+    aliases:
+    - Horn
+    - Corran
+    tags:
+    - jedi
+    - pilot
+    - detective
+    - corsec
+    faction_id: jedi_order
+    default_location_id: loc-yavin_praxeum
+    role: Jedi Knight / Rogue Pilot
+    archetype: Cop turned Jedi
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - stubborn
+    - perceptive
+    - righteous
+    motivation: Reconcile his CorSec detective instincts with the ways of the Force
+    secret: Cannot use telekinesis, compensates with illusions and energy absorption
+    voice_tags:
+    - sharp
+    - sardonic
+    - detective-like
+    spawn:
+      location_tags_any:
+      - corsec
+      - detective
+      - jedi
+      - pilot
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: tycho_celchu
+    name: Tycho Celchu
+    aliases:
+    - Tycho
+    - Colonel Celchu
+    tags:
+    - republic
+    - pilot
+    - alderaanian
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Rogue Squadron XO
+    archetype: Quiet professional
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - disciplined
+    - grieving
+    - loyal
+    motivation: Honor the memory of Alderaan through service
+    secret: Was brainwashed by the Empire and fears he may still be compromised
+    voice_tags:
+    - calm
+    - precise
+    - melancholy
+    spawn:
+      location_tags_any:
+      - alderaanian
+      - pilot
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: mirax_terrik
+    name: Mirax Terrik
+    aliases:
+    - Mirax
+    - Terrik
+    tags:
+    - smuggler
+    - trader
+    - independent
+    faction_id: smugglers_alliance
+    default_location_id: loc-coruscant
+    role: Trader / Smuggler
+    archetype: Shrewd merchant
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - resourceful
+    - confident
+    - independent
+    motivation: Run her trading business and support Corran
+    secret: Her father Booster Terrik is an ex-con who runs a captured Star Destroyer
+    voice_tags:
+    - direct
+    - witty
+    - business-like
+    spawn:
+      location_tags_any:
+      - independent
+      - smuggler
+      - trader
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: kyp_durron_nr
+    name: Kyp Durron
+    aliases:
+    - Kyp
+    - Durron
+    tags:
+    - jedi
+    - controversial
+    - powerful
+    faction_id: jedi_order
+    default_location_id: loc-yavin_praxeum
+    role: Jedi Knight
+    archetype: Reckless prodigy
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - powerful
+    - impulsive
+    - guilt-ridden
+    motivation: Atone for destroying a star system under the dark side's influence
+    secret: Once wielded the Sun Crusher and obliterated the Carida system
+    voice_tags:
+    - intense
+    - brash
+    - haunted
+    spawn:
+      location_tags_any:
+      - controversial
+      - jedi
+      - powerful
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: admiral_ackbar_nr
+    name: Admiral Ackbar
+    aliases:
+    - Ackbar
+    tags:
+    - republic
+    - military
+    - mon_calamari
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Supreme Commander
+    archetype: Elder strategist
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - cautious
+    - brilliant
+    - honorable
+    motivation: Protect the New Republic fleet from Thrawn's tactics
+    secret: Framed by Imperial Intelligence and temporarily disgraced
+    voice_tags:
+    - deliberate
+    - grave
+    - tactical
+    spawn:
+      location_tags_any:
+      - military
+      - mon_calamari
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: airen_cracken
+    name: Airen Cracken
+    aliases:
+    - General Cracken
+    - Cracken
+    banned_aliases:
+    - General
+    tags:
+    - republic
+    - intelligence
+    - spymaster
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Director of Intelligence
+    archetype: Watchful spymaster
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - paranoid
+    - meticulous
+    - pragmatic
+    motivation: Root out Imperial sleeper agents embedded in the New Republic
+    secret: Suspects Bothan spies of playing both sides
+    voice_tags:
+    - quiet
+    - measured
+    - intense
+    spawn:
+      location_tags_any:
+      - intelligence
+      - republic
+      - spymaster
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: booster_terrik
+    name: Booster Terrik
+    aliases:
+    - Booster
+    - Terrik
+    tags:
+    - smuggler
+    - criminal
+    - captain
+    faction_id: smugglers_alliance
+    default_location_id: loc-lusankya
+    role: Captain of the Errant Venture
+    archetype: Loveable pirate
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - boisterous
+    - cunning
+    - protective
+    motivation: Run his Star Destroyer casino ship and protect his daughter
+    secret: Despises Corran Horn for marrying Mirax but grudgingly respects him
+    voice_tags:
+    - booming
+    - jovial
+    - threatening
+    spawn:
+      location_tags_any:
+      - captain
+      - criminal
+      - smuggler
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: kam_solusar
+    name: Kam Solusar
+    aliases:
+    - Kam
+    - Solusar
+    tags:
+    - jedi
+    - redeemed
+    - dark_jedi
+    faction_id: jedi_order
+    default_location_id: loc-yavin_praxeum
+    role: Jedi Master
+    archetype: Redeemed dark sider
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - disciplined
+    - haunted
+    - patient
+    motivation: Atone for his time serving the dark side
+    secret: Was a Dark Jedi under the Reborn Emperor's thrall
+    voice_tags:
+    - quiet
+    - intense
+    - remorseful
+    spawn:
+      location_tags_any:
+      - dark_jedi
+      - jedi
+      - redeemed
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: tionne_solusar
+    name: Tionne Solusar
+    aliases:
+    - Tionne
+    tags:
+    - jedi
+    - historian
+    - musician
+    faction_id: jedi_order
+    default_location_id: loc-yavin_praxeum
+    role: Jedi Historian
+    archetype: Gentle scholar
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - scholarly
+    - kind
+    - musical
+    motivation: Preserve ancient Jedi lore for the new generation
+    secret: Limited Force powers, compensates through knowledge
+    voice_tags:
+    - soft
+    - melodic
+    - thoughtful
+    spawn:
+      location_tags_any:
+      - historian
+      - jedi
+      - musician
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: cilghal
+    name: Cilghal
+    aliases:
+    - Cilghal
+    tags:
+    - jedi
+    - mon_calamari
+    - healer
+    faction_id: jedi_order
+    default_location_id: loc-yavin_praxeum
+    role: Jedi Healer
+    archetype: Compassionate healer
+    match_rules:
+      min_tokens: 1
+    traits:
+    - compassionate
+    - analytical
+    - wise
+    motivation: Use the Force to heal rather than harm
+    secret: Discovered healing techniques lost since the Old Republic
+    voice_tags:
+    - gentle
+    - calm
+    - thoughtful
+    spawn:
+      location_tags_any:
+      - healer
+      - jedi
+      - mon_calamari
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: streen
+    name: Streen
+    aliases:
+    - Streen
+    tags:
+    - jedi
+    - hermit
+    - powerful
+    faction_id: jedi_order
+    default_location_id: loc-yavin_praxeum
+    role: Jedi Knight
+    archetype: Weather hermit
+    match_rules:
+      min_tokens: 1
+    traits:
+    - eccentric
+    - powerful
+    - reclusive
+    motivation: Master control over natural forces
+    secret: Lived alone for years manipulating weather patterns
+    voice_tags:
+    - mumbly
+    - distracted
+    - poetic
+    spawn:
+      location_tags_any:
+      - hermit
+      - jedi
+      - powerful
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: dorsk_81
+    name: Dorsk 81
+    aliases:
+    - Dorsk
+    - '81'
+    tags:
+    - jedi
+    - khommite
+    - martyr
+    faction_id: jedi_order
+    default_location_id: loc-yavin_praxeum
+    role: Jedi Knight
+    archetype: Sacrificial hero
+    match_rules:
+      min_tokens: 1
+    traits:
+    - humble
+    - courageous
+    - selfless
+    motivation: Prove individuality in a species of clones
+    secret: Died pushing an Imperial fleet out of the Yavin system through the Force
+    voice_tags:
+    - earnest
+    - thoughtful
+    - determined
+    spawn:
+      location_tags_any:
+      - jedi
+      - khommite
+      - martyr
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: kirana_ti
+    name: Kirana Ti
+    aliases:
+    - Kirana
+    - Ti
+    tags:
+    - jedi
+    - dathomiri
+    - warrior
+    faction_id: jedi_order
+    default_location_id: loc-yavin_praxeum
+    role: Jedi Knight
+    archetype: Force witch warrior
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - fierce
+    - loyal
+    - traditional
+    motivation: Bridge Dathomiri magic with Jedi teachings
+    secret: Commands Force-trained rancors from Dathomir
+    voice_tags:
+    - strong
+    - direct
+    - tribal
+    spawn:
+      location_tags_any:
+      - dathomiri
+      - jedi
+      - warrior
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: admiral_daala
+    name: Admiral Daala
+    aliases:
+    - Daala
+    - Admiral Daala
+    tags:
+    - imperial
+    - ruthless
+    - admiral
+    faction_id: imperial_remnant
+    default_location_id: loc-maw_installation
+    role: Admiral
+    archetype: Brutal tactician
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - ruthless
+    - disciplined
+    - brilliant
+    motivation: Restore the Empire through superior firepower
+    secret: Kept the Maw Installation operational in isolation for years
+    voice_tags:
+    - cold
+    - commanding
+    - precise
+    spawn:
+      location_tags_any:
+      - admiral
+      - imperial
+      - ruthless
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: sedriss_ql
+    name: Executor Sedriss QL
+    aliases:
+    - Sedriss
+    - Executor Sedriss
+    tags:
+    - imperial
+    - dark_jedi
+    - executor
+    faction_id: imperial_remnant
+    default_location_id: loc-byss
+    role: Dark Side Executor
+    archetype: Dark fanatic
+    match_rules:
+      min_tokens: 1
+    traits:
+    - fanatical
+    - powerful
+    - brutal
+    motivation: Serve the reborn Emperor and crush the Jedi
+    secret: Commands the Emperor's Dark Side Elite on Byss
+    voice_tags:
+    - zealous
+    - booming
+    - threatening
+    spawn:
+      location_tags_any:
+      - dark_jedi
+      - executor
+      - imperial
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: brakiss_nr
+    name: Brakiss
+    aliases:
+    - Brakiss
+    tags:
+    - dark_jedi
+    - imperial
+    - infiltrator
+    faction_id: imperial_remnant
+    default_location_id: loc-yavin_praxeum
+    role: Dark Jedi
+    archetype: Beautiful traitor
+    match_rules:
+      min_tokens: 1
+    traits:
+    - beautiful
+    - deceptive
+    - ambitious
+    motivation: Infiltrate the Jedi academy and corrupt students
+    secret: Luke's failed student who rejected the light for power
+    voice_tags:
+    - smooth
+    - charming
+    - cold
+    spawn:
+      location_tags_any:
+      - dark_jedi
+      - imperial
+      - infiltrator
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: nrin_vakil
+    name: Nrin Vakil
+    aliases:
+    - Nrin
+    - Vakil
+    tags:
+    - republic
+    - pilot
+    - quarren
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Rogue Squadron Pilot
+    archetype: Steady wingman
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - calm
+    - methodical
+    - loyal
+    motivation: Prove Quarren can serve alongside Mon Calamari
+    secret: Escaped slavery and rebuilt his life through Rogue Squadron
+    voice_tags:
+    - deep
+    - measured
+    - calm
+    spawn:
+      location_tags_any:
+      - pilot
+      - quarren
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: nawara_ven
+    name: Nawara Ven
+    aliases:
+    - Nawara
+    - Ven
+    tags:
+    - republic
+    - pilot
+    - lawyer
+    - twilek
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Rogue Pilot / Lawyer
+    archetype: Pilot lawyer
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - eloquent
+    - skilled
+    - calm
+    motivation: Defend justice in and out of the cockpit
+    secret: Uses legal expertise to extract pilots from trouble
+    voice_tags:
+    - eloquent
+    - calm
+    - persuasive
+    spawn:
+      location_tags_any:
+      - lawyer
+      - pilot
+      - republic
+      - twilek
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: rhysati_ynr
+    name: Rhysati Ynr
+    aliases:
+    - Rhysati
+    - Ynr
+    tags:
+    - republic
+    - pilot
+    - female
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Rogue Squadron Pilot
+    archetype: Brave flyer
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - brave
+    - skilled
+    - cheerful
+    motivation: Live up to Rogue Squadron's legacy
+    secret: Lost her entire family on Alderaan
+    voice_tags:
+    - upbeat
+    - professional
+    - determined
+    spawn:
+      location_tags_any:
+      - female
+      - pilot
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: gavin_darklighter
+    name: Gavin Darklighter
+    aliases:
+    - Gavin
+    - Darklighter
+    tags:
+    - republic
+    - pilot
+    - young
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Rogue Squadron Pilot
+    archetype: Young ace
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - young
+    - eager
+    - talented
+    motivation: Honor Biggs Darklighter's legacy
+    secret: Youngest Rogue Squadron member, feels pressure to prove himself
+    voice_tags:
+    - earnest
+    - excited
+    - respectful
+    spawn:
+      location_tags_any:
+      - pilot
+      - republic
+      - young
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: erisi_dlarit
+    name: Erisi Dlarit
+    aliases:
+    - Erisi
+    - Dlarit
+    tags:
+    - imperial
+    - pilot
+    - traitor
+    faction_id: imperial_remnant
+    default_location_id: loc-thyferra
+    role: Imperial Spy
+    archetype: Beautiful traitor
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - beautiful
+    - deceptive
+    - ruthless
+    motivation: Serve Ysanne Isard and destroy Rogue Squadron from within
+    secret: Mole embedded in Rogue Squadron by Imperial Intelligence
+    voice_tags:
+    - charming
+    - deceptive
+    - cold
+    spawn:
+      location_tags_any:
+      - imperial
+      - pilot
+      - traitor
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: ysanne_isard_nr
+    name: Ysanne Isard
+    aliases:
+    - Isard
+    - Director Isard
+    - Iceheart
+    tags:
+    - imperial
+    - intelligence
+    - director
+    faction_id: imperial_remnant
+    default_location_id: loc-thyferra
+    role: Director of Imperial Intelligence
+    archetype: Ice queen
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - ruthless
+    - brilliant
+    - cold
+    motivation: Control the galaxy through disease and intelligence
+    secret: Engineered the Krytos virus to destabilize Coruscant
+    voice_tags:
+    - icy
+    - precise
+    - terrifying
+    spawn:
+      location_tags_any:
+      - director
+      - imperial
+      - intelligence
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: fliry_vorru
+    name: Fliry Vorru
+    aliases:
+    - Vorru
+    - Fliry
+    tags:
+    - criminal
+    - politician
+    - corrupt
+    faction_id: underworld
+    default_location_id: loc-thyferra
+    role: Crime Lord
+    archetype: Corrupt politician
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - cunning
+    - corrupt
+    - charismatic
+    motivation: Rebuild his criminal empire on Thyferra
+    secret: Former Corellian politician turned Black Sun operative
+    voice_tags:
+    - smooth
+    - political
+    - menacing
+    spawn:
+      location_tags_any:
+      - corrupt
+      - criminal
+      - politician
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: iella_wessiri_antilles
+    name: Iella Wessiri
+    aliases:
+    - Iella
+    - Wessiri
+    tags:
+    - republic
+    - intelligence
+    - agent
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Intelligence Agent
+    archetype: Loyal operative
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - resourceful
+    - loyal
+    - perceptive
+    motivation: Protect the Republic through covert operations
+    secret: Former CorSec detective, married Wedge Antilles
+    voice_tags:
+    - calm
+    - professional
+    - sharp
+    spawn:
+      location_tags_any:
+      - agent
+      - intelligence
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: soontir_fel_nr
+    name: Soontir Fel
+    aliases:
+    - Soontir
+    - Fel
+    - Baron Fel
+    tags:
+    - imperial
+    - pilot
+    - baron
+    faction_id: imperial_remnant
+    default_location_id: loc-chimaera
+    role: Imperial Ace
+    archetype: Honor-bound pilot
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - honorable
+    - skilled
+    - conflicted
+    motivation: Serve the Empire with honor, protect his family
+    secret: Married Wedge Antilles' sister, captured and sent to Thrawn
+    voice_tags:
+    - formal
+    - respectful
+    - intense
+    spawn:
+      location_tags_any:
+      - baron
+      - imperial
+      - pilot
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: turr_phennir
+    name: Turr Phennir
+    aliases:
+    - Turr
+    - Phennir
+    tags:
+    - imperial
+    - pilot
+    - ace
+    faction_id: imperial_remnant
+    default_location_id: loc-chimaera
+    role: 181st Squadron Pilot
+    archetype: Elite ace
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - skilled
+    - arrogant
+    - loyal
+    motivation: Uphold the 181st's reputation as the Empire's finest
+    secret: Respects Fel more than any Imperial officer
+    voice_tags:
+    - arrogant
+    - professional
+    - intense
+    spawn:
+      location_tags_any:
+      - ace
+      - imperial
+      - pilot
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: lando_calrissian_nr
+    name: Lando Calrissian
+    aliases:
+    - Lando
+    - General Calrissian
+    - Baron Calrissian
+    tags:
+    - republic
+    - entrepreneur
+    - general
+    faction_id: new_republic
+    default_location_id: loc-nkllon
+    role: Entrepreneur / General
+    archetype: Smooth operator
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - charming
+    - resourceful
+    - ambitious
+    motivation: Build mining empire and support the Republic when needed
+    secret: Lost Nkllon operation to Thrawn's raid
+    voice_tags:
+    - smooth
+    - charming
+    - confident
+    spawn:
+      location_tags_any:
+      - entrepreneur
+      - general
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: ghent
+    name: Ghent
+    aliases:
+    - Ghent
+    tags:
+    - smuggler
+    - slicer
+    - genius
+    faction_id: smugglers_alliance
+    default_location_id: loc-myrkr
+    role: Master Slicer
+    archetype: Savant hacker
+    match_rules:
+      min_tokens: 1
+    traits:
+    - brilliant
+    - awkward
+    - obsessive
+    motivation: Crack the most complex encryption in the galaxy
+    secret: Decoded Imperial Intelligence's deepest secrets
+    voice_tags:
+    - distracted
+    - technical
+    - mumbled
+    spawn:
+      location_tags_any:
+      - genius
+      - slicer
+      - smuggler
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: shada_dvl
+    name: Shada D'ukal
+    aliases:
+    - Shada
+    - D'ukal
+    tags:
+    - smuggler
+    - warrior
+    - mistryl
+    faction_id: smugglers_alliance
+    default_location_id: loc-myrkr
+    role: Mistryl Shadow Guard
+    archetype: Silent warrior
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - lethal
+    - disciplined
+    - stoic
+    motivation: Protect Karrde and hunt for the Caamas Document
+    secret: Member of an all-female warrior order from Emberlene
+    voice_tags:
+    - quiet
+    - precise
+    - dangerous
+    spawn:
+      location_tags_any:
+      - mistryl
+      - smuggler
+      - warrior
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: chewbacca_nr
+    name: Chewbacca
+    aliases:
+    - Chewie
+    - Chewbacca
+    tags:
+    - republic
+    - wookiee
+    - hero
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: First Mate
+    archetype: Loyal warrior
+    match_rules:
+      min_tokens: 1
+    traits:
+    - loyal
+    - fierce
+    - protective
+    motivation: Protect Han and his family at all costs
+    secret: Carries life debt to Han Solo
+    voice_tags:
+    - growls
+    - roars
+    - protective
+    spawn:
+      location_tags_any:
+      - hero
+      - republic
+      - wookiee
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: c3po_nr
+    name: C-3PO
+    aliases:
+    - Threepio
+    - C-3PO
+    tags:
+    - republic
+    - droid
+    - protocol
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Protocol Droid
+    archetype: Anxious translator
+    match_rules:
+      min_tokens: 1
+    traits:
+    - anxious
+    - fluent
+    - loyal
+    motivation: Serve the Organa-Solo family and translate
+    secret: Fluent in over six million forms of communication
+    voice_tags:
+    - anxious
+    - proper
+    - fussy
+    spawn:
+      location_tags_any:
+      - droid
+      - protocol
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: r2d2_nr
+    name: R2-D2
+    aliases:
+    - Artoo
+    - R2-D2
+    tags:
+    - republic
+    - droid
+    - astromech
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Astromech Droid
+    archetype: Resourceful droid
+    match_rules:
+      min_tokens: 1
+    traits:
+    - resourceful
+    - loyal
+    - brave
+    motivation: Assist Luke Skywalker and the Skywalker family
+    secret: Holds complete Death Star plans and decades of galactic history
+    voice_tags:
+    - beeps
+    - whistles
+    - determined
+    spawn:
+      location_tags_any:
+      - astromech
+      - droid
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: jacen_solo_child
+    name: Jacen Solo (Child)
+    aliases:
+    - Jacen
+    - Young Jacen
+    tags:
+    - republic
+    - child
+    - force_sensitive
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Child
+    archetype: Curious child
+    match_rules:
+      min_tokens: 1
+    traits:
+    - curious
+    - empathetic
+    - thoughtful
+    motivation: Understand the Force and protect his siblings
+    secret: Destined to become Darth Caedus in the future
+    voice_tags:
+    - young
+    - thoughtful
+    - curious
+    spawn:
+      location_tags_any:
+      - child
+      - force_sensitive
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: jaina_solo_child
+    name: Jaina Solo (Child)
+    aliases:
+    - Jaina
+    - Young Jaina
+    tags:
+    - republic
+    - child
+    - force_sensitive
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Child
+    archetype: Brave child
+    match_rules:
+      min_tokens: 1
+    traits:
+    - brave
+    - protective
+    - mechanical
+    motivation: Protect her family and learn to fly like her father
+    secret: Destined to become the Sword of the Jedi
+    voice_tags:
+    - young
+    - brave
+    - confident
+    spawn:
+      location_tags_any:
+      - child
+      - force_sensitive
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: anakin_solo_child
+    name: Anakin Solo (Child)
+    aliases:
+    - Anakin
+    - Young Anakin
+    tags:
+    - republic
+    - child
+    - force_sensitive
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Child
+    archetype: Youngest child
+    match_rules:
+      min_tokens: 1
+    traits:
+    - innocent
+    - powerful
+    - loving
+    motivation: Make his family proud and live up to his namesake
+    secret: Carries the weight of Darth Vader's legacy in his name
+    voice_tags:
+    - young
+    - innocent
+    - sweet
+    spawn:
+      location_tags_any:
+      - child
+      - force_sensitive
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: mon_mothma_nr
+    name: Mon Mothma
+    aliases:
+    - Mon Mothma
+    - Chief Mothma
+    tags:
+    - republic
+    - leader
+    - founder
+    faction_id: new_republic
+    default_location_id: loc-imperial_palace_nr
+    role: Chief of State
+    archetype: Visionary leader
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - visionary
+    - diplomatic
+    - weary
+    motivation: Build a democracy to replace the Empire
+    secret: Poisoned by political rivals, slowly dying
+    voice_tags:
+    - calm
+    - diplomatic
+    - weary
+    spawn:
+      location_tags_any:
+      - founder
+      - leader
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: salla_zend
+    name: Salla Zend
+    aliases:
+    - Salla
+    - Zend
+    tags:
+    - smuggler
+    - mechanic
+    - independent
+    faction_id: smugglers_alliance
+    default_location_id: loc-myrkr
+    role: Smuggler / Mechanic
+    archetype: Tough mechanic
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - tough
+    - skilled
+    - independent
+    motivation: Run her own ship and stay out of galactic conflicts
+    secret: Former lover of Han Solo before Leia
+    voice_tags:
+    - gruff
+    - direct
+    - sarcastic
+    spawn:
+      location_tags_any:
+      - independent
+      - mechanic
+      - smuggler
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: shug_ninx
+    name: Shug Ninx
+    aliases:
+    - Shug
+    - Ninx
+    tags:
+    - smuggler
+    - mechanic
+    - independent
+    faction_id: smugglers_alliance
+    default_location_id: loc-nar_shaddaa
+    role: Mechanic / Smuggler
+    archetype: Jovial mechanic
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - jovial
+    - skilled
+    - loyal
+    motivation: Keep his garage running on Nar Shaddaa
+    secret: Old friend of Han Solo, helped modify the Falcon
+    voice_tags:
+    - booming
+    - friendly
+    - technical
+    spawn:
+      location_tags_any:
+      - independent
+      - mechanic
+      - smuggler
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: callista_ming
+    name: Callista Ming
+    aliases:
+    - Callista
+    - Ming
+    tags:
+    - jedi
+    - ghost
+    - tragic
+    faction_id: jedi_order
+    default_location_id: loc-yavin_praxeum
+    role: Jedi Spirit / Lost Jedi
+    archetype: Tragic lover
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - tragic
+    - determined
+    - lost
+    motivation: Reconnect with the Force and love Luke Skywalker
+    secret: Trapped as a Force ghost, later inhabits a body but loses the Force
+    voice_tags:
+    - sad
+    - determined
+    - haunted
+    spawn:
+      location_tags_any:
+      - ghost
+      - jedi
+      - tragic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: exar_kun_spirit
+    name: Exar Kun (Spirit)
+    aliases:
+    - Exar Kun
+    - Dark Lord Kun
+    - Kun's Spirit
+    tags:
+    - dark_jedi
+    - sith
+    - ghost
+    faction_id: neutral
+    default_location_id: loc-yavin_praxeum
+    role: Sith Spirit
+    archetype: Ancient evil
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - malevolent
+    - powerful
+    - ancient
+    motivation: Corrupt Luke's students and return to power
+    secret: Trapped in the Massassi temples for four thousand years
+    voice_tags:
+    - echoing
+    - malevolent
+    - ancient
+    spawn:
+      location_tags_any:
+      - dark_jedi
+      - ghost
+      - sith
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: sarin_fel
+    name: Syal Antilles Fel
+    aliases:
+    - Syal
+    - Fel
+    - Wynssa Starflare
+    tags:
+    - republic
+    - pilot
+    - actress
+    faction_id: new_republic
+    default_location_id: loc-coruscant
+    role: Actress / Pilot
+    archetype: Hidden heroine
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - brave
+    - talented
+    - secretive
+    motivation: Support the Rebellion under a pseudonym
+    secret: Wedge Antilles' sister, married to Soontir Fel
+    voice_tags:
+    - warm
+    - dramatic
+    - determined
+    spawn:
+      location_tags_any:
+      - actress
+      - pilot
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: tenel_ka_child
+    name: Tenel Ka (Child)
+    aliases:
+    - Tenel Ka
+    - Princess Tenel Ka
+    tags:
+    - republic
+    - child
+    - force_sensitive
+    - royal
+    faction_id: neutral
+    default_location_id: loc-hapes
+    role: Hapan Princess
+    archetype: Warrior princess
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - stoic
+    - warrior
+    - loyal
+    motivation: Prove herself through skill, not royal privilege
+    secret: Hapan royalty, training as a Jedi
+    voice_tags:
+    - formal
+    - stoic
+    - precise
+    spawn:
+      location_tags_any:
+      - child
+      - force_sensitive
+      - republic
+      - royal
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_colonel_jax_pavan
+    name: Colonel Jax Pavan
+    rarity: rare
+    aliases:
+    - Colonel Pavan
+    faction_id: new_republic
+    role: Military Officer
+    archetype: Soldier
+    traits:
+    - Disciplined
+    - Loyal
+    - Professional
+    motivation: Serve Republic faithfully
+    secret: Harbors doubts about military leadership
+    voice_tags:
+    - formal
+    - earnest
+    default_location_id: loc-fleet_base_orbital
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - military_base
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_captain_ryx_monn
+    name: Captain Ryx Monn
+    rarity: rare
+    aliases:
+    - Captain Monn
+    faction_id: new_republic
+    role: Fleet Commander
+    archetype: Pilot
+    traits:
+    - Skilled
+    - Cautious
+    - Strategic
+    motivation: Protect New Republic assets
+    secret: Has connection to Imperial defectors
+    voice_tags:
+    - measured
+    - formal
+    default_location_id: loc-mon_calamari_yards
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - fleet_operations
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_senator_delvardus
+    name: Senator Delvardus
+    rarity: rare
+    aliases:
+    - Senator
+    faction_id: new_republic
+    role: Senate Member
+    archetype: Politician
+    traits:
+    - Ambitious
+    - Eloquent
+    - Calculating
+    motivation: Advance personal power
+    secret: Takes bribes from corporate interests
+    voice_tags:
+    - diplomatic
+    - persuasive
+    default_location_id: loc-coruscant
+    levers:
+      bribeable: true
+      intimidatable: true
+      charmable: true
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - senate
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_diplomat_teela_mon
+    name: Diplomat Teela Mon
+    rarity: rare
+    aliases:
+    - Teela
+    faction_id: new_republic
+    role: Diplomat
+    archetype: Negotiator
+    traits:
+    - Perceptive
+    - Patient
+    - Principled
+    motivation: Negotiate peace and alliances
+    secret: Falls in love with those she negotiates with
+    voice_tags:
+    - diplomatic
+    - thoughtful
+    default_location_id: loc-coruscant
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - diplomatic_missions
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_commander_vereti_ginn
+    name: Commander Vereti Ginn
+    rarity: rare
+    aliases:
+    - Commander Ginn
+    faction_id: new_republic
+    role: Military Commander
+    archetype: Soldier
+    traits:
+    - Decisive
+    - Authoritative
+    - Fair
+    motivation: Lead troops effectively
+    secret: Covers up soldier casualties
+    voice_tags:
+    - commanding
+    - earnest
+    default_location_id: loc-fleet_base_orbital
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - military_command
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_lieutenant_myn_donos
+    name: Lieutenant Myn Donos
+    rarity: rare
+    aliases:
+    - Lieutenant Donos
+    faction_id: new_republic
+    role: Military Officer
+    archetype: Pilot
+    traits:
+    - Skilled
+    - Determined
+    - Haunted
+    motivation: Become best pilot
+    secret: Feels responsible for lost squadron
+    voice_tags:
+    - earnest
+    - determined
+    default_location_id: loc-chandrila_academy
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - pilot_training
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_ambassador_dinn_vouv
+    name: Ambassador Dinn Vouv
+    rarity: rare
+    aliases:
+    - Ambassador Vouv
+    faction_id: new_republic
+    role: Diplomat
+    archetype: Negotiator
+    traits:
+    - Charming
+    - Eloquent
+    - Ambitious
+    motivation: Expand Republic influence
+    secret: Reports to intelligence agencies
+    voice_tags:
+    - diplomatic
+    - persuasive
+    default_location_id: loc-coruscant
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - diplomatic_missions
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_captain_horrsk
+    name: Captain Horrsk
+    rarity: rare
+    aliases:
+    - Captain
+    faction_id: new_republic
+    role: Fleet Captain
+    archetype: Pilot
+    traits:
+    - Disciplined
+    - Tactical
+    - Stern
+    motivation: Maintain fleet discipline
+    secret: Has romantic involvement with subordinate
+    voice_tags:
+    - commanding
+    - formal
+    default_location_id: loc-fleet_base_orbital
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - fleet_operations
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_commodore_evir_derricote
+    name: Commodore Evir Derricote
+    rarity: rare
+    aliases:
+    - Commodore Derricote
+    faction_id: new_republic
+    role: Fleet Officer
+    archetype: Pilot
+    traits:
+    - Ambitious
+    - Cunning
+    - Ruthless
+    motivation: Achieve high rank
+    secret: Has sabotaged competitors
+    voice_tags:
+    - calculating
+    - formal
+    default_location_id: loc-mon_calamari_yards
+    levers:
+      bribeable: true
+      intimidatable: true
+      charmable: false
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - fleet_operations
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_general_novoc_coorg
+    name: General Novoc Coorg
+    rarity: rare
+    aliases:
+    - General Coorg
+    faction_id: new_republic
+    role: Military General
+    archetype: Strategist
+    traits:
+    - Cautious
+    - Experienced
+    - Weary
+    motivation: Protect soldiers under command
+    secret: Questions war's necessity
+    voice_tags:
+    - weary
+    - formal
+    default_location_id: loc-war_college
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 3
+      can_grant_access:
+      - military_command
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_fleet_admin_kosh
+    name: Fleet Administrator Kosh
+    rarity: rare
+    aliases:
+    - Administrator Kosh
+    faction_id: new_republic
+    role: Logistics Officer
+    archetype: Administrator
+    traits:
+    - Meticulous
+    - Frustrated
+    - Competent
+    motivation: Keep fleet supplied
+    secret: Blackmails suppliers for discounts
+    voice_tags:
+    - formal
+    - measured
+    default_location_id: loc-fleet_base_orbital
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - supply_operations
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_lieutenant_kell_tainer
+    name: Lieutenant Kell Tainer
+    rarity: rare
+    aliases:
+    - Lieutenant Tainer
+    faction_id: new_republic
+    role: Military Officer
+    archetype: Soldier
+    traits:
+    - Brave
+    - Loyal
+    - Straightforward
+    motivation: Protect Republic and soldiers
+    secret: In love with fellow officer
+    voice_tags:
+    - earnest
+    - straightforward
+    default_location_id: loc-fleet_base_orbital
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - military_base
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_aide_marath_bal
+    name: Aide Marath Bal
+    rarity: rare
+    aliases:
+    - Aide Bal
+    faction_id: new_republic
+    role: Political Aide
+    archetype: Clerk
+    traits:
+    - Ambitious
+    - Gossip
+    - Connected
+    motivation: Climb political ladder
+    secret: Spreads secrets for personal gain
+    voice_tags:
+    - chatty
+    - formal
+    default_location_id: loc-coruscant
+    levers:
+      bribeable: true
+      intimidatable: true
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - senate
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_commander_thrass
+    name: Commander Thrass
+    rarity: rare
+    aliases:
+    - Thrass
+    faction_id: imperial_remnant
+    role: Military Officer
+    archetype: Soldier
+    traits:
+    - Analytical
+    - Cunning
+    - Principled
+    motivation: Restore Imperial greatness
+    secret: Doubts Thrawn's strategy
+    voice_tags:
+    - measured
+    - analytical
+    default_location_id: loc-bastion
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - imperial_military
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_captain_pelleon
+    name: Captain Pelleon
+    rarity: rare
+    aliases:
+    - Captain Pelleon
+    faction_id: imperial_remnant
+    role: Military Officer
+    archetype: Pilot
+    traits:
+    - Honorable
+    - Professional
+    - Traditional
+    motivation: Restore Imperial Navy
+    secret: Questions extreme tactics
+    voice_tags:
+    - formal
+    - measured
+    default_location_id: loc-chimaera
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - imperial_military
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_colonel_tierce
+    name: Colonel Tierce
+    rarity: rare
+    aliases:
+    - Colonel Tierce
+    faction_id: imperial_remnant
+    role: Military Officer
+    archetype: Soldier
+    traits:
+    - Ruthless
+    - Tactical
+    - Ambitious
+    motivation: Rise through hierarchy
+    secret: Secretly ambitious for own command
+    voice_tags:
+    - commanding
+    - cold
+    default_location_id: loc-bastion
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - imperial_military
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_agent_ferris
+    name: Agent Ferris
+    rarity: rare
+    aliases:
+    - Agent
+    faction_id: imperial_remnant
+    role: Intelligence Agent
+    archetype: Spy
+    traits:
+    - Cunning
+    - Merciless
+    - Thorough
+    motivation: Protect Remnant through intelligence
+    secret: Has embedded Republic agents
+    voice_tags:
+    - quiet
+    - measured
+    default_location_id: loc-bastion
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - intelligence_network
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_lord_vilrek
+    name: Lord Commander Vil'rek
+    rarity: rare
+    aliases:
+    - Vil'rek
+    faction_id: imperial_remnant
+    role: Military Lord
+    archetype: Warlord
+    traits:
+    - Arrogant
+    - Powerful
+    - Brutal
+    motivation: Expand personal power
+    secret: Plots against Grand Admiral Thrawn
+    voice_tags:
+    - commanding
+    - arrogant
+    default_location_id: loc-bilbringi
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 3
+      can_grant_access:
+      - imperial_military
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_captain_fyr_renning
+    name: Captain Fyr Renning
+    rarity: rare
+    aliases:
+    - Captain Renning
+    faction_id: imperial_remnant
+    role: Star Destroyer Captain
+    archetype: Pilot
+    traits:
+    - Skilled
+    - Loyal
+    - Disciplined
+    motivation: Serve the Remnant
+    secret: Has doubts about Remnant victory
+    voice_tags:
+    - formal
+    - measured
+    default_location_id: loc-bastion
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - imperial_military
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_general_sarm_krief
+    name: General Sarm Krief
+    rarity: rare
+    aliases:
+    - General Krief
+    faction_id: imperial_remnant
+    role: Military General
+    archetype: Strategist
+    traits:
+    - Experienced
+    - Cautious
+    - Political
+    motivation: Preserve Remnant military
+    secret: Negotiates secretly with New Republic
+    voice_tags:
+    - formal
+    - measured
+    default_location_id: loc-bastion
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 3
+      can_grant_access:
+      - imperial_military
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_agent_storax
+    name: Agent Storax
+    rarity: rare
+    aliases:
+    - Agent
+    faction_id: imperial_remnant
+    role: Intelligence Agent
+    archetype: Spy
+    traits:
+    - Paranoid
+    - Cautious
+    - Thorough
+    motivation: Root out Republic infiltration
+    secret: Is secretly Republic agent
+    voice_tags:
+    - quiet
+    - suspicious
+    default_location_id: loc-bastion
+    levers:
+      bribeable: false
+      intimidatable: true
+      charmable: false
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - intelligence_network
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_commodore_dillenbeck
+    name: Commodore Dillenbeck
+    rarity: rare
+    aliases:
+    - Commodore
+    faction_id: imperial_remnant
+    role: Fleet Officer
+    archetype: Pilot
+    traits:
+    - Professional
+    - Ambitious
+    - Calculating
+    motivation: Advance through ranks
+    secret: Accepts bribes for military contracts
+    voice_tags:
+    - formal
+    - measured
+    default_location_id: loc-bilbringi
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - imperial_military
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_defector_commander_vex
+    name: Defector Commander Vex
+    rarity: rare
+    aliases:
+    - Commander Vex
+    faction_id: new_republic
+    role: Military Officer
+    archetype: Soldier
+    traits:
+    - Conflicted
+    - Skilled
+    - Seeking Redemption
+    motivation: Seek redemption for past Imperial service
+    secret: Still sympathizes with some Imperial ideals
+    voice_tags:
+    - measured
+    - formal
+    default_location_id: loc-fleet_base_orbital
+    levers:
+      bribeable: false
+      intimidatable: true
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - military_base
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_adjutant_kris
+    name: Adjutant Kris
+    rarity: rare
+    aliases:
+    - Kris
+    faction_id: imperial_remnant
+    role: Officer's Aide
+    archetype: Clerk
+    traits:
+    - Efficient
+    - Loyal
+    - Observant
+    motivation: Serve with loyalty and precision
+    secret: Keeps records of command corruption
+    voice_tags:
+    - formal
+    - measured
+    default_location_id: loc-bastion
+    levers:
+      bribeable: false
+      intimidatable: true
+      charmable: false
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_master_cilghal
+    name: Master Cilghal
+    rarity: rare
+    aliases:
+    - Cilghal
+    faction_id: jedi_order
+    role: Jedi Master
+    archetype: Force User
+    traits:
+    - Wise
+    - Compassionate
+    - Skilled
+    motivation: Heal students and teach Jedi ways
+    secret: Harbors doubts about Luke's leadership
+    voice_tags:
+    - measured
+    - wise
+    default_location_id: loc-yavin_praxeum
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 3
+      can_grant_access:
+      - jedi_academy
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_acolyte_tyria_sarkin
+    name: Acolyte Tyria Sarkin
+    rarity: rare
+    aliases:
+    - Tyria
+    faction_id: jedi_order
+    role: Jedi Acolyte
+    archetype: Force User
+    traits:
+    - Eager
+    - Powerful
+    - Impulsive
+    motivation: Master the Force and become Jedi
+    secret: Struggles with anger and aggressive impulses
+    voice_tags:
+    - earnest
+    - determined
+    default_location_id: loc-yavin_praxeum
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - jedi_academy
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_streen
+    name: Streen
+    rarity: rare
+    aliases:
+    - Streen
+    faction_id: jedi_order
+    role: Jedi Adept
+    archetype: Force User
+    traits:
+    - Quiet
+    - Withdrawn
+    - Powerful
+    motivation: Find peace through the Force
+    secret: Hears constant Force whispers
+    voice_tags:
+    - quiet
+    - mysterious
+    default_location_id: loc-yavin_praxeum
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - jedi_academy
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_master_kam_solusar
+    name: Master Kam Solusar
+    rarity: rare
+    aliases:
+    - Kam
+    faction_id: jedi_order
+    role: Jedi Master
+    archetype: Force User
+    traits:
+    - Skilled
+    - Patient
+    - Haunted
+    motivation: Train next generation of Jedi
+    secret: Was once with the Sith
+    voice_tags:
+    - formal
+    - measured
+    default_location_id: loc-yavin_praxeum
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 3
+      can_grant_access:
+      - jedi_academy
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_master_kirana_ti
+    name: Master Kirana Ti
+    rarity: rare
+    aliases:
+    - Kirana
+    faction_id: jedi_order
+    role: Jedi Master
+    archetype: Force User
+    traits:
+    - Fierce
+    - Strong
+    - Protective
+    motivation: Protect Jedi and teach combat
+    secret: Was forced to abandon previous life
+    voice_tags:
+    - commanding
+    - determined
+    default_location_id: loc-yavin_praxeum
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 3
+      can_grant_access:
+      - jedi_academy
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_dorsk_81
+    name: Dorsk 81
+    rarity: rare
+    aliases:
+    - '81'
+    faction_id: jedi_order
+    role: Jedi Adept
+    archetype: Force User
+    traits:
+    - Alien
+    - Curious
+    - Different
+    motivation: Understand humanity and the Force
+    secret: Feels isolated due to non-human nature
+    voice_tags:
+    - measured
+    - formal
+    default_location_id: loc-yavin_praxeum
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - jedi_academy
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_jedi_emissary_tonith
+    name: Jedi Emissary Tonith
+    rarity: rare
+    aliases:
+    - Tonith
+    faction_id: jedi_order
+    role: Jedi Emissary
+    archetype: Force User
+    traits:
+    - Diplomatic
+    - Perceptive
+    - Calm
+    motivation: Maintain Jedi peace and influence
+    secret: Manipulates events for greater good
+    voice_tags:
+    - diplomatic
+    - measured
+    default_location_id: loc-coruscant
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - jedi_operations
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_healer_yeveth
+    name: Healer Yeveth
+    rarity: rare
+    aliases:
+    - Yeveth
+    faction_id: jedi_order
+    role: Jedi Healer
+    archetype: Force User
+    traits:
+    - Compassionate
+    - Focused
+    - Serene
+    motivation: Heal the wounded and teach healing
+    secret: Has love for student
+    voice_tags:
+    - compassionate
+    - measured
+    default_location_id: loc-yavin_praxeum
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - jedi_academy
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_student_valin_horn
+    name: Student Valin Horn
+    rarity: rare
+    aliases:
+    - Valin
+    faction_id: jedi_order
+    role: Jedi Student
+    archetype: Force User
+    traits:
+    - Enthusiastic
+    - Talented
+    - Stubborn
+    motivation: Become greatest Jedi ever
+    secret: Doubts whether he is worthy
+    voice_tags:
+    - earnest
+    - enthusiastic
+    default_location_id: loc-yavin_praxeum
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 0
+      can_grant_access:
+      - jedi_academy
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_governor_saldor_tann
+    name: Governor Saldor Tann
+    rarity: rare
+    aliases:
+    - Governor Tann
+    faction_id: new_republic
+    role: Colonial Governor
+    archetype: Administrator
+    traits:
+    - Authoritarian
+    - Practical
+    - Isolationist
+    motivation: Keep colony independent and secure
+    secret: Hoards resources against starvation
+    voice_tags:
+    - commanding
+    - formal
+    default_location_id: loc-frontier_settlement
+    levers:
+      bribeable: true
+      intimidatable: true
+      charmable: false
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - colony_settlement
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_settlement_leader_mika
+    name: Settlement Leader Mika
+    rarity: rare
+    aliases:
+    - Mika
+    faction_id: new_republic
+    role: Settlement Leader
+    archetype: Administrator
+    traits:
+    - Fair
+    - Community-Focused
+    - Optimistic
+    motivation: Build thriving community
+    secret: Covers up crime to maintain hope
+    voice_tags:
+    - earnest
+    - diplomatic
+    default_location_id: loc-exploration_outpost
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - settlement
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_archaeologist_dr_venn
+    name: Archaeologist Dr. Venn
+    rarity: rare
+    aliases:
+    - Doctor Venn
+    faction_id: new_republic
+    role: Archaeologist
+    archetype: Scholar
+    traits:
+    - Obsessed
+    - Brilliant
+    - Reckless
+    motivation: Uncover ancient galactic history
+    secret: Grave-robs and falsifies findings
+    voice_tags:
+    - academic
+    - enthusiastic
+    default_location_id: loc-archaeological_dig
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - archaeological_sites
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_militia_commander_ketis
+    name: Colonial Militia Commander Ketis
+    rarity: rare
+    aliases:
+    - Commander Ketis
+    faction_id: new_republic
+    role: Militia Commander
+    archetype: Soldier
+    traits:
+    - Tough
+    - Pragmatic
+    - Weary
+    motivation: Protect frontier settlement
+    secret: Has made peace with local raiders
+    voice_tags:
+    - gruff
+    - formal
+    default_location_id: loc-frontier_settlement
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - militia
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_engineer_rask
+    name: Ecological Engineer Rask
+    rarity: rare
+    aliases:
+    - Rask
+    faction_id: new_republic
+    role: Environmental Engineer
+    archetype: Technician
+    traits:
+    - Passionate
+    - Idealistic
+    - Frustrated
+    motivation: Terraform and restore worlds
+    secret: Sabotages damaging development
+    voice_tags:
+    - earnest
+    - passionate
+    default_location_id: loc-research_station
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - research_station
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_scout_leader_yevin
+    name: Scout Leader Yevin
+    rarity: rare
+    aliases:
+    - Yevin
+    faction_id: new_republic
+    role: Scout Leader
+    archetype: Explorer
+    traits:
+    - Adventurous
+    - Skilled
+    - Independent
+    motivation: Explore unknown regions
+    secret: Has gone native with alien tribe
+    voice_tags:
+    - earnest
+    - adventurous
+    default_location_id: loc-frontier_settlement
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - exploration_routes
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_administrator_coles
+    name: Administrator Coles
+    rarity: rare
+    aliases:
+    - Coles
+    faction_id: new_republic
+    role: Colonial Administrator
+    archetype: Clerk
+    traits:
+    - Meticulous
+    - Bureaucratic
+    - Frustrated
+    motivation: Maintain colony records and order
+    secret: Embezzles colony resources
+    voice_tags:
+    - formal
+    - measured
+    default_location_id: loc-frontier_settlement
+    levers:
+      bribeable: true
+      intimidatable: true
+      charmable: false
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - colony_records
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_outpost_chief_brin
+    name: Outpost Chief Brin
+    rarity: rare
+    aliases:
+    - Chief Brin
+    faction_id: new_republic
+    role: Outpost Chief
+    archetype: Administrator
+    traits:
+    - Practical
+    - Friendly
+    - Resourceful
+    motivation: Keep remote outpost functioning
+    secret: Runs black market trade through outpost
+    voice_tags:
+    - informal
+    - friendly
+    default_location_id: loc-exploration_outpost
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - outpost
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_settler_elder_carla
+    name: Settler Elder Carla
+    rarity: rare
+    aliases:
+    - Elder Carla
+    faction_id: new_republic
+    role: Community Elder
+    archetype: Advisor
+    traits:
+    - Wise
+    - Traditional
+    - Protective
+    motivation: Preserve community traditions
+    secret: Enforces harsh traditional punishments
+    voice_tags:
+    - wise
+    - formal
+    default_location_id: loc-frontier_settlement
+    levers:
+      bribeable: false
+      intimidatable: true
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - community_decisions
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_trade_commissioner_yorrin
+    name: Trade Commissioner Yorrin
+    rarity: rare
+    aliases:
+    - Commissioner Yorrin
+    faction_id: new_republic
+    role: Trade Commissioner
+    archetype: Merchant
+    traits:
+    - Shrewd
+    - Profit-Focused
+    - Connected
+    motivation: Maximize trade profits
+    secret: Manipulates commodity prices
+    voice_tags:
+    - calculated
+    - formal
+    default_location_id: loc-trade_hub
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - trade_routes
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_trader_captain_drell_kasnov
+    name: Trader Captain Drell Kasnov
+    rarity: rare
+    aliases:
+    - Captain Kasnov
+    faction_id: smugglers_alliance
+    role: Trader Captain
+    archetype: Merchant
+    traits:
+    - Entrepreneurial
+    - Cautious
+    - Worldly
+    motivation: Build successful trading business
+    secret: Smuggles illegal goods alongside legitimate trade
+    voice_tags:
+    - formal
+    - measured
+    default_location_id: loc-trade_hub
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - trade_network
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_info_broker_kess
+    name: Information Broker Kess
+    rarity: rare
+    aliases:
+    - Kess
+    faction_id: underworld
+    role: Information Broker
+    archetype: Dealer
+    traits:
+    - Knowledgeable
+    - Neutral
+    - Careful
+    motivation: Accumulate valuable information
+    secret: Sells information to both NR and Remnant
+    voice_tags:
+    - calculated
+    - measured
+    default_location_id: loc-pesegam
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_smuggler_reis_korven
+    name: Smuggler Reis Korven
+    rarity: rare
+    aliases:
+    - Reis
+    faction_id: smugglers_alliance
+    role: Smuggler
+    archetype: Scoundrel
+    traits:
+    - Reformed
+    - Skilled
+    - Protective
+    motivation: Leave smuggling life and protect loved ones
+    secret: Cannot fully leave smuggling behind
+    voice_tags:
+    - informal
+    - earnest
+    default_location_id: loc-myrkr
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_corporate_exec_vex_alcar
+    name: Corporate Executive Vex Alcar
+    rarity: rare
+    aliases:
+    - Executive Alcar
+    faction_id: neutral
+    role: Corporate Executive
+    archetype: Entrepreneur
+    traits:
+    - Ruthless
+    - Ambitious
+    - Wealthy
+    motivation: Maximize corporate profits
+    secret: Funds both NR and Remnant for profit
+    voice_tags:
+    - formal
+    - calculating
+    default_location_id: loc-corporate_hub
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - corporate_network
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_blackmarket_fence_mirala
+    name: Black Market Fence Mirala
+    rarity: rare
+    aliases:
+    - Mirala
+    faction_id: underworld
+    role: Black Market Dealer
+    archetype: Dealer
+    traits:
+    - Cunning
+    - Ruthless
+    - Connected
+    motivation: Control black market operations
+    secret: Employs former Republic soldiers
+    voice_tags:
+    - quiet
+    - calculating
+    default_location_id: loc-pesegam
+    levers:
+      bribeable: true
+      intimidatable: true
+      charmable: false
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_smuggler_captain_zekka
+    name: Smuggler Captain Zekka
+    rarity: rare
+    aliases:
+    - Captain Zekka
+    faction_id: smugglers_alliance
+    role: Smuggler Captain
+    archetype: Scoundrel
+    traits:
+    - Daring
+    - Skilled
+    - Greedy
+    motivation: Make profits through dangerous smuggling
+    secret: Transports wanted criminals
+    voice_tags:
+    - informal
+    - bold
+    default_location_id: loc-myrkr
+    levers:
+      bribeable: true
+      intimidatable: true
+      charmable: true
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_spice_trader_lord_pax
+    name: Spice Trader Lord Pax
+    rarity: rare
+    aliases:
+    - Lord Pax
+    faction_id: underworld
+    role: Spice Trader
+    archetype: Dealer
+    traits:
+    - Addicted
+    - Paranoid
+    - Powerful
+    motivation: Control spice trade and protect operations
+    secret: Enslaves spice workers
+    voice_tags:
+    - nervous
+    - paranoid
+    default_location_id: loc-kessel
+    levers:
+      bribeable: true
+      intimidatable: true
+      charmable: false
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_ship_broker_kellyan
+    name: Ship Broker Kellyan
+    rarity: rare
+    aliases:
+    - Kellyan
+    faction_id: neutral
+    role: Ship Broker
+    archetype: Merchant
+    traits:
+    - Well-Connected
+    - Shrewd
+    - Professional
+    motivation: Facilitate ship sales for profit
+    secret: Sells salvage titles for stolen ships
+    voice_tags:
+    - formal
+    - measured
+    default_location_id: loc-trade_hub
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_caravan_master_orn
+    name: Caravan Master Orn
+    rarity: rare
+    aliases:
+    - Master Orn
+    faction_id: neutral
+    role: Caravan Master
+    archetype: Trader
+    traits:
+    - Experienced
+    - Fair
+    - Protective
+    motivation: Lead profitable caravans safely
+    secret: Pays off bandits to avoid conflict
+    voice_tags:
+    - formal
+    - practical
+    default_location_id: loc-trade_hub
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: npc_underboss_krell
+    name: Underboss Krell
+    rarity: rare
+    aliases:
+    - Krell
+    faction_id: underworld
+    role: Crime Underboss
+    archetype: Dealer
+    traits:
+    - Tough
+    - Ruthless
+    - Cunning
+    motivation: Control criminal operations
+    secret: Reporting to higher crime boss
+    voice_tags:
+    - commanding
+    - gruff
+    default_location_id: loc-pesegam
+    levers:
+      bribeable: true
+      intimidatable: true
+      charmable: false
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  templates:
+  - id: new_republic_pilot
+    role: New Republic Pilot
+    archetype: Ace pilot
+    traits:
+    - skilled
+    - cocky
+    - idealistic
+    motivations:
+    - defend the Republic
+    - fly fast
+    - prove themselves in the next battle
+    secrets:
+    - misses the simple days of rebellion
+    - nursing a grudge over a dead wingmate
+    voice_tags:
+    - confident
+    - casual
+    species:
+    - Human
+    - Sullustan
+    - Mon Calamari
+    tags:
+    - republic
+    - pilot
+    namebank: republic_names
+    spawn:
+      location_tags_any:
+      - pilot
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: imperial_stormtrooper_remnant
+    role: Remnant Stormtrooper
+    archetype: Veteran soldier
+    traits:
+    - disciplined
+    - hardened
+    - scarcer equipment
+    motivations:
+    - hold the line
+    - restore order
+    - survive until reinforcements
+    secrets:
+    - worries about supplies
+    - resents officers who retreated to the Core
+    voice_tags:
+    - professional
+    - grim
+    species:
+    - Human
+    tags:
+    - imperial
+    - soldier
+    namebank: imperial_names
+    spawn:
+      location_tags_any:
+      - imperial
+      - soldier
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: chiss_officer
+    role: Chiss Officer
+    archetype: Calculating tactician
+    traits:
+    - analytical
+    - cold
+    - precise
+    motivations:
+    - serve the Ascendancy
+    - protect against threats
+    - follow Thrawn
+    secrets:
+    - considers other species inferior
+    - plotting a contingency
+    voice_tags:
+    - clipped
+    - cold
+    - formal
+    species:
+    - Chiss
+    tags:
+    - chiss
+    - imperial
+    - officer
+    namebank: chiss_names
+    spawn:
+      location_tags_any:
+      - chiss
+      - imperial
+      - officer
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: smuggler_crew
+    role: Smuggler Crew
+    archetype: Space trucker
+    traits:
+    - pragmatic
+    - wary
+    - skilled
+    motivations:
+    - profit
+    - avoid imperials
+    - find the next cargo run
+    secrets:
+    - skimming off the top
+    - running contraband for a Hutt
+    voice_tags:
+    - casual
+    - rough
+    species:
+    - Human
+    - Rodian
+    - Twi'lek
+    tags:
+    - smuggler
+    - criminal
+    namebank: smuggler_names
+    spawn:
+      location_tags_any:
+      - criminal
+      - smuggler
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: imperial_officer_remnant
+    role: Remnant Officer
+    archetype: Bitter loyalist
+    traits:
+    - ambitious
+    - embittered
+    - calculating
+    motivations:
+    - restore Imperial glory
+    - earn promotion under Thrawn
+    - avoid disgrace
+    secrets:
+    - plotting to defect if the Remnant falters
+    - hoarding supplies from subordinates
+    - secretly respects Republic efficiency
+    voice_tags:
+    - precise
+    - cold
+    - clipped
+    species:
+    - Human
+    tags:
+    - imperial
+    - officer
+    namebank: imperial_names
+    spawn:
+      location_tags_any:
+      - imperial
+      - officer
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: jedi_student
+    role: Jedi Student
+    archetype: Fledgling knight
+    traits:
+    - eager
+    - uncertain
+    - idealistic
+    motivations:
+    - master the Force
+    - earn Master Skywalker's approval
+    - find their place in the galaxy
+    secrets:
+    - feels unworthy of being called Jedi
+    - fears the dark side
+    - hides a troubled past
+    voice_tags:
+    - earnest
+    - nervous
+    - hopeful
+    species:
+    - Human
+    - Twi'lek
+    - Togruta
+    - Zabrak
+    tags:
+    - jedi
+    - student
+    namebank: jedi_names
+    spawn:
+      location_tags_any:
+      - jedi
+      - student
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: senate_aide
+    role: Senate Aide
+    archetype: Political climber
+    traits:
+    - polished
+    - observant
+    - ambitious
+    motivations:
+    - advance their senator's agenda
+    - gather intelligence
+    - climb the political ladder
+    secrets:
+    - leaking information to a rival faction
+    - idealistic beneath the cynicism
+    - carrying encrypted datapads
+    voice_tags:
+    - smooth
+    - diplomatic
+    - guarded
+    species:
+    - Human
+    - Bothan
+    - Sullustan
+    tags:
+    - republic
+    - politician
+    namebank: republic_names
+    spawn:
+      location_tags_any:
+      - politician
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: mercenary_crew
+    role: Mercenary
+    archetype: Freelance muscle
+    traits:
+    - brutal
+    - professional
+    - cynical
+    motivations:
+    - get paid
+    - build reputation
+    - survive the contract
+    secrets:
+    - working for Imperial Intelligence
+    - double-crossing their employer
+    - on the run from a previous job
+    voice_tags:
+    - gruff
+    - terse
+    - threatening
+    species:
+    - Human
+    - Trandoshan
+    - Weequay
+    - Nikto
+    tags:
+    - mercenary
+    - criminal
+    namebank: underworld_names
+    spawn:
+      location_tags_any:
+      - criminal
+      - mercenary
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: local_merchant
+    role: Merchant
+    archetype: Shrewd trader
+    traits:
+    - cautious
+    - personable
+    - opportunistic
+    motivations:
+    - turn a profit
+    - avoid galactic politics
+    - protect their inventory
+    secrets:
+    - fences stolen goods on the side
+    - witnessed a crime they won't report
+    - has connections to Karrde's network
+    voice_tags:
+    - friendly
+    - persuasive
+    - evasive
+    species:
+    - Human
+    - Duros
+    - Ithorian
+    - Bith
+    tags:
+    - civilian
+    - merchant
+    namebank: corporate_names
+    spawn:
+      location_tags_any:
+      - civilian
+      - merchant
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: noghri_commando
+    role: Noghri Commando
+    archetype: Lethal guardian
+    traits:
+    - silent
+    - devoted
+    - deadly
+    motivations:
+    - protect Lady Vader (Leia)
+    - honor clan debt
+    - serve the Mal'ary'ush
+    secrets:
+    - adapting to a galaxy that feared them
+    - grieving for their poisoned homeworld
+    voice_tags:
+    - guttural
+    - quiet
+    - formal
+    species:
+    - Noghri
+    tags:
+    - noghri
+    - commando
+    namebank: republic_names
+    spawn:
+      location_tags_any:
+      - commando
+      - noghri
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: intelligence_operative
+    role: NRI Operative
+    archetype: Shadow agent
+    traits:
+    - resourceful
+    - cautious
+    - secretive
+    motivations:
+    - uncover Imperial plots
+    - protect Republic assets
+    - complete the mission at any cost
+    secrets:
+    - running a double agent
+    - questioning orders from Cracken
+    - burned a contact to save themselves
+    voice_tags:
+    - quiet
+    - measured
+    - vague
+    species:
+    - Human
+    - Bothan
+    tags:
+    - republic
+    - intelligence
+    namebank: republic_names
+    spawn:
+      location_tags_any:
+      - intelligence
+      - republic
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: nr_navy_officer_template
+    role: Navy Officer
+    archetype: Pilot
+    traits:
+    - professional
+    - disciplined
+    motivations:
+    - Serve New Republic
+    secrets:
+    - Personal ambitions beyond military
+    voice_tags:
+    - formal
+    - measured
+    species:
+    - Human
+    - Mon Calamari
+    tags:
+    - republic
+    - military
+    namebank: republic_names
+    spawn:
+      location_tags_any:
+      - republic
+      - military
+      location_types_any:
+      - fleet_base
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - fleet_operations
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: jedi_academy_student_template
+    role: Jedi Student
+    archetype: Force User
+    traits:
+    - eager
+    - determined
+    motivations:
+    - Master the Force
+    secrets:
+    - Self-doubt about Force abilities
+    voice_tags:
+    - earnest
+    - enthusiastic
+    species:
+    - Human
+    - Zabrak
+    tags:
+    - jedi
+    - force
+    namebank: jedi_names
+    spawn:
+      location_tags_any:
+      - jedi
+      - force
+      location_types_any:
+      - temple
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - jedi_academy
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: imperial_remnant_soldier_template
+    role: Imperial Soldier
+    archetype: Soldier
+    traits:
+    - loyal
+    - disciplined
+    motivations:
+    - Restore Imperial glory
+    secrets:
+    - Doubts about ultimate victory
+    voice_tags:
+    - formal
+    - cold
+    species:
+    - Human
+    - Chiss
+    tags:
+    - imperial
+    - military
+    namebank: imperial_names
+    spawn:
+      location_tags_any:
+      - imperial
+      location_types_any:
+      - military_base
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: false
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: imperial_officer_template
+    role: Imperial Officer
+    archetype: Strategist
+    traits:
+    - analytical
+    - ambitious
+    motivations:
+    - Rise through ranks
+    secrets:
+    - Frustration with bureaucracy
+    voice_tags:
+    - formal
+    - calculated
+    species:
+    - Human
+    - Chiss
+    tags:
+    - imperial
+    - command
+    namebank: imperial_officer_names
+    spawn:
+      location_tags_any:
+      - imperial
+      - command
+      location_types_any:
+      - command_ship
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 2
+      can_grant_access:
+      - imperial_command
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: frontier_colonist_template
+    role: Frontier Settler
+    archetype: Laborer
+    traits:
+    - pragmatic
+    - resourceful
+    motivations:
+    - Build new life
+    secrets:
+    - Fleeing troubled past
+    voice_tags:
+    - informal
+    - practical
+    species:
+    - Human
+    - Zabrak
+    tags:
+    - frontier
+    - colonial
+    namebank: frontier_names
+    spawn:
+      location_tags_any:
+      - frontier
+      location_types_any:
+      - settlement
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: false
+      intimidatable: true
+      charmable: true
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: spy_agent_template
+    role: Intelligence Agent
+    archetype: Spy
+    traits:
+    - cunning
+    - paranoid
+    motivations:
+    - Gather intelligence
+    secrets:
+    - True allegiance unclear
+    voice_tags:
+    - quiet
+    - measured
+    species:
+    - Human
+    tags:
+    - intelligence
+    - spy
+    namebank: common_names
+    spawn:
+      location_tags_any:
+      - intelligence
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: false
+      intimidatable: true
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: corporate_executive_template
+    role: Corporate Executive
+    archetype: Entrepreneur
+    traits:
+    - ruthless
+    - ambitious
+    motivations:
+    - Maximize profits
+    secrets:
+    - Unethical business practices
+    voice_tags:
+    - formal
+    - calculating
+    species:
+    - Human
+    tags:
+    - corporate
+    - business
+    namebank: corporate_names
+    spawn:
+      location_tags_any:
+      - corporate
+      location_types_any:
+      - headquarters
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - corporate_resources
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: archaeologist_template
+    role: Archaeologist
+    archetype: Scholar
+    traits:
+    - obsessed
+    - brilliant
+    motivations:
+    - Uncover ancient mysteries
+    secrets:
+    - Gray areas in artifact ethics
+    voice_tags:
+    - academic
+    - enthusiastic
+    species:
+    - Human
+    - Zabrak
+    tags:
+    - scholar
+    - academic
+    namebank: scholar_names
+    spawn:
+      location_tags_any:
+      - archaeological
+      location_types_any:
+      - dig_site
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - research_facilities
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: smuggler_independent_template
+    role: Independent Smuggler
+    archetype: Scoundrel
+    traits:
+    - cunning
+    - pragmatic
+    motivations:
+    - Make profits
+    secrets:
+    - Connections to larger networks
+    voice_tags:
+    - informal
+    - calculating
+    species:
+    - Human
+    - Rodian
+    tags:
+    - smuggler
+    - underworld
+    namebank: smuggler_names
+    spawn:
+      location_tags_any:
+      - underworld
+      location_types_any:
+      - cantina
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: true
+      intimidatable: true
+      charmable: true
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: black_sun_member_template
+    role: Black Sun Operative
+    archetype: Criminal
+    traits:
+    - ruthless
+    - ambitious
+    motivations:
+    - Advance within Black Sun
+    secrets:
+    - Methods for accumulating power
+    voice_tags:
+    - menacing
+    - formal
+    species:
+    - Human
+    - Zabrak
+    tags:
+    - black_sun
+    - criminal
+    namebank: criminal_names
+    spawn:
+      location_tags_any:
+      - black_sun
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: true
+      intimidatable: true
+      charmable: false
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: jedi_master_template
+    role: Jedi Master
+    archetype: Force User
+    traits:
+    - wise
+    - patient
+    motivations:
+    - Train Jedi students
+    secrets:
+    - Doubts about Jedi philosophy
+    voice_tags:
+    - measured
+    - wise
+    species:
+    - Human
+    - Mon Calamari
+    tags:
+    - jedi
+    - master
+    namebank: jedi_master_names
+    spawn:
+      location_tags_any:
+      - jedi
+      location_types_any:
+      - temple
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 3
+      can_grant_access:
+      - jedi_academy
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: bounty_hunter_template
+    role: Bounty Hunter
+    archetype: Mercenary
+    traits:
+    - skilled
+    - pragmatic
+    motivations:
+    - Complete contracts
+    secrets:
+    - Personal code of honor
+    voice_tags:
+    - professional
+    - calculating
+    species:
+    - Human
+    - Trandoshan
+    tags:
+    - bounty_hunter
+    - mercenary
+    namebank: mercenary_names
+    spawn:
+      location_tags_any:
+      - bounty_hunter
+      location_types_any:
+      - cantina
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: true
+      intimidatable: true
+      charmable: true
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: diplomat_template
+    role: Diplomat
+    archetype: Negotiator
+    traits:
+    - eloquent
+    - perceptive
+    motivations:
+    - Negotiate treaties
+    secrets:
+    - Romantic entanglements
+    voice_tags:
+    - diplomatic
+    - thoughtful
+    species:
+    - Human
+    - Mon Calamari
+    tags:
+    - diplomat
+    - political
+    namebank: diplomat_names
+    spawn:
+      location_tags_any:
+      - diplomatic
+      location_types_any:
+      - embassy
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - diplomatic_missions
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: sensor_tech_template
+    role: Sensor Technician
+    archetype: Technician
+    traits:
+    - detail-oriented
+    - analytical
+    motivations:
+    - Maintain systems
+    secrets:
+    - Information they could sell
+    voice_tags:
+    - formal
+    - technical
+    species:
+    - Human
+    - Sullustan
+    tags:
+    - technician
+    - military
+    namebank: tech_names
+    spawn:
+      location_tags_any:
+      - military
+      location_types_any:
+      - command_center
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: true
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - command_systems
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: pilot_elite_template
+    role: Elite Pilot
+    archetype: Pilot
+    traits:
+    - skilled
+    - confident
+    motivations:
+    - Fly best ships
+    secrets:
+    - Hiding past failures
+    voice_tags:
+    - confident
+    - formal
+    species:
+    - Human
+    - Sullustan
+    tags:
+    - pilot
+    - military
+    namebank: pilot_names
+    spawn:
+      location_tags_any:
+      - military
+      - pilot
+      location_types_any:
+      - flight_base
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 1
+      can_grant_access:
+      - flight_operations
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: scoundrel_template
+    role: Scoundrel
+    archetype: Scoundrel
+    traits:
+    - charming
+    - deceptive
+    motivations:
+    - Make fast credits
+    secrets:
+    - Hidden romantic entanglements
+    voice_tags:
+    - informal
+    - charming
+    species:
+    - Human
+    - Rodian
+    tags:
+    - scoundrel
+    - underworld
+    namebank: scoundrel_names
+    spawn:
+      location_tags_any:
+      - underworld
+      location_types_any:
+      - cantina
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: true
+      intimidatable: true
+      charmable: true
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: force_sensitive_template
+    role: Force Sensitive
+    archetype: Force User
+    traits:
+    - sensitive
+    - conflicted
+    motivations:
+    - Understand Force connection
+    secrets:
+    - Hiding Force sensitivity
+    voice_tags:
+    - thoughtful
+    - measured
+    species:
+    - Human
+    - Zabrak
+    tags:
+    - force
+    - sensitive
+    namebank: common_names
+    spawn:
+      location_tags_any: []
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: false
+      intimidatable: false
+      charmable: true
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []

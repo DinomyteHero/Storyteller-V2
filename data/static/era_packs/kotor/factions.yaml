@@ -1,0 +1,183 @@
+# KOTOR Era Factions — Jedi, Sith, Republic, Mandalorians, Underworld, Neutrals
+
+factions:
+  - id: jedi_order
+    name: Jedi Order
+    tags: [jedi, light, republic, force]
+    home_locations:
+      - loc-kotor-dantooine_academy
+      - loc-kotor-coruscant_jedi_temple
+      - loc-kotor-ossus_library
+    goals:
+      - Restore the Order after the Jedi Civil War and train a new generation
+      - Oppose Sith resurgence and protect the Republic from dark side threats
+      - Preserve ancient knowledge and uphold the light side of the Force
+    metadata:
+      flavor: "Guardians of peace and justice; scattered but rebuilding after Malak's war."
+
+  - id: sith_empire
+    name: Sith Empire / Remnants
+    tags: [sith, dark, hostile, force]
+    home_locations:
+      - loc-kotor-korriban_academy
+      - loc-kotor-dromund_kaas_citadel
+    goals:
+      - Rebuild Sith power from Korriban and hidden strongholds
+      - Hunt Jedi and acquire ancient Sith artifacts and knowledge
+      - Expand influence through fear, conquest, and forbidden techniques
+    metadata:
+      flavor: "The dark side endures; acolytes and lords vie for supremacy in the shadows."
+
+  - id: galactic_republic
+    name: Galactic Republic
+    tags: [republic, government, military, law]
+    home_locations:
+      - loc-kotor-coruscant_senate
+      - loc-kotor-republic_fleet_station
+    goals:
+      - Restore stability and defend member worlds from Sith and Mandalorian incursions
+      - Rebuild the military and judiciary after the Jedi Civil War
+      - Maintain trade and diplomacy across the Core and Mid Rim
+    metadata:
+      flavor: "The Republic endures—battered but unbowed; senators and soldiers hold the line."
+
+  - id: mandalorian_clans
+    name: Mandalorian Clans
+    tags: [mandalorian, warrior, honor, mercenary]
+    home_locations:
+      - loc-kotor-mandalore_camp
+      - loc-kotor-ordo_stronghold
+    goals:
+      - Preserve Mandalorian culture and the warrior code
+      - Fight worthy enemies and earn glory; serve as mercenaries when it suits
+      - Rebuild after the Mandalorian Wars and the influence of Revan
+    metadata:
+      flavor: "Clans bound by honor and combat; Canderous Ordo's people and their scattered kindred."
+
+  - id: underworld
+    name: Criminal Syndicates & Smugglers
+    tags: [criminal, smuggler, neutral, profit]
+    home_locations:
+      - loc-kotor-taris_lower_city
+      - loc-kotor-hutt_palace_tatooine
+      - loc-kotor-smuggler_haven
+    goals:
+      - Profit from war, blockade-running, and black-market artifacts
+      - Avoid lasting allegiance to Jedi or Sith; deal with both when profitable
+      - Control spice, slavery, and illegal tech in the Outer Rim
+    metadata:
+      flavor: "Smugglers, crime lords, and bounty hunters; the galaxy's shadow economy."
+
+  - id: neutral
+    name: Neutral / Independents
+    tags: [neutral, independent, scholar, explorer]
+    home_locations:
+      - loc-kotor-manaan_embassy
+      - loc-kotor-archaeological_dig
+    goals:
+      - Survive and pursue knowledge, trade, or balance without picking a side
+      - Study ancient civilizations and Force mysteries without Jedi or Sith dogma
+    metadata:
+      flavor: "Scholars, Gray Jedi, and independents who refuse to choose between light and dark."
+
+  - id: rakata_remnant
+    name: Rakata / Infinite Empire Remnants
+    tags: [ancient, rakata, precursor, force]
+    home_locations:
+      - loc-kotor-rakata_primordial_temple
+      - loc-kotor-star_forge_ruins
+    goals:
+      - Survive in hidden enclaves; some seek to restore Rakata dominance
+      - Guard or exploit ancient technology and Force-binding artifacts
+    metadata:
+      flavor: "Echoes of the Infinite Empire; builders of the Star Forge and the galaxy's oldest horrors."
+
+faction_relationships:
+  jedi_order:
+    relationships:
+      sith_empire: -100  # Mortal enemies; Jedi Civil War just ended
+      galactic_republic: 80  # Strong allies, but Jedi maintain independence
+      mandalorian_clans: -30  # Defeated them in the Mandalorian Wars
+      underworld: -20  # Crime undermines peace; Jedi oppose but rarely hunt
+      neutral: 30  # Respect scholars and independents
+      rakata_remnant: -60  # Dangerous ancient Force-wielders; studied with caution
+    cascades:
+      sith_empire: -0.7  # Helping Jedi deeply angers Sith
+      galactic_republic: 0.3  # Helping Jedi also helps Republic standing
+
+  sith_empire:
+    relationships:
+      jedi_order: -100
+      galactic_republic: -80
+      mandalorian_clans: -20  # Post-Mandalorian Wars; Sith exploited them as pawns
+      underworld: 20
+      neutral: -40
+      rakata_remnant: -30  # Want Rakata tech but view them as inferior relics
+    cascades:
+      jedi_order: -0.7
+      galactic_republic: -0.5
+      mandalorian_clans: 0.1  # Some Mandalorians drawn to Sith strength
+
+  galactic_republic:
+    relationships:
+      jedi_order: 80  # Allies; Jedi defend the Republic but maintain autonomy
+      sith_empire: -80  # At war; Sith Empire is an existential threat
+      mandalorian_clans: -40  # Post-Mandalorian Wars tension; Mandalorians still dangerous
+      underworld: -30  # Law enforcement opposes crime but can't stamp it out
+      neutral: 20  # Neutrals are tolerated; Republic values diplomacy
+      rakata_remnant: -70  # Hostile alien remnants threaten Republic worlds
+    cascades:
+      sith_empire: -0.5  # Helping Republic angers Sith
+      jedi_order: 0.2  # Republic and Jedi reputation are loosely linked
+      mandalorian_clans: -0.2  # Republic favor provokes Mandalorian distrust
+
+  mandalorian_clans:
+    relationships:
+      jedi_order: -30  # Defeated by Revan; grudging respect mixed with resentment
+      sith_empire: -20  # Bitter about being manipulated; some serve Sith for credits
+      galactic_republic: -40  # Post-Mandalorian Wars hostility
+      underworld: 30  # Mercenary work and black-market arms
+      neutral: 0
+      rakata_remnant: -40  # Hostile ancient aliens, no honor in dealing with them
+    cascades:
+      galactic_republic: -0.3  # Gaining Mandalorian favor angers the Republic
+      underworld: 0.2  # Mandalorians and underworld share mercenary networks
+
+  underworld:
+    relationships:
+      jedi_order: -20  # Jedi interfere with business
+      sith_empire: 10  # Sith tolerate crime when useful; underworld profits from chaos
+      galactic_republic: -30  # Republic law enforcement is a nuisance
+      mandalorian_clans: 30  # Mercenary partnerships and arms dealing
+      neutral: 20  # Live and let live; some overlap in gray areas
+      rakata_remnant: -20  # No profitable relationship with hostile aliens
+    cascades:
+      galactic_republic: -0.3  # Underworld rep gain angers Republic law enforcement
+      mandalorian_clans: 0.2  # Underworld and Mandalorian mercenary networks overlap
+
+  neutral:
+    relationships:
+      jedi_order: 30  # Scholars respect Jedi knowledge; some are Gray Jedi
+      sith_empire: -40  # Sith aggression threatens neutrality
+      galactic_republic: 20  # Republic protects trade and stability
+      mandalorian_clans: 0  # No strong opinion; depends on individual clans
+      underworld: 10  # Some overlap in gray-area trade
+      rakata_remnant: -10  # Ancient aliens are unsettling but sometimes studied
+    cascades: {}  # Neutral by definition; no cascading effects
+
+  rakata_remnant:
+    relationships:
+      jedi_order: -60  # Ancient enemies of Force-users who overthrew the Infinite Empire
+      sith_empire: -50  # Sith seek their tech; Rakata despise all "lesser" species
+      galactic_republic: -70  # Hostile to organized galactic civilization
+      mandalorian_clans: -40  # Warriors are a threat to Rakata enclaves
+      underworld: -20  # No profitable relationship; occasional artifact trade
+      neutral: -10  # Slightly hostile to all outsiders
+    cascades:
+      jedi_order: -0.3  # Rakata hostility spills over to Jedi who study them
+      sith_empire: -0.3  # Rakata hostility spills over to Sith who exploit them
+
+# Cascade multipliers explanation:
+# - Positive values: Gaining rep with faction X also increases rep with this faction
+# - Negative values: Gaining rep with faction X decreases rep with this faction
+# - Example: +25 with Jedi triggers -0.7 cascade = -17 with Sith Empire

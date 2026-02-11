@@ -1,0 +1,128 @@
+# ============================================================
+# factions.yaml -- Factions & Relationship Matrix (TEMPLATE)
+# ============================================================
+#
+# PURPOSE:
+#   Defines all factions in the era and (optionally) the faction relationship
+#   matrix with cascading reputation multipliers. Factions drive NPC alignment,
+#   location control, and the reputation system.
+#
+# USED BY:
+#   - Director: reads goals for faction-aware suggestion generation
+#   - Ledger: reads faction_relationships for cascading reputation changes
+#   - NPC spawning: faction_id on NPCs links to these definitions
+#   - Mechanic: faction control affects security DCs
+#
+# CONVENTIONS:
+#   - Faction IDs use snake_case: rebel_alliance, galactic_empire
+#   - Always include a "neutral" faction for unaffiliated NPCs
+#   - Aim for 4-6 factions covering the political spectrum
+#   - Include at least: protagonist faction, antagonist faction, neutral, criminal
+#
+# GOTCHAS:
+#   - home_locations must reference existing location IDs from locations.yaml
+#   - Cascade values are multipliers: -0.6 means gaining +10 with faction A
+#     gives -6 with the cascade target
+#   - relationship values range from -100 (mortal enemies) to +100 (close allies)
+#   - Always quote strings containing colons or em dashes
+# ============================================================
+
+factions:
+
+  # ----------------------------------------------------------
+  # FACTION: Neutral / Independents (always include this)
+  # ----------------------------------------------------------
+  - id: faction_neutral
+    name: "Neutral / Independents"
+    # tags: searchable keywords
+    tags:
+      - neutral
+      - independent
+    # home_locations: location IDs where this faction is based (must exist in locations.yaml)
+    home_locations: []
+    # goals: faction objectives (used in Director prompts for faction-aware storytelling)
+    goals:
+      - "Survive, profit, and avoid entanglements in the conflict."
+    # metadata: freeform (convention: {flavor: "..."} for one-line description)
+    metadata:
+      flavor: "Unaffiliated operators: freelancers, independents, and those who refuse to pick a side."
+
+  # ----------------------------------------------------------
+  # FACTION: Primary protagonist faction
+  # ----------------------------------------------------------
+  - id: faction_alpha
+    name: "Alpha Faction"
+    tags:
+      - protagonist
+      - military
+    home_locations:
+      - loc-secondary_hub
+    goals:
+      - "Defeat the antagonist faction and restore justice."
+      - "Protect civilians and maintain supply lines."
+      - "Recruit allies from neutral parties."
+    metadata:
+      flavor: "The primary force for good in this era; organized, motivated, and outnumbered."
+
+  # ----------------------------------------------------------
+  # FACTION: Primary antagonist faction
+  # ----------------------------------------------------------
+  - id: faction_beta
+    name: "Beta Faction"
+    tags:
+      - antagonist
+      - authoritarian
+      - hostile
+    home_locations:
+      - loc-main_hub
+    goals:
+      - "Maintain control through fear and military dominance."
+      - "Crush dissent and eliminate opposition leadership."
+      - "Expand territory and consolidate power."
+    metadata:
+      flavor: "The dominant power; militarized, ruthless, and seemingly invincible."
+
+# ============================================================
+# FACTION RELATIONSHIP MATRIX
+# ============================================================
+#
+# Defines how factions view each other and how reputation changes cascade.
+#
+# relationships: dict of faction_id -> disposition (-100 to +100)
+#   -100 = mortal enemies
+#      0 = neutral / indifferent
+#   +100 = close allies
+#
+# cascades: dict of faction_id -> multiplier (-1.0 to 1.0)
+#   When the player gains/loses reputation with this faction, the delta
+#   is multiplied by the cascade value and applied to the target faction.
+#   Example: gaining +10 with faction_alpha where cascade to faction_beta = -0.6
+#            results in -6 reputation with faction_beta.
+#
+# GOTCHAS:
+#   - Cascade values are MULTIPLIERS, not absolute values
+#   - Missing entries default to 0 (no relationship / no cascade)
+#   - Relationships should be roughly symmetric (A hates B, B hates A)
+# ============================================================
+
+faction_relationships:
+
+  faction_alpha:
+    relationships:
+      faction_beta: -80         # Strong enemies
+      faction_neutral: 10       # Slightly positive (need their help)
+    cascades:
+      faction_beta: -0.5        # Gain rep with Alpha -> lose 50% with Beta
+
+  faction_beta:
+    relationships:
+      faction_alpha: -80        # Strong enemies
+      faction_neutral: -20      # Slightly hostile (suppress neutrals)
+    cascades:
+      faction_alpha: -0.5       # Gain rep with Beta -> lose 50% with Alpha
+
+  faction_neutral:
+    relationships:
+      faction_alpha: 10         # Slightly positive
+      faction_beta: -20         # Slightly negative
+    cascades: {}                # No cascades (neutrals don't spread reputation)

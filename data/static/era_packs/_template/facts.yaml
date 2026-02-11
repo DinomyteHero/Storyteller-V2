@@ -1,0 +1,60 @@
+# ============================================================
+# facts.yaml -- Knowledge Graph Seed Facts (TEMPLATE)
+# ============================================================
+#
+# PURPOSE:
+#   Seed facts for the knowledge graph, expressed as subject-predicate-object
+#   triples. These form the foundational knowledge that NPCs can reveal and
+#   that the KG extractor uses to build the world model.
+#
+# USED BY:
+#   - KG extractor (backend/app/rag/kg_retriever.py): seeds the knowledge graph
+#   - NPC knowledge: fact IDs are referenced by npcs.yaml knowledge.secrets
+#
+# CONVENTIONS:
+#   - Fact IDs use "fact_" prefix with snake_case: fact_alpha_controls_hub
+#   - subject and object should reference valid entity IDs where possible
+#     (faction IDs, NPC IDs, location IDs)
+#   - predicate is a relationship verb: controls, hides_in, allied_with,
+#     opposes, trades_with, hunts, protects, etc.
+#   - confidence: 0.0 (uncertain) to 1.0 (absolute certainty)
+#   - Aim for 2+ facts per era minimum
+#
+# GOTCHAS:
+#   - Fact IDs are referenced by NPCs via knowledge.secrets -- must match exactly
+#   - subject and object should reference valid entity IDs from other files
+#   - confidence is optional; defaults vary by system
+# ============================================================
+
+facts:
+
+  # ----------------------------------------------------------
+  # FACT 1: A factional control fact
+  # ----------------------------------------------------------
+  - id: fact_alpha_controls_hub
+    # subject: the entity that has the relationship (faction ID, NPC ID, etc.)
+    subject: faction_alpha
+    # predicate: the relationship verb
+    predicate: controls
+    # object: the target entity (location ID, faction ID, etc.)
+    object: loc-secondary_hub
+    # confidence: 0.0 to 1.0 (how certain this fact is)
+    confidence: 1.0
+
+  # ----------------------------------------------------------
+  # FACT 2: A secret about an NPC
+  # ----------------------------------------------------------
+  - id: fact_vex_double_agent
+    subject: informant_vex
+    predicate: works_for
+    object: faction_alpha
+    confidence: 0.7
+
+  # ----------------------------------------------------------
+  # FACT 3: A relationship between factions
+  # ----------------------------------------------------------
+  - id: fact_beta_opposes_alpha
+    subject: faction_beta
+    predicate: opposes
+    object: faction_alpha
+    confidence: 1.0

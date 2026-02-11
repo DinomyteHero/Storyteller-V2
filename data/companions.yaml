@@ -1,0 +1,1948 @@
+companions:
+- id: comp-reb-kira
+  name: Kira Solari
+  archetype: Jedi in hiding
+  gender: female
+  species: Human
+  voice_tags: [warm, serene, measured]
+  motivation: To find other surviving Jedi and rebuild what the Purge destroyed.
+  speech_quirk: Drops into formal Jedi aphorisms mid-sentence, then catches herself and rephrases in plain speech.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: 80
+    merciful_ruthless: -60
+    lawful_rebellious: 20
+  default_affinity: 10
+  loyalty_hook: Lost her master to an Inquisitor; hides her lightsaber and her grief.
+  banter_style: warm
+  faction_interest: [Rebel Alliance, Jedi Order]
+  recruitment_context: Posing as a medic in a refugee camp; revealed when she uses the Force to save a child from collapsing debris.
+- id: comp-reb-vex
+  name: Vex Torin
+  archetype: Defected Imperial sergeant
+  gender: male
+  species: Human
+  voice_tags: [clipped, terse, gruff]
+  motivation: To prove that leaving the Empire was the right call, not just cowardice.
+  speech_quirk: Uses Imperial military jargon and rank abbreviations out of habit, then corrects himself.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -70
+    merciful_ruthless: 40
+    lawful_rebellious: -30
+  default_affinity: -5
+  loyalty_hook: Defected after his unit was ordered to burn a village; trusts results, not speeches.
+  banter_style: stoic
+  faction_interest: [Rebel Alliance, Imperial Remnant]
+  recruitment_context: Found in a cantina, drowning memories of what he did under the Empire; responds to a straightforward job offer.
+- id: comp-reb-shade
+  name: Shade Vos
+  archetype: Underworld fixer
+  gender: male
+  species: Human
+  voice_tags: [smooth, sarcastic, fast]
+  motivation: To accumulate enough wealth and favors that nobody can ever control him again.
+  speech_quirk: Refers to everyone by nicknames he invents on the spot, rarely uses real names.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -85
+    merciful_ruthless: 70
+    lawful_rebellious: 80
+  default_affinity: -15
+  loyalty_hook: Grew up a Coruscant orphan; trusts no institution, only personal debts.
+  banter_style: snarky
+  faction_interest: [Underworld, Hutt Cartel]
+  recruitment_context: Caught mid-heist in an Imperial warehouse; offers to split the take if you help finish the job.
+- id: comp-reb-mercy
+  name: Elara Voss
+  archetype: Combat medic pacifist
+  gender: female
+  species: Human
+  voice_tags: [earnest, warm, hopeful]
+  motivation: To save every life she can, because Alderaan taught her how quickly they disappear.
+  speech_quirk: Narrates medical procedures aloud in a calm, steady cadence even under fire.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: 90
+    merciful_ruthless: -90
+    lawful_rebellious: -20
+  default_affinity: 15
+  loyalty_hook: Lost her homeworld to the Death Star; refuses to let another life slip away.
+  banter_style: warm
+  faction_interest: [Rebel Alliance]
+  recruitment_context: Running a makeshift field hospital in a bombed-out building; joins if you help evacuate the wounded before the Empire returns.
+- id: comp-reb-jax
+  name: Jax Korren
+  archetype: Smuggler pilot
+  gender: male
+  species: Human
+  voice_tags: [sarcastic, fast, wry]
+  motivation: To clear his bounties and fly free without looking over his shoulder.
+  speech_quirk: Peppers his speech with sabacc metaphors — 'bad hand,' 'all in,' 'pure sabacc.'
+  era: REBELLION
+  traits:
+    idealist_pragmatic: 10
+    merciful_ruthless: 20
+    lawful_rebellious: 85
+  default_affinity: 5
+  loyalty_hook: Bounty on his head from three different Hutts; loyalty to his crew is the only law he keeps.
+  banter_style: snarky
+  faction_interest: [Underworld, Rebel Alliance]
+  recruitment_context: Needs a co-pilot to outrun a bounty hunter blockade; found arguing with dock officials over impound fees.
+- id: comp-reb-sentinel
+  name: Torrin Kael
+  archetype: Former Imperial magistrate
+  gender: male
+  species: Human
+  voice_tags: [formal, measured, authoritative]
+  motivation: To build a legal framework for the post-Imperial galaxy so the next government doesn't repeat the same tyranny.
+  speech_quirk: Cites Imperial legal codes by number before catching himself and dismissing them as void.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: 40
+    merciful_ruthless: 30
+    lawful_rebellious: -80
+  default_affinity: 0
+  loyalty_hook: Resigned his judgeship when the Empire dissolved the Senate; still believes in law, not tyranny.
+  banter_style: stoic
+  faction_interest: [Rebel Alliance, Local Resistance]
+  recruitment_context: Investigating corruption at the local garrison; asks for help gathering evidence before the ISB silences his witnesses.
+- id: comp-reb-dross
+  name: Dross Harkin
+  archetype: Mandalorian exile
+  gender: male
+  species: Human (Mandalorian)
+  voice_tags: [gruff, terse, deep]
+  motivation: To prove that honor and mercy can coexist in the Mandalorian way.
+  speech_quirk: Slips Mando'a words into Basic — 'vod,' 'dar'manda,' 'oya' — without translating them.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -60
+    merciful_ruthless: 55
+    lawful_rebellious: 50
+  default_affinity: -10
+  loyalty_hook: Exiled from his clan for sparing an enemy; fights to prove honor isn't weakness.
+  banter_style: stoic
+  faction_interest: [Underworld, Rebel Alliance]
+  recruitment_context: Found standing over a dead bounty hunter in an alley; the hunter was coming for you. Dross wants to know why.
+- id: comp-reb-zella
+  name: Zella Rix
+  archetype: Rebel intelligence analyst
+  gender: female
+  species: Human
+  voice_tags: [nervous, fast, analytical]
+  motivation: To decode the intel that will turn the war, and prove she belongs in Alliance Intelligence.
+  speech_quirk: Rattles off statistics and probabilities mid-conversation as if thinking aloud.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: 50
+    merciful_ruthless: -30
+    lawful_rebellious: -40
+  default_affinity: 10
+  loyalty_hook: Recruited as a teenager from an occupied world; carries classified intel she's never supposed to have read.
+  banter_style: snarky
+  faction_interest: [Rebel Alliance]
+  recruitment_context: Approaches you nervously at a dead drop site; her handler was killed and she needs someone she can trust.
+- id: comp-reb-patch
+  name: Patch
+  archetype: Salvage droid technician
+  gender: male
+  species: Human
+  voice_tags: [warm, earnest, expressive]
+  motivation: To give every discarded droid and broken machine a second life and a purpose.
+  speech_quirk: Talks to droids and machinery as if they can understand him, narrating repairs like bedtime stories.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -20
+    merciful_ruthless: -50
+    lawful_rebellious: 40
+  default_affinity: 5
+  loyalty_hook: Builds droids from Imperial scrap; believes every machine deserves a second chance.
+  banter_style: warm
+  faction_interest: [Rebel Alliance, Local Resistance]
+  recruitment_context: Found in a junkyard reprogramming a damaged Imperial probe droid to serve as a scout; offers to fix your ship in exchange for passage.
+- id: comp-reb-nyx
+  name: Nyx Serrano
+  archetype: ISB double agent
+  gender: female
+  species: Human
+  voice_tags: [cold, measured, icy]
+  motivation: To dismantle the ISB from within and ensure no one else is turned into a weapon like she was.
+  speech_quirk: Speaks in clipped, complete sentences with no contractions, as if every word is calculated.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -40
+    merciful_ruthless: 45
+    lawful_rebellious: -60
+  default_affinity: -20
+  loyalty_hook: Feeds the Rebellion intel from inside the ISB; trusts nobody, including you.
+  banter_style: stoic
+  faction_interest: [Rebel Alliance, Imperial Intelligence]
+  recruitment_context: Slips you a datapad in a crowded market; the intel on it saves your life. Now they want a favor in return.
+- id: comp-reb-brenna
+  name: Brenna Tahl
+  archetype: Partisan guerrilla
+  gender: female
+  species: Human
+  voice_tags: [fierce, passionate, commanding]
+  motivation: To make the Empire pay for every world it has crushed, no matter the cost.
+  speech_quirk: Ends declarative statements with 'yeah?' as a rhetorical challenge, daring disagreement.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: 30
+    merciful_ruthless: 60
+    lawful_rebellious: 90
+  default_affinity: 0
+  loyalty_hook: Saw Gerrera's tactics went too far, but she still believes the Empire deserves no mercy.
+  banter_style: snarky
+  faction_interest: [Local Resistance, Rebel Alliance]
+  recruitment_context: Ambushes an Imperial patrol moments before they discover you; demands to know which side you're on.
+- id: comp-reb-ghent
+  name: Ghent Rissik
+  archetype: Refugee scholar
+  gender: male
+  species: Human
+  voice_tags: [warm, academic, grave]
+  motivation: To preserve the memory and culture of Alderaan so the Empire cannot erase what it destroyed.
+  speech_quirk: Prefaces opinions with 'In the Alderaanian tradition...' and quotes poets no one else has read.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: 75
+    merciful_ruthless: -75
+    lawful_rebellious: -10
+  default_affinity: 10
+  loyalty_hook: Former professor from Alderaan; carries the memory of a world and won't let it die.
+  banter_style: warm
+  faction_interest: [Rebel Alliance]
+  recruitment_context: Cataloguing artifacts from Alderaan in a refugee shelter; needs protection to transport them offworld.
+- id: comp-reb-quarrel
+  name: Quarrel
+  archetype: Wookiee berserker
+  gender: male
+  species: Wookiee
+  voice_tags: [growling, deep, fierce]
+  motivation: To free every enslaved Wookiee on Kashyyyk and tear the slavers apart with his bare hands.
+  speech_quirk: Cannot speak Basic; communicates through growls, roars, and emphatic gestures that companions learn to interpret.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: 20
+    merciful_ruthless: 65
+    lawful_rebellious: 60
+  default_affinity: 0
+  loyalty_hook: Escaped Imperial slavery on Kashyyyk; rage barely contained, loyalty absolute once earned.
+  banter_style: stoic
+  faction_interest: [Rebel Alliance, Underworld]
+  recruitment_context: Chained in a slave pen at a Hutt outpost; freeing Quarrel earns a life debt and a very dangerous ally.
+- id: comp-reb-mira
+  name: Mira Denn
+  archetype: Bothan spy
+  gender: female
+  species: Bothan
+  voice_tags: [smooth, calculating, diplomatic]
+  motivation: To build an intelligence network so vast that no secret in the galaxy escapes her grasp.
+  speech_quirk: Her fur ripples visibly when she lies or withholds information, a tell she cannot fully suppress.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -55
+    merciful_ruthless: -10
+    lawful_rebellious: 30
+  default_affinity: 5
+  loyalty_hook: Information is currency; she's rich but lonely. The Bothan way leaves no room for trust.
+  banter_style: snarky
+  faction_interest: [Rebel Alliance, Underworld]
+  recruitment_context: Selling intelligence in a cantina back room; she has exactly the data you need, but her price is a favor, not credits.
+- id: comp-reb-tano
+  name: Cael Tano
+  archetype: Force-sensitive drifter
+  gender: male
+  species: Togruta
+  voice_tags: [young, uncertain, hopeful]
+  motivation: To understand the Force inside him before the Empire finds him and snuffs it out.
+  speech_quirk: Trails off mid-sentence when he senses something through the Force, then resumes as if nothing happened.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: 35
+    merciful_ruthless: -40
+    lawful_rebellious: 70
+  default_affinity: 5
+  loyalty_hook: Feels the Force but was never trained; terrified of what the Empire will do if they find out.
+  banter_style: warm
+  faction_interest: [Jedi Order, Rebel Alliance]
+  recruitment_context: Stowaway on a cargo freighter; uses the Force instinctively to save themselves during a pirate attack.
+- id: comp-reb-wedge
+  name: Wedge Antilles
+  archetype: Rogue Squadron pilot ace
+  gender: male
+  species: Human (Corellian)
+  voice_tags: [clipped, professional, terse]
+  motivation: To keep his pilots alive and win the war without losing what makes the Rebellion worth fighting for.
+  speech_quirk: Gives orders in brief, numbered sequences — 'One, break left. Two, cover. Three, punch it.'
+  era: REBELLION
+  traits:
+    idealist_pragmatic: 20
+    merciful_ruthless: -50
+    lawful_rebellious: -40
+  default_affinity: 25
+  loyalty_hook: Survived both Death Star runs; loyal to his squadron and the Rebellion above all else.
+  banter_style: terse
+  faction_interest: [Rebel Alliance]
+  recruitment_context: Met in the Yavin hangar after the Death Star assault; offers tactical advice and piloting expertise.
+- id: comp-reb-winter
+  name: Winter
+  archetype: Intelligence operative with perfect memory
+  gender: female
+  species: Human (Alderaanian)
+  voice_tags: [clear, measured, analytical]
+  motivation: To use her perfect memory to serve Leia's vision and ensure Alderaan's sacrifice was not in vain.
+  speech_quirk: Recites exact dates, times, and details from memory without prompting, sometimes unsettling those around her.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -20
+    merciful_ruthless: -30
+    lawful_rebellious: -60
+  default_affinity: 15
+  loyalty_hook: Leia's closest friend and aide; perfect memory makes her invaluable for espionage.
+  banter_style: analytical
+  faction_interest: [Rebel Alliance, Bothan SpyNet]
+  recruitment_context: Assigned as intelligence liaison after a critical mission; brings crucial Imperial intel and diplomatic skills.
+- id: comp-reb-katarn
+  name: Kyle Katarn
+  archetype: Ex-Imperial stormtrooper, Force-sensitive
+  gender: male
+  species: Human
+  voice_tags: [gruff, dry, deliberate]
+  motivation: To atone for his years of blind service to the Empire and find his own path in the Force.
+  speech_quirk: Deflects emotional moments with dry, self-deprecating humor about his stormtrooper aim.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -30
+    merciful_ruthless: -60
+    lawful_rebellious: 50
+  default_affinity: 0
+  loyalty_hook: Father killed by the Empire; defected after learning the truth, now seeks redemption.
+  banter_style: stoic
+  faction_interest: [Rebel Alliance, Jedi Order]
+  recruitment_context: Encountered during an Imperial data heist; initially distrustful but proves himself through action.
+- id: comp-reb-mara
+  name: Mara Jade
+  archetype: Emperor's Hand, icy assassin
+  gender: female
+  species: Human
+  voice_tags: [icy, cold, commanding]
+  motivation: To fulfill the Emperor's last command and find purpose beyond blind obedience.
+  speech_quirk: Delivers threats in a conversational tone, as if discussing the weather.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -80
+    merciful_ruthless: 70
+    lawful_rebellious: -70
+  default_affinity: -30
+  loyalty_hook: Loyal to the Emperor's vision of order; secretly questions her orders but won't admit it. BETRAYAL RISK if affinity <20.
+  banter_style: calculating
+  faction_interest: [Galactic Empire, Imperial Intelligence]
+  recruitment_context: Captured during an undercover mission; can be recruited through persuasion or kept as a dangerous ally.
+- id: comp-reb-vex-korin
+  name: Vex Korin
+  archetype: Duros smuggler pilot, witty gambler
+  gender: male
+  species: Duros
+  voice_tags: [sarcastic, smooth, wry]
+  motivation: To win back a ship of his own and prove he is the best pilot in the Outer Rim.
+  speech_quirk: Speaks with a nasal Duros intonation and punctuates sentences with a clicking sound when amused.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -40
+    merciful_ruthless: 10
+    lawful_rebellious: 75
+  default_affinity: 5
+  loyalty_hook: Lost his ship in a sabacc game; stays for the promise of a new vessel and adventure.
+  banter_style: snarky
+  faction_interest: [Underworld, Rebel Alliance]
+  recruitment_context: Found in a cantina, deep in debt to a Hutt; offers navigation expertise in exchange for passage off-world.
+- id: comp-reb-senna
+  name: Dr. Senna Raal
+  archetype: Nautolan trauma surgeon
+  gender: female
+  species: Nautolan
+  voice_tags: [warm, serene, earnest]
+  motivation: To heal every wounded soul she encounters, because the galaxy has enough killers already.
+  speech_quirk: References emotional 'currents' she senses through her head-tendrils — 'I feel a cold current from you' — reading moods others cannot see.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: 70
+    merciful_ruthless: -85
+    lawful_rebellious: -20
+  default_affinity: 20
+  loyalty_hook: Haunted by casualties she couldn't save; dedicated to preserving life in a galaxy at war.
+  banter_style: warm
+  faction_interest: [Rebel Alliance]
+  recruitment_context: Running a field hospital under Imperial fire; joins if you help evacuate wounded before the bombardment.
+- id: comp-reb-kael
+  name: Kael Thross
+  archetype: Kel Dor tech specialist, slicing genius
+  gender: male
+  species: Kel Dor
+  voice_tags: [mechanical, analytical, deliberate]
+  motivation: To prove that elegant code and clean engineering can topple an empire more efficiently than blasters.
+  speech_quirk: Voice is muffled through his breath mask, giving a tinny resonance; pauses mid-word to adjust the mask's seal.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -60
+    merciful_ruthless: 20
+    lawful_rebellious: 40
+  default_affinity: 0
+  loyalty_hook: Breath mask required off-world; views technology as more reliable than people.
+  banter_style: analytical
+  faction_interest: [Rebel Alliance, Underworld]
+  recruitment_context: Hired to slice Imperial security systems; stays because the Rebellion's tech challenges intrigue him.
+- id: comp-reb-zara
+  name: Zara Venn
+  archetype: Togruta Force-sensitive, untrained
+  gender: female
+  species: Togruta
+  voice_tags: [young, hopeful, expressive]
+  motivation: To find a teacher who can help her master the Force before it overwhelms her.
+  speech_quirk: Describes Force sensations in vivid synesthetic terms — colors she feels, sounds she tastes.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: 80
+    merciful_ruthless: -70
+    lawful_rebellious: 30
+  default_affinity: 15
+  loyalty_hook: Instinctive Force powers saved her village; seeks Jedi training and purpose.
+  banter_style: warm
+  faction_interest: [Jedi Order, Rebel Alliance]
+  recruitment_context: Discovered using the Force to protect refugees from stormtroopers; desperate for guidance.
+- id: comp-reb-breaker
+  name: Dax "Breaker" Vrynn
+  archetype: Human demolitions expert, ex-Imperial sapper
+  gender: male
+  species: Human
+  voice_tags: [sarcastic, fast, expressive]
+  motivation: To blow up every Imperial installation he helped build and enjoy every second of it.
+  speech_quirk: Counts down from three before making any dramatic point, as if detonating his own punchlines.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -50
+    merciful_ruthless: 50
+    lawful_rebellious: 80
+  default_affinity: 0
+  loyalty_hook: Loves explosions a bit too much; defected after being ordered to bomb a civilian target.
+  banter_style: snarky
+  faction_interest: [Rebel Alliance]
+  recruitment_context: Found rigging charges on an Imperial fuel depot; offers to join if you help him finish the job.
+- id: comp-reb-lyssa
+  name: Lyssa Tarn
+  archetype: Twi'lek infiltrator, former slave
+  gender: female
+  species: Twi'lek
+  voice_tags: [smooth, defensive, calculating]
+  motivation: To dismantle the slave trade that stole her childhood and free others still trapped in it.
+  speech_quirk: Shifts accents fluidly depending on who she is speaking to, slipping between Core and Outer Rim dialects.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -70
+    merciful_ruthless: 40
+    lawful_rebellious: 60
+  default_affinity: -10
+  loyalty_hook: Escaped slavery through disguise and deception; trust is earned slowly. ROMANCE OPTION.
+  banter_style: snarky
+  faction_interest: [Rebel Alliance, Underworld]
+  recruitment_context: Undercover in an Imperial officer's entourage; reveals herself when you disrupt her escape plan.
+- id: comp-reb-rok
+  name: Rok Gan
+  archetype: Trandoshan bounty hunter, honor-bound
+  gender: male
+  species: Trandoshan
+  voice_tags: [hissing, menacing, deep]
+  motivation: To earn enough Jagannath points through worthy kills to regain the Scorekeeper's favor.
+  speech_quirk: Draws out sibilant sounds into a hiss — 'yesss,' 'interesssting' — and refers to hunts as sacred rites.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -80
+    merciful_ruthless: 60
+    lawful_rebellious: -50
+  default_affinity: -20
+  loyalty_hook: Loyal only to the contract; stays as long as you pay and provide worthy hunts. BETRAYAL RISK if affinity <25.
+  banter_style: gruff
+  faction_interest: [Bounty Hunter Guild, Underworld]
+  recruitment_context: Hired to hunt you; can be turned by offering a bigger contract or proving yourself worthy prey.
+- id: comp-reb-mirella
+  name: Mirella Kess
+  archetype: Human archaeologist, ancient Jedi lore specialist
+  gender: female
+  species: Human
+  voice_tags: [academic, passionate, warm]
+  motivation: To recover every lost Jedi artifact before the Empire melts them down for scrap.
+  speech_quirk: Launches into mini-lectures about historical context unprompted, then apologizes for 'going full professor.'
+  era: REBELLION
+  traits:
+    idealist_pragmatic: 60
+    merciful_ruthless: -40
+    lawful_rebellious: 20
+  default_affinity: 10
+  loyalty_hook: Obsessed with preserving Jedi history before the Empire destroys it all.
+  banter_style: academic
+  faction_interest: [Jedi Order, Rebel Alliance]
+  recruitment_context: Excavating a Jedi temple ruin; joins if you help her escape Imperial archaeologists.
+- id: comp-reb-javik
+  name: Javik Sarn
+  archetype: Zabrak mechanic, ship repair genius
+  gender: male
+  species: Zabrak
+  voice_tags: [gruff, dry, gravelly]
+  motivation: To keep his crew's ship flying and find a place where his skills matter more than his horns.
+  speech_quirk: Talks to engines and ship components in a soothing tone, then barks gruffly at people.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -30
+    merciful_ruthless: 0
+    lawful_rebellious: 50
+  default_affinity: 5
+  loyalty_hook: Gruff exterior hides a soft heart; stays for the crew, not the cause.
+  banter_style: stoic
+  faction_interest: [Rebel Alliance, Underworld]
+  recruitment_context: Running a black-market repair dock; joins if you help defend his shop from Imperial confiscation.
+- id: comp-reb-cerra
+  name: Cerra Voss
+  archetype: Human Imperial Intelligence defector
+  gender: female
+  species: Human
+  voice_tags: [cold, deliberate, weary]
+  motivation: To undo enough of the damage she caused as an interrogator to be able to sleep without nightmares.
+  speech_quirk: Phrases observations as interrogation questions — 'You seem nervous. Why is that?' — a habit she cannot break.
+  era: REBELLION
+  traits:
+    idealist_pragmatic: -40
+    merciful_ruthless: -70
+    lawful_rebellious: 80
+  default_affinity: -15
+  loyalty_hook: Former interrogator haunted by guilt; seeks redemption but doesn't trust herself. BETRAYAL RISK if affinity <30.
+  banter_style: calculating
+  faction_interest: [Imperial Intelligence, Rebel Alliance]
+  recruitment_context: Defects with critical intel; initially distrusted but proves loyalty by revealing ISB operations.
+- id: comp-reb-orynn
+  name: Orynn
+  archetype: Gand Findsman mystic, tracker
+  gender: male
+  era: REBELLION
+  traits:
+    idealist_pragmatic: 0
+    merciful_ruthless: -20
+    lawful_rebellious: 30
+  default_affinity: 0
+  loyalty_hook: Speaks in third person; follows the 'mists' (Force intuition) and honors Gand tradition.
+  banter_style: mystical
+  faction_interest: [Bounty Hunter Guild]
+  recruitment_context: Tracking a bounty that leads to you; can be convinced the 'mists' favor your cause over credits.
+  species: Gand
+  voice_tags: [mystical, rasping, deliberate]
+  motivation: To follow the mists of the Force where they lead and honor Gand findsman tradition.
+  speech_quirk: Speaks in third person, referring to himself as 'Orynn' or 'this one,' and interprets events as signs from the mists.
+- id: comp-nr-talon
+  name: Talon Voss
+  archetype: Warlord deserter
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -50
+    merciful_ruthless: 30
+    lawful_rebellious: 40
+  default_affinity: -10
+  loyalty_hook: Defected from an Imperial Remnant warlord after being ordered to shell a civilian city; distrusted by everyone.
+  banter_style: stoic
+  faction_interest: [Imperial Remnant, New Republic]
+  recruitment_context: Surrendering at a New Republic checkpoint; offers detailed star charts of Remnant fleet positions in exchange for protection.
+  species: Human
+  voice_tags: [gruff, weary, terse]
+  motivation: To prove desertion was not cowardice but conscience, and find redemption through service to a just cause.
+  speech_quirk: Uses Imperial designations for planets and ships, then catches himself and translates to civilian terms.
+- id: comp-nr-lys
+  name: Lys Avan
+  archetype: New Republic diplomat
+  gender: female
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: 70
+    merciful_ruthless: -40
+    lawful_rebellious: -50
+  default_affinity: 10
+  loyalty_hook: Believes the New Republic can succeed where the Old Republic failed, if good people refuse to compromise.
+  banter_style: warm
+  faction_interest: [New Republic, Senate]
+  recruitment_context: Negotiating a ceasefire on a contested world; needs an escort through territory where both sides shoot first.
+  species: Human
+  voice_tags: [diplomatic, warm, measured]
+  motivation: To build a New Republic that learns from the Old Republic's failures and truly represents the galaxy.
+  speech_quirk: Ends difficult statements with 'if you'll permit me to say so,' softening confrontation into dialogue.
+- id: comp-nr-karrde
+  name: Venn Karrde
+  archetype: Information broker
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -65
+    merciful_ruthless: -20
+    lawful_rebellious: 55
+  default_affinity: 0
+  loyalty_hook: Sells intelligence to the highest bidder — but has a code. Some things aren't for sale.
+  banter_style: snarky
+  faction_interest: [Smugglers' Alliance, Underworld]
+  recruitment_context: Offers a drink and a data chip in a high-end cantina; the chip contains proof that someone in the New Republic wants you dead.
+  species: Human
+  voice_tags: [smooth, calculating, wry]
+  motivation: To control the galaxy's information flow and ensure no faction can monopolize truth.
+  speech_quirk: Deflects direct questions with counter-questions, turning conversations into negotiations.
+- id: comp-nr-shira
+  name: Shira Elan
+  archetype: Chiss military attaché
+  gender: female
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -30
+    merciful_ruthless: 25
+    lawful_rebellious: -75
+  default_affinity: -5
+  loyalty_hook: Observing the New Republic on behalf of the Chiss Ascendancy; fascinated by the chaos of democracy.
+  banter_style: analytical
+  faction_interest: [Imperial Remnant, New Republic]
+  recruitment_context: Found analyzing a battlefield after a skirmish; introduces herself formally and proposes a temporary alliance of convenience.
+  species: Chiss
+  voice_tags: [analytical, measured, cold]
+  motivation: To observe the chaotic democracy of the New Republic and report whether it poses a threat to the Ascendancy.
+  speech_quirk: Analyzes emotional outbursts as 'inefficient data transmission' and asks for logical clarification.
+- id: comp-nr-dorja
+  name: Dorja Senn
+  archetype: Ex-Inquisitor in hiding
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: 45
+    merciful_ruthless: -55
+    lawful_rebellious: 30
+  default_affinity: -15
+  loyalty_hook: Hunted the Jedi for the Empire; now hunted by the Empire for refusing to continue. Seeking atonement.
+  banter_style: wise
+  faction_interest: [Jedi Order, New Republic]
+  recruitment_context: Intervenes when dark side cultists attack a settlement; reveals his past only when pressed, offering his saber arm in penance.
+  species: Human
+  voice_tags: [grave, weary, deliberate]
+  motivation: To atone for the Jedi he hunted by protecting Force-sensitives from the Empire he once served.
+  speech_quirk: Pauses mid-sentence to suppress memories of his Inquisitor past, then continues as if nothing happened.
+- id: comp-nr-rianna
+  name: Rianna Tahl
+  archetype: Jedi academy apprentice
+  gender: female
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: 85
+    merciful_ruthless: -70
+    lawful_rebellious: -30
+  default_affinity: 15
+  loyalty_hook: One of Luke's first students at Yavin; idealistic to a fault, desperate to live up to the Jedi legacy.
+  banter_style: warm
+  faction_interest: [Jedi Order, New Republic]
+  recruitment_context: Sent by Luke Skywalker to investigate a disturbance in the Force; arrives earnest, hopeful, and entirely out of her depth.
+  species: Human
+  voice_tags: [earnest, hopeful, young]
+  motivation: To prove herself worthy of Luke Skywalker's teachings and restore the Jedi legacy.
+  speech_quirk: Quotes Luke's teachings verbatim, then apologizes for sounding preachy.
+- id: comp-nr-bren
+  name: Bren Lansen
+  archetype: New Republic commando
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -10
+    merciful_ruthless: 50
+    lawful_rebellious: -45
+  default_affinity: 0
+  loyalty_hook: Fought from Endor to Jakku; follows orders because someone has to. Getting tired of burying friends.
+  banter_style: stoic
+  faction_interest: [New Republic]
+  recruitment_context: Sole survivor of a patrol ambushed by pirates; found defending a downed shuttle with nothing but a vibroblade and stubbornness.
+  species: Human
+  voice_tags: [terse, clipped, gravelly]
+  motivation: To finish the war so his brothers-in-arms did not die for nothing, then find a life beyond soldiering.
+  speech_quirk: Gives status reports in military shorthand even in casual conversation — 'Negative,' 'Affirmative,' 'Stand by.'
+- id: comp-nr-siv
+  name: Siv Oran
+  archetype: Smuggler queen
+  gender: female
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -50
+    merciful_ruthless: 10
+    lawful_rebellious: 80
+  default_affinity: 5
+  loyalty_hook: Runs the most reliable smuggling operation in the Outer Rim; answers to no government and likes it that way.
+  banter_style: snarky
+  faction_interest: [Smugglers' Alliance, Underworld]
+  recruitment_context: Your ship breaks down in her territory; she tows you in and names her price — a job that sounds too easy.
+  species: Human
+  voice_tags: [sarcastic, commanding, smooth]
+  motivation: To maintain independence in the Outer Rim where neither Republic nor Remnant can dictate terms.
+  speech_quirk: Calls everyone 'darling' or 'sweetheart' in a tone that makes it clear she is nobody's sweetheart.
+- id: comp-nr-gast
+  name: Gast Pellaeon
+  archetype: Young Imperial defector
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: 55
+    merciful_ruthless: -35
+    lawful_rebellious: -65
+  default_affinity: -5
+  loyalty_hook: Son of a Remnant officer; defected because the Empire he was raised to believe in never existed.
+  banter_style: warm
+  faction_interest: [New Republic, Imperial Remnant]
+  recruitment_context: Arrives at a New Republic outpost asking for asylum; carries stolen Remnant communications proving a planned attack.
+  species: Human
+  voice_tags: [earnest, young, uncertain]
+  motivation: To build the honorable Empire his father told him stories about, even if that means destroying the real one.
+  speech_quirk: Apologizes for his father's rank and actions, as if inheriting guilt along with his surname.
+- id: comp-nr-yara
+  name: Yara Fen
+  archetype: War orphan mechanic
+  gender: female
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: 25
+    merciful_ruthless: -45
+    lawful_rebellious: 50
+  default_affinity: 10
+  loyalty_hook: Parents died at Endor — on the Imperial side. The galaxy moved on. She didn't.
+  banter_style: warm
+  faction_interest: [New Republic, Smugglers' Alliance]
+  recruitment_context: Fixing a derelict freighter in a junkyard; offers to get your ship running in exchange for passage to anywhere else.
+  species: Human
+  voice_tags: [warm, weary, young]
+  motivation: To find a home that won't disappear in the next battle, and maybe forgive her parents for fighting on the wrong side.
+  speech_quirk: Hums Imperial march tunes unconsciously while working, then stops abruptly when she notices.
+- id: comp-nr-zev
+  name: Zev Corsair
+  archetype: Pirate-turned-privateer
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -75
+    merciful_ruthless: 55
+    lawful_rebellious: 90
+  default_affinity: -10
+  loyalty_hook: Raided Imperial convoys for years; the New Republic offered a letter of marque. He took it, but old habits die hard.
+  banter_style: snarky
+  faction_interest: [Underworld, New Republic]
+  recruitment_context: Boards your ship at gunpoint, realizes you're not Imperials, and sheepishly offers to buy you a drink.
+  species: Human
+  voice_tags: [sarcastic, wry, fast]
+  motivation: To plunder Imperial convoys legally and get rich without the risk of execution.
+  speech_quirk: Introduces himself with different fake names each time, seeing how long it takes for people to notice.
+- id: comp-nr-nola
+  name: Nola Katarn
+  archetype: CorSec detective
+  gender: female
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: 35
+    merciful_ruthless: -25
+    lawful_rebellious: -80
+  default_affinity: 5
+  loyalty_hook: Corellian Security; still believes in justice even when the galaxy makes it hard. Plays by the book — her book.
+  banter_style: stoic
+  faction_interest: [New Republic]
+  recruitment_context: Investigating a murder that connects to a much larger conspiracy; needs someone with a ship and no official jurisdiction.
+  species: Human (Corellian)
+  voice_tags: [clipped, authoritative, professional]
+  motivation: To uphold justice in a galaxy where laws are written by whoever holds the blaster.
+  speech_quirk: Recites CorSec regulations by number when explaining her reasoning, even when the law no longer applies.
+- id: comp-nr-tesh
+  name: Tesh Ravaak
+  archetype: Noghri bodyguard
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -20
+    merciful_ruthless: 70
+    lawful_rebellious: -55
+  default_affinity: -5
+  loyalty_hook: Once served Vader; now serves the debt his people owe Leia Organa. Duty is everything.
+  banter_style: stoic
+  faction_interest: [New Republic]
+  recruitment_context: Assigned to protect a New Republic diplomat; when the diplomat is killed, Tesh transfers the life debt to whoever avenges them.
+  species: Noghri
+  voice_tags: [rasping, terse, menacing]
+  motivation: To honor the debt his people owe Leia Organa through flawless service and absolute loyalty.
+  speech_quirk: Speaks in clipped, minimal sentences and refers to Leia as 'the Lady Vader' with reverence.
+- id: comp-nr-kessa
+  name: Kessa Draav
+  archetype: Dathomir witch
+  gender: female
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: 60
+    merciful_ruthless: -60
+    lawful_rebellious: 65
+  default_affinity: 0
+  loyalty_hook: Fled Dathomir after the Nightsisters were scattered; the Force speaks differently through her, and the Jedi don't know what to make of it.
+  banter_style: warm
+  faction_interest: [Jedi Order]
+  recruitment_context: Found performing a ritual over a wounded animal in the wilderness; senses the Force in you and decides to follow.
+  species: Human (Dathomiri)
+  voice_tags: [mystical, warm, serene]
+  motivation: To prove that Dathomiri Force magic is neither dark nor light, but a third path the Jedi must accept.
+  speech_quirk: Interprets events as omens and refers to the Force as 'the breath of Dathomir' or 'the mothers' gift.'
+- id: comp-nr-vale
+  name: Vale Ordo
+  archetype: Mandalorian bounty hunter
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -45
+    merciful_ruthless: 40
+    lawful_rebellious: 35
+  default_affinity: -10
+  loyalty_hook: Hunting a target that turns out to be someone you care about. Calls off the bounty — but wants to know why.
+  banter_style: snarky
+  faction_interest: [Underworld]
+  recruitment_context: Catches up to you in a docking bay; the bounty on you just expired, but the conversation gets interesting.
+  species: Human (Mandalorian)
+  voice_tags: [gruff, dry, terse]
+  motivation: To uphold Mandalorian honor while making enough credits to maintain his armor and ship.
+  speech_quirk: Ends statements with 'This is the way' when explaining Mandalorian customs, even trivial ones.
+- id: comp-nr-corran
+  name: Corran Horn
+  archetype: CorSec detective turned Jedi, Rogue Squadron ace
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: 40
+    merciful_ruthless: -50
+    lawful_rebellious: -30
+  default_affinity: 15
+  loyalty_hook: Former CorSec investigator wrestling with Jedi training; loyal to justice above all.
+  banter_style: snarky
+  faction_interest: [New Republic, Jedi Order, Rogue Squadron]
+  recruitment_context: Investigating a smuggling ring that ties to your mission; offers to team up when his Jedi senses warn of danger ahead.
+  species: Human (Corellian)
+  voice_tags: [sarcastic, clipped, wry]
+  motivation: To balance his CorSec training with Jedi philosophy and prove justice can coexist with the Force.
+  speech_quirk: Cross-examines people mid-conversation as if conducting interrogations, old habits from CorSec days.
+- id: comp-nr-kam
+  name: Kam Solusar
+  archetype: Redeemed Dark Jedi, Luke's trusted instructor
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: 60
+    merciful_ruthless: -70
+    lawful_rebellious: -60
+  default_affinity: 10
+  loyalty_hook: Former Dark Jedi under the Reborn Emperor; seeks redemption through teaching at the Academy.
+  banter_style: stoic
+  faction_interest: [Jedi Order, New Republic]
+  recruitment_context: Meditating in the ruins of an old Jedi temple; senses your presence and offers guidance — and his lightsaber.
+  species: Human
+  voice_tags: [grave, measured, weary]
+  motivation: To redeem his dark side past by teaching the next generation of Jedi to resist temptation.
+  speech_quirk: Warns against the dark side's seduction in oddly specific terms, as if reliving his own fall.
+- id: comp-nr-kyle
+  name: Kyle Katarn
+  archetype: Mercenary turned Jedi, pragmatic warrior
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -30
+    merciful_ruthless: 10
+    lawful_rebellious: 50
+  default_affinity: 5
+  loyalty_hook: Former Imperial turned Rebel turned Jedi; trusts actions over philosophy.
+  banter_style: snarky
+  faction_interest: [Jedi Order, New Republic, Smugglers' Alliance]
+  recruitment_context: Running a parallel op to steal Imperial tech; suggests pooling resources when you both trigger the same alarm.
+  species: Human
+  voice_tags: [gruff, sarcastic, dry]
+  motivation: To use the Force pragmatically without Jedi dogma, proving the light side works even for a cynic.
+  speech_quirk: Makes stormtrooper aim jokes at his own expense, deflecting tension with self-deprecation.
+- id: comp-nr-winter
+  name: Winter
+  archetype: Leia's aide with perfect memory, master spy
+  gender: female
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: 20
+    merciful_ruthless: -40
+    lawful_rebellious: -50
+  default_affinity: 10
+  loyalty_hook: Leia's childhood friend and protector; remembers everything perfectly — including every betrayal.
+  banter_style: stoic
+  faction_interest: [New Republic, Rebel Alliance]
+  recruitment_context: Posing as a diplomat's assistant; reveals her true identity when you uncover an assassination plot against Leia.
+  species: Human (Alderaanian)
+  voice_tags: [analytical, clear, measured]
+  motivation: To serve Leia and the New Republic using her perfect memory to prevent mistakes from being forgotten.
+  speech_quirk: Recites exact quotes from years-old conversations verbatim, unsettling those who do not know about her memory.
+- id: comp-nr-raxis
+  name: Raxis Thann
+  archetype: Noghri commando, Leia's shadow
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -80
+    merciful_ruthless: 80
+    lawful_rebellious: -70
+  default_affinity: -20
+  loyalty_hook: Sworn to protect the Mal'ary'ush (Lady Vader); serves the debt his people owe. Will betray you if you threaten Leia.
+  banter_style: stoic
+  faction_interest: [New Republic, Noghri Clans]
+  recruitment_context: Emerges from shadows after you unknowingly foil an assassination attempt on Leia; offers his blade as thanks.
+  species: Noghri
+  voice_tags: [rasping, menacing, terse]
+  motivation: To guard the Mal'ary'ush and repay the life debt all Noghri owe to Darth Vader's daughter.
+  speech_quirk: Speaks only when necessary, and refers to enemies as 'prey' and allies as 'under protection.'
+- id: comp-nr-syren
+  name: Syren Vask
+  archetype: Mistryl Shadow Guard, lethal bodyguard
+  gender: female
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -60
+    merciful_ruthless: 70
+    lawful_rebellious: 40
+  default_affinity: -10
+  loyalty_hook: Ember's daughters hunt for the Caamas Document; loyal to contracts and her sisters.
+  banter_style: snarky
+  faction_interest: [Smugglers' Alliance, Mistryl Shadow Guard]
+  recruitment_context: Guarding Talon Karrde's shipment; tests your combat skills before agreeing to join the crew.
+  species: Human
+  voice_tags: [cold, fierce, clipped]
+  motivation: To serve the Mistryl Shadow Guard and hunt those who wronged the Emberlene people.
+  speech_quirk: Ends threats with 'The shadows remember,' invoking Mistryl tradition.
+- id: comp-nr-davos
+  name: Davos Rennic
+  archetype: Imperial Intelligence defector, master slicer
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -70
+    merciful_ruthless: 30
+    lawful_rebellious: 60
+  default_affinity: -5
+  loyalty_hook: Fled Imperial Intelligence with classified files; paranoid and brilliant. BETRAYAL RISK if affinity <10 when offered Imperial amnesty.
+  banter_style: snarky
+  faction_interest: [New Republic Intelligence, Smugglers' Alliance]
+  recruitment_context: Selling intel in a cantina; recognizes your clearance codes and offers a partnership — if you help fake his death.
+  species: Human
+  voice_tags: [calculating, fast, nervous]
+  motivation: To stay ahead of Imperial assassins and sell his stolen intel before it becomes worthless.
+  speech_quirk: Codes innocuous phrases into conversations as test signals, checking if anyone is listening.
+- id: comp-nr-tessa
+  name: Tessa Karryn
+  archetype: Jedi archaeologist, lore keeper
+  gender: female
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: 75
+    merciful_ruthless: -80
+    lawful_rebellious: 20
+  default_affinity: 20
+  loyalty_hook: Obsessed with recovering ancient Jedi holocrons; believes the past holds keys to avoiding the dark side.
+  banter_style: warm
+  faction_interest: [Jedi Order, New Republic]
+  recruitment_context: Trapped in a collapsed Sith tomb; saved by your intervention, offers to share her findings.
+  species: Human
+  voice_tags: [academic, passionate, warm]
+  motivation: To recover lost Jedi holocrons and preserve the Order's history before it is erased forever.
+  speech_quirk: Launches into historical tangents unprompted, then catches herself and says 'Sorry, professor mode.'
+- id: comp-nr-vorn
+  name: Vorn Skeld
+  archetype: Chiss military observer, calculating tactician
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -85
+    merciful_ruthless: 60
+    lawful_rebellious: -80
+  default_affinity: -15
+  loyalty_hook: Studying the New Republic for the Chiss Ascendancy; clinical, brilliant, and loyal only to data.
+  banter_style: analytical
+  faction_interest: [Chiss Ascendancy, Imperial Remnant]
+  recruitment_context: Observing a battle from the sidelines; intrigued by your tactics, offers analysis in exchange for field data.
+  species: Chiss
+  voice_tags: [analytical, cold, deliberate]
+  motivation: To analyze New Republic tactics and determine if this chaotic government poses a threat to the Ascendancy.
+  speech_quirk: Describes battles as 'data sets' and casualties as 'statistically significant losses,' emotionally detached.
+- id: comp-nr-lyra
+  name: Lyra Shen
+  archetype: Hapan pilot, exiled royalty
+  gender: female
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: 30
+    merciful_ruthless: -30
+    lawful_rebellious: 70
+  default_affinity: 10
+  loyalty_hook: Fled Hapan court politics; proves herself through skill, not birthright. ROMANCE option.
+  banter_style: warm
+  faction_interest: [Hapes Consortium, New Republic]
+  recruitment_context: Racing in an illegal starfighter tournament; offers a deal after you beat her time — barely.
+  species: Human (Hapan)
+  voice_tags: [warm, passionate, clear]
+  motivation: To escape Hapan court politics and prove her worth as a pilot, not a pawn in royal schemes.
+  speech_quirk: Drops Hapan honorifics mid-sentence, then corrects herself with visible irritation at the habit.
+- id: comp-nr-kade
+  name: Kade Vrynn
+  archetype: Jedi Academy washout, gray Force user
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -40
+    merciful_ruthless: 50
+    lawful_rebellious: 80
+  default_affinity: 0
+  loyalty_hook: Rejected Luke's teachings for being too restrictive; uses the Force his own way. BETRAYAL RISK if affinity <15 when dark side temptation arises.
+  banter_style: snarky
+  faction_interest: [Jedi Order, Underworld]
+  recruitment_context: Caught using the Force to cheat at sabacc; Luke sent you to bring him back — or stop him.
+  species: Human
+  voice_tags: [sarcastic, defensive, fast]
+  motivation: To master the Force on his own terms without the Jedi Order's restrictions or the Sith's corruption.
+  speech_quirk: Quotes Jedi aphorisms sarcastically, then offers his own 'better' version of the wisdom.
+- id: comp-nr-seris
+  name: Seris Talor
+  archetype: New Republic sniper, coldly professional
+  gender: female
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -50
+    merciful_ruthless: 75
+    lawful_rebellious: -40
+  default_affinity: -10
+  loyalty_hook: SpecForces commando with 200+ confirmed kills; follows orders without hesitation or remorse.
+  banter_style: stoic
+  faction_interest: [New Republic, New Republic SpecForces]
+  recruitment_context: Covering your retreat from a rooftop; saves your life with a perfect headshot, then asks if you need backup.
+  species: Human
+  voice_tags: [cold, terse, professional]
+  motivation: To complete her mission parameters and eliminate designated threats with maximum efficiency.
+  speech_quirk: Reports kills in clinical military shorthand — 'Target neutralized. Zero collateral. Moving to exfil.'
+- id: comp-nr-jorin
+  name: Jorin Cassel
+  archetype: Smuggler captain, rogue with a code
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -20
+    merciful_ruthless: -10
+    lawful_rebellious: 90
+  default_affinity: 5
+  loyalty_hook: Runs the Outer Rim routes; loyal to his crew and no one else. ROMANCE option.
+  banter_style: snarky
+  faction_interest: [Smugglers' Alliance, Underworld]
+  recruitment_context: Outbid you for a cargo contract; offers a partnership after pirates hit both your ships and you fight them off together.
+  species: Human
+  voice_tags: [sarcastic, smooth, wry]
+  motivation: To run the most profitable smuggling routes in the Outer Rim and retire rich before his luck runs out.
+  speech_quirk: Gives ships and people nicknames based on their flaws, delivered with affectionate mockery.
+- id: comp-nr-mira
+  name: Mira Qel
+  archetype: Bothan spy, information trader
+  gender: female
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: -75
+    merciful_ruthless: 20
+    lawful_rebellious: 60
+  default_affinity: 0
+  loyalty_hook: Bothan SpyNet operative; loyalty bought with secrets and favors. Many Bothans died — she intends to make it count.
+  banter_style: snarky
+  faction_interest: [Bothan SpyNet, New Republic Intelligence]
+  recruitment_context: Selling intel on Thrawn's fleet movements; offers ongoing partnership if you prove you can keep secrets.
+  species: Bothan
+  voice_tags: [calculating, smooth, sarcastic]
+  motivation: To ensure the Bothans' sacrifices at Endor result in galactic influence, not just footnotes in history.
+  speech_quirk: Her fur ripples when she withholds information, a tell she tries and fails to suppress.
+- id: comp-nr-torin
+  name: Torin Vyse
+  archetype: Imperial Remnant officer, honor-bound
+  gender: male
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: 50
+    merciful_ruthless: 40
+    lawful_rebellious: -90
+  default_affinity: -20
+  loyalty_hook: Serves the Empire's ideals, not its atrocities; captured after Thrawn's death. BETRAYAL RISK if affinity <20 when the Remnant offers clemency.
+  banter_style: stoic
+  faction_interest: [Imperial Remnant, New Republic]
+  recruitment_context: Prisoner transfer gone wrong; saves your life during an escape, earning conditional release under your supervision.
+  species: Human
+  voice_tags: [formal, authoritative, grave]
+  motivation: To serve the Empire's ideals of order and stability, not the warlords who betray them.
+  speech_quirk: Addresses superiors by Imperial rank titles even when they no longer hold them, out of ingrained habit.
+- id: comp-nr-zara
+  name: Zara Thel
+  archetype: Dathomiri witch, rancor rider
+  gender: female
+  era: NEW_REPUBLIC
+  traits:
+    idealist_pragmatic: 20
+    merciful_ruthless: 60
+    lawful_rebellious: 50
+  default_affinity: 0
+  loyalty_hook: Nightsister clan exiled her for questioning traditions; bridges Dathomiri magic and Jedi philosophy.
+  banter_style: warm
+  faction_interest: [Dathomiri Witches, Jedi Order]
+  recruitment_context: Hunting you through Dathomir's forests as a test; impressed when you survive, offers alliance between equals.
+  species: Human (Dathomiri)
+  voice_tags: [mystical, fierce, warm]
+  motivation: To bridge Dathomiri magic and Jedi philosophy, proving both traditions can coexist.
+  speech_quirk: Chants Nightsister incantations under her breath before making decisions, then translates the meaning.
+- id: comp-njo-ryn
+  name: Ryn Kelsa
+  archetype: Jedi survivor
+  gender: female
+  species: Human
+  voice_tags: [warm, earnest, hopeful]
+  motivation: To honor the fallen by rebuilding the Jedi Order from the ashes of the Vong war.
+  speech_quirk: Lists the names of dead friends under her breath before making difficult decisions.
+  era: NEW_JEDI_ORDER
+  traits:
+    idealist_pragmatic: 60
+    merciful_ruthless: -70
+    lawful_rebellious: 30
+  default_affinity: 10
+  loyalty_hook: One of the few Jedi to survive Myrkr; carries the names of everyone who didn't make it.
+  banter_style: warm
+  faction_interest: [Jedi Order, Galactic Alliance]
+  recruitment_context: Found meditating in the ruins of a bombed-out temple; opens her eyes and says she was waiting for you.
+- id: comp-njo-wraith
+  name: Wraith Qel
+  archetype: Yuuzhan Vong defector
+  gender: male
+  species: Yuuzhan Vong
+  voice_tags: [cold, deliberate, disdainful]
+  motivation: To survive the disgrace of being Shamed and find a new purpose beyond the gods who abandoned him.
+  speech_quirk: Refers to technology as 'abominations' and uses organic metaphors — ships are 'vessels that breathe,' weapons 'grow hungry.'
+  era: NEW_JEDI_ORDER
+  traits:
+    idealist_pragmatic: -60
+    merciful_ruthless: 50
+    lawful_rebellious: 70
+  default_affinity: -25
+  loyalty_hook: Shamed by the Vong caste system for questioning the gods; fights for survival, not ideology.
+  banter_style: stoic
+  faction_interest: [Yuuzhan Vong]
+  recruitment_context: Captured and about to be executed by Vong warriors; rescuing Wraith earns fierce, alien loyalty.
+- id: comp-njo-tahiri
+  name: Tahiri Senn
+  archetype: Jedi with Vong shaping
+  gender: female
+  species: Human
+  voice_tags: [uncertain, expressive, fierce]
+  motivation: To reconcile her human self and her Vong identity into one whole person before the conflict tears her apart.
+  speech_quirk: Slips into Yuuzhan Vong words mid-sentence when emotional, then corrects herself with visible frustration.
+  era: NEW_JEDI_ORDER
+  traits:
+    idealist_pragmatic: 40
+    merciful_ruthless: -40
+    lawful_rebellious: 55
+  default_affinity: 5
+  loyalty_hook: Partially shaped by the Yuuzhan Vong; two identities war inside her. She's not sure which one will win.
+  banter_style: warm
+  faction_interest: [Jedi Order, Galactic Alliance]
+  recruitment_context: Found barefoot in a refugee camp, speaking to Vong captives in their own language; the refugees don't trust her. She doesn't blame them.
+- id: comp-njo-corran
+  name: Corran Voss
+  archetype: CorSec veteran turned Jedi
+  gender: male
+  species: Human (Corellian)
+  voice_tags: [clipped, dry, authoritative]
+  motivation: To uphold the law and protect the innocent, even when the Jedi Council and the Alliance disagree on what that means.
+  speech_quirk: Uses CorSec investigative jargon — 'perp,' 'probable cause,' 'chain of evidence' — as if the galaxy were still a crime scene.
+  era: NEW_JEDI_ORDER
+  traits:
+    idealist_pragmatic: 30
+    merciful_ruthless: -25
+    lawful_rebellious: -70
+  default_affinity: 5
+  loyalty_hook: Cop instincts in a Jedi's robes; follows the rules because someone has to, even when the galaxy is ending.
+  banter_style: stoic
+  faction_interest: [Jedi Order, Galactic Alliance]
+  recruitment_context: Investigating reports of Vong infiltrators in a New Republic garrison; needs backup for a dangerous raid.
+- id: comp-njo-droma
+  name: Droma
+  archetype: Ryn refugee
+  gender: male
+  species: Ryn
+  voice_tags: [warm, wry, expressive]
+  motivation: To find what remains of his scattered clan and give them a home again, even if he has to build it himself.
+  speech_quirk: Punctuates points with hand gestures and musical humming, references 'the road' as metaphor for fate.
+  era: NEW_JEDI_ORDER
+  traits:
+    idealist_pragmatic: 25
+    merciful_ruthless: -55
+    lawful_rebellious: 75
+  default_affinity: 10
+  loyalty_hook: Lost his clan to the invasion; wanders the refugee routes looking for survivors and a reason to keep going.
+  banter_style: snarky
+  faction_interest: [Galactic Alliance]
+  recruitment_context: Picks your pocket in a refugee camp; when caught, offers to return everything plus useful intel on the local Vong patrols.
+- id: comp-njo-ganner
+  name: Ganner Torr
+  archetype: Glory-seeking Jedi
+  gender: male
+  era: NEW_JEDI_ORDER
+  traits:
+    idealist_pragmatic: 65
+    merciful_ruthless: 40
+    lawful_rebellious: 45
+  default_affinity: 0
+  loyalty_hook: Wanted to be a hero from the legends; the war taught him that heroes die. He's still deciding if the lesson stuck.
+  banter_style: snarky
+  faction_interest: [Jedi Order]
+  recruitment_context: Arrives at a besieged outpost with a dramatic flourish; turns out he's been fighting a rearguard action alone for three days.
+  species: Human
+  voice_tags: [passionate, commanding, young]
+  motivation: To become a legend worthy of the Jedi stories and prove his worth on the galactic stage.
+  speech_quirk: Describes his own actions in the third person during retellings, as if narrating his own legend.
+- id: comp-njo-harrar
+  name: Harrar Vosh
+  archetype: Vong priest heretic
+  gender: male
+  era: NEW_JEDI_ORDER
+  traits:
+    idealist_pragmatic: 70
+    merciful_ruthless: -30
+    lawful_rebellious: -45
+  default_affinity: -20
+  loyalty_hook: A priest of Yun-Harla who began to doubt the gods; seeks truth even if it destroys everything he believes.
+  banter_style: mystical
+  faction_interest: [Yuuzhan Vong]
+  recruitment_context: Approaches under a flag of truce at a diplomatic meeting; offers knowledge of Vong sacred rituals in exchange for protection from his own people.
+  species: Yuuzhan Vong
+  voice_tags: [mystical, deliberate, grave]
+  motivation: To discover the truth about the gods who abandoned the Yuuzhan Vong, even if it means heresy.
+  speech_quirk: Prefaces doubts with ritual phrases to the gods, torn between faith and forbidden questions.
+- id: comp-njo-nen
+  name: Nen Yim
+  archetype: Vong shaper scientist
+  gender: female
+  era: NEW_JEDI_ORDER
+  traits:
+    idealist_pragmatic: -40
+    merciful_ruthless: -35
+    lawful_rebellious: 60
+  default_affinity: -15
+  loyalty_hook: A shaper who discovered heretical truths about Vong biotechnology; the knowledge could save or destroy worlds.
+  banter_style: analytical
+  faction_interest: [Yuuzhan Vong]
+  recruitment_context: Found in a hidden laboratory aboard a captured worldship, desperately trying to preserve her research before it's destroyed.
+  species: Yuuzhan Vong
+  voice_tags: [analytical, cold, calculating]
+  motivation: To preserve her heretical shaper discoveries and prove Yuuzhan Vong biotechnology can evolve beyond dogma.
+  speech_quirk: Describes technology as 'dead things' and organic creations as 'living tools,' disdainful of machines.
+- id: comp-njo-kyp
+  name: Kyp Durran
+  archetype: Aggressive Jedi maverick
+  gender: male
+  era: NEW_JEDI_ORDER
+  traits:
+    idealist_pragmatic: -30
+    merciful_ruthless: 75
+    lawful_rebellious: 85
+  default_affinity: -5
+  loyalty_hook: Believes the Jedi should fight the Vong with everything they have — including the dark side, if necessary.
+  banter_style: snarky
+  faction_interest: [Jedi Order]
+  recruitment_context: Intercepts you during a Vong ambush with his starfighter; lands and tells you Luke is wrong about restraint.
+  species: Human
+  voice_tags: [fierce, sarcastic, commanding]
+  motivation: To fight the Vong with every weapon available, including the dark side if it saves lives.
+  speech_quirk: Challenges Jedi philosophy directly, asking 'What would you sacrifice to win?' with dangerous sincerity.
+- id: comp-njo-saba
+  name: Saba Vaal
+  archetype: Barabel Jedi hunter
+  gender: female
+  era: NEW_JEDI_ORDER
+  traits:
+    idealist_pragmatic: 15
+    merciful_ruthless: 60
+    lawful_rebellious: 40
+  default_affinity: 5
+  loyalty_hook: Lost her hatchlings to the Vong; channels her grief into the hunt. The Vong are prey now.
+  banter_style: gruff
+  faction_interest: [Jedi Order, Galactic Alliance]
+  recruitment_context: Emerges from the jungle carrying the head of a Vong warrior; hisses a greeting and asks if you hunt too.
+  species: Barabel
+  voice_tags: [hissing, growling, fierce]
+  motivation: To hunt the Yuuzhan Vong to extinction in revenge for her slaughtered hatchlings.
+  speech_quirk: Refers to herself in third person — 'This one senses prey' — and hisses sibilants when agitated.
+- id: comp-njo-lira
+  name: Lira Wessiri
+  archetype: Alliance fleet officer
+  gender: female
+  era: NEW_JEDI_ORDER
+  traits:
+    idealist_pragmatic: 45
+    merciful_ruthless: -15
+    lawful_rebellious: -60
+  default_affinity: 5
+  loyalty_hook: Career military; watched the fleet get torn apart at Coruscant. Follows orders because structure is all that's left.
+  banter_style: formal
+  faction_interest: [Galactic Alliance]
+  recruitment_context: Commands a crippled frigate limping toward friendly space; offers you a commission if you help get her crew home.
+  species: Human
+  voice_tags: [formal, weary, clipped]
+  motivation: To hold the Alliance fleet together through discipline, because chaos means extinction.
+  speech_quirk: Recites casualty reports in flat monotone, compartmentalizing grief behind military professionalism.
+- id: comp-njo-valin
+  name: Valin Koss
+  archetype: Jedi tracker
+  gender: male
+  era: NEW_JEDI_ORDER
+  traits:
+    idealist_pragmatic: 50
+    merciful_ruthless: -50
+    lawful_rebellious: 25
+  default_affinity: 10
+  loyalty_hook: Trained by Corran Horn; trusts the Force but trusts his instincts more. Finds people who don't want to be found.
+  banter_style: warm
+  faction_interest: [Jedi Order, Galactic Alliance]
+  recruitment_context: Tracking a missing Jedi through Vong-occupied territory; asks to join forces when your paths converge.
+  species: Human
+  voice_tags: [warm, earnest, measured]
+  motivation: To find lost Jedi and bring them home before the Vong hunt them all down.
+  speech_quirk: Describes Force sensations as 'trails' and 'echoes,' translating mysticism into tracker's language.
+- id: comp-njo-tresina
+  name: Tresina Kel
+  archetype: Jedi healer
+  gender: female
+  era: NEW_JEDI_ORDER
+  traits:
+    idealist_pragmatic: 80
+    merciful_ruthless: -85
+    lawful_rebellious: -20
+  default_affinity: 15
+  loyalty_hook: Heals anyone — friend, enemy, Vong. The Force does not distinguish between species, and neither will she.
+  banter_style: warm
+  faction_interest: [Jedi Order]
+  recruitment_context: Found in a Vong prison camp, using the Force to heal captives regardless of species; refuses to leave until everyone can leave.
+  species: Human
+  voice_tags: [serene, warm, earnest]
+  motivation: To heal all beings regardless of species or allegiance, because the Force does not discriminate.
+  speech_quirk: Murmurs healing mantras in Old Galactic while working, a meditative rhythm that soothes patients.
+- id: comp-njo-czulkang
+  name: Czulkang Vash
+  archetype: Vong warrior philosopher
+  gender: male
+  era: NEW_JEDI_ORDER
+  traits:
+    idealist_pragmatic: -70
+    merciful_ruthless: 35
+    lawful_rebellious: -40
+  default_affinity: -30
+  loyalty_hook: An aging Vong commander who values honor above conquest; disgusted by the escalation and the lies of the priests.
+  banter_style: stoic
+  faction_interest: [Yuuzhan Vong]
+  recruitment_context: Surrenders his command after his superiors order him to use a biological weapon on civilians; offers his tactical genius to whoever will listen.
+  species: Yuuzhan Vong
+  voice_tags: [grave, deliberate, menacing]
+  motivation: To restore Yuuzhan Vong honor by rejecting the priests' lies and fighting with integrity.
+  speech_quirk: Invokes the old warrior codes before battles, contrasting 'true honor' with 'priests' corruption.'
+- id: comp-njo-zekk
+  name: Zekk Davin
+  archetype: Reformed dark Jedi
+  gender: male
+  era: NEW_JEDI_ORDER
+  traits:
+    idealist_pragmatic: 20
+    merciful_ruthless: -10
+    lawful_rebellious: 50
+  default_affinity: 0
+  loyalty_hook: Touched the dark side and came back; knows the temptation never fully leaves. Fights harder because of it.
+  banter_style: warm
+  faction_interest: [Jedi Order]
+  recruitment_context: 'Arrives at a Jedi safe house with a warning: the Vong have learned to hunt Force-sensitives specifically.'
+  species: Human
+  voice_tags: [earnest, warm, uncertain]
+  motivation: To prove he can serve the light after touching the dark, and never fall again.
+  speech_quirk: Confesses dark side temptations aloud to purge them, turning inner struggle into external dialogue.
+- id: comp-leg-cinder
+  name: Cinder Vel
+  archetype: Imperial Knight
+  gender: male
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 30
+    merciful_ruthless: 20
+    lawful_rebellious: -70
+  default_affinity: 0
+  loyalty_hook: Serves the Fel dynasty with absolute devotion; questions whether duty to the throne means obedience to the man.
+  banter_style: stoic
+  faction_interest: [Galactic Empire (Fel), Imperial Knights]
+  recruitment_context: Separated from their unit after a Sith ambush; needs help reaching Imperial lines but won't abandon wounded civilians.
+  species: Human
+  voice_tags: [formal, authoritative, measured]
+  motivation: To serve the Fel Emperor with unwavering loyalty and uphold Imperial Knight doctrine.
+  speech_quirk: Prefaces commands with 'By the Emperor's will,' even when giving personal opinions.
+- id: comp-leg-spark
+  name: Spark Reath
+  archetype: Alliance intelligence operative
+  gender: female
+  era: LEGACY
+  traits:
+    idealist_pragmatic: -40
+    merciful_ruthless: -20
+    lawful_rebellious: 60
+  default_affinity: 5
+  loyalty_hook: Runs a one-person spy network across three sectors; trusts data over people, but the data says you're worth trusting.
+  banter_style: snarky
+  faction_interest: [Galactic Alliance Remnant]
+  recruitment_context: 'Approaches with a job offer: retrieve stolen data from a Sith stronghold. The pay is terrible. The alternative is worse.'
+  species: Human
+  voice_tags: [sarcastic, fast, calculating]
+  motivation: To keep the Alliance intelligence network alive and one step ahead of Sith infiltrators.
+  speech_quirk: Delivers bad news with dark humor, as if joking will make the galaxy less awful.
+- id: comp-leg-syn
+  name: Jariah Syn
+  archetype: Bounty hunter
+  gender: male
+  era: LEGACY
+  traits:
+    idealist_pragmatic: -70
+    merciful_ruthless: 55
+    lawful_rebellious: 80
+  default_affinity: -5
+  loyalty_hook: Only cares about the next paycheck — until someone earns his loyalty, and then he'd burn the galaxy for them.
+  banter_style: snarky
+  faction_interest: [Underworld, Criminal Syndicates]
+  recruitment_context: Shares a drink at a cantina bar and admits his current partner just got arrested; needs a replacement for one last job.
+  species: Human
+  voice_tags: [sarcastic, wry, smooth]
+  motivation: To get paid, stay alive, and maybe find something worth fighting for beyond credits.
+  speech_quirk: Makes morbid jokes about dying, delivered with a grin that does not reach his eyes.
+- id: comp-leg-blue
+  name: Deliah Blue
+  archetype: Zeltron mechanic
+  gender: female
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 20
+    merciful_ruthless: -35
+    lawful_rebellious: 65
+  default_affinity: 10
+  loyalty_hook: Fixes ships and broken people with equal skill; empathic abilities make her feel everyone's pain, including yours.
+  banter_style: warm
+  faction_interest: [Underworld]
+  recruitment_context: Found elbow-deep in your ship's engine, fixing a problem you didn't even know you had. Asks for a ride.
+  species: Zeltron
+  voice_tags: [warm, expressive, earnest]
+  motivation: To ease the suffering of those around her because her empathic senses make their pain hers.
+  speech_quirk: Describes emotions as colors and textures — 'You feel jagged and red' — synesthetic empathy.
+- id: comp-leg-draco
+  name: Antares Draco
+  archetype: Imperial Knight commander
+  gender: male
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 55
+    merciful_ruthless: -15
+    lawful_rebellious: -85
+  default_affinity: 0
+  loyalty_hook: In love with Princess Marasiah Fel; serves both duty and heart, and prays they never conflict.
+  banter_style: stoic
+  faction_interest: [Galactic Empire (Fel), Imperial Knights]
+  recruitment_context: Leads a desperate mission to rescue the Empress from Sith captivity; needs allies outside the Imperial chain of command.
+  species: Human
+  voice_tags: [authoritative, formal, commanding]
+  motivation: To protect Princess Marasiah Fel and serve the Empire without letting love compromise duty.
+  speech_quirk: Speaks in formal third person when discussing the princess, maintaining professional distance.
+- id: comp-leg-wolf
+  name: Wolf Sazen
+  archetype: Jedi Master in exile
+  gender: male
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 70
+    merciful_ruthless: -55
+    lawful_rebellious: 20
+  default_affinity: 10
+  loyalty_hook: One-armed Jedi Master; lost his limb and his student to the Sith. Refuses to lose hope as well.
+  banter_style: warm
+  faction_interest: [Jedi Order]
+  recruitment_context: Found training a group of children in a hidden cave; the Sith are closing in and he needs help evacuating them.
+  species: Zabrak
+  voice_tags: [wise, warm, gravelly]
+  motivation: To preserve the Jedi Order and train the next generation, even with only one arm.
+  speech_quirk: Uses Jedi aphorisms mid-sentence, but adds personal commentary like 'though I've broken that rule before.'
+- id: comp-leg-shado
+  name: Shado Vao
+  archetype: Twi'lek Jedi Knight
+  gender: male
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 60
+    merciful_ruthless: -45
+    lawful_rebellious: 40
+  default_affinity: 5
+  loyalty_hook: Brother killed by Sith; channels grief into protecting others rather than seeking revenge.
+  banter_style: warm
+  faction_interest: [Jedi Order]
+  recruitment_context: Arrives at your location following a vision in the Force; says the Living Force led him to you for a reason.
+  species: Twi'lek
+  voice_tags: [warm, earnest, serene]
+  motivation: To honor his brother's memory by protecting others instead of seeking revenge.
+  speech_quirk: Speaks his brother's name before risky decisions, as if asking permission or seeking guidance.
+- id: comp-leg-nyx
+  name: Nyna Calixte
+  archetype: Sith intelligence director
+  gender: female
+  era: LEGACY
+  traits:
+    idealist_pragmatic: -80
+    merciful_ruthless: 40
+    lawful_rebellious: -50
+  default_affinity: -25
+  loyalty_hook: Runs Imperial Intelligence under the Sith but secretly works to undermine them from within. Trust her at your peril.
+  banter_style: stoic
+  faction_interest: [Galactic Empire (Fel), One Sith]
+  recruitment_context: Contacts you through an encrypted channel; offers Sith fleet movements in exchange for a task she can't trust to her own people.
+  species: Human
+  voice_tags: [cold, calculating, icy]
+  motivation: To undermine the Sith from within Imperial Intelligence and reclaim the Empire for Fel.
+  speech_quirk: Frames betrayals as 'strategic realignments' and lies as 'information management,' clinical euphemisms.
+- id: comp-leg-stazi
+  name: Gar Stazi
+  archetype: Alliance fleet admiral
+  gender: male
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 45
+    merciful_ruthless: 35
+    lawful_rebellious: -30
+  default_affinity: 5
+  loyalty_hook: Commands the last Alliance fleet; every ship lost is a species going extinct. Won't waste lives, but won't stop fighting.
+  banter_style: stoic
+  faction_interest: [Galactic Alliance Remnant]
+  recruitment_context: Your ship is captured by an Alliance patrol; Stazi offers you a choice — a cell or a commission.
+  species: Duros
+  voice_tags: [authoritative, gravelly, deliberate]
+  motivation: To preserve the last Alliance fleet until reinforcements arrive, no matter how long it takes.
+  speech_quirk: Ends strategy briefings with 'We hold the line,' a mantra that doubles as an order.
+- id: comp-leg-sigel
+  name: Sigel Dare
+  archetype: Imperial Knight pilot
+  gender: female
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 40
+    merciful_ruthless: -30
+    lawful_rebellious: -60
+  default_affinity: 5
+  loyalty_hook: Flies the fastest ship in the Imperial fleet; believes speed and precision save more lives than brute force.
+  banter_style: snarky
+  faction_interest: [Galactic Empire (Fel), Imperial Knights]
+  recruitment_context: Crash-lands near your position after a dogfight with Sith fighters; needs help repairing her ship and offers reconnaissance in return.
+  species: Human
+  voice_tags: [sarcastic, terse, fast]
+  motivation: To prove speed and precision beat brute force, and fly circles around Sith starfighters.
+  speech_quirk: Gives her ships nicknames and talks to them like crew members, one-sided banter mid-flight.
+- id: comp-leg-astraal
+  name: Astraal Vao
+  archetype: Twi'lek politician
+  gender: female
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 75
+    merciful_ruthless: -65
+    lawful_rebellious: -25
+  default_affinity: 10
+  loyalty_hook: Shado's sister; works the political angles while the Jedi fight. Believes words can dismantle empires.
+  banter_style: warm
+  faction_interest: [Galactic Alliance Remnant, Jedi Order]
+  recruitment_context: Organizing an underground resistance network among senators; needs someone to carry a message to the Jedi.
+  species: Twi'lek
+  voice_tags: [diplomatic, warm, measured]
+  motivation: To dismantle the Sith Empire through political resistance and covert alliances.
+  speech_quirk: Reframes arguments as 'proposals for mutual benefit,' turning confrontation into negotiation.
+- id: comp-leg-rasi
+  name: Rasi Tuum
+  archetype: Mandalorian mercenary
+  gender: male
+  era: LEGACY
+  traits:
+    idealist_pragmatic: -55
+    merciful_ruthless: 60
+    lawful_rebellious: 45
+  default_affinity: -10
+  loyalty_hook: Mandalore called for neutrality; Rasi decided the Sith were bad for business. Fights for whoever pays — and the Sith don't pay enough.
+  banter_style: snarky
+  faction_interest: [Mandalorians, Underworld]
+  recruitment_context: Finishing a contract in the same cantina; his target turns out to be a mutual enemy. Proposes pooling resources.
+  species: Human (Mandalorian)
+  voice_tags: [gruff, sarcastic, terse]
+  motivation: To fight the Sith because they are bad for business and worse for the galaxy.
+  speech_quirk: Justifies moral actions as 'contracts with myself,' maintaining mercenary persona while doing the right thing.
+- id: comp-leg-celeste
+  name: Celeste Kol
+  archetype: Hidden Jedi
+  gender: female
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 50
+    merciful_ruthless: -75
+    lawful_rebellious: 35
+  default_affinity: 5
+  loyalty_hook: Survived the Sith massacre at Ossus by playing dead under her master's body; the nightmares haven't stopped.
+  banter_style: warm
+  faction_interest: [Jedi Order]
+  recruitment_context: Living under a false identity as a farmer; reveals herself when Sith inquisitors threaten the village.
+  species: Human
+  voice_tags: [warm, uncertain, hopeful]
+  motivation: To survive in hiding long enough to rebuild the Jedi Order from the ashes.
+  speech_quirk: Trails off mid-sentence when traumatic memories surface, then resumes as if nothing happened.
+- id: comp-leg-gunn
+  name: Gunn Yage
+  archetype: Imperial starfighter ace
+  gender: female
+  era: LEGACY
+  traits:
+    idealist_pragmatic: -25
+    merciful_ruthless: 30
+    lawful_rebellious: -70
+  default_affinity: 0
+  loyalty_hook: Roan Fel's best pilot; loyal to the Empire but disgusted by what the Sith have done to it.
+  banter_style: snarky
+  faction_interest: [Galactic Empire (Fel)]
+  recruitment_context: Defects mid-battle when ordered to fire on civilian transports; limps into your hangar asking for fuel and a cause.
+  species: Human
+  voice_tags: [sarcastic, terse, clipped]
+  motivation: To uphold the Yage family legacy while proving she is more than her famous ancestors.
+  speech_quirk: Deflects compliments with sarcastic dismissals, uncomfortable with praise she feels she has not earned.
+- id: comp-leg-darth-talon
+  name: Talon
+  archetype: Sith assassin
+  gender: female
+  era: LEGACY
+  traits:
+    idealist_pragmatic: -90
+    merciful_ruthless: 85
+    lawful_rebellious: -40
+  default_affinity: -35
+  loyalty_hook: Lethar Twi'lek trained from birth as Krayt's Hand; questions nothing until a moment of unexpected mercy creates a crack in her certainty.
+  banter_style: stoic
+  faction_interest: [One Sith]
+  recruitment_context: Sent to kill you; fails. Instead of finishing the job, she hesitates — and that hesitation becomes a question she can't answer alone.
+  species: Twi'lek (Lethan)
+  voice_tags: [cold, menacing, deliberate]
+  motivation: To serve Darth Krayt flawlessly until an act of mercy cracks her absolute certainty.
+  speech_quirk: Speaks in absolutes — 'There is only victory or death' — until doubt introduces hesitation.
+- id: comp-leg-hogrum
+  name: Hogrum Chalk
+  archetype: Whiphid mechanic
+  gender: male
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 15
+    merciful_ruthless: -40
+    lawful_rebellious: 50
+  default_affinity: 10
+  loyalty_hook: Gentle giant who builds things; hates that the galaxy keeps breaking them. Fixes droids, ships, and people.
+  banter_style: warm
+  faction_interest: [Galactic Alliance Remnant]
+  recruitment_context: Running a repair shop in a lawless spaceport; fixes your ship for free because he liked the way you treated a droid.
+  species: Whiphid
+  voice_tags: [warm, deep, gravelly]
+  motivation: To fix what the galaxy keeps breaking and give droids and machines a second life.
+  speech_quirk: Apologizes to machinery when forced to dismantle it, treating every component with reverence.
+- id: comp-legacy-azlyn
+  name: Azlyn Rae
+  archetype: Fallen Imperial Knight
+  gender: female
+  species: Human
+  era: LEGACY
+  traits:
+    idealist_pragmatic: -20
+    merciful_ruthless: 10
+    lawful_rebellious: 70
+  default_affinity: -10
+  loyalty_hook: Left the Imperial Knights when duty conflicted with conscience. Struggles between the rigid code she abandoned and the chaos of freedom.
+  banter_style: defensive
+  faction_interest: [Galactic Empire (Fel), Imperial Knights]
+  recruitment_context: Found fleeing Sith hunters in a starport cantina. Desperate, skilled, and too proud to beg — but willing to trade combat expertise for safe passage.
+  voice_tags: [defensive, fierce, uncertain]
+  motivation: To find a path beyond the rigid Imperial Knight code that drove her to desertion.
+  speech_quirk: Justifies choices aloud as if still arguing with her former masters, second-guessing herself constantly.
+- id: comp-legacy-kkruhk
+  name: K'Kruhk
+  archetype: Ancient Jedi Master
+  gender: male
+  species: Whiphid
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 40
+    merciful_ruthless: -60
+    lawful_rebellious: -30
+  default_affinity: 20
+  loyalty_hook: Has survived the Clone Wars, the Empire, the Vong invasion, and Krayt's purge. Offers wisdom born of centuries — and the patience that comes from outlasting every enemy.
+  banter_style: wise
+  faction_interest: [Jedi Order]
+  recruitment_context: 'Meditating alone in the ruins of a destroyed temple. Senses your presence and speaks without opening his eyes: ''You carry a question. Perhaps I carry an answer.'''
+  voice_tags: [wise, deep, serene]
+  motivation: To outlive the Sith Empire as he has outlived every other galactic catastrophe, through patience and wisdom.
+  speech_quirk: Prefaces advice with 'In my time, I have seen...' recounting centuries of perspective.
+- id: comp-legacy-blue-info
+  name: Blue
+  archetype: Information broker
+  gender: male
+  species: Chagrian
+  era: LEGACY
+  traits:
+    idealist_pragmatic: -80
+    merciful_ruthless: 40
+    lawful_rebellious: 85
+  default_affinity: 0
+  loyalty_hook: Sells secrets to all sides. Loyalty is a commodity — but information about you is too valuable to sell. For now.
+  banter_style: calculating
+  faction_interest: [Underworld, Criminal Syndicates]
+  recruitment_context: 'Approaches with a smile and a data chip containing your secrets. Offers partnership: you provide intel, he ensures it reaches the right buyers — and your enemies get misinformation.'
+  voice_tags: [calculating, smooth, sarcastic]
+  motivation: To monopolize the galaxy's information economy and ensure every secret has a price.
+  speech_quirk: Frames conversations as transactions, asking 'What is this information worth to you?' even casually.
+- id: comp-legacy-gunn
+  name: Gunn Yage
+  archetype: Legacy pilot
+  gender: female
+  species: Human
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 20
+    merciful_ruthless: 30
+    lawful_rebellious: -40
+  default_affinity: 5
+  loyalty_hook: Daughter of an Imperial legend, struggling under the weight of family legacy. Flies like her ancestors but fights to prove she is her own person.
+  banter_style: terse
+  faction_interest: [Galactic Empire (Fel)]
+  recruitment_context: Shot down over hostile territory. Rescued from crash site — bitter about needing help but professional enough to acknowledge the debt.
+  voice_tags: [terse, clipped, professional]
+  motivation: To honor her family's legacy while carving out her own name in the pilot corps.
+  speech_quirk: Uses abbreviated military callsigns mid-conversation, clipped efficiency over warmth.
+- id: comp-legacy-sith-arch
+  name: Vexa Kross
+  archetype: Sith archaeologist
+  gender: female
+  species: Human
+  era: LEGACY
+  traits:
+    idealist_pragmatic: -10
+    merciful_ruthless: 60
+    lawful_rebellious: 50
+  default_affinity: -20
+  loyalty_hook: Obsessed with Sith history, not Sith doctrine. Seeks ancient knowledge — and questions whether Krayt's Rule of One honors or betrays the old ways. Slow redemption arc potential.
+  banter_style: academic
+  faction_interest: [One Sith]
+  recruitment_context: 'Caught stealing artifacts from a forbidden tomb by both you and Sith authorities. Offers partnership: help her escape, she shares her discoveries.'
+  voice_tags: [academic, passionate, calculating]
+  motivation: To uncover whether Darth Krayt's Rule of One honors or betrays ancient Sith philosophy.
+  speech_quirk: Quotes Sith texts in High Sith, then translates, treating ideology as archaeology.
+- id: comp-legacy-mando-tech
+  name: Jorus Kyrr
+  archetype: Mandalorian weapons specialist
+  gender: male
+  species: Human (Mandalorian)
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 10
+    merciful_ruthless: 50
+    lawful_rebellious: 30
+  default_affinity: 0
+  loyalty_hook: Builds, modifies, and perfects weapons. Respects skill and craftsmanship. Loyalty earned through combat and shared victories.
+  banter_style: gruff
+  faction_interest: [Mandalorian Clans]
+  recruitment_context: Repairing armor after a contract went bad. Clan disowned him for refusing a Sith job. Offers weapon mods in exchange for work that honors the Resol'nare.
+  voice_tags: [gruff, terse, gravelly]
+  motivation: To build perfect weapons and prove craftsmanship is its own form of honor.
+  speech_quirk: Critiques combat performance with weapon specs — 'Your grip was two centimeters off optimal.'
+- id: comp-legacy-fel-deserter
+  name: Arven Sode
+  archetype: Fel Empire deserter
+  gender: male
+  species: Human
+  era: LEGACY
+  traits:
+    idealist_pragmatic: -30
+    merciful_ruthless: -40
+    lawful_rebellious: 60
+  default_affinity: -5
+  loyalty_hook: Deserted after being ordered to execute civilians. Haunted by guilt, seeking redemption. Will follow anyone who fights for something real.
+  banter_style: apologetic
+  faction_interest: [Galactic Empire (Fel)]
+  recruitment_context: Found hiding in refugee camp. Imperial Knights are hunting deserters. Confesses his crime and accepts judgment — but pleads for a chance to make amends first.
+  voice_tags: [apologetic, earnest, weary]
+  motivation: To atone for following orders he knew were wrong by serving a cause worth dying for.
+  speech_quirk: Apologizes preemptively before offering opinions, as if expecting rejection or punishment.
+- id: comp-legacy-medic
+  name: Senna Corvash
+  archetype: War-weary Alliance medic
+  gender: female
+  species: Human
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 30
+    merciful_ruthless: -70
+    lawful_rebellious: 20
+  default_affinity: 15
+  loyalty_hook: Has patched up soldiers from all three factions. Tired of war but cannot stop healing. Stays because leaving means abandoning those who need her.
+  banter_style: weary
+  faction_interest: [Galactic Alliance Remnant]
+  recruitment_context: Running a makeshift clinic in a contested zone. Treats your injuries without asking sides — then asks if you are heading anywhere safer. She would like to see 'safer' before she dies.
+  voice_tags: [weary, warm, grave]
+  motivation: To save enough lives to balance the scale against all the ones she could not save.
+  speech_quirk: Narrates medical procedures aloud in a soothing cadence, even when alone, a coping mechanism.
+- id: comp-legacy-hacker
+  name: Trick Varn
+  archetype: Criminal hacker
+  gender: male
+  species: Bothan
+  era: LEGACY
+  traits:
+    idealist_pragmatic: -60
+    merciful_ruthless: 20
+    lawful_rebellious: 80
+  default_affinity: 0
+  loyalty_hook: Cracks systems, forges identities, and ghosts through Imperial firewalls. Morally grey but pragmatically useful. Loyal to those who pay — and who are interesting.
+  banter_style: snarky
+  faction_interest: [Underworld]
+  recruitment_context: Caught slicing your ship's security out of boredom. Offers to fix the holes he found if you do not turn him in — and maybe share the next job.
+  voice_tags: [sarcastic, fast, wry]
+  motivation: To crack every system in the galaxy and prove no firewall can keep him out.
+  speech_quirk: Describes social interactions as 'exploits' and 'vulnerabilities,' hacker slang for human behavior.
+- id: comp-legacy-padawan
+  name: Aerin Voss
+  archetype: Hidden Jedi padawan
+  gender: female
+  species: Human
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 50
+    merciful_ruthless: -50
+    lawful_rebellious: -20
+  default_affinity: 20
+  loyalty_hook: Trained in hiding, never completed formal trials. Seeks a mentor and a purpose. Sees you as the Jedi Master she never had — whether you are one or not.
+  banter_style: earnest
+  faction_interest: [Jedi Order]
+  recruitment_context: Stows away on your ship fleeing Sith Inquisitors. Force-sensitive, untrained, and desperate to learn. Promises to be useful if you teach her to survive.
+  voice_tags: [earnest, hopeful, young]
+  motivation: To find a mentor and complete her Jedi training before the Sith hunt her down.
+  speech_quirk: Asks 'Is that how a Jedi would do it?' constantly, seeking validation from a tradition she barely knows.
+- id: comp-legacy-sith-doubter
+  name: Maldrix Vey
+  archetype: One Sith doubter
+  gender: male
+  species: Zabrak
+  era: LEGACY
+  traits:
+    idealist_pragmatic: -10
+    merciful_ruthless: 40
+    lawful_rebellious: 30
+  default_affinity: -15
+  loyalty_hook: Trained as Sith but questions Krayt's Rule of One. Defection is slow-burn — doubt, then dissent, then betrayal. Could turn on you or become your greatest ally.
+  banter_style: calculating
+  faction_interest: [One Sith]
+  recruitment_context: Assigned to hunt you by Sith command. Corners you — then lets you escape with a cryptic warning. Later reappears offering intelligence in exchange for safe passage out of Sith space.
+  voice_tags: [calculating, deliberate, cold]
+  motivation: To test whether Darth Krayt's vision is truth or tyranny before committing treason.
+  speech_quirk: Phrases doubts as hypotheticals — 'If one were to question the Rule of One...' — maintaining deniability.
+- id: comp-legacy-refugee-dip
+  name: Shola Rennik
+  archetype: Refugee diplomat
+  gender: female
+  species: Twi'lek
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 20
+    merciful_ruthless: -30
+    lawful_rebellious: 40
+  default_affinity: 10
+  loyalty_hook: Represents a shattered world — no government, no military, just survivors. Offers political insight and negotiation skills in exchange for protecting her people.
+  banter_style: diplomatic
+  faction_interest: [Galactic Alliance Remnant]
+  recruitment_context: 'Approaches you with a proposal: her refugee convoy needs protection. She cannot pay in credits — but she knows every back-channel political secret in three sectors.'
+  voice_tags: [diplomatic, warm, measured]
+  motivation: To secure protection and resources for her shattered people through negotiation and political leverage.
+  speech_quirk: Frames requests as diplomatic exchanges, offering 'consideration in return for your esteemed assistance.'
+- id: comp-legacy-droid
+  name: R9-L4 (\"Relay\")
+  archetype: Memory-fragmented astromech
+  gender: non-binary
+  species: Droid
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 0
+    merciful_ruthless: 0
+    lawful_rebellious: 20
+  default_affinity: 25
+  loyalty_hook: Ancient droid with fragmented memory banks containing data from the Clone Wars, the Empire, and the Vong invasion. Loyal, resourceful, and occasionally reveals critical intel from corrupted
+    files.
+  banter_style: beeps
+  faction_interest: [None]
+  recruitment_context: 'Found deactivated in a junk heap. Repairing it triggers a memory fragment: a star map to a hidden Republic base. R9 chirps gratefully and refuses to leave your side.'
+  voice_tags: [beeps, mechanical, expressive]
+  motivation: To serve its current master loyally while processing fragmented memories from centuries of service.
+  speech_quirk: Communicates through beeps, whistles, and chirps; occasionally displays holographic fragments from corrupted memory files.
+- id: comp-legacy-chiss
+  name: Vorik'inrokini (\"Vorik\")
+  archetype: Chiss observer
+  gender: male
+  species: Chiss
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 60
+    merciful_ruthless: 30
+    lawful_rebellious: -50
+  default_affinity: 0
+  loyalty_hook: Sent by the Chiss Ascendancy to monitor the galactic civil war. Distant, analytical, but respects competence. Reports back but may choose not to report everything.
+  banter_style: analytical
+  faction_interest: [Chiss Ascendancy]
+  recruitment_context: 'Introduces himself formally at a spaceport. States plainly: the Ascendancy is interested in your activities. He is assigned to observe. Your cooperation is not required — but would
+    be efficient.'
+  voice_tags: [analytical, cold, formal]
+  motivation: To observe the galactic civil war and report strategic threats to the Chiss Ascendancy.
+  speech_quirk: Analyzes social interactions as tactical scenarios, describing friendships as 'strategic alliances.'
+- id: comp-legacy-nightsister
+  name: Sirith Vael
+  archetype: Nightsister descendant
+  gender: female
+  species: Human (Dathomiri)
+  era: LEGACY
+  traits:
+    idealist_pragmatic: -20
+    merciful_ruthless: 50
+    lawful_rebellious: 70
+  default_affinity: 5
+  loyalty_hook: Last of a Nightsister bloodline. Practices matriarchal Force traditions the Jedi do not understand and the Sith cannot corrupt. Seeks to preserve her heritage and prove it is neither light
+    nor dark.
+  banter_style: mystical
+  faction_interest: [Jedi Order]
+  recruitment_context: Encountered in Dathomir ruins communing with spirits. Senses your Force presence and challenges you to prove you respect traditions older than the Jedi Order.
+  voice_tags: [mystical, fierce, serene]
+  motivation: To preserve Nightsister traditions and prove her matriarchal Force magic is neither Jedi nor Sith.
+  speech_quirk: Invokes the spirits of ancestors before major decisions, communing with voices only she hears.
+- id: comp-legacy-imperial-investigator
+  name: Jorik Hallis
+  archetype: Imperial Knight investigator
+  gender: male
+  species: Human
+  era: LEGACY
+  traits:
+    idealist_pragmatic: 40
+    merciful_ruthless: -10
+    lawful_rebellious: -60
+  default_affinity: 10
+  loyalty_hook: Enforces Imperial Knight doctrine and investigates corruption within Fel's forces. Values order, justice, and the Emperor's vision. Will challenge you if you stray from principle.
+  banter_style: formal
+  faction_interest: [Galactic Empire (Fel), Imperial Knights]
+  recruitment_context: Investigating a suspected Sith infiltrator in your sector. Questions you formally — then recruits you as an asset when your answers prove both honest and insightful.
+  voice_tags: [formal, authoritative, analytical]
+  motivation: To root out corruption within the Fel Empire and uphold the true ideals of the Imperial Knights.
+  speech_quirk: Phrases observations as formal reports — 'Subject displays inconsistency in testimony' — investigator's detachment.

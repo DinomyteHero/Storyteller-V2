@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Vector Database
+lancedb/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+
+# Temporary / test directories
+temp_extraction/
+test_tmp/
+.pytest_tmp/
+backend/tests/.tmp/
+
+# Windows artifacts
+nul
+
+# Build artifacts
+*.egg-info/
+
+# Data variants (local vector DB)
+data/lancedb*/

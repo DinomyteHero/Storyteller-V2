@@ -1,0 +1,414 @@
+/* ============================================================
+ * Storyteller AI — Global Styles
+ * ============================================================
+ * All components read from CSS custom properties (--xxx).
+ * The active theme is set via a <style> tag on <body> from
+ * +layout.svelte using themeToCssVars().
+ * ============================================================ */
+
+/* === Typography === */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+
+/* === Reset === */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* === Body === */
+body {
+  min-height: 100vh;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* === Scrollbar === */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-panel);
+  border-radius: 3px;
+}
+
+/* === Links === */
+a {
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* === Headings === */
+h1, h2, h3, h4 {
+  color: var(--text-heading);
+  font-weight: 600;
+}
+
+/* === Panel / Card === */
+.card {
+  border: 1px solid var(--border-panel);
+  background: var(--bg-panel);
+  box-shadow: 0 0 0 1px var(--border-subtle) inset, 0 12px 40px rgba(0, 0, 0, 0.35);
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  border-color: var(--border-accent);
+}
+
+/* === Scanline overlay === */
+.scanline {
+  position: relative;
+}
+.scanline::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: var(--panel-radius);
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.03) 0px,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 2px,
+    transparent 6px
+  );
+  mix-blend-mode: overlay;
+  opacity: var(--hud-scanline-opacity);
+}
+
+/* === HUD Pill === */
+.pill {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: var(--font-caption);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.pill .label {
+  color: var(--text-primary);
+  font-weight: 600;
+  margin-right: 6px;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  opacity: 0.8;
+  letter-spacing: 0.5px;
+}
+.pill .value {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+/* === Narrative prose === */
+.narrative-prose {
+  font-family: 'Noto Serif', Georgia, 'Times New Roman', serif;
+  font-size: var(--font-narrative);
+  line-height: var(--line-height-narrative);
+  color: var(--text-primary);
+}
+.narrative-prose p {
+  margin: 0 0 0.8em 0;
+}
+.narrative-prose p:last-child {
+  margin-bottom: 0;
+}
+.narrative-prose .dialogue {
+  margin: 0.6em 0 0.8em 1.2em;
+  padding-left: 0.8em;
+  border-left: 2px solid var(--accent-glow);
+  color: var(--text-heading);
+  font-style: italic;
+}
+
+/* === Section header === */
+.section-header {
+  font-size: var(--font-caption);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-secondary);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 8px;
+}
+
+/* === Tone colors — used for left borders on choice cards === */
+.tone-paragon  { --tone-color: var(--tone-paragon); }
+.tone-investigate { --tone-color: var(--tone-investigate); }
+.tone-renegade { --tone-color: var(--tone-renegade); }
+.tone-neutral  { --tone-color: var(--tone-neutral); }
+
+/* === Buttons === */
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--border-panel);
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-size: var(--font-body);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+.btn:hover {
+  border-color: var(--accent-primary);
+  background: var(--hud-pill-bg);
+  color: var(--text-heading);
+  box-shadow: var(--choice-hover-glow);
+}
+.btn-primary {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #000;
+  font-weight: 600;
+}
+.btn-primary:hover {
+  background: var(--accent-secondary);
+  border-color: var(--accent-secondary);
+  box-shadow: var(--choice-hover-glow);
+}
+
+/* === Form inputs === */
+input[type='text'],
+input[type='number'],
+textarea,
+select {
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-panel);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: var(--font-body);
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+}
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+/* === Banter / companion dialogue === */
+.banter-card {
+  margin-top: 16px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--tone-investigate);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.12);
+  transition: all 0.2s ease;
+}
+.banter-card:hover {
+  background: rgba(0, 0, 0, 0.18);
+  border-left-color: var(--accent-primary);
+}
+.banter-speaker {
+  font-size: var(--font-small);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--tone-investigate);
+  margin-bottom: 4px;
+}
+.banter-text {
+  font-style: italic;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+/* === Risk badges === */
+.risk-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: var(--font-small);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.risk-safe {
+  color: var(--tone-paragon);
+  border: 1px solid var(--tone-paragon);
+  opacity: 0.7;
+}
+.risk-risky {
+  color: var(--tone-investigate);
+  border: 1px solid var(--tone-investigate);
+}
+.risk-dangerous {
+  color: var(--tone-renegade);
+  border: 1px solid var(--tone-renegade);
+}
+
+/* === Streaming cursor === */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.streaming-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--accent-primary);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+}
+
+/* === Fade-in animation === */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+/* === Staggered entrance for choice cards === */
+@keyframes choiceEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.stagger-enter {
+  opacity: 0;
+  animation: choiceEnter 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.stagger-enter:nth-child(1) { animation-delay: 0.05s; }
+.stagger-enter:nth-child(2) { animation-delay: 0.12s; }
+.stagger-enter:nth-child(3) { animation-delay: 0.19s; }
+.stagger-enter:nth-child(4) { animation-delay: 0.26s; }
+
+/* === Slide transitions === */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* === Page view transition === */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.page-enter {
+  animation: pageEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* === Glow pulse for active/selected elements === */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 8px var(--accent-glow); }
+  50% { box-shadow: 0 0 20px var(--accent-glow), 0 0 40px rgba(80, 150, 255, 0.08); }
+}
+.glow-pulse {
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+/* === Scale press feedback === */
+.press-scale {
+  transition: transform 0.1s ease;
+}
+.press-scale:active {
+  transform: scale(0.97);
+}
+
+/* === Focus visible ring for keyboard nav === */
+*:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* === Reduced motion === */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .stagger-enter { opacity: 1; }
+  .fade-in { opacity: 1; }
+  .page-enter { opacity: 1; }
+}
+
+/* === Modal overlay === */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease;
+}
+.modal-content {
+  background: var(--bg-overlay);
+  border: 1px solid var(--border-panel);
+  border-radius: var(--panel-radius);
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* === Utility === */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

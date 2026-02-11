@@ -1,0 +1,2772 @@
+npcs:
+  anchors:
+  - id: cade_skywalker
+    name: Cade Skywalker
+    aliases:
+    - Cade
+    - Skywalker
+    tags:
+    - bounty_hunter
+    - force_sensitive
+    - troubled
+    - skywalker
+    faction_id: underworld
+    default_location_id: loc-socorro
+    role: Bounty Hunter / Jedi Dropout
+    archetype: Reluctant anti-hero
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - cynical
+    - powerful
+    - addicted
+    - conflicted
+    motivation: Just wants to be left alone (and maybe get paid)
+    secret: Can heal others with the Force, sometimes by tapping into the Dark Side
+    voice_tags:
+    - rough
+    - edgy
+    - weary
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: darth_krayt
+    name: Darth Krayt
+    aliases:
+    - Krayt
+    - A'Sharad Hett
+    - The Dark Lord
+    banned_aliases:
+    - The Dark Lord
+    tags:
+    - sith
+    - leader
+    - ancient
+    - cyborg
+    faction_id: one_sith
+    default_location_id: loc-coruscant_sith
+    role: Dark Lord of the Sith
+    archetype: Visionary tyrant
+    match_rules:
+      min_tokens: 2
+    traits:
+    - visionary
+    - ruthless
+    - disciplined
+    motivation: Impose order on the chaotic galaxy through the Rule of One
+    secret: Is slowly dying and needs Skywalker's healing power
+    voice_tags:
+    - rasping
+    - commanding
+    - ancient
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: darth_talon
+    name: Darth Talon
+    aliases:
+    - Talon
+    tags:
+    - sith
+    - assassin
+    - twi_lek
+    - loyal
+    faction_id: one_sith
+    default_location_id: loc-coruscant_sith
+    role: Emperor's Hand
+    archetype: Loyal assassin
+    match_rules:
+      min_tokens: 2
+    traits:
+    - loyal
+    - lethal
+    - acrobatic
+    motivation: Serve Krayt's will perfectly
+    secret: Unwaveringly loyal to Krayt above all else
+    voice_tags:
+    - cold
+    - seductive
+    - fanatical
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: roan_fel
+    name: Roan Fel
+    aliases:
+    - Emperor Fel
+    - Fel
+    banned_aliases:
+    - Emperor
+    tags:
+    - imperial
+    - leader
+    - force_sensitive
+    - knight
+    faction_id: fel_empire
+    default_location_id: loc-bastion
+    role: Emperor in Exile
+    archetype: Warrior king
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - pragmatic
+    - honorable
+    - regal
+    motivation: Reclaim his throne and protect the Empire from the Sith
+    secret: Is a fully trained Imperial Knight, light-side user
+    voice_tags:
+    - authoritative
+    - noble
+    - determined
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: marasiah_fel
+    name: Marasiah Fel
+    aliases:
+    - Sia
+    - Princess Marasiah
+    - Marasiah
+    tags:
+    - imperial
+    - princess
+    - force_sensitive
+    faction_id: fel_empire
+    default_location_id: loc-bastion
+    role: Imperial Princess
+    archetype: Warrior princess
+    match_rules:
+      min_tokens: 2
+    traits:
+    - brave
+    - diplomatic
+    - skilled
+    motivation: Serve the Empire and support her father
+    secret: Falling in love with Antares Draco
+    voice_tags:
+    - clear
+    - young
+    - brave
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: gar_stazi
+    name: Gar Stazi
+    aliases:
+    - Admiral Stazi
+    - Stazi
+    banned_aliases:
+    - Admiral
+    tags:
+    - alliance
+    - admiral
+    - duros
+    - leader
+    faction_id: galactic_alliance_remnant
+    default_location_id: loc-indomitable
+    role: Alliance Admiral
+    archetype: Grizzled commander
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - stubborn
+    - brilliant
+    - relentless
+    motivation: Restore the Galactic Alliance and defeat the Sith
+    secret: Fears his alliance with Fel will destroy the democracy he fights for
+    voice_tags:
+    - gravelly
+    - commanding
+    - tired
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: morrigan_corde
+    name: Morrigan Corde
+    aliases:
+    - Corde
+    - Nyna Calixte
+    tags:
+    - imperial
+    - spy
+    - mother
+    faction_id: fel_empire
+    default_location_id: loc-coruscant_sith
+    role: Imperial Spymaster
+    archetype: Double agent
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - manipulative
+    - secretive
+    - ruthless
+    motivation: Protect her son Cade from the shadows
+    secret: Is actually Cade Skywalker's mother and a top Imperial spy
+    voice_tags:
+    - smooth
+    - deceptive
+    - icy
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: wolf_sazen
+    name: Wolf Sazen
+    aliases:
+    - Master Sazen
+    - Sazen
+    tags:
+    - jedi
+    - zabrak
+    - master
+    faction_id: jedi_order
+    default_location_id: loc-taivas
+    role: Jedi Master
+    archetype: Wise mentor
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - calm
+    - wise
+    - persistent
+    motivation: Bring his former padawan Cade back to the light
+    secret: Believes Cade is the only hope for the galaxy
+    voice_tags:
+    - serene
+    - deep
+    - patient
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: shado_vao
+    name: Shado Vao
+    aliases:
+    - Shado
+    - Vao
+    tags:
+    - jedi
+    - twi_lek
+    - friend
+    faction_id: jedi_order
+    default_location_id: loc-taivas
+    role: Jedi Knight
+    archetype: Loyal friend
+    match_rules:
+      min_tokens: 2
+    traits:
+    - disciplined
+    - skilled
+    - loyal
+    motivation: Fight the Sith and support Wolf Sazen
+    secret: Worries his friendship with Cade complicates his Jedi duty
+    voice_tags:
+    - calm
+    - youthful
+    - steady
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: darth_nihl
+    name: Darth Nihl
+    aliases:
+    - Nihl
+    tags:
+    - sith
+    - warrior
+    - nagai
+    faction_id: one_sith
+    default_location_id: loc-coruscant_sith
+    role: King's Hand
+    archetype: Rival warrior
+    match_rules:
+      min_tokens: 2
+    traits:
+    - ambitious
+    - aggressive
+    - cunning
+    motivation: Rise in Krayt's favor and destroy Skywalker
+    secret: Resents Darth Talon's position
+    voice_tags:
+    - hissing
+    - arrogant
+    - dark
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: darth_stryfe
+    name: Darth Stryfe
+    aliases:
+    - Stryfe
+    tags:
+    - sith
+    - military
+    - strategist
+    faction_id: one_sith
+    default_location_id: loc-prakith
+    role: Sith Military Commander
+    archetype: Disciplined general
+    match_rules:
+      min_tokens: 2
+    traits:
+    - strategic
+    - ruthless
+    - professional
+    motivation: Command Krayt's military forces and crush the Fel loyalists
+    secret: Believes pure military victory matters more than Sith mysticism
+    voice_tags:
+    - commanding
+    - cold
+    - tactical
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: kkruhk
+    name: K'Kruhk
+    aliases:
+    - Master K'Kruhk
+    - K'Kruhk
+    banned_aliases:
+    - Master
+    tags:
+    - jedi
+    - whiphid
+    - survivor
+    - master
+    faction_id: jedi_order
+    default_location_id: loc-taivas
+    role: Jedi Master
+    archetype: Ancient survivor
+    match_rules:
+      min_tokens: 2
+    traits:
+    - wise
+    - enduring
+    - calm
+    motivation: Preserve the Jedi Order and guide the next generation
+    secret: Has survived countless wars — Clone Wars, Empire, Vong invasion, Sith purge
+    voice_tags:
+    - deep
+    - rumbling
+    - patient
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: azlyn_rae
+    name: Azlyn Rae
+    aliases:
+    - Azlyn
+    - Rae
+    tags:
+    - imperial
+    - knight
+    - defector
+    faction_id: underworld
+    default_location_id: loc-nar_shaddaa
+    role: Fallen Imperial Knight
+    archetype: Conflicted defector
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - conflicted
+    - skilled
+    - disillusioned
+    motivation: Find a new purpose after abandoning the Imperial Knights
+    secret: Left the Knights because she could not accept their rigid dogma
+    voice_tags:
+    - uncertain
+    - sharp
+    - defensive
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: darth_havok
+    name: Darth Havok
+    aliases:
+    - Havok
+    tags:
+    - sith
+    - enforcer
+    - brutal
+    faction_id: one_sith
+    default_location_id: loc-korriban
+    role: Sith Enforcer
+    archetype: Brutal inquisitor
+    match_rules:
+      min_tokens: 2
+    traits:
+    - savage
+    - loyal
+    - merciless
+    motivation: Execute Krayt's will with maximum brutality
+    secret: Was once a Jedi who fell during the purge
+    voice_tags:
+    - growling
+    - violent
+    - harsh
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: blue
+    name: Blue
+    aliases:
+    - Blue
+    tags:
+    - chagrian
+    - broker
+    - neutral
+    faction_id: underworld
+    default_location_id: loc-the_wheel
+    role: Information Broker
+    archetype: Neutral opportunist
+    match_rules:
+      min_tokens: 1
+    traits:
+    - shrewd
+    - cautious
+    - profitable
+    motivation: Sell information to all sides and survive the war
+    secret: Has dirt on every major faction leader — including Krayt
+    voice_tags:
+    - smooth
+    - calculating
+    - amused
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: gunn_yage
+    name: Gunn Yage
+    aliases:
+    - Commander Yage
+    - Yage
+    banned_aliases:
+    - Commander
+    tags:
+    - imperial
+    - pilot
+    - legacy
+    faction_id: fel_empire
+    default_location_id: loc-bastion
+    role: Rogue Squadron Legacy Pilot
+    archetype: Ace under pressure
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - skilled
+    - haunted
+    - driven
+    motivation: Live up to the legendary Rogue Squadron name
+    secret: Struggling with the weight of family legacy — her father was Rav Yage
+    voice_tags:
+    - terse
+    - focused
+    - weary
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: empress_elliah
+    name: Empress Elliah Fel
+    aliases:
+    - Empress Elliah
+    - Elliah
+    banned_aliases:
+    - Empress
+    tags:
+    - imperial
+    - empress
+    - political
+    faction_id: fel_empire
+    default_location_id: loc-bastion
+    role: Empress Consort
+    archetype: Political anchor
+    match_rules:
+      min_tokens: 2
+    traits:
+    - graceful
+    - strategic
+    - supportive
+    motivation: Support her husband and maintain morale in the exiled court
+    secret: Secretly coordinates with Jedi sympathizers to undermine Krayt
+    voice_tags:
+    - elegant
+    - poised
+    - subtle
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: jor_torlin
+    name: Jor Torlin
+    aliases:
+    - Captain Torlin
+    - Torlin
+    banned_aliases:
+    - Captain
+    tags:
+    - alliance
+    - commando
+    - leader
+    faction_id: galactic_alliance_remnant
+    default_location_id: loc-indomitable
+    role: Alliance Commando Leader
+    archetype: Grizzled spec ops
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - tough
+    - tactical
+    - direct
+    motivation: Execute deep strikes against Sith infrastructure
+    secret: Lost his entire original team in a failed infiltration of Coruscant
+    voice_tags:
+    - gravelly
+    - clipped
+    - militant
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: tra_saa
+    name: T'ra Saa
+    aliases:
+    - Master T'ra Saa
+    - T'ra Saa
+    banned_aliases:
+    - Master
+    tags:
+    - jedi
+    - neti
+    - ancient
+    faction_id: jedi_order
+    default_location_id: loc-belsavis
+    role: Ancient Neti Jedi
+    archetype: Living archive
+    match_rules:
+      min_tokens: 2
+    traits:
+    - ancient
+    - serene
+    - patient
+    motivation: Preserve Jedi wisdom through the darkest of times
+    secret: Has lived for centuries — remembers the Ruusan Reformation
+    voice_tags:
+    - slow
+    - melodic
+    - timeless
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: vul_isen
+    name: Vul Isen
+    aliases:
+    - Isen
+    tags:
+    - sith
+    - scientist
+    - bioweapons
+    faction_id: one_sith
+    default_location_id: loc-empress_teta
+    role: Sith Bioweapons Scientist
+    archetype: Mad scientist
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - brilliant
+    - unethical
+    - obsessive
+    motivation: Perfect biological weapons to exterminate Jedi and Force-sensitives
+    secret: Developing a virus that targets Force-sensitive DNA
+    voice_tags:
+    - clinical
+    - eager
+    - disturbing
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+
+  # NEW CANONICAL ANCHORS (5) - added from enrichment
+
+  - id: revan_legend
+    name: Revan (The Eternal Wanderer)
+    aliases: [Revan, The Sith Lord Revan, The Jedi Revan, The Chosen One, The Shadow]
+    tags: [ancient, force_sensitive, legendary, mysterious, transcendent]
+    faction_id: neutral
+    default_location_id: null
+    role: Legendary Force User / Transcendent Being
+    archetype: Mysterious figure transcending Sith and Jedi
+    traits: [visionary, powerful, enigmatic, ancient, transformative]
+    motivation: "Unknown; Revan's goals remain a mystery to all"
+    secret: "Revan may not be entirely of this galaxy; reports are inconsistent and possibly non-corporeal"
+    voice_tags: [mysterious, grave, transcendent, ancient, measured]
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors:
+        - "Revan walks between worlds, neither fully Sith nor Jedi"
+        - "Some claim to have seen Revan in the past decade"
+        - "Revan's influence on history exceeds any single being's"
+      quest_facts:
+        - "Ancient Sith texts reference Revan with fear and reverence"
+        - "Jedi records suggest Revan understands the deepest Force mysteries"
+      secrets:
+        - "Revan may have deliberately altered galactic history multiple times"
+        - "Revan's current location and status are completely unknown"
+
+  - id: satele_shan_descendant
+    name: Satele Shan (Ancestor Echo)
+    aliases: [Satele, The Ancient Jedi Master, The First Shan]
+    tags: [jedi, ancient, master, ancestor, legacy]
+    faction_id: jedi_order
+    default_location_id: null
+    role: Ancient Ancestor / Force Spirit
+    archetype: Wise ancestor guiding the Order from beyond death
+    traits: [wise, powerful, ancient, compassionate, patient]
+    motivation: "Guide the current Jedi through dark times; maintain Order continuity"
+    secret: "Satele Shan may not be entirely dead; her Force presence is stronger than normal"
+    voice_tags: [serene, ancient, wise, ethereal, gentle]
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors:
+        - "Satele Shan established traditions that have endured for millennia"
+        - "Some Jedi claim to receive guidance from Satele Shan in meditation"
+      quest_facts:
+        - "Satele Shan understood threats that are only now becoming apparent"
+      secrets:
+        - "Satele Shan foresaw the coming darkness and left messages for future generations"
+
+  - id: ben_skywalker_legacy
+    name: Ben Skywalker (Memory Echo)
+    aliases: [Ben, The Last Jedi Prince, Skywalker's Heir]
+    tags: [jedi, skywalker, ancient, legacy, force_user]
+    faction_id: jedi_order
+    default_location_id: null
+    role: Ancient Ancestor / Legacy
+    archetype: Heroic ancestor whose choices shaped the galaxy
+    traits: [brave, wise, powerful, determined, noble]
+    motivation: "Protect the Skywalker legacy; ensure the family's power is used for good"
+    secret: "Ben Skywalker's bloodline appears to be the source of unique Force abilities"
+    voice_tags: [grave, noble, determined, heroic, warm]
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors:
+        - "Ben Skywalker's accomplishments were legendary even in his own time"
+        - "The Skywalker bloodline carries unique Force sensitivity"
+      quest_facts:
+        - "Ben Skywalker left behind teachings still being studied"
+      secrets:
+        - "Ben Skywalker may have had children whose line continues to the present"
+
+  - id: luke_skywalker_memory
+    name: Luke Skywalker (The Founder)
+    aliases: [Luke, The Master, Skywalker, The Jedi Master, The New Order]
+    tags: [jedi, founder, ancient, legendary, skywalker]
+    faction_id: jedi_order
+    default_location_id: null
+    role: Founder of the New Jedi Order
+    archetype: Legendary founder whose vision guides the Order
+    traits: [wise, powerful, compassionate, visionary, humble]
+    motivation: "Ensure the Jedi Order survives and prospers; protect the light side eternally"
+    secret: "Luke Skywalker's true fate is mysterious; some believe he transcended mortality"
+    voice_tags: [warm, wise, determined, hopeful, heroic]
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors:
+        - "Luke Skywalker unified the Jedi Order after centuries of fragmentation"
+        - "Luke Skywalker's teachings are the foundation of the modern Jedi Order"
+        - "Luke refused the dark side even when offered galactic power"
+      quest_facts:
+        - "Luke Skywalker's personal archive is hidden in the deepest vaults"
+      secrets:
+        - "Luke may have left a final message for a critical future moment"
+        - "Luke's true nature as a Force user transcended normal categories"
+
+  rotating:
+  - id: antares_draco
+    name: Antares Draco
+    aliases:
+    - Draco
+    tags:
+    - imperial
+    - knight
+    - loyal
+    faction_id: fel_empire
+    default_location_id: loc-bastion
+    role: Leader of Imperial Knights
+    archetype: Paladin
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - loyal
+    - rigid
+    - brave
+    motivation: Serve the Emperor and protect the Princess
+    secret: In love with Princess Marasiah (forbidden)
+    voice_tags:
+    - formal
+    - intense
+    - rigid
+    spawn:
+      location_tags_any:
+      - imperial
+      - knight
+      - loyal
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: ganner_krieg
+    name: Ganner Krieg
+    aliases:
+    - Krieg
+    tags:
+    - imperial
+    - knight
+    - friend
+    faction_id: fel_empire
+    default_location_id: loc-bastion
+    role: Imperial Knight
+    archetype: Loyal wingman
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - calm
+    - pragmatic
+    - skilled
+    motivation: Serve the Empire and watch Draco's back
+    secret: More flexible in his views than Draco
+    voice_tags:
+    - calm
+    - dry
+    - professional
+    spawn:
+      location_tags_any:
+      - friend
+      - imperial
+      - knight
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: jariah_syn
+    name: Jariah Syn
+    aliases:
+    - Syn
+    tags:
+    - bounty_hunter
+    - criminal
+    - friend
+    faction_id: underworld
+    default_location_id: loc-socorro
+    role: Bounty Hunter
+    archetype: Scoundrel
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - cocky
+    - loyal
+    - hedonistic
+    motivation: Get paid, get drunk, shoot things
+    secret: Hates Jedi but follows Cade anyway
+    voice_tags:
+    - crude
+    - loud
+    - jovial
+    spawn:
+      location_tags_any:
+      - bounty_hunter
+      - criminal
+      - friend
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: deliah_blue
+    name: Deliah Blue
+    aliases:
+    - Blue
+    tags:
+    - mechanic
+    - zeltron
+    - lover
+    faction_id: underworld
+    default_location_id: loc-socorro
+    role: Mechanic
+    archetype: Mechanic / Lover
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - cheerful
+    - empathetic
+    - skilled
+    motivation: Fix the Mynock and keep Cade alive
+    secret: Deeply in love with Cade
+    voice_tags:
+    - bright
+    - empathetic
+    - playful
+    spawn:
+      location_tags_any:
+      - lover
+      - mechanic
+      - zeltron
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: darth_wyyrlok
+    name: Darth Wyyrlok III
+    aliases:
+    - Wyyrlok
+    tags:
+    - sith
+    - sorcerer
+    - advisor
+    faction_id: one_sith
+    default_location_id: loc-coruscant_sith
+    role: Voice of Krayt
+    archetype: Dark vizier
+    match_rules:
+      min_tokens: 2
+    traits:
+    - intellectual
+    - patient
+    - devoted
+    motivation: Ensure Krayt's vision and legacy endure
+    secret: Knows Krayt is dying and manages the empire in his stead
+    voice_tags:
+    - soft
+    - scholarly
+    - eerie
+    spawn:
+      location_tags_any:
+      - advisor
+      - sith
+      - sorcerer
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: astraal_vao
+    name: Astraal Vao
+    aliases:
+    - Astraal
+    tags:
+    - twi_lek
+    - diplomat
+    - sister
+    faction_id: fel_empire
+    default_location_id: loc-bastion
+    role: Imperial Missionary
+    archetype: Compassionate diplomat
+    match_rules:
+      min_tokens: 2
+    traits:
+    - compassionate
+    - determined
+    - stubborn
+    motivation: Reunite with her brother Shado and bridge the Jedi-Imperial divide
+    secret: Secretly feeds intelligence to the Jedi through her brother
+    voice_tags:
+    - warm
+    - earnest
+    - pleading
+    spawn:
+      location_tags_any:
+      - diplomat
+      - sister
+      - twi_lek
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: darth_maladi
+    name: Darth Maladi
+    aliases:
+    - Maladi
+    tags:
+    - sith
+    - scientist
+    - devaronian
+    faction_id: one_sith
+    default_location_id: loc-coruscant_sith
+    role: Sith Scientist
+    archetype: Cruel experimenter
+    match_rules:
+      min_tokens: 2
+    traits:
+    - sadistic
+    - brilliant
+    - patient
+    motivation: Perfect Sith alchemy and biological weapons
+    secret: Created the Vong-form bioweapon that triggered the war with the Jedi
+    voice_tags:
+    - silky
+    - clinical
+    - amused
+    spawn:
+      location_tags_any:
+      - devaronian
+      - scientist
+      - sith
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: sigel_dare
+    name: Sigel Dare
+    aliases:
+    - Dare
+    tags:
+    - imperial
+    - knight
+    - warrior
+    faction_id: fel_empire
+    default_location_id: loc-bastion
+    role: Imperial Knight
+    archetype: Hot-headed knight
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - fierce
+    - impatient
+    - brave
+    motivation: Destroy the Sith and prove her worth to the Emperor
+    secret: Questions whether the Imperial Knights are truly different from the Sith
+    voice_tags:
+    - sharp
+    - aggressive
+    - bold
+    spawn:
+      location_tags_any:
+      - imperial
+      - knight
+      - warrior
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: nat_skywalker
+    name: Nat Skywalker
+    aliases:
+    - Bantha Rawk
+    - Rawk
+    tags:
+    - jedi
+    - hidden
+    - father
+    faction_id: jedi_order
+    default_location_id: loc-vendaxa
+    role: Hidden Jedi / Mechanic
+    archetype: Retired warrior
+    match_rules:
+      min_tokens: 2
+    traits:
+    - gruff
+    - protective
+    - wise
+    motivation: Protect his family and stay hidden from the Sith
+    secret: Is Cade's uncle, a Skywalker living under an assumed name
+    voice_tags:
+    - gruff
+    - warm
+    - weary
+    spawn:
+      location_tags_any:
+      - father
+      - hidden
+      - jedi
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: moff_geist
+    name: Moff Nyna Calixte
+    aliases:
+    - Moff Calixte
+    - Calixte
+    banned_aliases:
+    - Moff
+    tags:
+    - imperial
+    - intelligence
+    - spy
+    faction_id: one_sith
+    default_location_id: loc-coruscant_sith
+    role: Director of Imperial Intelligence
+    archetype: Master manipulator
+    match_rules:
+      min_tokens: 2
+    traits:
+    - calculating
+    - dangerous
+    - composed
+    motivation: Maintain power regardless of who sits on the throne
+    secret: Same person as Morrigan Corde — lives a double life
+    voice_tags:
+    - precise
+    - political
+    - icy
+    spawn:
+      location_tags_any:
+      - imperial
+      - intelligence
+      - spy
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: elke_vetter
+    name: Elke Vetter
+    aliases:
+    - Knight Vetter
+    - Vetter
+    tags:
+    - imperial
+    - knight
+    - loyal
+    faction_id: fel_empire
+    default_location_id: loc-bastion
+    role: Imperial Knight Second
+    archetype: Draco's second-in-command
+    match_rules:
+      min_tokens: 2
+    traits:
+    - disciplined
+    - analytical
+    - calm
+    motivation: Support Antares Draco and maintain Imperial Knight discipline
+    secret: Questions whether their rigid code is sustainable in total war
+    voice_tags:
+    - measured
+    - professional
+    - quiet
+    spawn:
+      location_tags_any:
+      - imperial
+      - knight
+      - loyal
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: darth_reave
+    name: Darth Reave
+    aliases:
+    - Reave
+    tags:
+    - sith
+    - apprentice
+    - rival
+    faction_id: one_sith
+    default_location_id: loc-korriban
+    role: Sith Rival to Talon
+    archetype: Ambitious rival
+    match_rules:
+      min_tokens: 2
+    traits:
+    - ambitious
+    - envious
+    - skilled
+    motivation: Surpass Darth Talon and become Krayt's favored Hand
+    secret: Sabotaging Talon's missions to make her look weak
+    voice_tags:
+    - smooth
+    - venomous
+    - intense
+    spawn:
+      location_tags_any:
+      - apprentice
+      - rival
+      - sith
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: kol_skywalker_ghost
+    name: Kol Skywalker (Force Ghost)
+    aliases:
+    - Kol
+    - Master Kol
+    tags:
+    - jedi
+    - ghost
+    - father
+    faction_id: jedi_order
+    default_location_id: loc-taivas
+    role: Force Ghost of Cade's Father
+    archetype: Guiding spirit
+    match_rules:
+      min_tokens: 2
+    traits:
+    - wise
+    - stern
+    - loving
+    motivation: Guide his son Cade back to the light
+    secret: Cannot always appear when needed — bound by the Force's will
+    voice_tags:
+    - ethereal
+    - fatherly
+    - urgent
+    spawn:
+      location_tags_any:
+      - father
+      - ghost
+      - jedi
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: veed_deviss
+    name: Veed Deviss
+    aliases:
+    - Captain Deviss
+    - Deviss
+    tags:
+    - mandalorian
+    - mercenary
+    - captain
+    faction_id: mandalorians
+    default_location_id: loc-gamorr
+    role: Mandalorian Mercenary Captain
+    archetype: Grizzled clan leader
+    match_rules:
+      min_tokens: 2
+    traits:
+    - pragmatic
+    - honorable
+    - battle-scarred
+    motivation: Lead clan through the war by taking profitable contracts
+    secret: Clan is divided — half support Fel, half want Sith credits
+    voice_tags:
+    - gruff
+    - clipped
+    - weary
+    spawn:
+      location_tags_any:
+      - captain
+      - mandalorian
+      - mercenary
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: havina_vondar
+    name: Havina Vondar
+    aliases:
+    - Agent Vondar
+    - Vondar
+    tags:
+    - sith
+    - infiltrator
+    - spy
+    faction_id: one_sith
+    default_location_id: loc-indomitable
+    role: One Sith Deep Cover Agent
+    archetype: Hidden enemy
+    match_rules:
+      min_tokens: 2
+    traits:
+    - patient
+    - deceptive
+    - ruthless
+    motivation: Infiltrate the Alliance Remnant and sabotage Stazi's operations
+    secret: Has been embedded in the Alliance for three years
+    voice_tags:
+    - friendly
+    - charming
+    - deceptive
+    spawn:
+      location_tags_any:
+      - infiltrator
+      - sith
+      - spy
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: rulf_yage
+    name: Rulf Yage
+    aliases:
+    - Admiral Yage
+    - Yage
+    banned_aliases:
+    - Admiral
+    tags:
+    - imperial
+    - admiral
+    - sith_loyalist
+    faction_id: one_sith
+    default_location_id: loc-kuat
+    role: Fel Loyalist Turned Sith
+    archetype: Tragic turncoat
+    match_rules:
+      min_tokens: 2
+    traits:
+    - conflicted
+    - pragmatic
+    - haunted
+    motivation: Serve the One Sith to protect his family from purges
+    secret: Secretly feeding intelligence to his daughter Gunn in the Fel Empire
+    voice_tags:
+    - resigned
+    - tired
+    - formal
+    spawn:
+      location_tags_any:
+      - admiral
+      - imperial
+      - sith_loyalist
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: syn
+    name: Jariah Syn (Bantha Rawk Crew)
+    aliases:
+    - Syn
+    tags:
+    - scoundrel
+    - friend
+    - criminal
+    faction_id: underworld
+    default_location_id: loc-raxus_prime
+    role: Cade's Criminal Friend
+    archetype: Loyal scoundrel
+    match_rules:
+      min_tokens: 1
+    traits:
+    - loyal
+    - sarcastic
+    - impulsive
+    motivation: Stick with Cade and stay alive
+    secret: In love with Deliah Blue but too afraid to admit it
+    voice_tags:
+    - snarky
+    - rough
+    - joking
+    spawn:
+      location_tags_any:
+      - criminal
+      - friend
+      - scoundrel
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: hosk_trey_kell
+    name: Hosk Trey'lis
+    aliases:
+    - Hosk
+    tags:
+    - alliance
+    - spy
+    - operative
+    faction_id: galactic_alliance_remnant
+    default_location_id: loc-coruscant_sith
+    role: Deep Cover Alliance Spy
+    archetype: Embedded operative
+    match_rules:
+      min_tokens: 2
+    traits:
+    - patient
+    - meticulous
+    - paranoid
+    motivation: Gather intelligence on Sith movements from inside Coruscant
+    secret: Cover identity is crumbling — Sith Intelligence is closing in
+    voice_tags:
+    - hushed
+    - tense
+    - cautious
+    spawn:
+      location_tags_any:
+      - alliance
+      - operative
+      - spy
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: rav_naros
+    name: Rav Naros
+    aliases:
+    - Naros
+    tags:
+    - criminal
+    - syndicate
+    - lieutenant
+    faction_id: underworld
+    default_location_id: loc-malastare
+    role: Syndicate Lieutenant
+    archetype: Criminal fixer
+    match_rules:
+      min_tokens: 2
+    traits:
+    - cunning
+    - greedy
+    - connected
+    motivation: Control Malastare's fuel trade and profit from all factions
+    secret: Running guns to both Sith and Alliance simultaneously
+    voice_tags:
+    - smooth
+    - oily
+    - calculating
+    spawn:
+      location_tags_any:
+      - criminal
+      - lieutenant
+      - syndicate
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: rasi_tuum
+    name: Rasi Tuum
+    aliases:
+    - Tuum
+    tags:
+    - jedi
+    - archaeologist
+    - rogue
+    faction_id: neutral
+    default_location_id: loc-ziost_temple
+    role: Rogue Dark Side Archaeologist
+    archetype: Fallen scholar
+    match_rules:
+      min_tokens: 2
+    traits:
+    - obsessed
+    - brilliant
+    - corrupted
+    motivation: Uncover Sith artifacts before the One Sith claim them
+    secret: Using dark side artifacts is slowly corrupting them
+    voice_tags:
+    - excited
+    - manic
+    - feverish
+    spawn:
+      location_tags_any:
+      - archaeologist
+      - jedi
+      - rogue
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: ahnjai_rahmma
+    name: Ahnjai Rahmma
+    aliases:
+    - Rahmma
+    tags:
+    - civilian
+    - resistance
+    - leader
+    faction_id: neutral
+    default_location_id: loc-agamar
+    role: Civilian Resistance Leader
+    archetype: Reluctant leader
+    match_rules:
+      min_tokens: 2
+    traits:
+    - brave
+    - inexperienced
+    - determined
+    motivation: Organize local resistance against Sith occupation
+    secret: Lost entire family in Sith reprisals — driven by vengeance
+    voice_tags:
+    - earnest
+    - shaky
+    - resolute
+    spawn:
+      location_tags_any:
+      - civilian
+      - leader
+      - resistance
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  templates:
+  - id: sith_trooper
+    role: Sith Trooper
+    archetype: Faceless enforcer
+    traits:
+    - cybernetic
+    - fanatical
+    - emotionless
+    motivations:
+    - serve Krayt
+    - destroy enemies
+    - obey
+    secrets:
+    - has no memory of past life
+    - feels only hate
+    voice_tags:
+    - mechanical
+    - monotone
+    - hollow
+    species:
+    - Human (Cyborg)
+    tags:
+    - sith
+    - trooper
+    - military
+    namebank: sith_names
+    spawn:
+      location_tags_any:
+      - military
+      - sith
+      - trooper
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: imperial_knight
+    role: Imperial Knight
+    archetype: Grey paladin
+    traits:
+    - disciplined
+    - honorable
+    - martial
+    motivations:
+    - serve the Emperor
+    - protect the Empire
+    - defeat Sith
+    secrets:
+    - draws on dark side without falling
+    - struggles with rigidity
+    voice_tags:
+    - formal
+    - clear
+    - resolute
+    species:
+    - Human
+    tags:
+    - imperial
+    - force_user
+    - knight
+    namebank: imperial_names
+    spawn:
+      location_tags_any:
+      - force_user
+      - imperial
+      - knight
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: alliance_soldier
+    role: Alliance Soldier
+    archetype: Resistance fighter
+    traits:
+    - grim
+    - determined
+    - resource-poor
+    motivations:
+    - restore freedom
+    - survive
+    - revenge
+    secrets:
+    - tired of fighting
+    - lost family to Sith
+    voice_tags:
+    - weary
+    - rough
+    - defiant
+    species:
+    - Human
+    - Duros
+    - Bothan
+    tags:
+    - alliance
+    - soldier
+    namebank: alliance_names
+    spawn:
+      location_tags_any:
+      - alliance
+      - soldier
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: one_sith_acolyte
+    role: Sith Acolyte
+    archetype: Dark apprentice
+    traits:
+    - ambitious
+    - cruel
+    - cunning
+    motivations:
+    - gain power in the One Sith
+    - prove themselves to their master
+    - destroy rivals
+    secrets:
+    - plotting against their master
+    - struggling to maintain the Rule of One
+    - fears they are not truly connected to the dark side
+    voice_tags:
+    - intense
+    - hissing
+    - cold
+    species:
+    - Human
+    - Twi'lek
+    - Zabrak
+    - Devaronian
+    tags:
+    - sith
+    - force_user
+    namebank: sith_names
+    spawn:
+      location_tags_any:
+      - force_user
+      - sith
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: bounty_hunter_legacy
+    role: Bounty Hunter
+    archetype: Professional tracker
+    traits:
+    - patient
+    - ruthless
+    - professional
+    motivations:
+    - collect the bounty
+    - maintain reputation
+    - avoid entangling with Sith or Jedi politics
+    secrets:
+    - working for multiple employers
+    - hiding a personal vendetta
+    - knows the location of a fugitive Jedi
+    voice_tags:
+    - minimal
+    - cold
+    - business-like
+    species:
+    - Human
+    - Trandoshan
+    - Rodian
+    - Devaronian
+    tags:
+    - bounty_hunter
+    - criminal
+    namebank: underworld_names
+    spawn:
+      location_tags_any:
+      - bounty_hunter
+      - criminal
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: galactic_alliance_officer
+    role: GA Remnant Officer
+    archetype: Stubborn patriot
+    traits:
+    - principled
+    - frustrated
+    - capable
+    motivations:
+    - restore the Alliance government
+    - support Admiral Stazi
+    - protect remaining Alliance worlds
+    secrets:
+    - considers defecting to Fel for a united front
+    - suspects Sith infiltrators in the Alliance fleet
+    - hoarding hyperspace coordinates for emergency retreat
+    voice_tags:
+    - professional
+    - bitter
+    - resolute
+    species:
+    - Human
+    - Mon Calamari
+    - Duros
+    tags:
+    - alliance
+    - officer
+    namebank: alliance_names
+    spawn:
+      location_tags_any:
+      - alliance
+      - officer
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: pirate_crew
+    role: Pirate
+    archetype: Lawless scavenger
+    traits:
+    - greedy
+    - cunning
+    - violent
+    motivations:
+    - plunder trade routes
+    - sell salvage to the highest bidder
+    - avoid both Sith and Alliance patrols
+    secrets:
+    - secretly working for Sith Intelligence
+    - hiding a Jedi fugitive aboard
+    - running death sticks through the Outer Rim
+    voice_tags:
+    - crude
+    - threatening
+    - boisterous
+    species:
+    - Human
+    - Weequay
+    - Nikto
+    - Quarren
+    tags:
+    - criminal
+    - pirate
+    namebank: underworld_names
+    spawn:
+      location_tags_any:
+      - criminal
+      - pirate
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: local_civilian_legacy
+    role: Civilian
+    archetype: Oppressed citizen
+    traits:
+    - fearful
+    - weary
+    - watchful
+    motivations:
+    - survive Sith occupation
+    - protect family
+    - find a way offworld
+    secrets:
+    - hiding a Jedi sympathizer in their home
+    - witnessed a Sith execution
+    - smuggling supplies to Alliance contacts
+    voice_tags:
+    - hushed
+    - nervous
+    - resigned
+    species:
+    - Human
+    - Twi'lek
+    - Rodian
+    - Sullustan
+    tags:
+    - civilian
+    - oppressed
+    namebank: civilian_names
+    spawn:
+      location_tags_any:
+      - civilian
+      - oppressed
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: hidden_jedi
+    role: Hidden Jedi
+    archetype: Fugitive knight
+    traits:
+    - cautious
+    - skilled
+    - fearful
+    motivations:
+    - survive the Sith purge
+    - protect other hidden Jedi
+    - wait for the right moment to strike back
+    secrets:
+    - maintains a secret network of Jedi safehouses
+    - questioning whether the Order should rebuild or stay hidden
+    - carries a lightsaber disguised as a tool
+    voice_tags:
+    - quiet
+    - measured
+    - guarded
+    species:
+    - Human
+    - Twi'lek
+    - Zabrak
+    - Togruta
+    tags:
+    - jedi
+    - fugitive
+    namebank: jedi_names
+    spawn:
+      location_tags_any:
+      - fugitive
+      - jedi
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: mandalorian_merc
+    role: Mandalorian Mercenary
+    archetype: Honorable warrior
+    traits:
+    - proud
+    - disciplined
+    - battle-hungry
+    motivations:
+    - seek worthy combat
+    - honor the Resol'nare
+    - earn credits for the clan
+    secrets:
+    - clan divided on whether to side with Sith or Alliance
+    - carrying a personal blood debt
+    - hiding beskar armor upgrades from competitors
+    voice_tags:
+    - clipped
+    - gruff
+    - proud
+    species:
+    - Human
+    - Mandalorian
+    tags:
+    - mandalorian
+    - mercenary
+    namebank: mandalorian_names
+    spawn:
+      location_tags_any:
+      - mandalorian
+      - mercenary
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: sith_intelligence_agent
+    role: Sith Intelligence Agent
+    archetype: Cruel interrogator
+    traits:
+    - meticulous
+    - sadistic
+    - paranoid
+    motivations:
+    - root out Jedi sympathizers
+    - maintain Sith control on occupied worlds
+    - advance in the Sith hierarchy
+    secrets:
+    - secretly working for Moff Calixte's faction
+    - doubts Krayt's immortality
+    - blackmailing local officials
+    voice_tags:
+    - soft
+    - clinical
+    - threatening
+    species:
+    - Human
+    tags:
+    - sith
+    - intelligence
+    namebank: sith_names
+    spawn:
+      location_tags_any:
+      - intelligence
+      - sith
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: fel_empire_trooper
+    role: Fel Empire Trooper
+    archetype: Disciplined soldier
+    traits:
+    - loyal
+    - professional
+    - disciplined
+    motivations:
+    - serve Emperor Fel
+    - reclaim Coruscant from the Sith
+    - protect Imperial citizens
+    secrets:
+    - family still lives on Sith-occupied world
+    - doubts Fel can win this war
+    - secretly admires Imperial Knights
+    voice_tags:
+    - clipped
+    - formal
+    - determined
+    species:
+    - Human
+    tags:
+    - imperial
+    - trooper
+    namebank: imperial_names
+    spawn:
+      location_tags_any:
+      - imperial
+      - trooper
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: krayt_zealot
+    role: Krayt Zealot
+    archetype: Fanatical cultist
+    traits:
+    - fanatical
+    - devoted
+    - unquestioning
+    motivations:
+    - worship Krayt as a god
+    - spread the One Sith doctrine
+    - destroy all who oppose Krayt
+    secrets:
+    - believes Krayt will grant immortality to true believers
+    - former Jedi who fell to indoctrination
+    - will die gladly for Krayt
+    voice_tags:
+    - fervent
+    - intense
+    - breathless
+    species:
+    - Human
+    - Twi'lek
+    tags:
+    - sith
+    - fanatic
+    namebank: sith_names
+    spawn:
+      location_tags_any:
+      - fanatic
+      - sith
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: refugee_leader
+    role: Refugee Leader
+    archetype: Desperate organizer
+    traits:
+    - resourceful
+    - weary
+    - protective
+    motivations:
+    - keep refugee convoy alive
+    - find safe haven
+    - protect the weak
+    secrets:
+    - convoy harbors fugitive Jedi
+    - running out of food and fuel
+    - bribing officials to avoid inspections
+    voice_tags:
+    - tired
+    - pleading
+    - determined
+    species:
+    - Human
+    - Mon Calamari
+    - Ithorian
+    tags:
+    - civilian
+    - refugee
+    namebank: civilian_names
+    spawn:
+      location_tags_any:
+      - civilian
+      - refugee
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: sith_inquisitor
+    role: Sith Inquisitor
+    archetype: Force hunter
+    traits:
+    - persistent
+    - cruel
+    - perceptive
+    motivations:
+    - hunt down hidden Jedi
+    - interrogate Force-sensitives
+    - root out heresy
+    secrets:
+    - uses dark side to sense Force-users across star systems
+    - keeps trophies from captured Jedi
+    - fears being replaced by younger Sith
+    voice_tags:
+    - whisper
+    - menacing
+    - patient
+    species:
+    - Human
+    - Zabrak
+    tags:
+    - sith
+    - inquisitor
+    namebank: sith_names
+    spawn:
+      location_tags_any:
+      - inquisitor
+      - sith
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: alliance_pilot
+    role: Alliance Remnant Pilot
+    archetype: Scrappy fighter
+    traits:
+    - brave
+    - reckless
+    - resourceful
+    motivations:
+    - fly combat missions for the Remnant
+    - avenge fallen comrades
+    - prove the Alliance still fights
+    secrets:
+    - flying a patched-up starfighter barely holding together
+    - lost squadron to Sith ambush
+    - considering defecting to Fel for better support
+    voice_tags:
+    - cocky
+    - weary
+    - defiant
+    species:
+    - Human
+    - Sullustan
+    - Duros
+    tags:
+    - alliance
+    - pilot
+    namebank: alliance_names
+    spawn:
+      location_tags_any:
+      - alliance
+      - pilot
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: underworld_fixer
+    role: Underworld Fixer
+    archetype: Deal maker
+    traits:
+    - smooth
+    - opportunistic
+    - connected
+    motivations:
+    - broker deals between factions
+    - profit from wartime chaos
+    - maintain neutrality
+    secrets:
+    - selling forged identity documents to fugitive Jedi
+    - laundering Sith credits through shell corporations
+    - keeping dirt on every client for leverage
+    voice_tags:
+    - smooth
+    - persuasive
+    - slippery
+    species:
+    - Human
+    - Bothan
+    - Rodian
+    tags:
+    - criminal
+    - fixer
+    namebank: underworld_names
+    spawn:
+      location_tags_any:
+      - criminal
+      - fixer
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: mandalorian_scout
+    role: Mandalorian Scout
+    archetype: Lone hunter
+    traits:
+    - independent
+    - skilled
+    - honorable
+    motivations:
+    - complete contracted reconnaissance missions
+    - maintain clan reputation
+    - seek worthy combat
+    secrets:
+    - clan disowned them for questioning the Resol'nare
+    - tracking a Jedi fugitive for the Sith
+    - questioning whether honor matters in this war
+    voice_tags:
+    - terse
+    - gruff
+    - neutral
+    species:
+    - Human
+    - Mandalorian
+    tags:
+    - mandalorian
+    - scout
+    namebank: mandalorian_names
+    spawn:
+      location_tags_any:
+      - mandalorian
+      - scout
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: civilian_informant
+    role: Civilian Informant
+    archetype: Reluctant spy
+    traits:
+    - fearful
+    - observant
+    - conflicted
+    motivations:
+    - survive by feeding information to occupiers
+    - protect family from Sith reprisals
+    - secretly help resistance when possible
+    secrets:
+    - passing false intel to Sith to protect neighbors
+    - saw Jedi Master killed by Sith Troopers
+    - planning to flee offworld with family
+    voice_tags:
+    - nervous
+    - hushed
+    - apologetic
+    species:
+    - Human
+    - Twi'lek
+    tags:
+    - civilian
+    - spy
+    namebank: civilian_names
+    spawn:
+      location_tags_any:
+      - civilian
+      - spy
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: black_market_dealer
+    role: Black Market Dealer
+    archetype: War profiteer
+    traits:
+    - greedy
+    - pragmatic
+    - suspicious
+    motivations:
+    - sell restricted goods at inflated prices
+    - avoid Sith crackdowns
+    - expand black market network
+    secrets:
+    - smuggling lightsaber crystals to hidden Jedi
+    - selling Sith military intel to Alliance
+    - bribing local Sith officials for protection
+    voice_tags:
+    - hushed
+    - wheeling
+    - paranoid
+    species:
+    - Human
+    - Quarren
+    - Duros
+    tags:
+    - criminal
+    - dealer
+    namebank: underworld_names
+    spawn:
+      location_tags_any:
+      - criminal
+      - dealer
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: hidden_force_user
+    role: Hidden Force-Sensitive
+    archetype: Secret mystic
+    traits:
+    - cautious
+    - untrained
+    - fearful
+    motivations:
+    - hide Force abilities from Sith detection
+    - survive without formal training
+    - protect loved ones from discovery
+    secrets:
+    - manifesting Force visions they don't understand
+    - contacted by hidden Jedi network
+    - accidentally used Force in public once
+    voice_tags:
+    - quiet
+    - anxious
+    - hopeful
+    species:
+    - Human
+    - Twi'lek
+    - Zabrak
+    tags:
+    - force_sensitive
+    - hidden
+    namebank: civilian_names
+    spawn:
+      location_tags_any:
+      - force_sensitive
+      - hidden
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+  - id: imperial_diplomat
+    role: Fel Imperial Diplomat
+    archetype: Political envoy
+    traits:
+    - eloquent
+    - cunning
+    - patient
+    motivations:
+    - negotiate alliances for the Fel Empire
+    - undermine Sith propaganda
+    - preserve Imperial legitimacy
+    secrets:
+    - carrying sealed orders from Emperor Fel
+    - coordinating with Alliance Remnant backchannel
+    - authorized to offer significant concessions
+    voice_tags:
+    - polished
+    - persuasive
+    - formal
+    species:
+    - Human
+    tags:
+    - imperial
+    - diplomat
+    namebank: imperial_names
+    spawn:
+      location_tags_any:
+      - diplomat
+      - imperial
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []

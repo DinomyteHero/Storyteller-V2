@@ -1,0 +1,248 @@
+# ============================================================
+# locations.yaml -- World Locations (TEMPLATE)
+# ============================================================
+#
+# PURPOSE:
+#   Defines all locations (planets, buildings, rooms) where scenes can occur.
+#   Locations can be hierarchical via parent_id (e.g., a hangar inside a base).
+#
+# USED BY:
+#   - Narrator: reads `description` for scene prose
+#   - Router: reads `scene_types` to determine allowed action types
+#   - Mechanic: reads `security` for DC calculations
+#   - Director: reads `services`, `access_points`, `travel_links` for suggestion generation
+#   - Encounter node: reads `encounter_table` for NPC spawning
+#   - RAG retrieval: reads `keywords` for lore matching
+#
+# CONVENTIONS:
+#   - Location IDs use the prefix "loc-" followed by snake_case: loc-cantina, loc-main_base
+#   - Aim for 10-20 top-level locations with 2-3 sub-locations each
+#   - Sub-locations reference their parent via parent_id
+#   - travel_links connect locations for the Director's travel suggestions
+#
+# GOTCHAS:
+#   - services values are validated against a fixed allowlist; typos cause load failures
+#     Valid services: briefing_room, medbay, arms_dealer, slicer, transport,
+#                     bounty_board, safehouse, market, cantina
+#   - bypass_methods are also validated; see the full list below
+#     Valid bypass_methods: violence, sneak, stealth, climb, navigate, bribe, charm,
+#                           intimidate, deception, credential, hack, slice, disable,
+#                           force, force_dark, logic_puzzle, sith_amulet
+#   - scene_types are validated:
+#     Valid scene_types: dialogue, stealth, combat, travel, investigation, puzzle,
+#                        philosophical_dialogue, meditation, tech_investigation,
+#                        survival, exploration, training
+#   - travel_links can be bare location ID strings (auto-convert to TravelLink objects)
+#   - parent_id must reference an existing location ID
+#   - encounter_table template_id must reference NPC template IDs from npcs.yaml
+#   - patrol_intensity / inspection_chance values: low, medium, high, constant, none
+#   - security_level range: 0-100
+#   - threat_level values: low, moderate, high, extreme
+# ============================================================
+
+locations:
+
+  # ----------------------------------------------------------
+  # LOCATION 1: A main hub location (top-level)
+  # ----------------------------------------------------------
+  - id: loc-main_hub
+    name: "Main Hub Location"
+
+    # tags: searchable keywords for spawning, matching, and Director queries
+    tags:
+      - hub
+      - social
+      - trade
+
+    # region: galaxy region (Outer Rim, Mid Rim, Core, Mobile, etc.)
+    region: "Outer Rim"
+
+    # planet: the planet name; null for mobile locations (ships, stations)
+    planet: "Placeholder Planet"
+
+    # controlling_factions: list of faction IDs that control this location
+    # Must match faction IDs in factions.yaml
+    controlling_factions:
+      - faction_neutral
+
+    # description: atmospheric prose for the Narrator (3-6 sentences)
+    # Use the | (literal block) style for multiline YAML
+    description: |
+      Replace this with atmospheric prose describing the location. Include sensory
+      details: what the player sees, hears, smells. Mention key features that could
+      drive gameplay (exits, NPCs, environmental hazards). The Narrator uses this
+      text directly to set the scene. Aim for 3-6 sentences.
+
+    # threat_level: low | moderate | high | extreme
+    threat_level: moderate
+
+    # parent_id: null for top-level locations; set to parent loc ID for sub-locations
+    parent_id: null
+
+    # scene_types: which scene types are allowed here
+    scene_types:
+      - dialogue
+      - investigation
+      - combat
+
+    # security: controls Mechanic DC calculations and patrol behavior
+    security:
+      # controlling_faction: faction ID (can differ from location-level controlling_factions)
+      controlling_faction: faction_neutral
+      # security_level: 0 (lawless) to 100 (fortress), affects DC calculations
+      security_level: 40
+      # patrol_intensity: low | medium | high | constant | none
+      patrol_intensity: medium
+      # inspection_chance: low | medium | high | constant | none
+      inspection_chance: low
+
+    # services: available facilities at this location
+    # Valid values: briefing_room, medbay, arms_dealer, slicer, transport,
+    #               bounty_board, safehouse, market, cantina
+    services:
+      - cantina
+      - market
+
+    # access_points: entry/exit points with bypass methods
+    # Each access point has a unique ID within this location
+    access_points:
+      - id: main_entrance
+        # type: door, hatch, underground, ventilation, etc. (free-form)
+        type: door
+        # visibility: public | restricted | hidden | secret
+        visibility: public
+        # bypass_methods: how to get through if restricted
+        bypass_methods:
+          - credential
+      - id: back_alley
+        type: door
+        visibility: hidden
+        bypass_methods:
+          - sneak
+          - bribe
+
+    # encounter_table: weighted NPC template spawns
+    # template_id must match an NPC template ID in npcs.yaml
+    # weight must be > 0; higher weight = more likely to spawn
+    encounter_table:
+      - template_id: tpl-civilian
+        weight: 3
+      - template_id: tpl-guard
+        weight: 2
+
+    # keywords: additional search terms for RAG retrieval
+    keywords:
+      - hub
+      - social
+      - trade
+      - Outer Rim
+
+    # travel_links: connected locations (bare IDs auto-convert to TravelLink objects)
+    # Can also use full object form: {to_location_id: loc-xxx, method: travel, risk: low, cost: 10}
+    travel_links:
+      - loc-secondary_hub
+
+    # metadata: freeform extension point (coordinates, population, economy, etc.)
+    metadata: {}
+
+  # ----------------------------------------------------------
+  # LOCATION 2: A secondary location with sub-location example
+  # ----------------------------------------------------------
+  - id: loc-secondary_hub
+    name: "Secondary Location"
+    tags:
+      - military
+      - secure
+    region: "Mid Rim"
+    planet: "Another Planet"
+    controlling_factions:
+      - faction_alpha
+    description: |
+      Another location description. This one is controlled by Faction Alpha and
+      serves as a military outpost. Describe the atmosphere, key NPCs the player
+      might encounter, and any environmental storytelling.
+    threat_level: high
+    parent_id: null
+    scene_types:
+      - dialogue
+      - stealth
+      - combat
+    security:
+      controlling_faction: faction_alpha
+      security_level: 70
+      patrol_intensity: high
+      inspection_chance: medium
+    services:
+      - briefing_room
+      - medbay
+    access_points:
+      - id: main_gate
+        type: door
+        visibility: public
+        bypass_methods:
+          - credential
+          - intimidate
+      - id: maintenance_shaft
+        type: ventilation
+        visibility: secret
+        bypass_methods:
+          - climb
+          - hack
+    encounter_table:
+      - template_id: tpl-guard
+        weight: 4
+      - template_id: tpl-civilian
+        weight: 1
+    keywords:
+      - military
+      - outpost
+      - secure
+    travel_links:
+      - loc-main_hub
+    metadata: {}
+
+  # ----------------------------------------------------------
+  # SUB-LOCATION: A room inside the secondary location
+  # ----------------------------------------------------------
+  - id: loc-command_room
+    name: "Command Room"
+    # parent_id links this to its parent location
+    parent_id: loc-secondary_hub
+    tags:
+      - command
+      - restricted
+    region: "Mid Rim"
+    planet: "Another Planet"
+    controlling_factions:
+      - faction_alpha
+    description: |
+      A restricted sub-location inside the secondary hub. Sub-locations use
+      parent_id to establish hierarchy. The parent must exist in this file.
+    threat_level: extreme
+    scene_types:
+      - dialogue
+      - investigation
+    security:
+      controlling_faction: faction_alpha
+      security_level: 90
+      patrol_intensity: high
+      inspection_chance: high
+    services:
+      - briefing_room
+    access_points:
+      - id: secure_door
+        type: door
+        visibility: restricted
+        bypass_methods:
+          - credential
+          - hack
+          - force
+    encounter_table:
+      - template_id: tpl-guard
+        weight: 3
+    keywords:
+      - command
+      - leadership
+      - restricted
+    travel_links: []
+    metadata: {}

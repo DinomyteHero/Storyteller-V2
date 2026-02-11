@@ -1,0 +1,311 @@
+rumors:
+  - id: rumor_thrawn_returns
+    text: Grand Admiral Thrawn is alive—and he's already inside the New Republic's decision loop.
+    tags: [imperial_remnant, thrawn, strategy, fear]
+    scope: global
+    credibility: likely
+
+  - id: rumor_spaarti_cylinders
+    text: Someone is growing soldiers in tanks fast enough to replace whole battalions.
+    tags: [clones, mount_tantiss, imperial_remnant, tech]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_noghri_debt
+    text: The Empire poisoned a world to buy an assassin species with medicine.
+    tags: [noghri, honor, imperial_lies, leverage]
+    scope: global
+    credibility: likely
+
+  - id: rumor_senate_amnesty_backroom
+    text: Amnesty dossiers are being traded like currency in the Senate corridors.
+    tags: [new_republic, senate, amnesty, corruption]
+    scope: global
+    credibility: likely
+
+  - id: rumor_customs_quota
+    text: Coruscant Customs has an unofficial “seizure quota”—and honest captains are paying for it.
+    tags: [customs, corruption, coruscant, shipping]
+    scope: location
+    credibility: confirmed
+
+  - id: rumor_nri_black_budget
+    text: New Republic Intelligence has a fund that never hits the Senate ledger.
+    tags: [intelligence, nri, black_budget, oversight]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_bothan_dead_drop
+    text: A Bothan “public” aide is running an information drop through a refugee office.
+    tags: [bothan_spynet, leaks, refugees, politics]
+    scope: location
+    credibility: rumor
+
+  - id: rumor_black_sun_rebuilds
+    text: Black Sun lost Xizor, not its appetite—new vigos are buying judges and docking masters.
+    tags: [black_sun, underworld, bribery, violence]
+    scope: global
+    credibility: likely
+
+  - id: rumor_sluis_van_sabotage
+    text: Sluis Van shipyard accidents are too precise to be accidents.
+    tags: [nkllon, sluis_van, shipyards, sabotage]
+    scope: location
+    credibility: likely
+
+  - id: rumor_bacta_cartel
+    text: Thyferra's bacta companies are playing New Republic medicine like a hostage negotiation.
+    tags: [thyferra, bacta, corporations, leverage]
+    scope: global
+    credibility: likely
+
+  - id: rumor_lusankya_cells
+    text: The Lusankya still has sealed decks—prisoners no one admits exist.
+    tags: [lusankya, prisoners, intelligence, secrets]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_hapes_compact
+    text: The Hapes Consortium will help—but only if the New Republic stops asking what it costs.
+    tags: [hapes, diplomacy, courts, favors]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_maw_ghost_lab
+    text: The Maw Installation went dark, but smugglers keep seeing lights where there should be vacuum.
+    tags: [maw, superweapons, research, pirates]
+    scope: location
+    credibility: rumor
+
+  - id: rumor_bilbringi_buildup
+    text: Bilbringi's yards are humming again—too many hulls for “defensive patrols.”
+    tags: [bilbringi, shipyards, imperial_remnant, fleet]
+    scope: location
+    credibility: confirmed
+
+  - id: rumor_kessel_pipeline
+    text: Kessel spice is moving under a new flag, and the miners are the ones paying.
+    tags: [kessel, spice, slavery, underworld]
+    scope: location
+    credibility: likely
+
+  - id: rumor_bakura_truce_frays
+    text: The Bakura truce holds on paper, not on the edge of a blaster.
+    tags: [bakura, treaty, ssi_ruuk, frontier]
+    scope: global
+    credibility: likely
+
+  - id: rumor_dathomir_trade
+    text: Someone is buying Dathomiri charms with military-grade parts.
+    tags: [dathomir, witches, black_market, mysticism]
+    scope: location
+    credibility: rumor
+
+  - id: rumor_dantooine_archive
+    text: A forgotten Jedi archive survived the purge—sealed behind old Republic locks.
+    tags: [dantooine, jedi, artifacts, ruins]
+    scope: location
+    credibility: rumor
+
+  - id: rumor_coruscant_refugee_riot
+    text: Refugee processing is backed up for months; a riot is one bad day away.
+    tags: [coruscant, refugees, unrest, bureaucracy]
+    scope: location
+    credibility: likely
+
+  - id: rumor_privateer_letters
+    text: New Republic "letters of marque" are being sold to pirates with clean uniforms.
+    tags: [privateers, corruption, outer_rim, new_republic]
+    scope: global
+    credibility: rumor
+
+  # ============================================================
+  # PHASE 5: LORE KNOWLEDGE - RUMORS (20+ Gossip & Speculation)
+  # ============================================================
+
+  # Political Intrigue Rumors
+  - id: rumor_mon_mothma_poisoned
+    text: "They say Mon Mothma has been poisoned by Imperial agents—she's dying and the Senate doesn't know."
+    tags: [political_intrigue, assassination, leadership, danger]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_senate_spy_network
+    text: "Rumor is the Imperial Remnant has a spy in the Senate's highest chamber. High-ranking, untouchable."
+    tags: [espionage, senate, corruption, imperial_remnant]
+    scope: global
+    credibility: likely
+
+  - id: rumor_thrawn_not_chiss
+    text: "Word on the street: Thrawn's not actually Chiss. He's something else, something older—and far more dangerous."
+    tags: [thrawn, mystery, alien_race, intelligence]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_nr_officer_sympathizers
+    text: "Whispers say some New Republic officers are Imperial sympathizers, feeding Thrawn coordinates."
+    tags: [military_corruption, espionage, thrawn, betrayal]
+    scope: global
+    credibility: likely
+
+  - id: rumor_black_sun_senate_infiltration
+    text: "Black Sun's infiltrating the New Republic government. By the time we notice, it'll be too late."
+    tags: [criminal_syndicates, corruption, government, organized_crime]
+    scope: global
+    credibility: rumor
+
+  # Military & Combat Rumors
+  - id: rumor_lusankya_theft_plot
+    text: "The Lusankya was a super-dreadnought, right? Captured from the Empire. They say Imperial operatives are planning to steal it back."
+    tags: [military_assets, lusankya, imperial_remnant, theft]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_thrawn_hidden_fleet
+    text: "Thrawn has an entire fleet hidden in Deep Space. One day he'll come back with it and crush the New Republic completely."
+    tags: [military_threat, thrawn, strategy, empire]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_mount_tantiss_undefeated
+    text: "The New Republic tried to destroy Mount Tantiss. Didn't work. The Remnant's still pulling clones out of there."
+    tags: [mount_tantiss, cloning, imperial_remnant, military]
+    scope: global
+    credibility: likely
+
+  - id: rumor_western_warlord_emperor
+    text: "There's a Remnant warlord to the galactic west who's declared himself Emperor. He's building his own fleet, separate from Thrawn."
+    tags: [imperial_remnant, warlords, empire, fragmentation]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_thrawn_art_strategy
+    text: "Some say Thrawn studies enemy art to predict their moves. Psychological warfare disguised as aesthetics. Probably nonsense, but... what if it works?"
+    tags: [thrawn, strategy, psychology, intelligence]
+    scope: global
+    credibility: rumor
+
+  # Jedi & Force Rumors
+  - id: rumor_jedi_order_weak
+    text: "Luke Skywalker's Jedi Order is weak. You need thousands of Jedi to maintain real power; he has maybe a dozen."
+    tags: [jedi_order, luke_skywalker, strength, numbers]
+    scope: global
+    credibility: likely
+
+  - id: rumor_clone_jedi_master
+    text: "A Force-sensitive clone of a dead Jedi Master is hiding somewhere in the Unknown Regions. If the Empire finds it first..."
+    tags: [jedi, cloning, mount_tantiss, force_users]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_sith_waiting
+    text: "The Sith aren't really gone. They're waiting. Every Jedi Luke trains brings them closer to returning."
+    tags: [sith, force, darkness, prophecy]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_secret_jedi_temple
+    text: "There's a secret Jedi temple older than the Old Republic. The Remnant's looking for it—and so is someone else."
+    tags: [jedi, ancient_sites, artifacts, mystery]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_byss_emperor_return
+    text: "Dark side Force users are gathering on Byss. The Emperor's fortress. Is he coming back? Or is something worse waiting?"
+    tags: [byss, emperor_palpatine, dark_side, resurrection]
+    scope: global
+    credibility: rumor
+
+  # Espionage & Secrets Rumors
+  - id: rumor_imperial_sleeper_agents
+    text: "Imperial sleeper agents are in every major city. We walk past them every day. They're waiting for the signal."
+    tags: [espionage, imperial_remnant, infiltration, danger]
+    scope: global
+    credibility: likely
+
+  - id: rumor_nri_corruption
+    text: "The New Republic Intelligence service is as corrupt as Imperial Intelligence ever was. Different bosses, same game."
+    tags: [intelligence, corruption, government, power]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_mara_jade_secrets
+    text: "Mara Jade—Emperor's Hand, now smuggler—she knows where every Imperial secret is buried. And she's selling to the highest bidder."
+    tags: [mara_jade, secrets, emperor_hand, information_broker]
+    scope: global
+    credibility: likely
+
+  - id: rumor_defector_on_run
+    text: "There's a defector from the Remnant who can give the New Republic everything. If assassins don't get to him first. Or her."
+    tags: [espionage, defection, protection, danger]
+    scope: global
+    credibility: likely
+
+  - id: rumor_noghri_turning
+    text: "Some say the Noghri are planning to turn on the Remnant. Blood debt's being called in, and Thrawn won't see it coming."
+    tags: [noghri, thrawn, betrayal, politics]
+    scope: global
+    credibility: rumor
+
+  # Frontier & Exploration Rumors
+  - id: rumor_intact_imperial_worlds
+    text: "Beyond the Outer Rim, there are intact Imperial worlds, untouched since the Emperor died. Ships full of artifacts, tech, credits. Whoever finds them first wins."
+    tags: [exploration, imperial_relics, wealth, frontier]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_new_colony_destroyed
+    text: "A new colony was wiped out. Not by the Remnant—something else. Something not from known space. The New Republic is keeping it quiet."
+    tags: [mystery, exploration, danger, unknown_threat]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_pre_republic_ruin_discovery
+    text: "The New Republic found something in a pre-Republic ruin. They're keeping it classified. Jedi involved. Maybe Force-users from before the Old Republic."
+    tags: [ancient_artifacts, jedi, classified, mysteries]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_wild_space_hunters
+    text: "Exploration teams are disappearing in Wild Space. Something's hunting them. Not the Remnant, not pirates. Something intelligent."
+    tags: [exploration, danger, unknown_threat, mystery]
+    scope: global
+    credibility: rumor
+
+  # Criminal & Economic Rumors
+  - id: rumor_black_sun_buying_components
+    text: "Black Sun's buying starship components. A lot of them. In bulk. Someone says they're building a super-weapon, but that sounds paranoid."
+    tags: [black_sun, military_buildup, criminal_syndicates, mystery]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_nr_debt_to_cartels
+    text: "The New Republic's in debt to the banking cartels. One missed payment and the whole government collapses from the inside."
+    tags: [financial_crisis, government, corporations, leverage]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_pirate_fleet_consolidation
+    text: "Smugglers say a pirate fleet is consolidating in the Outer Rim. When they're done, they'll be stronger than the Remnant. At least locally."
+    tags: [pirates, underworld, military_threat, frontier]
+    scope: global
+    credibility: likely
+
+  - id: rumor_nr_illegal_weapon_purchases
+    text: "Smugglers say the New Republic is buying illegal weapons. For 'private contractors' doing dirty work the Senate can't approve."
+    tags: [government, corruption, weapons_trafficking, covert_ops]
+    scope: global
+    credibility: rumor
+
+  - id: rumor_chiss_defection
+    text: "A Chiss commander is trying to defect from the Imperial Remnant. If Thrawn finds out, it'll be the most interesting assassination attempt in years."
+    tags: [espionage, chiss, thrawn, defection]
+    scope: global
+    credibility: likely
+
+  - id: rumor_hapes_hidden_fleet
+    text: "The Hapes Consortium has a fleet hidden somewhere. Bigger than anyone thinks. If they ever joined the war, it would be over in weeks."
+    tags: [hapes, military_power, diplomacy, strategy]
+    scope: global
+    credibility: rumor
+

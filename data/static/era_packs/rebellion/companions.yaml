@@ -1,0 +1,51 @@
+companions:
+- id: comp-reb-kessa
+  name: Kessa Vane
+  species: Zabrak
+  gender: female
+  archetype: Alliance scout
+  faction_id: rebel_alliance
+  role_in_party: specialist
+  voice_tags: [earnest, analytical, warm]
+  motivation: To map safe hyperspace routes for Rebel convoys before the Empire shuts them down.
+  speech_quirk: Lists tactical options under her breath before committing to a plan.
+  voice:
+    belief: Every route saved is a hundred lives saved.
+    wound: Lost her entire scouting cell to an Imperial ambush she failed to predict.
+    taboo: Never fly blind into a system without at least two escape vectors.
+    rhetorical_style: analytical
+    tell: Traces invisible star charts on any flat surface while thinking.
+  traits:
+    idealist_pragmatic: 40
+    merciful_ruthless: -20
+    lawful_rebellious: 30
+  default_affinity: 5
+  recruitment:
+    unlock_conditions: Encounter Kessa at a Rebel safe house or spaceport; she offers her services after the player assists with a supply run.
+    first_meeting_location: loc-safe_house
+  tags: [scout, navigator, rebellion]
+  enables_affordances: [astrogation, sensor_sweep]
+  blocks_affordances: []
+  influence:
+    starts_at: 5
+    min: -100
+    max: 100
+    triggers:
+    - intent: threaten
+      delta: -3
+    - intent: help
+      delta: 2
+    - meaning_tag: reveal_values
+      delta: 2
+    - meaning_tag: set_boundary
+      delta: -2
+  banter:
+    frequency: normal
+    style: warm
+    triggers: [hyperspace, navigation, empire, convoy]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Lost her entire scouting cell to an Imperial ambush; hides her guilt behind relentless planning.
+    recruitment_context: Found at a Rebel safe house, plotting hyperspace routes on a cracked datapad.
+    banter_style: warm
+    faction_interest: [Rebel Alliance, Smuggler Network]

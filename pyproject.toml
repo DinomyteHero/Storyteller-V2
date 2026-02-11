@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "storyteller-ai"
+version = "0.1.0"
+description = "Storyteller AI — local narrative RPG engine"
+requires-python = ">=3.11,<3.15"
+dependencies = [
+    "fastapi>=0.104.1",
+    "uvicorn[standard]>=0.24.0",
+    "pydantic>=2.5.0",
+    "pyyaml>=6.0",
+    "lancedb>=0.3.0",
+    "sentence-transformers>=2.2.2",
+    "httpx>=0.25.1",
+    "pymupdf4llm>=0.0.6",
+    "pyarrow>=14.0.1",
+    "ebooklib>=0.18",
+    "beautifulsoup4>=4.12.2",
+    "tiktoken>=0.5.1",
+    "langchain-core>=0.2.0,<0.4",
+    "langgraph>=0.2.0",
+    "streamlit>=1.28.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0.0"]
+
+[project.scripts]
+storyteller = "storyteller.cli:main"
+
+[tool.setuptools.packages.find]
+include = [
+    "backend*",
+    "ingestion*",
+    "shared*",
+    "ui*",
+    "storyteller*",
+]
+exclude = ["venv*", "data*", "sample_data*", "docs*", "scripts*"]

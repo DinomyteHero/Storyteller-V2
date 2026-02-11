@@ -1,0 +1,99 @@
+# ============================================================
+# quests.yaml -- Quest Definitions (TEMPLATE)
+# ============================================================
+#
+# PURPOSE:
+#   Defines multi-stage quests with entry conditions, objectives, branching,
+#   and consequences. Quests drive narrative structure and give the Director
+#   concrete goals to guide the player toward.
+#
+# USED BY:
+#   - WorldSim node: reads entry_conditions for quest activation
+#   - Director node: reads stages for quest progression and suggestion generation
+#   - NPC knowledge: quest IDs are referenced by npcs.yaml knowledge.quest_facts
+#   - Companions: personal_quest_id in companions.yaml references quest IDs here
+#
+# CONVENTIONS:
+#   - Quest IDs use snake_case with "quest_" prefix: quest_first_mission, quest_betrayal
+#   - Stage IDs use snake_case: find_contact, prove_loyalty, escape_ambush
+#   - Aim for 3-5 stages per quest
+#   - Consequences values should be quoted strings for numeric values: '+10', not +10
+#
+# GOTCHAS:
+#   - consequences values should be quoted strings when numeric: '+10' not +10
+#   - Quest IDs are referenced by NPCs (knowledge.quest_facts) and companions (personal_quest_id)
+#   - quest_facts in NPCs can be "quest_id" or "quest_id:stage_id" format
+#   - entry_conditions is freeform dict; common keys: turn.min, reputation.faction_id.min
+#   - success_conditions and fail_conditions are freeform dicts
+#   - on_enter_effects / on_exit_effects are freeform dicts for side effects
+# ============================================================
+
+quests:
+
+  # ----------------------------------------------------------
+  # QUEST 1: A multi-stage introductory quest
+  # ----------------------------------------------------------
+  - id: quest_first_mission
+    title: "First Mission"
+
+    # description: quest summary (shown in quest log / used by Director)
+    description: "Make contact with the local faction and prove your worth."
+
+    # entry_conditions: when this quest becomes available
+    # Common condition keys:
+    #   turn.min / turn.max -- minimum/maximum turn number
+    #   reputation.<faction_id>.min / .max -- reputation thresholds
+    #   location -- player must be at this location ID
+    #   quest_completed -- another quest must be finished first
+    entry_conditions:
+      turn:
+        min: 3                 # Quest activates after turn 3
+
+    # stages: ordered quest stages (the player progresses through these sequentially)
+    stages:
+
+      # ---- STAGE 1: Find a contact ----
+      - stage_id: find_contact
+        # objective: human-readable objective text
+        objective: "Locate the faction contact at the main hub."
+
+        # success_conditions: what the player must do to advance
+        # Common keys: npc_met, action_taken, item_acquired, location_visited
+        success_conditions:
+          npc_met: informant_vex
+
+        # fail_conditions: what causes the stage to fail (optional)
+        fail_conditions: null
+
+        # on_enter_effects: side effects when the player enters this stage (optional)
+        # Common keys: spawn_npc, set_meter, add_rumor
+        on_enter_effects: null
+
+        # on_exit_effects: side effects when the player completes/fails this stage (optional)
+        on_exit_effects: null
+
+      # ---- STAGE 2: Complete a task ----
+      - stage_id: prove_worth
+        objective: "Complete the task assigned by the contact."
+        success_conditions:
+          action_taken: complete_task
+        fail_conditions:
+          action_taken: betray_contact
+        on_enter_effects: null
+        on_exit_effects: null
+
+      # ---- STAGE 3: Report back ----
+      - stage_id: report_success
+        objective: "Return to the contact and report your success."
+        success_conditions:
+          npc_met: informant_vex
+          stage_completed: prove_worth
+        fail_conditions: null
+        on_enter_effects: null
+        on_exit_effects: null
+
+    # consequences: effects applied when the entire quest is completed
+    # Keys are typically meter/reputation identifiers with quoted numeric values
+    consequences:
+      reputation_faction_alpha: '+10'
+      reputation_faction_beta: '-5'

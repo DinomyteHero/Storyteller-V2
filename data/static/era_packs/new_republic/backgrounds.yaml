@@ -1,0 +1,498 @@
+# New Republic Era Backgrounds — Heir to the Empire (5-19 ABY)
+# SWTOR-style branching character backgrounds for the post-Endor galaxy.
+
+backgrounds:
+  - id: new_republic_soldier
+    name: "New Republic Soldier"
+    description: "The war is not over. The Empire lives on, and the Republic needs defenders."
+    icon: "republic"
+    starting_stats:
+      Combat: 3
+      Stealth: 1
+      Charisma: 2
+      Tech: 2
+      General: 2
+    questions:
+      - id: branch
+        title: "Where do you serve?"
+        subtitle: "This determines your role in the New Republic military"
+        choices:
+          - label: "Fleet Command — I serve aboard a warship hunting Imperial remnants."
+            concept: "a New Republic naval officer patrolling for Imperial threats"
+            tone: NEUTRAL
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-mon_calamari
+              thread_seed: "An Imperial Star Destroyer has been detected in a system the Republic declared clear. Someone in Intel missed it — or buried the report."
+          - label: "Starfighter corps — I fly X-wings against whatever the Empire throws at us."
+            concept: "a New Republic starfighter pilot flying against Imperial holdouts"
+            tone: PARAGON
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-borleias
+              thread_seed: "Your squadron is reassigned to escort a convoy through a corridor rumored to be under Thrawn's influence. The nav data does not match the charts."
+          - label: "SpecForce — black ops and dirty work the Senate does not talk about."
+            concept: "a Republic special forces operative who handles the missions no one acknowledges"
+            tone: RENEGADE
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-coruscant
+              thread_seed: "Command has tasked you with infiltrating an Imperial warlord's stronghold. The intel is thin and the extraction plan is thinner."
+      - id: thrawn
+        title: "Grand Admiral Thrawn has returned. What do you think?"
+        subtitle: "The greatest military mind in the galaxy is hunting the Republic"
+        choices:
+          - label: "We beat the Emperor. We can beat one admiral, no matter how brilliant."
+            concept: "confident in the Republic's strength against any threat"
+            tone: PARAGON
+            effects:
+              thread_seed: "Your confidence is tested when Thrawn's fleet appears exactly where your unit was supposed to be safe. He anticipated your deployment perfectly."
+          - label: "I have studied Thrawn's campaigns. He is unlike any enemy we have faced."
+            concept: "a student of Thrawn's tactics who fears the Republic underestimates him"
+            tone: INVESTIGATE
+            effects:
+              thread_seed: "Your analysis of Thrawn's patterns has attracted attention — from Republic Intelligence, and possibly from the Empire itself."
+          - label: "Politicians talk. I fight. Point me at the enemy and stay out of my way."
+            concept: "a soldier who is tired of politics and wants to finish the war"
+            tone: RENEGADE
+            effects:
+              thread_seed: "The Senate has ordered a ceasefire in your sector for diplomatic negotiations. You know the Imperials are using the pause to fortify."
+
+  - id: smuggler_baron
+    name: "Smuggler Baron"
+    description: "The Empire's fall created opportunities. You built an empire of your own — in cargo and credits."
+    icon: "scoundrel"
+    starting_stats:
+      Combat: 1
+      Stealth: 2
+      Charisma: 3
+      Tech: 2
+      General: 2
+    questions:
+      - id: network
+        title: "Who is your patron?"
+        subtitle: "Every smuggler answers to someone — or tries not to"
+        choices:
+          - label: "Talon Karrde — the galaxy's premier information broker."
+            concept: "an operative in Karrde's smuggling and intelligence network"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: smugglers_alliance
+              location_hint: loc-myrkr
+              thread_seed: "Karrde has intercepted a transmission that could shift the balance of power. Both Thrawn and the Republic want it. Karrde wants to sell it to the right buyer — you decide who."
+          - label: "Black Sun — the underworld syndicate rebuilding after Xizor's death."
+            concept: "a Black Sun affiliate clawing for power in the post-Imperial underworld"
+            tone: RENEGADE
+            effects:
+              faction_hint: black_sun
+              location_hint: loc-coruscant_underworld
+              thread_seed: "Black Sun's new leadership is fractured. Three vigos are competing for supremacy. You have been offered a seat at the table — if you eliminate the competition."
+          - label: "No one. I built my own network from the ground up."
+            concept: "an independent smuggler baron who answers to no one"
+            tone: NEUTRAL
+            effects:
+              faction_hint: smugglers_alliance
+              location_hint: loc-ord_mantell
+              thread_seed: "A rival has been undercutting your routes. Your contacts say they are backed by Imperial money — someone is trying to control the supply lanes."
+      - id: complication
+        title: "What is the biggest threat to your operation?"
+        subtitle: "Business is never simple"
+        choices:
+          - label: "The New Republic is cracking down on 'unsanctioned commerce.' My ships are targets."
+            concept: "squeezed between the Republic's laws and the underworld's demands"
+            tone: NEUTRAL
+            effects:
+              thread_seed: "A Republic customs frigate has impounded one of your ships. The cargo is legal — but what is hidden in the false bulkheads is not."
+          - label: "Thrawn's fleet is disrupting every trade route in the sector."
+            concept: "watching profits vanish as Thrawn's campaigns choke the hyperspace lanes"
+            tone: INVESTIGATE
+            effects:
+              thread_seed: "Thrawn has blockaded a key junction. Your entire quarterly profit is sitting in a warehouse on the wrong side of the line."
+          - label: "Someone inside my organization is selling information to the highest bidder."
+            concept: "hunting a traitor within their own network"
+            tone: RENEGADE
+            effects:
+              thread_seed: "Three shipments have been intercepted in a week. The leak is someone close — someone you trusted."
+
+  - id: jedi_student
+    name: "Jedi Student"
+    description: "Luke Skywalker has reopened the Jedi Academy. You are among the first to answer the call."
+    icon: "force"
+    starting_stats:
+      Combat: 2
+      Stealth: 1
+      Charisma: 2
+      Tech: 1
+      General: 4
+    questions:
+      - id: origin
+        title: "How did the Force reveal itself to you?"
+        subtitle: "Every Jedi has a moment of awakening"
+        choices:
+          - label: "I always knew. The feelings, the visions — I thought I was losing my mind until Skywalker found me."
+            concept: "a natural Force-sensitive discovered by Luke Skywalker"
+            tone: PARAGON
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-yavin_praxeum
+              thread_seed: "A vision of a dark place — a mountain, cloning tanks, and a presence that feels like Skywalker but wrong. The academy trembles with your unease."
+          - label: "I found a Jedi artifact and it awakened something dormant inside me."
+            concept: "awakened by a Jedi relic and drawn to the Academy"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-yavin_praxeum
+              thread_seed: "The artifact you found is incomplete. Its pair is rumored to be on Wayland — inside the Emperor's private storehouse, Mount Tantiss."
+          - label: "I was a soldier. The Force saved my life in battle. Now I need to understand it."
+            concept: "a combat veteran seeking to understand the power that saved them"
+            tone: NEUTRAL
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-yavin_praxeum
+              thread_seed: "Your old unit has been wiped out by an Imperial strike. The Force warned you — but you were not there to save them."
+      - id: philosophy
+        title: "What kind of Jedi do you want to be?"
+        subtitle: "The new Order is still being defined"
+        choices:
+          - label: "A guardian — the galaxy needs protectors, not scholars."
+            concept: "a Jedi who believes in action and protection"
+            tone: PARAGON
+            effects:
+              thread_seed: "A refugee convoy is under pirate attack. Master Skywalker says Jedi should not act as soldiers — but people are dying now."
+          - label: "A scholar — the old knowledge must be recovered before it is lost forever."
+            concept: "a Jedi devoted to recovering the lost wisdom of the old Order"
+            tone: INVESTIGATE
+            effects:
+              thread_seed: "You have traced references to a Jedi archive on a world deep in Imperial Remnant space. The knowledge there could reshape the Academy."
+          - label: "Something new. The old Jedi failed. We need a better way."
+            concept: "a Jedi who questions the old Order's dogma"
+            tone: RENEGADE
+            effects:
+              thread_seed: "Your ideas have attracted both followers and critics at the Academy. One of the other students has started whispering about the dark side — and they want you to listen."
+
+  - id: imperial_remnant
+    name: "Imperial Remnant Holdout"
+    description: "The Emperor is dead, but the Empire endures. You serve what remains — for honor, duty, or ambition."
+    icon: "imperial"
+    starting_stats:
+      Combat: 2
+      Stealth: 2
+      Charisma: 2
+      Tech: 2
+      General: 2
+    questions:
+      - id: service
+        title: "Where do you serve in the Remnant?"
+        subtitle: "The Empire is fractured — warlords, loyalists, and survivors"
+        choices:
+          - label: "Under Captain Pellaeon aboard the Chimaera — Thrawn's flagship."
+            concept: "serving under the last Grand Admiral aboard his flagship"
+            tone: NEUTRAL
+            effects:
+              faction_hint: imperial_remnant
+              location_hint: loc-chimaera
+              thread_seed: "Thrawn has ordered you to study the art of a species the Empire has never encountered. He says your report will determine the strategy for the next campaign."
+          - label: "A warlord's domain — one of many petty empires carved from the collapse."
+            concept: "serving a warlord in the fragmented Imperial territories"
+            tone: RENEGADE
+            effects:
+              faction_hint: imperial_remnant
+              location_hint: loc-bilbringi
+              thread_seed: "Your warlord has received an offer from Thrawn — submit or be destroyed. The Grand Admiral does not make idle threats."
+          - label: "Imperial Intelligence — the shadow war never ended."
+            concept: "an Imperial Intelligence operative conducting covert operations against the Republic"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: imperial_remnant
+              location_hint: loc-coruscant_underworld
+              thread_seed: "Your handler has gone dark. The last message mentioned a Republic mole inside the Remnant's command structure — and your name was on the suspect list."
+      - id: future
+        title: "What future do you see for the Empire?"
+        subtitle: "The old order is dead. What comes next?"
+        choices:
+          - label: "Thrawn will restore us. He is the leader we needed all along."
+            concept: "a Thrawn loyalist who believes in the Grand Admiral's vision"
+            tone: NEUTRAL
+            effects:
+              thread_seed: "Thrawn's latest operation has succeeded brilliantly — but the cost in civilian lives disturbs even hardened officers. Is this the Empire you want?"
+          - label: "The Empire must reform. We need peace with the Republic, not another war."
+            concept: "a moderate who believes the Empire must evolve or die"
+            tone: PARAGON
+            effects:
+              thread_seed: "You have drafted a proposal for a ceasefire. Your superior has called it treason. But a Republic diplomat has quietly expressed interest."
+          - label: "Let it all burn. I will carve out my own kingdom from the ashes."
+            concept: "an ambitious opportunist who sees the collapse as their chance"
+            tone: RENEGADE
+            effects:
+              thread_seed: "You have identified a sector with minimal defenses and rich resources. With a small fleet and the right betrayals, it could be yours."
+
+  - id: mandalorian
+    name: "Mandalorian Freelancer"
+    description: "Armor, honor, and the hunt. The Mandalorians endure — warriors without a war, selling their blades."
+    icon: "warrior"
+    starting_stats:
+      Combat: 3
+      Stealth: 2
+      Charisma: 1
+      Tech: 2
+      General: 2
+    questions:
+      - id: creed
+        title: "What does the Resol'nare mean to you?"
+        subtitle: "The Six Actions that define a Mandalorian"
+        choices:
+          - label: "Everything. Armor, language, clan, leader — this is the Way."
+            concept: "a traditionalist Mandalorian devoted to the ancient code"
+            tone: NEUTRAL
+            effects:
+              faction_hint: underworld
+              location_hint: loc-cantina
+              thread_seed: "Your clan leader has accepted a contract that may violate the Resol'nare. To disobey is exile. To obey is dishonor."
+          - label: "The spirit matters more than the letter. I fight for those who cannot fight."
+            concept: "a Mandalorian who has turned their warrior code toward protecting the weak"
+            tone: PARAGON
+            effects:
+              faction_hint: rebel_alliance
+              location_hint: loc-occupied_street
+              thread_seed: "A village under Imperial occupation has begged for your help. There is no pay and no glory — only the chance to do what is right."
+          - label: "It means I am the strongest. Mandalorians conquer. That is our legacy."
+            concept: "a Mandalorian supremacist who lives for conquest and glory"
+            tone: RENEGADE
+            effects:
+              faction_hint: underworld
+              location_hint: loc-smuggler_den
+              thread_seed: "A warlord has offered to hire your clan as shock troops. The target is a Republic colony. The pay is extraordinary."
+      - id: contract
+        title: "What brought you to this sector?"
+        subtitle: "A Mandalorian goes where the work is"
+        choices:
+          - label: "A bounty — someone valuable is hiding here."
+            concept: "tracking a high-value target across the Outer Rim"
+            tone: INVESTIGATE
+            effects:
+              thread_seed: "The bounty is a former Imperial scientist who defected to the Republic. Both sides want them — but they say they have information that could end the war."
+          - label: "A debt of honor — a fellow warrior saved my life. I owe them."
+            concept: "honoring a life-debt to a fallen comrade's family"
+            tone: PARAGON
+            effects:
+              thread_seed: "Your fallen comrade's child has been taken by slavers operating in the Outer Rim. No one is offering credits for the rescue — but the debt demands it."
+          - label: "Opportunity — the Empire and Republic are too busy fighting each other to watch the borders."
+            concept: "an opportunist raiding the edges of a galaxy at war"
+            tone: RENEGADE
+            effects:
+              thread_seed: "You have located an unguarded Imperial supply depot. The haul would set up your clan for years — but the depot is near a civilian settlement."
+
+  # ============================================================
+  # NEW_REPUBLIC ERA EXPANSION (V2.9) — 3 New Backgrounds with Starships
+  # ============================================================
+
+  - id: rogue_squadron_pilot
+    name: "Rogue Squadron Pilot"
+    description: "The galaxy's most famous starfighter squadron. You earned your place among legends."
+    icon: "pilot"
+    starting_starship: null  # V2.10: ships earned in-story, not granted at start (was: ship-nr-xwing)
+    starting_stats:
+      Combat: 3
+      Stealth: 1
+      Charisma: 2
+      Tech: 3
+      General: 1
+    starting_reputation:
+      new_republic: 40
+      imperial_remnant: -50
+      smugglers_alliance: 10
+    questions:
+      - id: assignment
+        title: "What mission defined your career?"
+        subtitle: "Every Rogue has a story"
+        choices:
+          - label: "I flew at Endor — watched the second Death Star explode and knew we had won."
+            concept: "a veteran of the Battle of Endor flying alongside Wedge Antilles"
+            tone: PARAGON
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-coruscant
+              companion_affinity_bonus:
+                - comp-nr-corran: 15
+                - comp-nr-winter: 10
+              thread_seed: "An Imperial Remnant fleet has appeared near Bilbringi. Thrawn is baiting Rogue Squadron into a trap — and High Command wants you to fly into it anyway."
+          - label: "I hunted Ysanne Isard across the galaxy and helped bring her to justice."
+            concept: "a pilot who pursued Director Isard during the Bacta War"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-thyferra
+              companion_affinity_bonus:
+                - comp-nr-corran: 20
+                - comp-nr-kyle: 10
+              thread_seed: "Isard is dead — but her network survived. Someone is selling Imperial bioweapons to warlords, and the trail leads back to Thyferra."
+          - label: "I survived the Krytos virus outbreak on Coruscant. Watched friends die while politicians argued."
+            concept: "a pilot who saw the cost of the Krytos plague firsthand"
+            tone: RENEGADE
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-coruscant_underworld
+              companion_affinity_bonus:
+                - comp-nr-seris: 15
+                - comp-nr-kade: 10
+              thread_seed: "The Krytos virus was just the beginning. A new plague has appeared on a colony world, and the symptoms match Imperial bioweapon research."
+      - id: squadron_future
+        title: "Thrawn's campaigns are bleeding the squadron dry. What keeps you flying?"
+        subtitle: "Every sortie could be your last"
+        choices:
+          - label: "My wingmates. We fly together, we survive together."
+            concept: "a pilot whose loyalty is to their squadron above all else"
+            tone: PARAGON
+            effects:
+              thread_seed: "Your wingmate has been captured by the Empire. Intelligence says they are being held on a Star Destroyer. The mission to extract them is a suicide run."
+          - label: "The mission. If we do not stop Thrawn, the war will never end."
+            concept: "a mission-focused pilot determined to defeat Thrawn"
+            tone: INVESTIGATE
+            effects:
+              thread_seed: "You have discovered a pattern in Thrawn's fleet movements. If you can predict his next target, Rogue Squadron could ambush him — but you will be flying alone."
+          - label: "Revenge. The Empire took everything from me. I will take everything from them."
+            concept: "a pilot driven by vengeance against the Empire"
+            tone: RENEGADE
+            effects:
+              thread_seed: "The officer who destroyed your homeworld is commanding a convoy through this sector. Your orders are to let it pass. You can disobey and open fire — but the political cost will be catastrophic."
+
+  - id: information_broker
+    name: "Information Broker"
+    description: "Knowledge is power. You deal in secrets, selling to the highest bidder — or the most desperate."
+    icon: "spy"
+    starting_starship: null  # V2.10: ships earned in-story, not granted at start (was: ship-nr-hwk290)
+    starting_stats:
+      Combat: 1
+      Stealth: 3
+      Charisma: 3
+      Tech: 2
+      General: 1
+    starting_reputation:
+      smugglers_alliance: 30
+      new_republic: 10
+      imperial_remnant: 10
+      bothan_spynet: 20
+    questions:
+      - id: network
+        title: "Who taught you the trade?"
+        subtitle: "Everyone has a mentor in this business"
+        choices:
+          - label: "Talon Karrde — the best in the business. I learned from his organization."
+            concept: "trained by Karrde's smuggling network in the art of information trading"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: smugglers_alliance
+              location_hint: loc-myrkr
+              companion_affinity_bonus:
+                - comp-nr-jorin: 15
+                - comp-nr-mira: 20
+              thread_seed: "Karrde has offered you a partnership — but the price is a secret you swore never to reveal. The deal could make you rich or destroy your reputation."
+          - label: "Bothan SpyNet — I was trained in espionage and graduated to selling what I learned."
+            concept: "a former Bothan spy turned independent information broker"
+            tone: NEUTRAL
+            effects:
+              faction_hint: bothan_spynet
+              location_hint: loc-bothawui_capital
+              companion_affinity_bonus:
+                - comp-nr-mira: 25
+                - comp-nr-vorn: 10
+              thread_seed: "Borsk Fey'lya wants you to spy on the New Republic Senate for him. The pay is extraordinary — but if you are caught, the Bothans will disavow you."
+          - label: "No one. I built this network from the ground up, one secret at a time."
+            concept: "a self-made broker who earned their reputation through cunning and risk"
+            tone: RENEGADE
+            effects:
+              faction_hint: smugglers_alliance
+              location_hint: loc-nar_shaddaa
+              companion_affinity_bonus:
+                - comp-nr-davos: 20
+                - comp-nr-kade: 10
+              thread_seed: "A rival broker has been selling your secrets to your clients. You have traced the leak to someone you trusted — and now you must decide whether to expose them or turn them."
+      - id: big_score
+        title: "What is the secret everyone wants?"
+        subtitle: "The galaxy's most dangerous information"
+        choices:
+          - label: "Thrawn's next target. Both sides would pay a fortune for that intelligence."
+            concept: "holding intelligence on Thrawn's strategic plans"
+            tone: INVESTIGATE
+            effects:
+              thread_seed: "You have intercepted a coded transmission from the Chimaera. If you can crack it, you will know where Thrawn strikes next — but Imperial Intelligence is hunting for the leak."
+          - label: "The location of Mount Tantiss — the Emperor's secret storehouse on Wayland."
+            concept: "knowing the location of Palpatine's hidden fortress and its treasures"
+            tone: NEUTRAL
+            effects:
+              thread_seed: "You have the coordinates to Mount Tantiss. The Republic will pay for them — but so will a dozen warlords, Dark Jedi, and treasure hunters. Whoever you sell to will change the galaxy."
+          - label: "Proof that a Republic senator is an Imperial sleeper agent."
+            concept: "possessing evidence of treason at the highest levels"
+            tone: RENEGADE
+            effects:
+              thread_seed: "The evidence is ironclad: a sitting senator has been feeding intelligence to the Remnant for years. If you reveal it, the Senate collapses. If you sell it, you become a kingmaker."
+
+  - id: imperial_defector
+    name: "Imperial Defector"
+    description: "You served the Empire. You fled the Empire. Now both sides hunt you — for what you know."
+    icon: "rogue"
+    starting_starship: null  # V2.10: ships earned in-story, not granted at start (was: ship-nr-tie_advanced)
+    starting_stats:
+      Combat: 2
+      Stealth: 3
+      Charisma: 1
+      Tech: 3
+      General: 1
+    starting_reputation:
+      new_republic: -10
+      imperial_remnant: -60
+      smugglers_alliance: 20
+    questions:
+      - id: defection
+        title: "Why did you defect?"
+        subtitle: "Everyone has a breaking point"
+        choices:
+          - label: "I was ordered to destroy a civilian target. I refused and ran."
+            concept: "a defector who rejected Imperial atrocities"
+            tone: PARAGON
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-ord_mantell
+              companion_affinity_bonus:
+                - comp-nr-torin: 25
+                - comp-nr-kam: 15
+              thread_seed: "The Republic does not trust you — yet. To prove yourself, you must provide actionable intelligence. But the target you know best is your old unit — friends you left behind."
+          - label: "I discovered evidence of treason within the Remnant. My superiors tried to silence me."
+            concept: "a whistleblower who uncovered corruption and fled for their life"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: new_republic
+              location_hint: loc-coruscant
+              companion_affinity_bonus:
+                - comp-nr-davos: 20
+                - comp-nr-mira: 15
+              thread_seed: "The evidence you stole proves that a Republic admiral is secretly negotiating with Imperial warlords. If you reveal it, you will shatter the alliance — but hiding it makes you complicit."
+          - label: "The Empire lost. I saw the writing on the wall and grabbed what I could on the way out."
+            concept: "a pragmatist who defected for survival and profit"
+            tone: RENEGADE
+            effects:
+              faction_hint: smugglers_alliance
+              location_hint: loc-wild_karrde
+              companion_affinity_bonus:
+                - comp-nr-jorin: 15
+                - comp-nr-syren: 10
+              thread_seed: "You stole classified schematics on your way out. A warlord will pay a fortune for them — but the Republic needs those plans to counter Thrawn's fleet. Who do you sell to?"
+      - id: hunted
+        title: "Who is hunting you?"
+        subtitle: "Defectors are never truly free"
+        choices:
+          - label: "Imperial Intelligence — they sent an Inquisitor to bring me back."
+            concept: "hunted by the Empire's shadow operatives"
+            tone: INVESTIGATE
+            effects:
+              thread_seed: "An Inquisitor has tracked you to this sector. They are offering clemency if you return — and death if you refuse. Your Republic allies do not know you are being followed."
+          - label: "My old squadron — they see me as a traitor who abandoned them."
+            concept: "pursued by former comrades who feel betrayed"
+            tone: NEUTRAL
+            effects:
+              thread_seed: "Your old wingmate has found you. They are not here to kill you — they want you to come back and help them defect too. But the Empire is watching them."
+          - label: "Bounty hunters — someone put a price on my head, and it keeps rising."
+            concept: "marked by a bounty that attracts hunters from across the galaxy"
+            tone: RENEGADE
+            effects:
+              thread_seed: "Three hunters have tried to collect this week. The bounty is absurd — far more than you are worth. Someone wants you dead, and they have credits to burn."

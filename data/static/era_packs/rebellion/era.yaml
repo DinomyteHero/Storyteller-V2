@@ -1,0 +1,56 @@
+era_id: REBELLION
+style_ref: data/style/rebellion_style.md
+schema_version: 2
+file_index:
+  era: era.yaml
+  locations: locations.yaml
+  npcs: npcs.yaml
+  factions: factions.yaml
+  backgrounds: backgrounds.yaml
+  namebanks: namebanks.yaml
+  quests: quests.yaml
+  events: events.yaml
+  rumors: rumors.yaml
+  meters: meters.yaml
+  facts: facts.yaml
+  companions: companions.yaml
+start_location_pool:
+- loc-cantina
+- loc-bazaar_market
+- loc-safe_house
+- loc-yavin_base
+global_event_templates: []
+travel_graph: []
+default_scene_pacing: {}
+metadata:
+  display_name: Age of Rebellion
+  time_period: 0–4 ABY (Legends)
+  calendar_note: After the Battle of Yavin (0 ABY); before the fall of the Empire at Endor and beyond.
+  summary: 'The galaxy lives under the boot of the Galactic Empire. The Emperor rules from the throne
+
+    world of Coruscant; his enforcer, Darth Vader, hunts the last of the Jedi and crushes
+
+    dissent. The Death Star has made rebellion unthinkable—until a band of rebels steal
+
+    its plans and strike the first blow at Yavin. In the shadows, the Alliance to Restore
+
+    the Republic runs a fragile network of cells: starfighter pilots, spies, and idealists
+
+    who believe the Republic can rise again. Smugglers and crime lords thrive in the
+
+    margins, selling to both sides. It is an age of hope and terror, of hidden bases and
+
+    Imperial crackdowns, where one wrong move can burn a cell and one act of courage
+
+    can change the fate of the galaxy.
+
+    '
+  tone: Gritty hope; underdog resistance; imperial oppression; found family; moral stakes.
+  key_conflicts:
+  - 'Alliance vs. Empire: asymmetric war, intelligence and morale as much as firepower.'
+  - 'Jedi legacy vs. Imperial purge: the last guardians in hiding; the Force as secret and weapon.'
+  - 'Outer Rim lawlessness: Hutts, smugglers, and bounty hunters in the Empire''s shadow.'
+  themes:
+  - Restoration of the Republic and freedom versus order through fear.
+  - 'Sacrifice and compartmentalization: rebels who never know the full picture.'
+  - 'Technology and myth: the Death Star as symbol of terror; the Force as forbidden hope.'

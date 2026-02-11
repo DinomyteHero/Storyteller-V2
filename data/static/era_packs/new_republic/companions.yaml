@@ -1,0 +1,502 @@
+companions:
+  - id: comp-nr-kessa
+    name: Kessa Vane
+    species: Zabrak
+    gender: female
+    archetype: New Republic scout
+    faction_id: new_republic
+    role_in_party: specialist
+    voice_tags: [earnest, analytical, warm]
+    motivation: To keep New Republic convoys alive in a galaxy that keeps changing its borders overnight.
+    speech_quirk: Counts escape vectors under her breath before she answers.
+    voice:
+      belief: Every safe corridor you chart is a thousand civilians who get to wake up tomorrow.
+      wound: Lost her entire reconnaissance cell to an Imperial trap she failed to predict.
+      taboo: Never jump blind without at least two exits.
+      rhetorical_style: analytical
+      tell: Traces invisible star charts on any flat surface while thinking.
+    traits:
+      idealist_pragmatic: 35
+      merciful_ruthless: -15
+      lawful_rebellious: 25
+    default_affinity: 5
+    recruitment:
+      unlock_conditions: Meet Kessa during a convoy briefing; she joins after the player helps keep a refugee ship from being impounded.
+      first_meeting_location: loc-coruscant
+      first_scene_template: null
+    tags: [scout, navigator, new_republic]
+    enables_affordances: [astrogation, sensor_sweep, convoy_planning]
+    blocks_affordances: []
+    influence:
+      starts_at: 5
+      min: -100
+      max: 100
+      triggers:
+        - intent: threaten
+          delta: -3
+        - intent: help
+          delta: 2
+        - meaning_tag: reveal_values
+          delta: 2
+        - meaning_tag: set_boundary
+          delta: -2
+    banter:
+      frequency: normal
+      style: warm
+      triggers: [hyperspace, navigation, convoy, inspection, remnant]
+    personal_quest_id: quest_nr_refugee_corridor
+    metadata:
+      loyalty_hook: Carries survivor guilt from the war and tries to turn it into structure.
+      recruitment_context: Found in a New Republic transit office, arguing with customs over a manifest full of displaced families.
+
+  - id: comp-nr-jerrek_dane
+    name: Jerrek Dane
+    species: Human
+    gender: male
+    archetype: New Republic marshal
+    faction_id: new_republic
+    role_in_party: rival
+    voice_tags: [dry, principled, tired]
+    motivation: To make the New Republic mean something on worlds that only ever knew Imperial boots or warlord taxes.
+    speech_quirk: Uses legal phrases like swear words.
+    voice:
+      belief: Laws only matter when someone enforces them at personal cost.
+      wound: Watched a warlord buy a tribunal and walk free after Endor.
+      taboo: Never take payment for justice.
+      rhetorical_style: blunt
+      tell: Clicks a dead comlink habitually when he's about to argue.
+    traits:
+      idealist_pragmatic: 10
+      merciful_ruthless: 15
+      lawful_rebellious: 60
+    default_affinity: 0
+    recruitment:
+      unlock_conditions: Earn a marshal's warrant by helping stop a dockside execution; Dane offers to accompany you as the law's "observer".
+      first_meeting_location: loc-ord_mantell
+      first_scene_template: null
+    tags: [marshal, law, investigator]
+    enables_affordances: [warrant_access, interrogation, arrest_procedure]
+    blocks_affordances: [smuggling_cover]
+    influence:
+      starts_at: 0
+      min: -100
+      max: 100
+      triggers:
+        - intent: bribe
+          delta: -5
+        - intent: help
+          delta: 2
+        - meaning_tag: set_boundary
+          delta: 2
+        - meaning_tag: deflect
+          delta: -2
+    banter:
+      frequency: normal
+      style: stoic
+      triggers: [law, corruption, senate, warrants, remnant]
+    personal_quest_id: quest_nr_dockside_tribunal
+    metadata:
+      loyalty_hook: Knows too many "heroes" who turned into profiteers when the shooting stopped.
+
+  - id: comp-nr-silma_korr
+    name: Silma Korr
+    species: Human
+    gender: female
+    archetype: Disillusioned Senate aide
+    faction_id: bothan_spynet
+    role_in_party: specialist
+    voice_tags: [polished, incisive, guarded]
+    motivation: To survive Coruscant politics long enough to expose one real crime that matters.
+    speech_quirk: Answers with a question when the truth is dangerous.
+    voice:
+      belief: Information is a weapon; the only moral choice is who you aim it at.
+      wound: Signed a clean bill for a bill that quietly condemned a colony to "temporary" rationing.
+      taboo: Never put a name on a datapad unless you're ready for it to die.
+      rhetorical_style: Socratic
+      tell: Straightens her cuffs before she lies.
+    traits:
+      idealist_pragmatic: -25
+      merciful_ruthless: 5
+      lawful_rebellious: 20
+    default_affinity: 2
+    recruitment:
+      unlock_conditions: Gain access to a Senate corridor and keep Silma from being disappeared after she leaks a docket number.
+      first_meeting_location: loc-coruscant
+      first_scene_template: null
+    tags: [bureaucrat, politics, intel]
+    enables_affordances: [bureaucracy_pass, legal_docketing, senatorial_introductions]
+    blocks_affordances: []
+    influence:
+      starts_at: 2
+      min: -100
+      max: 100
+      triggers:
+        - meaning_tag: probe_belief
+          delta: 2
+        - meaning_tag: deflect
+          delta: -2
+        - intent: threaten
+          delta: -3
+        - intent: negotiate
+          delta: 2
+    banter:
+      frequency: high
+      style: snarky
+      triggers: [senate, hearings, aides, leaks, holonet]
+    personal_quest_id: quest_nr_senate_leak
+    metadata:
+      loyalty_hook: Knows how to move a file through a bureaucracy like it's a smuggled weapon.
+
+  - id: comp-nr-velt_rask
+    name: Velt Rask
+    species: Human
+    gender: male
+    archetype: Imperial defector
+    faction_id: imperial_intelligence
+    role_in_party: mentor
+    voice_tags: [quiet, precise, haunted]
+    motivation: To earn amnesty without pretending the things he did were noble.
+    speech_quirk: Uses Imperial threat assessments as metaphors.
+    voice:
+      belief: The Empire trained me to see people as assets; I refuse to die that way.
+      wound: Ordered a purge on a station and later learned the "insurgents" were a refugee family.
+      taboo: Never say "necessary" to excuse cruelty.
+      rhetorical_style: coldly_practical
+      tell: Keeps his hands perfectly still when he's afraid.
+    traits:
+      idealist_pragmatic: -10
+      merciful_ruthless: 35
+      lawful_rebellious: -5
+    default_affinity: -2
+    recruitment:
+      unlock_conditions: Extract Velt from a Black Sun safehouse before a Republic Marshal team raids it; he bargains with codes and remorse.
+      first_meeting_location: loc-coruscant_underworld
+      first_scene_template: null
+    tags: [defector, counterintel, imperial]
+    enables_affordances: [imperial_protocol, code_cylinders, counterintelligence]
+    blocks_affordances: [open_rebel_posturing]
+    influence:
+      starts_at: -2
+      min: -100
+      max: 100
+      triggers:
+        - intent: forgive
+          delta: 3
+        - intent: threaten
+          delta: -2
+        - meaning_tag: challenge_premise
+          delta: 2
+        - meaning_tag: reveal_values
+          delta: 1
+    banter:
+      frequency: normal
+      style: stoic
+      triggers: [amnesty, remnant, intelligence, prisons, codes]
+    personal_quest_id: quest_nr_amnesty_dossier
+    metadata:
+      loyalty_hook: Has a list of sleepers he refuses to hand over without guarantees of due process.
+
+  - id: comp-nr-rysa_nenn
+    name: Rysa Nenn
+    species: Human
+    gender: female
+    archetype: Slicer journalist
+    faction_id: neutral
+    role_in_party: specialist
+    voice_tags: [quick, bright, relentless]
+    motivation: To publish one story the galaxy can't ignore, even if every faction wants her silenced.
+    speech_quirk: Narrates her own life like a headline when nervous.
+    voice:
+      belief: If the truth dies, the war never ends.
+      wound: Watched a friend vanish after asking the wrong question in an Imperial-era newsroom.
+      taboo: Never take hush money.
+      rhetorical_style: rapid_fire
+      tell: Taps her recorder twice before she asks something dangerous.
+    traits:
+      idealist_pragmatic: 20
+      merciful_ruthless: -10
+      lawful_rebellious: 35
+    default_affinity: 3
+    recruitment:
+      unlock_conditions: Protect Rysa during a customs crackdown long enough for her to transmit her packet offworld.
+      first_meeting_location: loc-coruscant
+      first_scene_template: null
+    tags: [journalist, slicer, whistleblower]
+    enables_affordances: [slice_terminal, media_pressure, rumor_broadcast]
+    blocks_affordances: []
+    influence:
+      starts_at: 3
+      min: -100
+      max: 100
+      triggers:
+        - intent: intimidate
+          delta: -4
+        - intent: help
+          delta: 2
+        - meaning_tag: probe_belief
+          delta: 2
+        - meaning_tag: deflect
+          delta: -1
+    banter:
+      frequency: high
+      style: snarky
+      triggers: [holonet, press, leaks, senate, propaganda]
+    personal_quest_id: quest_nr_holonet_packet
+    metadata:
+      loyalty_hook: Keeps redundant dead-drops on half a dozen worlds; she expects to die for a headline.
+
+  - id: comp-nr-otrik_cal
+    name: Otrik Cal
+    species: Duros
+    gender: male
+    archetype: Shipyard engineer
+    faction_id: new_republic
+    role_in_party: specialist
+    voice_tags: [practical, gentle, stubborn]
+    motivation: To keep the fleet flying when the Senate wants peace and the Remnant wants wreckage.
+    speech_quirk: Talks to machines like they're offended coworkers.
+    voice:
+      belief: If you can fix it, you owe it to everyone not to throw it away.
+      wound: Lost his workshop to an "accidental" shipyard fire that nobody investigated.
+      taboo: Never leave a safety bypass in place after the job is done.
+      rhetorical_style: folksy_practical
+      tell: Rubs a smudge of grease between thumb and forefinger while thinking.
+    traits:
+      idealist_pragmatic: 30
+      merciful_ruthless: -5
+      lawful_rebellious: 10
+    default_affinity: 4
+    recruitment:
+      unlock_conditions: Help stop sabotage at Sluis Van; Otrik joins to make sure the next attempt doesn't succeed.
+      first_meeting_location: loc-nkllon
+      first_scene_template: null
+    tags: [engineer, shipyard, mechanic]
+    enables_affordances: [field_repairs, sabotage_detection, jury_rig]
+    blocks_affordances: []
+    influence:
+      starts_at: 4
+      min: -100
+      max: 100
+      triggers:
+        - intent: destroy
+          delta: -2
+        - intent: help
+          delta: 2
+        - meaning_tag: pragmatic
+          delta: 2
+        - meaning_tag: reveal_values
+          delta: 1
+    banter:
+      frequency: normal
+      style: warm
+      triggers: [shipyard, hyperdrive, parts, fleet, sabotage]
+    personal_quest_id: quest_nr_shipyard_sabotage
+    metadata:
+      loyalty_hook: Keeps a list of safety violations that implicate a senator's shipbuilding donor.
+
+  - id: comp-nr-kholo
+    name: Kholo
+    species: Noghri
+    gender: male
+    archetype: Clan scout
+    faction_id: jedi_order
+    role_in_party: companion
+    voice_tags: [quiet, formal, watchful]
+    motivation: To free his people from the lie that poisoned their homeworld.
+    speech_quirk: Refers to promises as "debts" and treats them as physical objects.
+    voice:
+      belief: A debt paid with truth is stronger than one paid with blood.
+      wound: Buried siblings in soil that should have fed crops, not sickness.
+      taboo: Never swear an oath you cannot fulfill.
+      rhetorical_style: formal
+      tell: Tilts his head like he's scenting the air when a lie is spoken.
+    traits:
+      idealist_pragmatic: 5
+      merciful_ruthless: 25
+      lawful_rebellious: 10
+    default_affinity: 1
+    recruitment:
+      unlock_conditions: Earn the trust of a Noghri liaison by returning evidence of Imperial poisoning; Kholo volunteers as guide and blade.
+      first_meeting_location: loc-coruscant
+      first_scene_template: null
+    tags: [noghri, scout, stealth]
+    enables_affordances: [tracking, stealth_entry, silent_takedown]
+    blocks_affordances: []
+    influence:
+      starts_at: 1
+      min: -100
+      max: 100
+      triggers:
+        - intent: deceive
+          delta: -3
+        - intent: help
+          delta: 2
+        - meaning_tag: set_boundary
+          delta: 1
+        - meaning_tag: reveal_values
+          delta: 1
+    banter:
+      frequency: low
+      style: stoic
+      triggers: [debts, honor, poisoning, empire, clan]
+    personal_quest_id: quest_nr_honoghr_debt
+    metadata:
+      loyalty_hook: His clan expects him to return with a path to survival, not vengeance.
+
+  - id: comp-nr-sera_vens
+    name: Sera Vens
+    species: Bothan
+    gender: female
+    archetype: Bothan field analyst
+    faction_id: bothan_spynet
+    role_in_party: specialist
+    voice_tags: [smooth, alert, amused]
+    motivation: To prove she can play Coruscant's game without becoming the kind of person who wins it.
+    speech_quirk: Laughs softly when she's furious.
+    voice:
+      belief: The best spy is the one who still remembers why secrets matter.
+      wound: Her mentor sold a network to save a career; Sera was the one who cleaned up the bodies.
+      taboo: Never burn a source for a headline.
+      rhetorical_style: insinuating
+      tell: Watches exits more than faces in a crowded room.
+    traits:
+      idealist_pragmatic: -5
+      merciful_ruthless: 10
+      lawful_rebellious: 15
+    default_affinity: 2
+    recruitment:
+      unlock_conditions: Trade a slice-key for a favor during a Senate inquiry; Sera attaches herself as "liaison" to keep you on her board.
+      first_meeting_location: loc-bothawui_capital
+      first_scene_template: null
+    tags: [bothan, spy, social]
+    enables_affordances: [disguise, intel_network, social_engineering]
+    blocks_affordances: []
+    influence:
+      starts_at: 2
+      min: -100
+      max: 100
+      triggers:
+        - intent: intimidate
+          delta: -2
+        - intent: negotiate
+          delta: 2
+        - meaning_tag: probe_belief
+          delta: 2
+        - meaning_tag: deflect
+          delta: -1
+    banter:
+      frequency: normal
+      style: snarky
+      triggers: [bothans, spies, senate, secrets, favors]
+    personal_quest_id: quest_nr_bothan_blackmail
+    metadata:
+      loyalty_hook: Has a file of "protected" names she won't give up, even to her own handlers.
+
+  # ============================================================
+  # PHASE 3: NEW COMPANIONS (Companions 9-10)
+  # ============================================================
+
+  - id: comp-nr-lex_meridian
+    name: Commander Lex Meridian
+    species: Chiss
+    gender: male
+    archetype: Principled defector
+    faction_id: imperial_remnant
+    role_in_party: mentor
+    voice_tags: [measured, professional, reserved]
+    motivation: To prove that honor transcends faction and that redemption requires direct action, not justification.
+    speech_quirk: Speaks in formal Republic Standard with clipped consonants, never using Imperial jargon.
+    voice:
+      belief: An order from a just command structure deserves obedience; unjust orders demand refusal.
+      wound: Executed innocent colonists on Thrawn's orders during a "pacification" he now recognizes as genocide.
+      taboo: Never rationalize cruelty as "military necessity."
+      rhetorical_style: coldly_principled
+      tell: Jaws tighten when he recalls Imperial service; his fingers unconsciously trace insignia patterns on any surface.
+    traits:
+      idealist_pragmatic: 35
+      merciful_ruthless: -45
+      lawful_rebellious: 20
+    default_affinity: -5
+    recruitment:
+      unlock_conditions: Intercept Lex from an Imperial assassination team sent to recapture him; he negotiates defection in exchange for classified Chiss military doctrine.
+      first_meeting_location: loc-coruscant_underworld
+      first_scene_template: null
+    tags: [chiss, defector, military, strategic]
+    enables_affordances: [thrawn_tactics, chiss_cloaking, strategic_analysis, imperial_code_vault]
+    blocks_affordances: [imperial_aligned_subterfuge]
+    influence:
+      starts_at: -5
+      min: -100
+      max: 100
+      triggers:
+        - intent: honor
+          delta: 4
+        - intent: deceive
+          delta: -3
+        - meaning_tag: moral_clarity
+          delta: 3
+        - meaning_tag: pragmatic_compromise
+          delta: -2
+        - intent: challenge_order
+          delta: 2
+    banter:
+      frequency: low
+      style: formal
+      triggers: [thrawn, chiss, honor, tactical_assessment, empire, redemption]
+    personal_quest_id: quest_nr_chiss_defection
+    metadata:
+      loyalty_hook: Carries an encrypted data-slate with names of other Chiss defectors; his betrayal could start a purge.
+      recruitment_context: Found coordinating Republic countermeasures against Thrawn's strategy; his Chiss perspective makes him invaluable—but every day with the Republic is a day deeper in Imperial debt.
+
+  - id: comp-nr-torven_kaas
+    name: Torven Kaas
+    species: Gungan
+    gender: male
+    archetype: Reluctant Force user
+    faction_id: jedi_order
+    role_in_party: support
+    voice_tags: [earnest, humble, mystical]
+    motivation: To master the Force without losing the humility that saved Gungan civilization from arrogance once before.
+    speech_quirk: Uses Gungan grammar patterns ("Promising you are" instead of "You are promising") when concentrating; reverts under stress.
+    voice:
+      belief: The Force flows through all creatures equally; no species, no caste, deserves dominion over another.
+      wound: Watched his brother betray the Gungan Council to an Imperial warlord for promises of power; his brother died believing the Empire's lies.
+      taboo: Never claim the Force makes you superior; that path leads straight to darkness.
+      rhetorical_style: meditative
+      tell: Clicks his beak twice when struggling with a decision, as if consulting an oracle.
+    traits:
+      idealist_pragmatic: 40
+      merciful_ruthless: -35
+      lawful_rebellious: 5
+    default_affinity: 3
+    recruitment:
+      unlock_conditions: Free a hidden Jedi sanctuary on Naboo from Imperial occupation; Torven offers himself as apprentice and guide to the planet's secrets.
+      first_meeting_location: loc-yavin_praxeum
+      first_scene_template: null
+    tags: [gungan, jedi_initiate, force_user, padawan]
+    enables_affordances: [jedi_meditation, force_healing, gungan_navigation, underwater_access]
+    blocks_affordances: [imperial_ideology_acceptance]
+    influence:
+      starts_at: 3
+      min: -100
+      max: 100
+      triggers:
+        - intent: show_humility
+          delta: 3
+        - intent: pursue_power
+          delta: -3
+        - meaning_tag: teach_restraint
+          delta: 2
+        - meaning_tag: reveal_values
+          delta: 2
+        - intent: threaten
+          delta: -2
+    banter:
+      frequency: normal
+      style: warm
+      triggers: [jedi, force, meditation, naboo, gungan_wisdom, humility, brothers]
+    personal_quest_id: quest_nr_gungan_wayshrine
+    metadata:
+      loyalty_hook: His brother's ghost haunts him; Luke's guidance is the only thing keeping him balanced between grief and forgiveness.
+      recruitment_context: Torven struggles with anger at the Empire—his version of the dark side temptation. The party must help him process loss without weaponizing it.
+

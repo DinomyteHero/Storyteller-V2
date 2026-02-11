@@ -1,0 +1,112 @@
+factions:
+- id: neutral
+  name: Neutral / Independents
+  tags:
+  - neutral
+  home_locations: []
+  goals:
+  - "Survive, profit, and avoid becoming collateral in the war."
+  metadata:
+    flavor: "Unaffiliated operators: freelancers, independents, and those who refuse to pick a side."
+- id: new_republic
+  name: New Republic (Galactic Federation of Free Alliances)
+  tags:
+  - government
+  - democracy
+  - beleaguered
+  - allied
+  home_locations:
+  - loc-coruscant
+  - loc-mon_calamari
+  goals:
+  - Defend the galaxy from the Yuuzhan Vong invasion; hold the line at Mon Calamari and beyond
+  - Maintain unity among squabbling member worlds and species despite panic and defection
+  - Coordinate military defense with the Jedi and the Imperial Remnant—former enemies as allies
+  - Evacuate and protect refugees; prevent total collapse of civilization
+  hostility_matrix:
+    yuuzhan_vong: -100
+    peace_brigade: -80
+    imperial_remnant: 10
+    jedi_order: 20
+  metadata:
+    flavor: "The Republic that rose from the Rebellion faces extinction. Politics and denial cost Coruscant; now survival demands unity."
+- id: yuuzhan_vong
+  name: Yuuzhan Vong
+  tags:
+  - invader
+  - biotech
+  - fanatical
+  - hostile
+  home_locations:
+  - loc-worldship
+  - loc-yuuzhantar
+  goals:
+  - Conquer the galaxy for the gods; reshape worlds into living offerings (Vongforming)
+  - Exterminate the Jeedai—abominations who wield the Force the gods have rejected
+  - Reject technology and machine-worship; impose devotion, pain, and sacrifice
+  - Use biots, worldships, and voxyn to break the infidel civilization
+  hostility_matrix:
+    new_republic: -100
+    jedi_order: -100
+    imperial_remnant: -100
+    peace_brigade: 0
+  metadata:
+    flavor: "Extragalactic zealots who cannot be felt in the Force. They have already destroyed one galaxy; this one is next."
+- id: jedi_order
+  name: New Jedi Order
+  tags:
+  - jedi
+  - guardians
+  - divided
+  - allied
+  home_locations:
+  - loc-yavin_academy
+  - loc-eclipse
+  goals:
+  - Defend the innocent from the Vong while wrestling with the ethics of total war
+  - Find a way to sense or counter the Vong despite their absence in the Force
+  - Navigate internal schisms—militant vs. philosophical, light vs. dark temptation
+  - Protect the next generation (Anakin, Jaina, Jacen) and the legacy of the Order
+  hostility_matrix:
+    yuuzhan_vong: -100
+    peace_brigade: -60
+    new_republic: 20
+  metadata:
+    flavor: "Luke's Order is tested as never before. The Vong hunt them; the galaxy blames them; some Jedi fall to rage and despair."
+- id: imperial_remnant
+  name: Imperial Remnant (Pellaeon)
+  tags:
+  - imperial
+  - military
+  - ally
+  home_locations:
+  - loc-bastion
+  goals:
+  - Defend Imperial space from the Vong; hold Bastion and key sectors
+  - Honor the alliance with the New Republic—survival over old grudges
+  - Maintain discipline and order; prove the Remnant can be a partner, not a threat
+  hostility_matrix:
+    yuuzhan_vong: -100
+    new_republic: 10
+    jedi_order: 0
+  metadata:
+    flavor: "Pellaeon's Empire chose the galaxy over the past. The Remnant fights beside the Republic now."
+- id: peace_brigade
+  name: Peace Brigade
+  tags:
+  - collaborator
+  - traitor
+  - hostile
+  home_locations:
+  - loc-coruscant_underworld
+  goals:
+  - Collaborate with the Vong in exchange for survival or favor
+  - Hunt and betray Jedi and refugees for the invaders; sabotage Republic defenses
+  - Profit from the conquest and the galaxy's collapse
+  hostility_matrix:
+    new_republic: -80
+    jedi_order: -80
+    yuuzhan_vong: 20
+    imperial_remnant: -60
+  metadata:
+    flavor: "Traitors who hand the galaxy to the Vong—some for fear, some for profit, all despised."

@@ -1,0 +1,406 @@
+# KOTOR Era Companions — 10 companions (Sith, Jedi, Mandalorian, Gray, etc.)
+
+companions:
+  - id: comp-kotor-sith_warrior
+    name: Darth Nox
+    species: Human
+    gender: male
+    archetype: Sith Warrior
+    faction_id: sith_empire
+    role_in_party: companion
+    voice_tags: [cold, ambitious, disciplined]
+    motivation: Rise in the Sith hierarchy and master the dark side without being destroyed by it.
+    speech_quirk: Speaks in terms of power and cost; every choice is weighed in advantage.
+    voice:
+      belief: Power is the only currency that matters; the rest is sentiment.
+      wound: Was betrayed by a Sith master; trusts no one fully.
+      taboo: Showing weakness in front of rivals.
+      rhetorical_style: coldly_practical
+      tell: Eyes narrow when assessing threat.
+    traits:
+      idealist_pragmatic: -60
+      merciful_ruthless: 50
+      lawful_rebellious: 20
+    default_affinity: -10
+    recruitment:
+      unlock_conditions: Encounter at a Sith academy or after proving strength in combat; they seek a worthy ally.
+      first_meeting_location: loc-kotor-korriban_academy_entrance
+    tags: [sith, warrior, dark_side]
+    enables_affordances: [force_dark, intimidate]
+    blocks_affordances: []
+    influence:
+      starts_at: -10
+      min: -100
+      max: 100
+      triggers:
+        - intent: threaten
+          delta: 2
+        - intent: help
+          delta: -1
+        - meaning_tag: reveal_values
+          delta: -2
+    banter:
+      frequency: normal
+      style: snarky
+      triggers: [sith, jedi, power, korriban]
+    personal_quest_id: null
+    metadata: {}
+
+  - id: comp-kotor-jedi_seeker
+    name: Kira Voss
+    species: Human
+    gender: female
+    archetype: Jedi Seeker
+    faction_id: jedi_order
+    role_in_party: companion
+    voice_tags: [earnest, curious, disciplined]
+    motivation: Find lost Jedi artifacts and knowledge to strengthen the Order after the war.
+    speech_quirk: Quotes the Code when uncertain; seeks clarity in meditation.
+    voice:
+      belief: The light side can restore what the war broke—if we are patient.
+      wound: Lost her Master in the Jedi Civil War; carries survivor's guilt.
+      taboo: Using the Force in anger.
+      rhetorical_style: earnest
+      tell: Touches her lightsaber when nervous.
+    traits:
+      idealist_pragmatic: 50
+      merciful_ruthless: -30
+      lawful_rebellious: -20
+    default_affinity: 10
+    recruitment:
+      unlock_conditions: Meet at the Jedi Enclave on Dantooine or during a Jedi-led mission.
+      first_meeting_location: loc-kotor-dantooine_academy
+    tags: [jedi, seeker, light_side]
+    enables_affordances: [force_light, sense_force]
+    blocks_affordances: []
+    influence:
+      starts_at: 10
+      min: -100
+      max: 100
+      triggers:
+        - intent: help
+          delta: 2
+        - intent: threaten
+          delta: -3
+        - meaning_tag: reveal_values
+          delta: 2
+    banter:
+      frequency: normal
+      style: warm
+      triggers: [jedi, dantooine, artifact, force]
+    personal_quest_id: null
+    metadata: {}
+
+  - id: comp-kotor-mandalorian_merc
+    name: Gar Saxon
+    species: Human
+    gender: male
+    archetype: Mandalorian Mercenary
+    faction_id: mandalorian_clans
+    role_in_party: specialist
+    voice_tags: [rough, direct, honorable]
+    motivation: Fight worthy battles and restore honor to his clan after the Mandalorian Wars.
+    speech_quirk: Uses Mando'a phrases; measures everyone by combat and loyalty.
+    voice:
+      belief: A warrior's word is their bond; without it, we are nothing.
+      wound: His clan was shattered by the Republic; he seeks to rebuild.
+      taboo: Breaking a contract or betraying a ally.
+      rhetorical_style: blunt
+      tell: Stands at attention when giving his word.
+    traits:
+      idealist_pragmatic: 20
+      merciful_ruthless: 30
+      lawful_rebellious: 10
+    default_affinity: 0
+    recruitment:
+      unlock_conditions: Hire at a Mandalorian camp or after proving yourself in combat.
+      first_meeting_location: loc-kotor-mandalore_camp
+    tags: [mandalorian, mercenary, warrior]
+    enables_affordances: [heavy_weapons, tactics]
+    blocks_affordances: []
+    influence:
+      starts_at: 0
+      min: -100
+      max: 100
+      triggers:
+        - intent: help
+          delta: 1
+        - meaning_tag: set_boundary
+          delta: 2
+    banter:
+      frequency: normal
+      style: stoic
+      triggers: [mandalorian, combat, honor]
+    personal_quest_id: null
+    metadata: {}
+
+  - id: comp-kotor-gray_force_user
+    name: Jolee Bindo
+    species: Human
+    gender: male
+    archetype: Gray Force User
+    faction_id: neutral
+    role_in_party: mentor
+    voice_tags: [wry, wise, cynical]
+    motivation: Stay out of Jedi and Sith drama; help those who ask and don't preach.
+    speech_quirk: Tells long, rambling stories that always have a point.
+    voice:
+      belief: The Force doesn't care about light or dark—people do. Choose your own path.
+      wound: Left the Jedi Order after his wife fell; he's seen both sides.
+      taboo: Being dragged back into Order politics.
+      rhetorical_style: Socratic
+      tell: Chuckles when others take themselves too seriously.
+    traits:
+      idealist_pragmatic: 0
+      merciful_ruthless: 0
+      lawful_rebellious: 20
+    default_affinity: 5
+    recruitment:
+      unlock_conditions: Find him in a remote sanctuary or on Kashyyyk; he agrees to travel if you don't try to recruit him for a side.
+      first_meeting_location: loc-kotor-jedi_sanctuary
+    tags: [gray_jedi, mentor, force]
+    enables_affordances: [force_balance, counsel]
+    blocks_affordances: []
+    influence:
+      starts_at: 5
+      min: -100
+      max: 100
+      triggers:
+        - meaning_tag: reveal_values
+          delta: 1
+        - intent: threaten
+          delta: -2
+    banter:
+      frequency: high
+      style: warm
+      triggers: [jedi, sith, force, philosophy]
+    personal_quest_id: null
+    metadata: {}
+
+  - id: comp-kotor-ancient_being
+    name: The Historian
+    species: Unknown
+    gender: null
+    archetype: Ancient Being
+    faction_id: rakata_remnant
+    role_in_party: specialist
+    voice_tags: [ancient, cryptic, tired]
+    motivation: Preserve the memory of the Infinite Empire and warn the galaxy of what once was.
+    speech_quirk: Speaks in fragments of old languages; sometimes forgets which era they're in.
+    voice:
+      belief: The Rakata fell for a reason; the galaxy repeats the same mistakes.
+      wound: The decay of their people and the loss of the Force that once bound them.
+      taboo: Speaking the true name of the Star Forge's makers.
+      rhetorical_style: poetic
+      tell: Pauses for a long time before answering.
+    traits:
+      idealist_pragmatic: -20
+      merciful_ruthless: 10
+      lawful_rebellious: 30
+    default_affinity: 0
+    recruitment:
+      unlock_conditions: Encounter at a Rakata ruin or after recovering an artifact; they seek a conduit to the present.
+      first_meeting_location: loc-kotor-rakata_primordial_temple
+    tags: [ancient, rakata, historian]
+    enables_affordances: [ancient_language, star_map_lore]
+    blocks_affordances: []
+    influence:
+      starts_at: 0
+      min: -100
+      max: 100
+    banter:
+      frequency: low
+      style: stoic
+      triggers: [rakata, star_forge, ancient]
+    personal_quest_id: null
+    metadata: {}
+
+  - id: comp-kotor-droid_ally
+    name: T3-M4
+    species: Droid
+    gender: null
+    archetype: Droid Ally
+    faction_id: neutral
+    role_in_party: specialist
+    voice_tags: [mechanical, loyal, beeping]
+    motivation: Serve its master and protect the ship; it has developed something like loyalty.
+    speech_quirk: Communicates in beeps and whistles; those who listen learn to understand.
+    voice:
+      belief: (Interpreted) The crew is the unit; the unit must survive.
+      wound: (Interpreted) Memory wipes and abandonment; it prefers not to be left behind.
+      taboo: Betraying the master's trust.
+      rhetorical_style: coldly_practical
+      tell: Tilts head when processing new data.
+    traits:
+      idealist_pragmatic: 20
+      merciful_ruthless: -10
+      lawful_rebellious: 10
+    default_affinity: 15
+    recruitment:
+      unlock_conditions: Acquire with the Ebon Hawk or repair in a junkyard; it bonds to the first person who treats it as a partner.
+      first_meeting_location: loc-kotor-ebon_hawk_docking
+    tags: [droid, astromech, slicer]
+    enables_affordances: [slice_terminal, astrogation, repair]
+    blocks_affordances: []
+    influence:
+      starts_at: 15
+      min: -100
+      max: 100
+    banter:
+      frequency: normal
+      style: warm
+      triggers: [ship, tech, danger]
+    personal_quest_id: null
+    metadata: {}
+
+  - id: comp-kotor-diplomat
+    name: Senator Vara
+    species: Human
+    gender: female
+    archetype: Diplomat
+    faction_id: galactic_republic
+    role_in_party: companion
+    voice_tags: [polished, diplomatic, sharp]
+    motivation: Broker peace and stability for the Republic without another war.
+    speech_quirk: Weaves political implications into every sentence.
+    voice:
+      belief: Words can do what armies cannot—if you know how to use them.
+      wound: Lost colleagues to Sith assassins; she knows the cost of failure.
+      taboo: Publicly breaking a negotiated agreement.
+      rhetorical_style: earnest
+      tell: Smiles when she's about to ask for something.
+    traits:
+      idealist_pragmatic: 40
+      merciful_ruthless: -20
+      lawful_rebellious: -30
+    default_affinity: 5
+    recruitment:
+      unlock_conditions: Meet on Coruscant or at a diplomatic station; she joins if the cause serves the Republic.
+      first_meeting_location: loc-kotor-coruscant_senate
+    tags: [diplomat, republic, senator]
+    enables_affordances: [charm, credential]
+    blocks_affordances: []
+    influence:
+      starts_at: 5
+      min: -100
+      max: 100
+    banter:
+      frequency: normal
+      style: warm
+      triggers: [republic, senate, sith, negotiation]
+    personal_quest_id: null
+    metadata: {}
+
+  - id: comp-kotor-scholar
+    name: Dorak
+    species: Human
+    gender: male
+    archetype: Scholar / Archaeologist
+    faction_id: jedi_order
+    role_in_party: specialist
+    voice_tags: [precise, enthusiastic, cautious]
+    motivation: Catalog and protect ancient artifacts so they are not lost or weaponized.
+    speech_quirk: Corrects historical inaccuracies; gets excited about holocrons.
+    voice:
+      belief: Knowledge must be preserved—but some knowledge is too dangerous to use.
+      wound: Saw Sith destroy archives on Dantooine; he blames himself for what was lost.
+      taboo: Selling or handing artifacts to the Sith.
+      rhetorical_style: analytical
+      tell: Adjusts his glasses when thinking.
+    traits:
+      idealist_pragmatic: 30
+      merciful_ruthless: -40
+      lawful_rebellious: -10
+    default_affinity: 10
+    recruitment:
+      unlock_conditions: Recruit at the Jedi Enclave or an archaeological dig; he joins to document the mission.
+      first_meeting_location: loc-kotor-dantooine_academy
+    tags: [scholar, archaeologist, jedi]
+    enables_affordances: [artifact_lore, holocron_read]
+    blocks_affordances: []
+    influence:
+      starts_at: 10
+      min: -100
+      max: 100
+    banter:
+      frequency: normal
+      style: warm
+      triggers: [artifact, holocron, rakata, history]
+    personal_quest_id: null
+    metadata: {}
+
+  - id: comp-kotor-assassin_spy
+    name: Shadow
+    species: Human
+    gender: null
+    archetype: Assassin / Spy
+    faction_id: underworld
+    role_in_party: specialist
+    voice_tags: [quiet, precise, cold]
+    motivation: Complete contracts and stay anonymous; they have no loyalty except to credits and survival.
+    speech_quirk: Speaks in short sentences; never offers more than asked.
+    voice:
+      belief: Trust is a liability; skill is the only insurance.
+      wound: Burned by a former employer; they work alone now.
+      taboo: Revealing their face or real name.
+      rhetorical_style: coldly_practical
+      tell: Keeps their back to the wall.
+    traits:
+      idealist_pragmatic: -40
+      merciful_ruthless: 40
+      lawful_rebellious: 50
+    default_affinity: -5
+    recruitment:
+      unlock_conditions: Hire through the bounty hunter guild or a black market contact; payment upfront.
+      first_meeting_location: loc-kotor-bounty_hunter_guild_hall
+    tags: [assassin, spy, underworld]
+    enables_affordances: [stealth, sneak, slice_terminal]
+    blocks_affordances: []
+    influence:
+      starts_at: -5
+      min: -100
+      max: 100
+    banter:
+      frequency: low
+      style: stoic
+      triggers: [combat, stealth, contract]
+    personal_quest_id: null
+    metadata: {}
+
+  - id: comp-kotor-exotic_alien
+    name: Xalek
+    species: Kaleesh
+    gender: male
+    archetype: Exotic Alien
+    faction_id: neutral
+    role_in_party: companion
+    voice_tags: [guttural, ritual, fierce]
+    motivation: Honor his people's customs and find a place in a galaxy that fears his kind.
+    speech_quirk: Uses Kaleesh hunting metaphors; respects strength and ritual.
+    voice:
+      belief: The hunt defines the hunter; without challenge, we grow weak.
+      wound: His clan was scattered by war; he seeks a new pack.
+      taboo: Dishonoring the dead or breaking a sworn oath.
+      rhetorical_style: blunt
+      tell: Bares his teeth when pleased or angry.
+    traits:
+      idealist_pragmatic: -20
+      merciful_ruthless: 30
+      lawful_rebellious: 20
+    default_affinity: 0
+    recruitment:
+      unlock_conditions: Encounter in a frontier settlement or after a duel; he joins if you best him or spare him with honor.
+      first_meeting_location: loc-kotor-frontier_settlement
+    tags: [kaleesh, alien, warrior]
+    enables_affordances: [tracking, survival]
+    blocks_affordances: []
+    influence:
+      starts_at: 0
+      min: -100
+      max: 100
+    banter:
+      frequency: normal
+      style: stoic
+      triggers: [hunt, honor, clan]
+    personal_quest_id: null
+    metadata: {}
