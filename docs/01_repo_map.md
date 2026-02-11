@@ -166,7 +166,7 @@ Storyteller AI/
     CONTENT_SYSTEM.md            # Content loading system
     IMPLEMENTATION_PLAN.md       # Implementation roadmap
     RUNBOOK.md                   # Operations runbook
-    ui_improvements_v2.9.md      # UI improvements documentation
+    archive/                     # Archived historical documentation (V1, V2.9, V2.20)
     templates/                   # Template documentation
       CAMPAIGN_INIT_TEMPLATE.md  # Campaign creation guide
       DB_SEED_TEMPLATE.md        # Database seeding guide
