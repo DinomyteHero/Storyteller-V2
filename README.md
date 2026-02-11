@@ -222,3 +222,111 @@ python -m pytest backend/tests/ -q --tb=short
 ## 10. License / Credits
 
 Not specified in the repo; omit or add per your project policy.
+
+---
+
+## 10. How the game loop works (strict contract)
+
+Each turn now follows an authoritative backend flow:
+
+1. **Input routing**
+   - Backend accepts either legacy `user_input` free text or typed `intent`.
+2. **Deterministic mechanics resolver**
+   - `d20 + skill_mod + situational_mod` vs tiered DC `{5,10,15,20,25}`.
+   - Produces canonical `outcome` and `state_delta`.
+   - Narrator is not allowed to override these results.
+3. **Narration + validation + repair**
+   - Narrator renders prose.
+   - Validator checks schema, choice quality, lore constraints, and contradiction against truth ledger facts.
+   - Up to 2 repair passes, then safe fallback choices.
+4. **Commit + truth ledger + progression**
+   - StateDelta facts are appended to SQLite `truth_ledger`.
+   - Scene beat budget decrements each turn; scene transitions when beats hit zero.
+   - Objective progression updates from StateDelta objective entries.
+
+### TurnContract API object
+
+Every turn response includes a `turn_contract` object with:
+
+- `scene_goal`
+- `obstacle`
+- `stakes`
+- `choices[2..4]` (typed intents + risk + cost)
+- `outcome`
+- `state_delta`
+- `narration`
+- `next_scene_hint` (optional)
+
+Legacy fields like `narrated_text` and `suggested_actions` are still returned for backward compatibility.
+
+## 11. API contract
+
+### Turn request (`POST /v2/campaigns/{id}/turn` and `/turn_stream`)
+
+- Legacy:
+```json
+{ "user_input": "I sneak past the guard" }
+```
+
+- Typed intent:
+```json
+{
+  "user_input": "",
+  "intent": {
+    "intent_type": "SNEAK",
+    "target_ids": { "npc_id": "guard_1" },
+    "params": { "approach": "silent" }
+  }
+}
+```
+
+### Turn response
+
+Response still includes existing fields and now adds:
+
+```json
+{
+  "turn_contract": {
+    "scene_goal": "...",
+    "obstacle": "...",
+    "stakes": "...",
+    "choices": [
+      {
+        "id": "choice_1",
+        "label": "...",
+        "intent": { "intent_type": "INVESTIGATE", "target_ids": {}, "params": {} },
+        "risk": "med",
+        "cost": { "time_minutes": 5 }
+      }
+    ],
+    "outcome": { "result": "PARTIAL" },
+    "state_delta": { "time_minutes": 5 },
+    "narration": "..."
+  }
+}
+```
+
+## 12. How to run Svelte UI locally
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Backend:
+
+```bash
+python -m backend.main
+```
+
+Then open: `http://localhost:5173`
+
+## 13. Gameplay debug checklist
+
+- `turn_contract.choices` length is 2-4 and each has `intent.intent_type`.
+- `turn_contract.outcome` matches mechanic debug roll/DC (narrator prose can differ in style, not result).
+- Validation warnings are logged when repair attempts run.
+- `truth_ledger` table receives facts each turn.
+- Scene budget decrements (`world_state_json.scene.beats_remaining`) and triggers transitions at zero.
+- Objectives update to `completed` and spawn follow-up objective when objective deltas occur.

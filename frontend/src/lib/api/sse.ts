@@ -6,19 +6,20 @@
  * to parse the `data: {...}\n\n` SSE format manually.
  */
 import { BASE_URL } from './client';
-import type { SSEEvent } from './types';
+import type { Intent, SSEEvent } from './types';
 
 export async function* streamTurn(
   campaignId: string,
   playerId: string,
-  userInput: string
+  userInput: string,
+  intent?: Intent
 ): AsyncGenerator<SSEEvent> {
   const response = await fetch(
     `${BASE_URL}/v2/campaigns/${campaignId}/turn_stream?player_id=${encodeURIComponent(playerId)}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_input: userInput }),
+      body: JSON.stringify({ user_input: userInput, intent }),
     }
   );
 

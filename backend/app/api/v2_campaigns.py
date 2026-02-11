@@ -25,6 +25,8 @@ from backend.app.core.graph import run_turn
 from backend.app.core.event_store import append_events, get_recent_public_rumors
 from backend.app.core.projections import apply_projection
 from backend.app.models.state import GameState, ActionSuggestion
+from backend.app.models.turn_contract import Intent, TurnContract
+from backend.app.core.turn_contract import build_turn_contract, derive_intent_from_text
 from backend.app.models.events import Event
 from backend.app.core.agents import CampaignArchitect, BiographerAgent
 
@@ -157,7 +159,8 @@ class SetupAutoResponse(BaseModel):
 
 
 class TurnRequest(BaseModel):
-    user_input: str
+    user_input: str = ""
+    intent: Intent | None = None
     debug: bool = False
     include_state: bool = False
 
@@ -198,6 +201,7 @@ class TurnResponse(BaseModel):
     warnings: list[str] = Field(default_factory=list)
     # V2.17: Canonical DialogueTurn (scene + NPC utterance + player responses)
     dialogue_turn: dict | None = None
+    turn_contract: TurnContract | None = None
 
 
 def _get_conn():
@@ -776,6 +780,8 @@ def post_turn(
         _ensure_campaign_and_player(conn, campaign_id, player_id)
         state = build_initial_gamestate(conn, campaign_id, player_id)
         state.user_input = body.user_input
+        incoming_intent = body.intent.model_dump(mode="json") if body.intent else derive_intent_from_text(body.user_input).model_dump(mode="json")
+        state.player_intent = incoming_intent
         try:
             result = run_turn(conn, state)
         except Exception as e:
@@ -903,6 +909,7 @@ def post_turn(
             context_stats=context_stats_out,
             warnings=warnings_out,
             dialogue_turn=getattr(result, "dialogue_turn", None),
+            turn_contract=TurnContract.model_validate((getattr(result, "turn_contract", None) or build_turn_contract(result.model_dump(mode="json")).model_dump(mode="json"))),
         )
     except HTTPException:
         # Re-raise HTTP exceptions (e.g., 404 from _ensure_campaign_and_player)
@@ -1044,6 +1051,8 @@ def post_turn_stream(
 
             state = build_initial_gamestate(conn, campaign_id, player_id)
             state.user_input = body.user_input
+            incoming_intent = body.intent.model_dump(mode="json") if body.intent else derive_intent_from_text(body.user_input).model_dump(mode="json")
+            state.player_intent = incoming_intent
 
             # Run pre-narrator pipeline (Router → ... → Director)
             pre_state = _run_pre_narrator_pipeline(conn, state)
@@ -1059,7 +1068,7 @@ def post_turn_stream(
                 result_gs = dict_to_state(result_dict)
                 raw_actions = result_gs.suggested_actions or []
                 suggested_actions = _pad_suggestions_for_ui(raw_actions)
-                yield f"data: {json.dumps({'type': 'done', 'narrated_text': result_gs.final_text or '', 'suggested_actions': [a.model_dump(mode='json') if hasattr(a, 'model_dump') else a for a in suggested_actions]})}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'narrated_text': result_gs.final_text or '', 'suggested_actions': [a.model_dump(mode='json') if hasattr(a, 'model_dump') else a for a in suggested_actions], 'turn_contract': getattr(result_gs, 'turn_contract', None)})}\n\n"
                 return
 
             # Stream Narrator
@@ -1190,6 +1199,7 @@ def post_turn_stream(
             done_payload = {
                 "type": "done",
                 "narrated_text": final_text,
+                "turn_contract": getattr(result_gs, "turn_contract", None),
                 "suggested_actions": [
                     a.model_dump(mode="json") if hasattr(a, "model_dump") else a
                     for a in suggested_actions

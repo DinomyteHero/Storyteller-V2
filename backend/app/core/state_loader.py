@@ -9,6 +9,7 @@ from typing import Any
 from backend.app.models.state import CharacterSheet, GameState
 from backend.app.core.event_store import get_current_turn_number, get_events
 from backend.app.core.transcript_store import get_rendered_turns
+from backend.app.core.truth_ledger import load_canonical_facts
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +77,10 @@ def load_campaign(conn: sqlite3.Connection, campaign_id: str) -> dict | None:
     d["npc_states"] = ws.get("npc_states", defaults["npc_states"])
     d["companion_triggers_fired"] = ws.get("companion_triggers_fired", defaults["companion_triggers_fired"])
     d["genre"] = ws.get("genre") or None
+    try:
+        ws["canonical_facts"] = load_canonical_facts(conn, campaign_id)
+    except Exception:
+        ws["canonical_facts"] = {}
     return d
 
 

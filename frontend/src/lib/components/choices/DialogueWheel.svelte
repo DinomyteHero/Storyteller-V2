@@ -7,14 +7,14 @@
   Sorted by tone: PARAGON → INVESTIGATE → RENEGADE → NEUTRAL.
 -->
 <script lang="ts">
-  import type { PlayerResponse, ActionSuggestion } from '$lib/api/types';
+  import type { PlayerResponse, ActionSuggestion, Intent } from '$lib/api/types';
   import { TONE_ICONS } from '$lib/utils/constants';
 
   interface Props {
     playerResponses: PlayerResponse[];
     suggestedActions: ActionSuggestion[];
     choiceAnimKey: number;
-    onChoice: (userInput: string, label: string) => void;
+    onChoice: (userInput: string, label: string, intent?: Intent) => void;
   }
 
   let { playerResponses, suggestedActions, choiceAnimKey, onChoice }: Props = $props();
@@ -37,6 +37,7 @@
     userInput: string;       // what to send to the backend
     meaningTag: string;
     companionReactions?: Record<string, number>;
+    intent?: Intent;
   }
 
   // Convert PlayerResponse[] or ActionSuggestion[] into unified choices
@@ -53,6 +54,7 @@
         consequenceHint: r.consequence_hint || '',
         userInput: r.display_text,
         meaningTag: r.meaning_tag || '',
+        intent: { intent_type: (r.action?.intent || "INVESTIGATE").toUpperCase() as Intent["intent_type"], params: { tone: r.action?.tone || null }, user_utterance: r.display_text },
       }));
     } else {
       // Fallback: legacy ActionSuggestion format
@@ -90,7 +92,7 @@
         <button
           class="choice-card tone-{choice.toneTag.toLowerCase()} stagger-enter"
           style="animation-delay: {i * 80}ms"
-          onclick={() => onChoice(choice.userInput, choice.displayText)}
+          onclick={() => onChoice(choice.userInput, choice.displayText, choice.intent)}
           aria-label="Choice {i + 1}: {choice.displayText}. {choice.consequenceHint ? choice.consequenceHint : ''}{choice.riskLevel && choice.riskLevel !== 'SAFE' ? '. Risk: ' + choice.riskLevel : ''}"
         >
           <div class="choice-inner">

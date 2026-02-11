@@ -14,6 +14,9 @@ from backend.app.core.projections import apply_projection
 from backend.app.core.state_loader import build_initial_gamestate, load_turn_history
 from backend.app.core.transcript_store import write_rendered_turn
 from backend.app.core.ledger import update_ledger, update_era_summaries
+from backend.app.core.truth_ledger import append_truth_facts, campaign_summary_from_facts, load_canonical_facts
+from backend.app.core.mission_progression import advance_scene_budget, apply_objective_progress, ensure_scene_and_objectives
+from backend.app.core.turn_contract import build_turn_contract
 from backend.app.constants import MEMORY_COMPRESSION_CHUNK_SIZE
 from backend.app.core.encounter_throttle import (
     apply_last_location_update_from_event,
@@ -43,6 +46,7 @@ def make_commit_node():
         suggested_actions = state.get("suggested_actions") or []
 
         next_turn_number = get_current_turn_number(conn, campaign_id) + 1
+        next_scene_hint: str | None = None
         events: list[Event] = [
             Event(event_type="TURN", payload={"user_input": user_input}, is_hidden=True),
         ]
@@ -119,6 +123,8 @@ def make_commit_node():
                         )
             _raw_ws = (state.get("campaign") or {}).get("world_state_json")
             world_state = dict(_raw_ws) if isinstance(_raw_ws, dict) else {}
+            world_state = ensure_scene_and_objectives(world_state)
+            world_state, next_scene_hint = advance_scene_budget(world_state, next_turn_number)
             if state.get("world_sim_ran") and state.get("world_sim_factions_update") is not None:
                 world_state = {**world_state, "active_factions": state["world_sim_factions_update"]}
             camp = state.get("campaign") or {}
@@ -130,6 +136,15 @@ def make_commit_node():
                 events,
                 final_text or "",
             )
+            world_state = apply_objective_progress(world_state, mechanic_result.get("state_delta") or {})
+            append_truth_facts(
+                conn,
+                campaign_id,
+                next_turn_number,
+                (mechanic_result.get("state_delta") or {}).get("facts") or {},
+            )
+            canonical_facts = load_canonical_facts(conn, campaign_id)
+            world_state["campaign_summary"] = campaign_summary_from_facts(canonical_facts)
             # V2.5: project stress changes to characters.psych_profile (authoritative).
             stress_delta = int(mechanic_result.get("stress_delta", 0))
             if stress_delta != 0:
@@ -337,6 +352,7 @@ def make_commit_node():
         refreshed_dict["embedded_suggestions"] = state.get("embedded_suggestions")
         refreshed_dict["lore_citations"] = state.get("lore_citations") or []
         refreshed_dict["warnings"] = state.get("warnings") or []
+        refreshed_dict["turn_contract"] = build_turn_contract(state, next_scene_hint=next_scene_hint).model_dump(mode="json")
 
         # V2.17: Assemble DialogueTurn from pipeline state
         scene_frame_data = state.get("scene_frame")

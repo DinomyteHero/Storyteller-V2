@@ -21,7 +21,7 @@
   import { announce, trapFocus } from '$lib/utils/a11y';
   import { TONE_ICONS, TONE_LABELS } from '$lib/utils/constants';
   import { touchCampaign } from '$lib/stores/campaigns';
-  import type { ActionSuggestion, TurnResponse, TranscriptTurn } from '$lib/api/types';
+  import type { ActionSuggestion, TurnResponse, TranscriptTurn, Intent } from '$lib/api/types';
 
   // V3.0: KOTOR-soul components
   import DialogueWheel from '$lib/components/choices/DialogueWheel.svelte';
@@ -222,10 +222,10 @@
         e.preventDefault();
         if (responses.length > 0) {
           const resp = responses[num - 1];
-          handleChoiceInput(resp.display_text, resp.display_text);
+          handleChoiceInput(resp.display_text, resp.display_text, undefined);
         } else {
           const action = actions[num - 1];
-          handleChoiceInput(action.intent_text || action.label, action.label);
+          handleChoiceInput(action.intent_text || action.label, action.label, undefined);
         }
         return;
       }
@@ -263,7 +263,7 @@
   }
 
   /** V3.0: Unified choice handler — accepts string input from DialogueWheel or keyboard shortcuts. */
-  async function handleChoiceInput(userInput: string, label: string) {
+  async function handleChoiceInput(userInput: string, label: string, intent?: Intent) {
     if (isSendingTurn || $isStreaming) return;
     const cId = $campaignId;
     const pId = $playerId;
@@ -280,7 +280,7 @@
       if ($ui.enableStreaming) {
         startStreaming();
         let finalResponse: TurnResponse | null = null;
-        for await (const event of streamTurn(cId, pId, userInput)) {
+        for await (const event of streamTurn(cId, pId, userInput, intent)) {
           if (event.type === 'token' && event.text) {
             appendToken(event.text);
           } else if (event.type === 'done') {
@@ -295,7 +295,7 @@
           fetchTranscript();
         }
       } else {
-        const result = await runTurn(cId, pId, userInput);
+        const result = await runTurn(cId, pId, userInput, false, intent);
         lastTurnResponse.set(result);
         fetchTranscript();
       }

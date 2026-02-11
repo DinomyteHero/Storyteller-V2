@@ -15,12 +15,73 @@ from backend.app.models.state import (
     TONE_TAG_NEUTRAL,
 )
 from backend.app.models.events import Event
+from backend.app.models.turn_contract import Outcome, StateDelta
 from backend.app.time_economy import get_time_cost, TRAVEL_HYPERSPACE_MINUTES
 
 # Action types (authoritative)
 ACTION_TYPES = (
     "TRAVEL", "ATTACK", "SNEAK", "PERSUADE", "INVESTIGATE", "INTERACT", "IDLE", "TALK"
 )
+
+
+INTENT_TO_ACTION_TYPE = {
+    "TALK": "PERSUADE",
+    "MOVE": "TRAVEL",
+    "FIGHT": "ATTACK",
+    "SNEAK": "SNEAK",
+    "HACK": "INVESTIGATE",
+    "INVESTIGATE": "INVESTIGATE",
+    "REST": "IDLE",
+    "BUY": "INTERACT",
+    "USE_ITEM": "INTERACT",
+    "FORCE": "ATTACK",
+}
+
+
+def _difficulty_tier(dc: int) -> int:
+    """Clamp to supported deterministic DC tiers."""
+    tiers = [5, 10, 15, 20, 25]
+    return min(tiers, key=lambda t: abs(t - int(dc)))
+
+
+def _outcome_tier(roll: int, total: int, dc: int) -> str:
+    if roll == 1:
+        return "CRIT_FAIL"
+    if roll == 20:
+        return "CRIT_SUCCESS"
+    if total >= dc + 5:
+        return "SUCCESS"
+    if total >= dc:
+        return "SUCCESS"
+    if total >= dc - 2:
+        return "PARTIAL"
+    return "FAIL"
+
+
+def _state_delta_from_events(events: list[Event], time_cost_minutes: int) -> StateDelta:
+    delta = StateDelta(time_minutes=int(time_cost_minutes or 0))
+    for e in events:
+        et = (e.event_type or "").upper()
+        payload = e.payload or {}
+        if et == "DAMAGE":
+            delta.health -= int(payload.get("amount", 0) or 0)
+        elif et == "HEAL":
+            delta.health += int(payload.get("amount", 0) or 0)
+        elif et in ("ITEM_GET", "ITEM_LOSE"):
+            delta.inventory.append({"event_type": et, **payload})
+        elif et == "RELATIONSHIP":
+            npc_id = str(payload.get("npc_id") or "")
+            if npc_id:
+                delta.relationships[npc_id] = delta.relationships.get(npc_id, 0) + int(payload.get("delta", 0) or 0)
+        elif et == "FLAG_SET":
+            key = str(payload.get("key") or "")
+            if "objective" in key or "quest" in key:
+                delta.objectives.append({"key": key, "value": payload.get("value")})
+            if key in {"public_violence", "combat_alert", "wanted_level"} and payload.get("value"):
+                delta.heat += 1
+            delta.facts[key] = payload.get("value")
+    return delta
+
 
 
 def _get_seed(state: GameState) -> int | None:
@@ -438,7 +499,9 @@ def resolve(state: GameState) -> MechanicOutput:
     rng = random.Random(seed) if seed is not None else random
     user_input = (state.user_input or "").strip()
     intent = state.intent
-    action_type = _classify_action(user_input, intent)
+    typed_intent = state.player_intent or {}
+    intent_type = str(typed_intent.get("intent_type") or "").upper()
+    action_type = INTENT_TO_ACTION_TYPE.get(intent_type, _classify_action(user_input, intent))
 
     if action_type == "TALK":
         tone, ad, frd, cad, crr = _choice_impact_for_action("TALK", True)
@@ -452,6 +515,8 @@ def resolve(state: GameState) -> MechanicOutput:
             faction_reputation_delta=frd,
             companion_affinity_delta=cad,
             companion_reaction_reason=crr,
+            outcome=Outcome(check="DIALOGUE", result="SUCCESS"),
+            state_delta=StateDelta(time_minutes=get_time_cost("TALK")),
         )
     if action_type == "IDLE":
         return MechanicOutput(
@@ -465,11 +530,13 @@ def resolve(state: GameState) -> MechanicOutput:
             faction_reputation_delta={},
             companion_affinity_delta={},
             companion_reaction_reason={},
+            outcome=Outcome(check="IDLE", result="PARTIAL"),
+            state_delta=StateDelta(),
         )
 
     # Physics: modifier, DC, roll
     modifier = _get_modifier(state, action_type)
-    dc = _compute_dc(state, action_type, user_input)
+    dc = _difficulty_tier(_compute_dc(state, action_type, user_input))
     roll = rng.randint(1, 20)
 
     # 3.3: Contextual advantage/disadvantage
@@ -486,6 +553,7 @@ def resolve(state: GameState) -> MechanicOutput:
     env_bonus = sum(int(m.get("value", 0)) for m in env_mods)
     total = roll + modifier + env_bonus
     success = total >= dc
+    outcome_result = _outcome_tier(roll, total, dc)
 
     events: List[Event] = []
     narrative_facts: List[str] = []
@@ -643,6 +711,8 @@ def resolve(state: GameState) -> MechanicOutput:
         narrative_facts.append(f"Environmental {direction}: {src} ({'+' if val > 0 else ''}{val})")
 
     tone, ad, frd, cad, crr = _choice_impact_for_action(action_type, success)
+    state_delta = _state_delta_from_events(events, time_cost_minutes)
+
     return MechanicOutput(
         action_type=action_type,
         time_cost_minutes=time_cost_minutes,
@@ -651,6 +721,8 @@ def resolve(state: GameState) -> MechanicOutput:
         dc=dc,
         roll=roll,
         success=success,
+        outcome=Outcome(check=action_type, difficulty=dc, roll=roll, skill_mod=modifier, situational_mod=env_bonus, total=total, result=outcome_result),
+        state_delta=state_delta,
         narrative_facts=narrative_facts,
         checks=checks,
         modifiers=env_mods,

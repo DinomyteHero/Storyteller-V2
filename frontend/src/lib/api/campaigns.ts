@@ -7,6 +7,7 @@ import type {
   SetupAutoResponse,
   TurnRequest,
   TurnResponse,
+  Intent,
   TranscriptResponse,
 } from './types';
 
@@ -21,9 +22,10 @@ export async function runTurn(
   campaignId: string,
   playerId: string,
   userInput: string,
-  debug: boolean = false
+  debug: boolean = false,
+  intent?: Intent
 ): Promise<TurnResponse> {
-  const req: TurnRequest = { user_input: userInput, debug };
+  const req: TurnRequest = { user_input: userInput, debug, intent };
   return apiFetch<TurnResponse>(
     `/v2/campaigns/${campaignId}/turn?player_id=${encodeURIComponent(playerId)}`,
     { method: 'POST', body: JSON.stringify(req) },

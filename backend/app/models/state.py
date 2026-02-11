@@ -7,6 +7,7 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 
 from backend.app.models.events import Event
+from backend.app.models.turn_contract import Outcome, StateDelta, TurnContract
 
 
 # --- UI / intent ---
@@ -108,6 +109,8 @@ class MechanicOutput(BaseModel):
     dc: int | None = None
     roll: int | None = None
     success: bool | None = None
+    outcome: Outcome | None = None  # strict deterministic outcome tier
+    state_delta: StateDelta = Field(default_factory=StateDelta)
     narrative_facts: list[str] = Field(default_factory=list)
     checks: list[MechanicCheck] = Field(default_factory=list)  # optional list of checks
     flags: dict[str, bool] = Field(default_factory=dict)  # optional: violence, stealth, etc.
@@ -172,6 +175,7 @@ class GameState(BaseModel):
 
     # Transient (cleared every turn)
     user_input: str = ""
+    player_intent: dict | None = None  # optional typed Intent from frontend
     intent: str | None = None  # router: "TALK" (skip mechanic) | "ACTION" (go to mechanic)
     route: str | None = None  # router: TALK | MECHANIC
     action_class: str | None = None  # router: DIALOGUE_ONLY | DIALOGUE_WITH_ACTION | PHYSICAL_ACTION | META
@@ -198,12 +202,14 @@ class GameState(BaseModel):
     npc_utterance: dict | None = None  # NPCUtterance (set by narrator node)
     player_responses: list[dict] = Field(default_factory=list)  # PlayerResponse list (set by suggestion_refiner)
     dialogue_turn: dict | None = None  # Assembled DialogueTurn (set by commit node)
+    turn_contract: TurnContract | None = None
 
     def cleared_for_next_turn(self) -> GameState:
         """Return a copy with transient fields reset; persistent and memory fields kept."""
         return self.model_copy(
             update={
                 "user_input": "",
+                "player_intent": None,
                 "intent": None,
                 "route": None,
                 "action_class": None,
@@ -236,5 +242,6 @@ class GameState(BaseModel):
                 "npc_utterance": None,
                 "player_responses": [],
                 "dialogue_turn": None,
+                "turn_contract": None,
             }
         )

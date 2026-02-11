@@ -23,6 +23,9 @@ from backend.app.core.router import route as router_route
 def router_node(state: dict[str, Any]) -> dict[str, Any]:
     """Router: classify input into route + action_class. Three branches: META, TALK, ACTION."""
     user_input = (state.get("user_input") or "").strip()
+    typed_intent = state.get("player_intent") or {}
+    if not user_input and isinstance(typed_intent, dict):
+        user_input = str(typed_intent.get("user_utterance") or typed_intent.get("intent_type") or "").strip()
     # Strip the [OPENING_SCENE] tag if present (used by UI to signal first turn)
     # but keep the actual action text for routing
     if "[OPENING_SCENE]" in user_input:
@@ -33,7 +36,9 @@ def router_node(state: dict[str, Any]) -> dict[str, Any]:
     intent_text = router_out.intent_text or user_input
     # Three-way intent: skip Mechanic only when TALK + DIALOGUE_ONLY + requires_resolution is false
     requires_resolution = getattr(router_out, "requires_resolution", True)
-    if route == ROUTER_ROUTE_META and action_class == "META":
+    if isinstance(typed_intent, dict) and typed_intent.get("intent_type") == "TALK":
+        intent = "ACTION"
+    elif route == ROUTER_ROUTE_META and action_class == "META":
         intent = "META"
     elif route == ROUTER_ROUTE_TALK and action_class == ROUTER_ACTION_CLASS_DIALOGUE_ONLY and not requires_resolution:
         intent = "TALK"

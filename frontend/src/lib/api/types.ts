@@ -72,6 +72,42 @@ export interface DialogueTurn {
   validation: ValidationReport | null;
 }
 
+
+export type IntentType = "TALK"|"MOVE"|"FIGHT"|"SNEAK"|"HACK"|"INVESTIGATE"|"REST"|"BUY"|"USE_ITEM"|"FORCE";
+
+export interface IntentTargetIds {
+  npc_id?: string;
+  location_id?: string;
+  item_id?: string;
+  faction_id?: string;
+}
+
+export interface Intent {
+  intent_type: IntentType;
+  target_ids?: IntentTargetIds;
+  params?: Record<string, unknown>;
+  user_utterance?: string;
+}
+
+export interface ContractChoice {
+  id: string;
+  label: string;
+  intent: Intent;
+  risk: 'low'|'med'|'high';
+  cost: { time_minutes: number; credits?: number; fatigue?: number; heat?: number };
+}
+
+export interface TurnContract {
+  scene_goal: string;
+  obstacle: string;
+  stakes: string;
+  choices: ContractChoice[];
+  outcome: Record<string, unknown>;
+  state_delta: Record<string, unknown>;
+  narration: string;
+  next_scene_hint?: string | null;
+}
+
 // ---------------------------------------------------------------------------
 // Legacy interfaces
 // ---------------------------------------------------------------------------
@@ -151,6 +187,7 @@ export interface TurnResponse {
   debug?: Record<string, unknown>;
   // V2.17: DialogueTurn contract (primary UI source when available)
   dialogue_turn?: DialogueTurn | null;
+  turn_contract?: TurnContract | null;
 }
 
 export interface SetupAutoRequest {
@@ -174,6 +211,7 @@ export interface SetupAutoResponse {
 
 export interface TurnRequest {
   user_input: string;
+  intent?: Intent;
   debug?: boolean;
   include_state?: boolean;
 }
@@ -206,6 +244,7 @@ export interface SSEEvent {
   warnings?: string[];
   // V2.17: DialogueTurn contract
   dialogue_turn?: DialogueTurn | null;
+  turn_contract?: TurnContract | null;
 }
 
 export interface EraBackground {
