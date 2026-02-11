@@ -56,6 +56,7 @@ Router → Mechanic → Encounter → WorldSim → CompanionReaction → ArcPlan
 | `ENABLE_PROCEDURAL_NPCS` | `1` (on) | Deterministic procedural NPC generation fallback |
 | `ENABLE_SUGGESTION_REFINER` | `1` (on) | LLM-based suggestion refinement (V2.16+) |
 | `ENABLE_CHARACTER_FACETS` | `0` (off) | Character facets system (disabled/incomplete) |
+| `ENABLE_CLOUD_BLUEPRINT` | `0` (off) | Cloud LLM for strategic campaign blueprint at bootup (V3.0) |
 
 ## Code Conventions
 

@@ -1,7 +1,21 @@
 """Campaign world generation: per-campaign locations, NPCs, and quest hooks.
 
+V3.0: Supports Historical/Sandbox campaign modes and optional cloud blueprint.
+
 Runs once at campaign creation to generate a unique world from era pack
 base content + RAG-retrieved lore from ingested novels.
+
+Campaign Modes (HOI4-style):
+  Historical: Canon events are immutable. Generated content fits within
+    established lore. Player choices affect personal story, not galactic history.
+  Sandbox: Player choices can reshape the galaxy. Generated content may
+    diverge from canon. Factions can be altered by player actions.
+
+Cloud Blueprint (opt-in via ENABLE_CLOUD_BLUEPRINT=1):
+  When enabled, uses a cloud LLM (Anthropic/OpenAI) for the strategic
+  campaign blueprint — the conflict web, NPC relationship graph, and
+  thematic throughline. Local models still handle per-turn execution.
+  Default: OFF (local Ollama only).
 """
 from __future__ import annotations
 
@@ -16,6 +30,9 @@ from backend.app.core.json_repair import ensure_json
 from backend.app.core.warnings import add_warning
 
 logger = logging.getLogger(__name__)
+
+# ── Campaign mode types ──────────────────────────────────────────────
+VALID_CAMPAIGN_MODES = ("historical", "sandbox")
 
 # Default counts for generated content
 DEFAULT_GENERATED_LOCATIONS = 5
@@ -59,6 +76,7 @@ def _build_generation_prompt(
     existing_factions: list[dict],
     player_concept: str,
     starting_location: str,
+    campaign_mode: str = "historical",
     num_locations: int = DEFAULT_GENERATED_LOCATIONS,
     num_npcs: int = DEFAULT_GENERATED_NPCS,
     num_quests: int = DEFAULT_GENERATED_QUESTS,
@@ -67,9 +85,27 @@ def _build_generation_prompt(
     era_label = era or "unknown"
     faction_names = [f.get("name", "") for f in existing_factions if isinstance(f, dict)]
 
+    # Mode-specific preamble
+    if campaign_mode == "sandbox":
+        mode_instruction = (
+            "CAMPAIGN MODE: SANDBOX. The player's choices can reshape galactic history. "
+            "Generated content should include leverage points where player actions could "
+            "alter major events. Factions may have vulnerabilities the player can exploit. "
+            "Canon events are starting conditions, not certainties.\n\n"
+        )
+    else:
+        mode_instruction = (
+            "CAMPAIGN MODE: HISTORICAL. Canon events in this era are immutable. "
+            "Generated content must fit within established Star Wars Legends lore. "
+            "NPCs and quests should exist in the margins of canon history — not contradict it. "
+            "The player can fail missions and face real consequences, but galactic-scale "
+            "events proceed as established.\n\n"
+        )
+
     system_prompt = (
         "You are a world-builder for a narrative RPG game. Generate unique campaign content "
         "that enriches the base world with new locations, NPCs, and quest hooks.\n\n"
+        + mode_instruction
         "Output ONLY a valid JSON object with this exact structure:\n"
         "{\n"
         '  "locations": [\n'
@@ -337,6 +373,80 @@ def _normalize_generated_quest(quest: dict) -> dict[str, Any]:
     }
 
 
+def _try_cloud_blueprint(
+    era: str | None,
+    era_pack: Any | None,
+    player_concept: str,
+    existing_factions: list[dict],
+    campaign_mode: str,
+    warnings: list[str] | None = None,
+) -> dict[str, Any] | None:
+    """Optionally call a cloud LLM for strategic campaign planning.
+
+    Only runs when ENABLE_CLOUD_BLUEPRINT=1. Returns a blueprint dict
+    with conflict_web, thematic_throughline, and npc_relationship_hints,
+    or None if disabled/failed.
+    """
+    try:
+        from backend.app.config import ENABLE_CLOUD_BLUEPRINT
+        if not ENABLE_CLOUD_BLUEPRINT:
+            return None
+    except ImportError:
+        return None
+
+    from backend.app.core.era_transition import get_era_definition, get_canon_constraints
+
+    era_def = get_era_definition(era) if era else None
+    canon = get_canon_constraints(era or "", campaign_mode)
+
+    system = (
+        "You are a master game designer planning a narrative RPG campaign. "
+        "Output ONLY valid JSON with keys: conflict_web (array of faction conflict pairs), "
+        "thematic_throughline (string: the campaign's central theme/question), "
+        "npc_relationship_hints (array of objects: {npc_role, connected_to, relationship_type}), "
+        "dramatic_tension (string: what makes this campaign interesting).\n\n"
+        f"Campaign mode: {campaign_mode.upper()}. "
+        f"{canon.get('mode_instruction', '')}"
+    )
+    faction_names = [f.get("name", "") for f in existing_factions if isinstance(f, dict)]
+    user = (
+        f"Era: {era_def.display_name if era_def else era or 'unknown'} ({era_def.time_period if era_def else 'unknown'})\n"
+        f"Era summary: {era_def.summary if era_def else 'N/A'}\n"
+        f"Player concept: {player_concept or 'A traveler'}\n"
+        f"Active factions: {', '.join(faction_names) if faction_names else 'none'}\n\n"
+        "Design the strategic backbone for this campaign: what conflicts drive the story, "
+        "what theme binds it together, and how NPCs connect to each other."
+    )
+
+    try:
+        from backend.app.core.llm_provider import create_provider
+        from backend.app.core.agents.base import AgentLLM
+
+        # Try to get a cloud provider (anthropic or openai)
+        llm = AgentLLM("architect")
+        client = llm._get_client()
+
+        # Check if we have a fallback cloud provider configured
+        fallback = llm._try_fallback_client()
+        if fallback is None:
+            # No cloud provider configured — use local
+            logger.debug("Cloud blueprint enabled but no cloud provider configured, skipping")
+            return None
+
+        raw = fallback.complete(user, system, json_mode=True)
+        cleaned = ensure_json(raw)
+        if cleaned:
+            blueprint = json.loads(cleaned)
+            if isinstance(blueprint, dict):
+                logger.info("CampaignInit: Cloud blueprint generated successfully")
+                return blueprint
+    except Exception as e:
+        logger.warning("CampaignInit: Cloud blueprint failed (non-fatal): %s", e)
+        add_warning(warnings, "Cloud campaign blueprint unavailable, using local generation.")
+
+    return None
+
+
 def initialize_campaign_world(
     campaign_id: str,
     era: str | None,
@@ -345,13 +455,20 @@ def initialize_campaign_world(
     starting_location: str,
     existing_factions: list[dict],
     skeleton: dict[str, Any],
+    campaign_mode: str = "historical",
     warnings: list[str] | None = None,
 ) -> dict[str, Any]:
     """Generate per-campaign world content: locations, NPCs, and quest hooks.
 
-    Returns a dict with keys: generated_locations, generated_npcs, generated_quests.
+    Returns a dict with keys: generated_locations, generated_npcs, generated_quests,
+    campaign_mode, and optionally campaign_blueprint (if cloud blueprint enabled).
     Uses LLM when available, falls back to deterministic generation.
     """
+    # Validate campaign mode
+    if campaign_mode not in VALID_CAMPAIGN_MODES:
+        logger.warning("Invalid campaign_mode '%s', defaulting to 'historical'", campaign_mode)
+        campaign_mode = "historical"
+
     seed = _derive_campaign_seed(campaign_id)
     rng = random.Random(seed)
 
@@ -372,12 +489,28 @@ def initialize_campaign_world(
     npc_cast = skeleton.get("npc_cast") or []
     existing_npc_names.extend(n.get("name", "") for n in npc_cast if n.get("name"))
 
+    # Optional: cloud blueprint for strategic planning
+    blueprint = _try_cloud_blueprint(
+        era=era, era_pack=era_pack, player_concept=player_concept,
+        existing_factions=existing_factions, campaign_mode=campaign_mode,
+        warnings=warnings,
+    )
+
     # Retrieve lore context from ingested novels
     lore_chunks = _retrieve_era_lore(era, starting_location)
     lore_context = ""
     if lore_chunks:
         lore_texts = [c.get("text", "")[:300] for c in lore_chunks[:10]]
         lore_context = "\n---\n".join(t for t in lore_texts if t)
+
+    # If blueprint exists, append it to lore context for richer generation
+    if blueprint:
+        blueprint_hint = (
+            f"\nCAMPAIGN BLUEPRINT (strategic backbone):\n"
+            f"Theme: {blueprint.get('thematic_throughline', 'N/A')}\n"
+            f"Dramatic tension: {blueprint.get('dramatic_tension', 'N/A')}\n"
+        )
+        lore_context += blueprint_hint
 
     # Try LLM generation
     generated = None
@@ -392,16 +525,18 @@ def initialize_campaign_world(
             existing_factions=existing_factions,
             player_concept=player_concept,
             starting_location=starting_location,
+            campaign_mode=campaign_mode,
         )
         raw = llm.complete(system_prompt, user_prompt, json_mode=True)
         generated = _parse_llm_world(raw)
         if generated:
             logger.info(
-                "CampaignInit: LLM generated %d locations, %d NPCs, %d quests for campaign %s",
+                "CampaignInit: LLM generated %d locations, %d NPCs, %d quests for campaign %s (mode=%s)",
                 len(generated.get("locations", [])),
                 len(generated.get("npcs", [])),
                 len(generated.get("quests", [])),
                 campaign_id,
+                campaign_mode,
             )
     except Exception as e:
         logger.warning("CampaignInit: LLM generation failed, using deterministic fallback: %s", e)
@@ -430,13 +565,18 @@ def initialize_campaign_world(
             # Reassign to a random generated location
             npc["default_location_id"] = gen_locations[0]["id"] if gen_locations else starting_location
 
-    return {
+    result: dict[str, Any] = {
         "generated_locations": gen_locations,
         "generated_npcs": gen_npcs,
         "generated_quests": gen_quests,
+        "campaign_mode": campaign_mode,
         "world_generation": {
             "source": "llm" if (generated and generated.get("locations")) else "deterministic",
             "seed": seed,
             "lore_chunks_used": len(lore_chunks),
+            "campaign_mode": campaign_mode,
         },
     }
+    if blueprint:
+        result["campaign_blueprint"] = blueprint
+    return result

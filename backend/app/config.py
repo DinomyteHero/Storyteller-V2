@@ -170,6 +170,7 @@ ENABLE_BIBLE_CASTING = _env_flag("ENABLE_BIBLE_CASTING", default=True)
 ENABLE_PROCEDURAL_NPCS = _env_flag("ENABLE_PROCEDURAL_NPCS", default=True)
 NPC_RENDER_ENABLED = _env_flag("NPC_RENDER_ENABLED", default=False)
 ENABLE_SUGGESTION_REFINER = _env_flag("ENABLE_SUGGESTION_REFINER", default=True)
+ENABLE_CLOUD_BLUEPRINT = _env_flag("ENABLE_CLOUD_BLUEPRINT", default=False)
 
 # World simulation (V2.5): tick interval in hours (default 4 = 240 min)
 # Override via WORLD_TICK_INTERVAL_HOURS env. See backend.app.time_economy for action costs.
