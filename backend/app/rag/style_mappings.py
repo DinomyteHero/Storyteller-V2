@@ -1,9 +1,15 @@
 """Static mappings from style source_title to era/genre/archetype classification."""
 from __future__ import annotations
 
-# Map source_title (filename stem) -> "BASE" (always-on Star Wars style)
+import os
+
+# Map source_title (filename stem) -> "BASE" (always-on base style)
+# V3.1: Configurable via BASE_STYLE_SOURCE env var for universe modularity.
+# Default: "star_wars_base_style" (existing behavior).
+# Other settings: BASE_STYLE_SOURCE=harry_potter_base_style
+_BASE_STYLE_SOURCE = os.environ.get("BASE_STYLE_SOURCE", "star_wars_base_style").strip()
 BASE_STYLE_MAP: dict[str, str] = {
-    "star_wars_base_style": "BASE",
+    _BASE_STYLE_SOURCE: "BASE",
 }
 
 # Map source_title (filename stem) -> canonical era ID

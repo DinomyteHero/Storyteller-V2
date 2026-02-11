@@ -40,7 +40,7 @@ ALLOWED_SERVICES: set[str] = {
     "market",
     "cantina",
 }
-ALLOWED_BYPASS_METHODS: set[str] = {
+_CORE_BYPASS_METHODS: set[str] = {
     # Physical
     "violence",
     "sneak",
@@ -57,12 +57,26 @@ ALLOWED_BYPASS_METHODS: set[str] = {
     "hack",
     "slice",
     "disable",
-    # Force / special
-    "force",
-    "force_dark",
+    # Generic special
     "logic_puzzle",
-    "sith_amulet",
 }
+
+
+def _load_setting_bypass_methods() -> set[str]:
+    """Load setting-specific bypass methods from SETTING_BYPASS_METHODS env var.
+
+    Default: Star Wars-specific methods (force, force_dark, sith_amulet).
+    Other settings can override: e.g. SETTING_BYPASS_METHODS="magic,potion,enchantment"
+    """
+    import os
+    env_val = os.environ.get("SETTING_BYPASS_METHODS", "").strip()
+    if env_val:
+        return {m.strip().lower() for m in env_val.split(",") if m.strip()}
+    # Default: Star Wars methods
+    return {"force", "force_dark", "sith_amulet"}
+
+
+ALLOWED_BYPASS_METHODS: set[str] = _CORE_BYPASS_METHODS | _load_setting_bypass_methods()
 LeverRating = Literal["low", "medium", "high", "false"]
 RumorScope = Literal["global", "location"]
 RumorCredibility = Literal["rumor", "likely", "confirmed"]
@@ -630,6 +644,10 @@ class EraPack(BaseModel):
     companions: List[EraCompanion] = Field(default_factory=list)
     faction_relationships: Dict[str, Any] | None = None
     style_ref: str | None = None
+    # V3.1: Per-pack background figures for universe modularity
+    background_figures: Dict[str, List[str]] = Field(default_factory=dict)
+    # V3.1: Setting name for prompts (e.g. "Star Wars Legends", "Harry Potter")
+    setting_name: str | None = None
     metadata: Dict[str, object] = Field(default_factory=dict)
 
     def all_npcs(self) -> List[EraNpcEntry]:

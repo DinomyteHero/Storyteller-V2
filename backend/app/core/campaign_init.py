@@ -95,9 +95,19 @@ def _build_generation_prompt(
             "Canon events are starting conditions, not certainties.\n\n"
         )
     else:
+        # V3.1: Resolve setting name from era pack (universe modularity)
+        setting_label = "the established lore"
+        if era_pack is not None:
+            _pack_setting = getattr(era_pack, "setting_name", None)
+            if _pack_setting:
+                setting_label = f"established {_pack_setting} lore"
+            else:
+                setting_label = "established Star Wars Legends lore"
+        else:
+            setting_label = "established Star Wars Legends lore"
         mode_instruction = (
-            "CAMPAIGN MODE: HISTORICAL. Canon events in this era are immutable. "
-            "Generated content must fit within established Star Wars Legends lore. "
+            f"CAMPAIGN MODE: HISTORICAL. Canon events in this era are immutable. "
+            f"Generated content must fit within {setting_label}. "
             "NPCs and quests should exist in the margins of canon history — not contradict it. "
             "The player can fail missions and face real consequences, but galactic-scale "
             "events proceed as established.\n\n"
@@ -420,21 +430,10 @@ def _try_cloud_blueprint(
     )
 
     try:
-        from backend.app.core.llm_provider import create_provider
-        from backend.app.core.agents.base import AgentLLM
-
-        # Try to get a cloud provider (anthropic or openai)
-        llm = AgentLLM("architect")
-        client = llm._get_client()
-
-        # Check if we have a fallback cloud provider configured
-        fallback = llm._try_fallback_client()
-        if fallback is None:
-            # No cloud provider configured — use local
-            logger.debug("Cloud blueprint enabled but no cloud provider configured, skipping")
-            return None
-
-        raw = fallback.complete(user, system, json_mode=True)
+        # V3.1: Use campaign_init role — handles primary→fallback chain automatically.
+        # In production, configure STORYTELLER_CAMPAIGN_INIT_PROVIDER=anthropic for cloud.
+        llm = AgentLLM("campaign_init")
+        raw = llm.complete(system, user, json_mode=True)
         cleaned = ensure_json(raw)
         if cleaned:
             blueprint = json.loads(cleaned)
@@ -525,7 +524,7 @@ def initialize_campaign_world(
     # Try LLM generation
     generated = None
     try:
-        llm = AgentLLM("architect")
+        llm = AgentLLM("campaign_init")
         system_prompt, user_prompt = _build_generation_prompt(
             era=era,
             era_pack=era_pack,

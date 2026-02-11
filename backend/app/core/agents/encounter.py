@@ -178,6 +178,18 @@ def get_dynamic_npc_cap(location_tags: set[str], campaign_scale: str | None = No
     return profile.max_present_npcs
 
 
+def _get_pack_background_figures(era_id: str) -> dict[str, list[str]]:
+    """Load background_figures from era pack if available, else empty dict."""
+    try:
+        from backend.app.world.era_pack_loader import get_era_pack
+        pack = get_era_pack(era_id)
+        if pack and pack.background_figures:
+            return dict(pack.background_figures)
+    except Exception:
+        pass
+    return {}
+
+
 def generate_background_figures(
     location_tags: set[str],
     era_id: str = "REBELLION",
@@ -187,13 +199,17 @@ def generate_background_figures(
     """Generate deterministic background figure descriptions for atmosphere.
 
     These are non-interactable — just flavor text for the narrator.
+    V3.1: Checks era pack background_figures first, falls back to built-in dict.
     """
     rng = rng or random
+    # Try era-pack-specific figures first
+    pack_figures = _get_pack_background_figures(era_id)
+    source = pack_figures if pack_figures else BACKGROUND_FIGURES
     pool: list[str] = []
     for tag in location_tags:
-        pool.extend(BACKGROUND_FIGURES.get(tag, []))
+        pool.extend(source.get(tag, []))
     if not pool:
-        pool = list(BACKGROUND_FIGURES["default"])
+        pool = list(source.get("default", BACKGROUND_FIGURES.get("default", [])))
     rng.shuffle(pool)
     return pool[:count]
 
