@@ -81,7 +81,7 @@ Note: `nomic-embed-text` via Ollama has different dimensions; use the sentence-t
 
 ## Ingestion Pipeline
 
-### Ingestion UI (Streamlit)
+### Ingestion UI (legacy Python app)
 **File:** `ingestion_app.py`
 
 Provides a local dashboard to run:

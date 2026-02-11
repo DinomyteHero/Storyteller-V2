@@ -109,10 +109,10 @@ ingestion/                # CLI ingestion
 shared/                   # Shared config/cache/schemas
 storyteller/              # Unified CLI (python -m storyteller)
   commands/               # doctor, setup, dev, ingest, query, extract-knowledge
-ui/                       # Legacy Streamlit helpers (api_client.py, components.py, themes.py)
+ui/                       # Legacy UI helpers (api_client.py, components.py, themes.py)
 frontend/                 # SvelteKit UI (Svelte 5, SvelteKit 2, Vite 6)
-streamlit_app.py          # Legacy Streamlit UI
-ingestion_app.py          # Streamlit ingestion studio
+streamlit_app.py          # Legacy UI entrypoint (deprecated)
+ingestion_app.py          # Legacy ingestion studio entrypoint
 data/                     # Runtime data (SQLite, LanceDB, lore, style, era packs, companions)
   static/era_packs/       # Bible data (factions, locations, NPCs, backgrounds)
   style/                  # Style docs (base, era, genre)

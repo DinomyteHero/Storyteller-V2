@@ -1,5 +1,5 @@
 /**
- * Formatting utilities — ported from streamlit_app.py.
+ * Formatting utilities — ported from the legacy Python UI.
  */
 import { LOCATION_DISPLAY_NAMES } from './constants';
 

@@ -55,7 +55,7 @@ This document describes the SWTOR/KOTOR-themed UI enhancements implemented to su
 **Files Modified**:
 - `ui/components.py` (+90 lines): `render_companion_roster()`
 - `ui/themes.py` (+22 lines): CSS classes
-- `streamlit_app.py` (+3 lines): Sidebar integration
+- `streamlit_app.py` (+3 lines): Legacy HUD sidebar integration
 
 ---
 
@@ -170,7 +170,7 @@ This document describes the SWTOR/KOTOR-themed UI enhancements implemented to su
 **Files Modified**:
 - `ui/components.py` (+70 lines): `render_faction_reputation()`
 - `ui/themes.py` (+10 lines): CSS classes
-- `streamlit_app.py` (+4 lines): Sidebar integration
+- `streamlit_app.py` (+4 lines): Legacy HUD sidebar integration
 
 ---
 
@@ -287,7 +287,7 @@ Backend (v2_campaigns.py:766-815)
     }
   }
   ↓
-Streamlit (_load_ui_data_once:1295-1320)
+Legacy Python UI (_load_ui_data_once:1295-1320)
   ↓ extracts party_status, faction_reputation
   ↓
 Sidebar (_render_right_sidebar:1320-1400)
@@ -447,7 +447,7 @@ All features adhere to authentic KOTOR/Mass Effect design language:
 
 ### Low Priority
 - **Accessibility enhancements**: ARIA labels, focus indicators, screen reader support
-- **Radial dialogue wheel**: Custom Streamlit component (requires JavaScript)
+- **Radial dialogue wheel**: Custom UI component (requires JavaScript)
 - **Character portraits**: Image generation or asset library integration
 - **Faction relationship matrix**: Graph visualization (complex)
 

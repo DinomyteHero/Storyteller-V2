@@ -42,7 +42,7 @@ python -m ingestion.ingest --input_dir <directory> --era LOTF --source_type nove
 - `--book_title`: Override book title for EPUB only; TXT always uses filename
 - `--recursive`: Recurse into subfolders
 - `--era-aliases`: JSON file mapping folder names to eras (e.g., `{"Legacy Era":"LOTF"}`)
-- `--era-mode`: `legacy` (default), `ui` (canonicalize to Streamlit era keys), or `folder` (use top-level folder names as eras)
+- `--era-mode`: `legacy` (default), `ui` (canonicalize to standard era keys), or `folder` (use top-level folder names as eras)
 - `--era auto`: Infer era from folder names (uses aliases + path segments)
 - `--era-pack`: Era pack id for deterministic NPC tagging (defaults to `--era`)
 - `--tag-npcs` / `--no-tag-npcs`: Enable or disable NPC tagging
@@ -64,7 +64,7 @@ python -m ingestion.ingest_lore --input ./data/lore --db ./data/lancedb
 - `--book-title`: Override book title
 - `--recursive`: Recurse into subfolders
 - `--era-aliases`: JSON file mapping folder names to eras
-- `--era-mode`: `legacy` (default), `ui` (canonicalize to Streamlit era keys), or `folder` (use top-level folder names as eras)
+- `--era-mode`: `legacy` (default), `ui` (canonicalize to standard era keys), or `folder` (use top-level folder names as eras)
 - `--era-pack`: Era pack id for deterministic NPC tagging (defaults to `--time-period`)
 - `--tag-npcs` / `--no-tag-npcs`: Enable or disable NPC tagging
 - `--npc-tagging-mode`: `strict` (default) or `lenient`
@@ -78,7 +78,7 @@ This repo includes a ready-to-ingest Rebellion starter pack under:
 - `data/lore/rebellion/sourcebooks/` (Narrator grounding)
 - `data/lore/rebellion/adventures/` (Director hook grounding)
 
-Recommended ingestion command (UI-era keys so runtime filters match Streamlit):
+Recommended ingestion command (UI-era keys so runtime filters match the frontend):
 
 ```powershell
 python -m ingestion.ingest_lore --input ./data/lore/rebellion --db ./data/lancedb --time-period REBELLION --era-mode ui --recursive

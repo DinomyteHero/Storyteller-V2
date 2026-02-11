@@ -1,5 +1,5 @@
 /**
- * UI constants — ported from streamlit_app.py.
+ * UI constants — ported from the legacy Python UI.
  */
 
 /** Display names for raw location IDs. */

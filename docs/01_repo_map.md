@@ -99,7 +99,7 @@ Storyteller AI/
     commands/                    # doctor, setup, dev, ingest, query, extract-knowledge
       extract_knowledge.py       # KG extraction command
 
-  ui/                            # Streamlit UI helpers (API client, components, themes)
+  ui/                            # Legacy Python UI helpers (API client, components, themes)
   shared/                        # Shared config/cache/schemas for backend + ingestion
     schemas.py                   # Shared Pydantic schemas (WorldSimOutput, etc.)
     config.py                    # Shared configuration
@@ -123,11 +123,11 @@ Storyteller AI/
     lore/                        # Lore source files (EPUB/PDF/TXT)
     manifests/                   # Ingestion manifest files
 
-  streamlit_app.py               # Main Streamlit UI (player HUD)
-  ingestion_app.py               # Streamlit ingestion studio
+  streamlit_app.py               # Legacy player HUD entrypoint (deprecated)
+  ingestion_app.py               # Legacy ingestion studio entrypoint (deprecated)
   start_dev.bat                  # Windows: start backend + UI (wraps scripts/dev.ps1)
   start_backend.bat              # Windows: start backend only
-  start_ui.bat                   # Windows: start Streamlit UI only
+  start_ui.bat                   # Windows: start legacy Python UI only
   start_ingestion_ui.bat         # Windows: start ingestion studio
 
   README.md                      # Main overview + setup + usage
@@ -153,8 +153,8 @@ Storyteller AI/
 | **First-time setup** | `python -m storyteller setup` | Create data dirs + copy `.env` + run health check |
 | **Health check** | `python -m storyteller doctor` | Verify Python/venv/deps/.env/data dirs/Ollama/LanceDB |
 | **API server** | `uvicorn backend.main:app` | Start FastAPI backend |
-| **Streamlit UI** | `streamlit run streamlit_app.py` | Player-facing UI |
-| **Ingestion Studio** | `streamlit run ingestion_app.py` | Local ingestion dashboard |
+| **SvelteKit UI** | `npm run dev` (in `frontend/`) | Player-facing UI |
+| **Ingestion Studio (legacy)** | `python -m streamlit run ingestion_app.py` | Local ingestion dashboard |
 | **Flat ingestion** | `python -m ingestion.ingest ...` | TXT/EPUB ingestion (no PDF) |
 | **Hierarchical ingestion** | `python -m ingestion.ingest_lore ...` | PDF/EPUB/TXT parent/child ingestion |
 | **KG extraction** | `python -m storyteller extract-knowledge ...` | Build SQLite KG tables from ingested lore |

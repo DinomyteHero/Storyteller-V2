@@ -28,7 +28,7 @@ Notes:
 
 Open:
 - Backend: `http://localhost:8000` (OpenAPI UI: `http://localhost:8000/docs`)
-- Streamlit UI: `http://localhost:8501`
+- SvelteKit UI: `http://localhost:5173`
 
 ---
 
@@ -86,7 +86,7 @@ python -m ingestion.ingest_lore --input ./data/lore/rebellion --db ./data/lanced
 python -m backend.app.scripts.ingest_style --dir ./data/style --db ./data/lancedb
 ```
 
-Rebellion tip: in Streamlit campaign setup, choose Era = `REBELLION` (or set `DEFAULT_ERA=REBELLION`).
+Rebellion tip: in campaign setup, choose Era = `REBELLION` (or set `DEFAULT_ERA=REBELLION`).
 
 ---
 

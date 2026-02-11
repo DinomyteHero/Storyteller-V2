@@ -1,5 +1,5 @@
 /**
- * Character creation utilities — ported from streamlit_app.py.
+ * Character creation utilities — ported from the legacy Python UI.
  *
  * Handles background question condition evaluation and random name generation.
  */

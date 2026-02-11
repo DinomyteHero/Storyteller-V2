@@ -162,7 +162,7 @@ if (-not $UiOnly) {
 }
 if (-not $BackendOnly) {
     if (Test-PortInUse -Port $UiPort) {
-        Write-Host "[INFO] Port $UiPort is in use. Streamlit will auto-pick the next available port." -ForegroundColor Cyan
+        Write-Host "[INFO] Port $UiPort is in use. The legacy Python UI may auto-pick the next available port." -ForegroundColor Cyan
     }
 }
 
@@ -227,7 +227,7 @@ try {
     # ── Start UI ─────────────────────────────────────────────────────
 
     if (-not $BackendOnly) {
-        Write-Host "[INFO] Starting Streamlit UI..." -ForegroundColor Cyan
+        Write-Host "[INFO] Starting legacy Python UI..." -ForegroundColor Cyan
         $uiArgs = @("-m", "streamlit", "run", "streamlit_app.py", "--server.port", "$UiPort")
         $uiProc = Start-Process -FilePath $python -ArgumentList $uiArgs -PassThru
         Write-Host "[OK] UI PID: $($uiProc.Id) -> http://localhost:$UiPort" -ForegroundColor Green

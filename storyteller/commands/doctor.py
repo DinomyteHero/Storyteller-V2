@@ -57,7 +57,6 @@ def _check_deps() -> list[str]:
         "fastapi", "uvicorn", "pydantic", "yaml", "lancedb",
         "sentence_transformers", "httpx", "pymupdf4llm", "pyarrow",
         "ebooklib", "bs4", "tiktoken", "langchain_core", "langgraph",
-        "streamlit",
     ]
     missing = []
     for mod in required:

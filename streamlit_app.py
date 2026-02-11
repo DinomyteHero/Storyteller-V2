@@ -1,4 +1,4 @@
-"""Storyteller AI — Narrative HUD (Streamlit UI).
+"""Storyteller AI — Narrative HUD (legacy Python UI).
 
 Sci-fi console UI with two themes (Rebel Amber / Alliance Blue),
 campaign creation, turn-based gameplay, HUD sidebar, and debug panel.
