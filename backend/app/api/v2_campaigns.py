@@ -152,6 +152,8 @@ class SetupAutoRequest(BaseModel):
     player_gender: str | None = None  # "male" or "female"
     # V2.10: Cross-campaign legacy — link to player profile
     player_profile_id: str | None = None
+    # V3.0: Campaign mode — "historical" (lore immutable) or "sandbox" (player reshapes galaxy)
+    campaign_mode: str = "historical"
 
 
 class SetupAutoResponse(BaseModel):
@@ -697,11 +699,15 @@ def setup_auto(body: SetupAutoRequest):
                 starting_location=starting_location,
                 existing_factions=active_factions,
                 skeleton=skeleton,
+                campaign_mode=body.campaign_mode or "historical",
             )
             world_state["generated_locations"] = campaign_world.get("generated_locations", [])
             world_state["generated_npcs"] = campaign_world.get("generated_npcs", [])
             world_state["generated_quests"] = campaign_world.get("generated_quests", [])
             world_state["world_generation"] = campaign_world.get("world_generation", {})
+            world_state["campaign_mode"] = campaign_world.get("campaign_mode", "historical")
+            if campaign_world.get("campaign_blueprint"):
+                world_state["campaign_blueprint"] = campaign_world["campaign_blueprint"]
             logger.info("Campaign world generated: %d locations, %d NPCs, %d quests",
                         len(world_state["generated_locations"]),
                         len(world_state["generated_npcs"]),
