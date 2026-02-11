@@ -99,13 +99,12 @@ Storyteller AI/
     commands/                    # doctor, setup, dev, ingest, query, extract-knowledge
       extract_knowledge.py       # KG extraction command
 
-  ui/                            # Legacy Python UI helpers (API client, components, themes)
   shared/                        # Shared config/cache/schemas for backend + ingestion
     schemas.py                   # Shared Pydantic schemas (WorldSimOutput, etc.)
     config.py                    # Shared configuration
     cache.py                     # Shared caching utilities
     lore_metadata.py             # Lore metadata definitions
-  scripts/                       # Dev/verification helpers (dev.ps1, validate_era_pack.py, verify_lore_store.py, rebuild_lancedb.py)
+  scripts/                       # Dev/verification helpers (validate_era_pack.py, verify_lore_store.py, rebuild_lancedb.py)
     extract_sw5e_data.py         # SW5e stat extraction
     ingest_style.py              # Style ingestion script
     split_era_pack.py            # Era pack splitting utility
@@ -123,11 +122,9 @@ Storyteller AI/
     lore/                        # Lore source files (EPUB/PDF/TXT)
     manifests/                   # Ingestion manifest files
 
-  streamlit_app.py               # Legacy player HUD entrypoint (deprecated)
   ingestion_app.py               # Legacy ingestion studio entrypoint (deprecated)
-  start_dev.bat                  # Windows: start backend + UI (wraps scripts/dev.ps1)
+  start_dev.bat                  # Windows: start backend + SvelteKit UI (`python -m storyteller dev`)
   start_backend.bat              # Windows: start backend only
-  start_ui.bat                   # Windows: start legacy Python UI only
   start_ingestion_ui.bat         # Windows: start ingestion studio
 
   README.md                      # Main overview + setup + usage

@@ -372,6 +372,116 @@ def _pick_start_location_from_pack(pack, player_concept: str, *, safe_only: bool
     return best.id
 
 
+def _deterministic_arc_seed(
+    *,
+    time_period: str | None,
+    genre: str | None,
+    themes: list[str],
+    player_concept: str,
+    starting_location: str,
+) -> dict:
+    """Build a deterministic arc scaffold used when LLM seeding is unavailable.
+
+    This seed is setup-time only. Runtime arc progression remains deterministic in
+    arc_planner_node using ledger + turn progression.
+    """
+    cleaned_themes = [str(t).strip() for t in (themes or []) if str(t).strip()][:3]
+    loc = (starting_location or "here").replace("loc-", "").replace("-", " ").replace("_", " ").strip() or "here"
+    genre_text = (genre or "adventure").strip() or "adventure"
+    period_text = (time_period or "unknown era").strip() or "unknown era"
+    concept = (player_concept or "A capable drifter").strip() or "A capable drifter"
+
+    if not cleaned_themes:
+        cleaned_themes = ["duty", "trust", "survival"]
+
+    opening_threads = [
+        f"Rumors in {loc} point to a deeper {genre_text} conspiracy.",
+        f"A personal stake emerges from the hero's past: {concept[:100]}",
+        f"Power blocs in {period_text} force a choice between safety and principle.",
+    ]
+    climax_question = "Will the hero sacrifice leverage to protect people they now trust?"
+    return {
+        "source": "deterministic_fallback",
+        "active_themes": cleaned_themes,
+        "opening_threads": opening_threads,
+        "climax_question": climax_question,
+        "arc_intent": "three-act moral pressure curve",
+    }
+
+
+def _generate_arc_seed(
+    *,
+    time_period: str | None,
+    genre: str | None,
+    themes: list[str],
+    player_concept: str,
+    starting_location: str,
+) -> dict:
+    """Generate setup-time arc seed via LLM, with deterministic fallback.
+
+    Runtime arc behavior remains deterministic. This only provides initial
+    campaign-specific scaffolding for ArcPlanner/Director context.
+    """
+    fallback = _deterministic_arc_seed(
+        time_period=time_period,
+        genre=genre,
+        themes=themes,
+        player_concept=player_concept,
+        starting_location=starting_location,
+    )
+
+    try:
+        from backend.app.core.agents.base import AgentLLM
+
+        llm = AgentLLM("architect")
+        system_prompt = (
+            "You create compact campaign arc scaffolds. Output valid JSON only. "
+            "Do not include markdown."
+        )
+        user_prompt = (
+            "Create a setup-time arc scaffold for a narrative RPG campaign.\n"
+            "Return EXACTLY one JSON object with keys:\n"
+            "active_themes: string[] (1-3 items),\n"
+            "opening_threads: string[] (2-3 items),\n"
+            "climax_question: string,\n"
+            "arc_intent: string.\n\n"
+            f"era={time_period or 'unknown'}\n"
+            f"genre={genre or 'unspecified'}\n"
+            f"themes={themes or []}\n"
+            f"starting_location={starting_location or 'here'}\n"
+            f"player_concept={player_concept or ''}\n"
+        )
+        raw = llm.complete(system_prompt, user_prompt, json_mode=True)
+        parsed = json.loads(str(raw)) if raw else {}
+        if not isinstance(parsed, dict):
+            return fallback
+
+        active_themes = [str(t).strip() for t in (parsed.get("active_themes") or []) if str(t).strip()][:3]
+        opening_threads = [str(t).strip() for t in (parsed.get("opening_threads") or []) if str(t).strip()][:3]
+        climax_question = str(parsed.get("climax_question") or "").strip()
+        arc_intent = str(parsed.get("arc_intent") or "").strip()
+
+        if not active_themes:
+            active_themes = fallback["active_themes"]
+        if len(opening_threads) < 2:
+            opening_threads = fallback["opening_threads"]
+        if not climax_question:
+            climax_question = fallback["climax_question"]
+        if not arc_intent:
+            arc_intent = fallback["arc_intent"]
+
+        return {
+            "source": "llm_setup_seed",
+            "active_themes": active_themes,
+            "opening_threads": opening_threads,
+            "climax_question": climax_question,
+            "arc_intent": arc_intent,
+        }
+    except Exception:
+        logger.exception("setup_auto arc seed generation failed; using deterministic fallback")
+        return fallback
+
+
 @router.post("/setup/auto", response_model=SetupAutoResponse)
 def setup_auto(body: SetupAutoRequest):
     """Create campaign via Architect + Biographer; return campaign_id, player_id, skeleton, character_sheet."""
@@ -479,6 +589,15 @@ def setup_auto(body: SetupAutoRequest):
                 create_default_npcs = True
         companion_state = build_initial_companion_state(world_time_minutes=0, era=time_period)
         world_state = {"active_factions": active_factions, **companion_state}
+        # Hybrid arc approach: one setup-time scaffold (LLM when available),
+        # then deterministic arc progression for all runtime turns.
+        world_state["arc_seed"] = _generate_arc_seed(
+            time_period=time_period,
+            genre=body.genre,
+            themes=body.themes,
+            player_concept=body.player_concept,
+            starting_location=starting_location,
+        )
         # V2.10: Auto-genre assignment (background + location tags → genre)
         if body.genre:
             world_state["genre"] = body.genre

@@ -29,20 +29,7 @@ The API helper that opens a connection runs schema application checks (`apply_sc
 
 ---
 
-### 3) Legacy Python UI Redundant State Fetches
-
-**Severity:** Medium (UX/perf)
-**File:** `streamlit_app.py`
-
-Multiple `get_state()` calls can occur per render cycle.
-
-**Impact:** Extra HTTP + SQLite round-trips; noticeable latency on slower machines.
-
-**Recommendation:** Cache the current state once per render in `st.session_state` and invalidate on new turns.
-
----
-
-### 4) Mechanic "Choice Impact" Deltas Partially Populated
+### 3) Mechanic "Choice Impact" Deltas Partially Populated
 
 **Severity:** Low (functionality gap / tuning)
 **File:** `backend/app/core/agents/mechanic.py`
@@ -53,7 +40,7 @@ Multiple `get_state()` calls can occur per render cycle.
 
 ---
 
-### 5) Duplicate Static NPC Cast Definitions (Legacy Path)
+### 4) Duplicate Static NPC Cast Definitions (Legacy Path)
 
 **Severity:** Low (maintainability)
 **Files:** `backend/app/api/v2_campaigns.py`, `backend/app/core/agents/architect.py`
@@ -64,7 +51,7 @@ Both files embed a "12 NPC cast" template for non-Era Pack setups.
 
 ---
 
-### 6) Single-Writer Assumption (No Optimistic Locking)
+### 5) Single-Writer Assumption (No Optimistic Locking)
 
 **Severity:** Low (fine for local-only)
 **File:** `backend/app/core/nodes/commit.py`
@@ -75,7 +62,7 @@ Commit assumes it is the only writer for a campaign (no version checks).
 
 ---
 
-### 7) Character Facets Not Implemented
+### 6) Character Facets Not Implemented
 
 **Severity:** Low (feature gap)
 **File:** `ingestion/build_character_facets.py`, `backend/app/config.py`
@@ -86,7 +73,7 @@ Character facets generation is disabled by default (`ENABLE_CHARACTER_FACETS=0`)
 
 ---
 
-### 8) Suggestion Cache Is Basic
+### 7) Suggestion Cache Is Basic
 
 **Severity:** Low (optimization opportunity)
 **File:** `backend/app/core/suggestion_cache.py`

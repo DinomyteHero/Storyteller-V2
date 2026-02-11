@@ -202,6 +202,22 @@ def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
 
     # Theme guidance (Phase 3)
     active_themes = ledger.get("active_themes") or []
+
+    # Hybrid setup seed (if present): use setup-time arc seed as initial scaffold,
+    # then continue deterministic progression from ledger + turn state.
+    arc_seed = ws.get("arc_seed") if isinstance(ws, dict) else {}
+    if not isinstance(arc_seed, dict):
+        arc_seed = {}
+    seed_themes = [str(t).strip() for t in (arc_seed.get("active_themes") or []) if str(t).strip()]
+    if not active_themes and seed_themes:
+        active_themes = seed_themes[:3]
+
+    seed_threads = [str(t).strip() for t in (arc_seed.get("opening_threads") or []) if str(t).strip()]
+    if turn_number <= 3 and seed_threads:
+        seed_priority_threads = seed_threads[:2]
+        if not priority_threads:
+            priority_threads = seed_priority_threads
+
     theme_guidance = _THEME_GUIDANCE_BY_STAGE.get(arc_stage, "") if active_themes else ""
 
     # Hero's Journey sub-beat (deterministic, based on turns in stage)
@@ -235,6 +251,8 @@ def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
     arc_guidance = {
         "arc_stage": arc_stage,
         "priority_threads": priority_threads,
+        "seed_climax_question": str(arc_seed.get("climax_question") or "").strip() or None,
+        "arc_intent": str(arc_seed.get("arc_intent") or "").strip() or None,
         "tension_level": tension_level,
         "pacing_hint": pacing_hint,
         "suggested_weight": suggested_weight,
