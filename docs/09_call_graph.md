@@ -2,7 +2,7 @@
 
 This document is a **"where does this code run from?"** map:
 
-- The main entry points (UI, API, CLI, ingestion)
+- The main entry points (web UI, API, CLI, ingestion)
 - The end-to-end **turn execution** path
 - A node-by-node reference for the **LangGraph** pipeline
 
@@ -12,10 +12,10 @@ It intentionally avoids line numbers (they go stale quickly). Use file paths + f
 
 ## 1) Entry Points
 
-### Streamlit UI
+### Web UI (SvelteKit)
 
-- **Entry:** `streamlit_app.py` (repo root)
-- **Backend client:** `ui/api_client.py` (HTTP calls into FastAPI)
+- **Entry:** `frontend/`
+- **Backend client:** `frontend/src/lib/api/*` (HTTP + SSE calls into FastAPI)
 
 ### FastAPI Backend
 
@@ -45,7 +45,7 @@ It intentionally avoids line numbers (they go stale quickly). Use file paths + f
 Primary execution path for gameplay is the V2 turn endpoint:
 
 ```
-Streamlit UI
+SvelteKit frontend
   -> POST /v2/campaigns/{campaign_id}/turn?player_id=...
       backend/app/api/v2_campaigns.py:post_turn()
         -> _get_conn() (apply_schema + open sqlite connection)

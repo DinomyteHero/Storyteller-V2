@@ -5,6 +5,7 @@ import json
 import logging
 import random
 import uuid
+import time
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -25,6 +26,10 @@ from backend.app.core.graph import run_turn
 from backend.app.core.event_store import append_events, get_recent_public_rumors
 from backend.app.core.projections import apply_projection
 from backend.app.models.state import GameState, ActionSuggestion
+from backend.app.models.turn_contract import Intent, TurnContract, TurnMeta, TurnDebug
+from backend.app.core.turn_contract import build_turn_contract
+from backend.app.core.truth_ledger import get_facts, ledger_summary, upsert_facts, record_event
+from backend.app.core.passages.engine import load_episode, render_template, build_choices, apply_choice
 from backend.app.models.events import Event
 from backend.app.core.agents import CampaignArchitect, BiographerAgent
 
@@ -157,7 +162,8 @@ class SetupAutoResponse(BaseModel):
 
 
 class TurnRequest(BaseModel):
-    user_input: str
+    user_input: str = ""
+    intent: Intent | None = None
     debug: bool = False
     include_state: bool = False
 
@@ -198,6 +204,7 @@ class TurnResponse(BaseModel):
     warnings: list[str] = Field(default_factory=list)
     # V2.17: Canonical DialogueTurn (scene + NPC utterance + player responses)
     dialogue_turn: dict | None = None
+    turn_contract: TurnContract | None = None
 
 
 def _get_conn():
@@ -365,11 +372,122 @@ def _pick_start_location_from_pack(pack, player_concept: str, *, safe_only: bool
     return best.id
 
 
+def _deterministic_arc_seed(
+    *,
+    time_period: str | None,
+    genre: str | None,
+    themes: list[str],
+    player_concept: str,
+    starting_location: str,
+) -> dict:
+    """Build a deterministic arc scaffold used when LLM seeding is unavailable.
+
+    This seed is setup-time only. Runtime arc progression remains deterministic in
+    arc_planner_node using ledger + turn progression.
+    """
+    cleaned_themes = [str(t).strip() for t in (themes or []) if str(t).strip()][:3]
+    loc = (starting_location or "here").replace("loc-", "").replace("-", " ").replace("_", " ").strip() or "here"
+    genre_text = (genre or "adventure").strip() or "adventure"
+    period_text = (time_period or "unknown era").strip() or "unknown era"
+    concept = (player_concept or "A capable drifter").strip() or "A capable drifter"
+
+    if not cleaned_themes:
+        cleaned_themes = ["duty", "trust", "survival"]
+
+    opening_threads = [
+        f"Rumors in {loc} point to a deeper {genre_text} conspiracy.",
+        f"A personal stake emerges from the hero's past: {concept[:100]}",
+        f"Power blocs in {period_text} force a choice between safety and principle.",
+    ]
+    climax_question = "Will the hero sacrifice leverage to protect people they now trust?"
+    return {
+        "source": "deterministic_fallback",
+        "active_themes": cleaned_themes,
+        "opening_threads": opening_threads,
+        "climax_question": climax_question,
+        "arc_intent": "three-act moral pressure curve",
+    }
+
+
+def _generate_arc_seed(
+    *,
+    time_period: str | None,
+    genre: str | None,
+    themes: list[str],
+    player_concept: str,
+    starting_location: str,
+) -> dict:
+    """Generate setup-time arc seed via LLM, with deterministic fallback.
+
+    Runtime arc behavior remains deterministic. This only provides initial
+    campaign-specific scaffolding for ArcPlanner/Director context.
+    """
+    fallback = _deterministic_arc_seed(
+        time_period=time_period,
+        genre=genre,
+        themes=themes,
+        player_concept=player_concept,
+        starting_location=starting_location,
+    )
+
+    try:
+        from backend.app.core.agents.base import AgentLLM
+
+        llm = AgentLLM("architect")
+        system_prompt = (
+            "You create compact campaign arc scaffolds. Output valid JSON only. "
+            "Do not include markdown."
+        )
+        user_prompt = (
+            "Create a setup-time arc scaffold for a narrative RPG campaign.\n"
+            "Return EXACTLY one JSON object with keys:\n"
+            "active_themes: string[] (1-3 items),\n"
+            "opening_threads: string[] (2-3 items),\n"
+            "climax_question: string,\n"
+            "arc_intent: string.\n\n"
+            f"era={time_period or 'unknown'}\n"
+            f"genre={genre or 'unspecified'}\n"
+            f"themes={themes or []}\n"
+            f"starting_location={starting_location or 'here'}\n"
+            f"player_concept={player_concept or ''}\n"
+        )
+        raw = llm.complete(system_prompt, user_prompt, json_mode=True)
+        parsed = json.loads(str(raw)) if raw else {}
+        if not isinstance(parsed, dict):
+            return fallback
+
+        active_themes = [str(t).strip() for t in (parsed.get("active_themes") or []) if str(t).strip()][:3]
+        opening_threads = [str(t).strip() for t in (parsed.get("opening_threads") or []) if str(t).strip()][:3]
+        climax_question = str(parsed.get("climax_question") or "").strip()
+        arc_intent = str(parsed.get("arc_intent") or "").strip()
+
+        if not active_themes:
+            active_themes = fallback["active_themes"]
+        if len(opening_threads) < 2:
+            opening_threads = fallback["opening_threads"]
+        if not climax_question:
+            climax_question = fallback["climax_question"]
+        if not arc_intent:
+            arc_intent = fallback["arc_intent"]
+
+        return {
+            "source": "llm_setup_seed",
+            "active_themes": active_themes,
+            "opening_threads": opening_threads,
+            "climax_question": climax_question,
+            "arc_intent": arc_intent,
+        }
+    except Exception:
+        logger.exception("setup_auto arc seed generation failed; using deterministic fallback")
+        return fallback
+
+
 @router.post("/setup/auto", response_model=SetupAutoResponse)
 def setup_auto(body: SetupAutoRequest):
     """Create campaign via Architect + Biographer; return campaign_id, player_id, skeleton, character_sheet."""
     from backend.app.core.agents.base import AgentLLM
     conn = _get_conn()
+    start_ts = time.perf_counter()
     try:
         try:
             _arch = CampaignArchitect(llm=AgentLLM("architect"))
@@ -471,6 +589,15 @@ def setup_auto(body: SetupAutoRequest):
                 create_default_npcs = True
         companion_state = build_initial_companion_state(world_time_minutes=0, era=time_period)
         world_state = {"active_factions": active_factions, **companion_state}
+        # Hybrid arc approach: one setup-time scaffold (LLM when available),
+        # then deterministic arc progression for all runtime turns.
+        world_state["arc_seed"] = _generate_arc_seed(
+            time_period=time_period,
+            genre=body.genre,
+            themes=body.themes,
+            player_concept=body.player_concept,
+            starting_location=starting_location,
+        )
         # V2.10: Auto-genre assignment (background + location tags → genre)
         if body.genre:
             world_state["genre"] = body.genre
@@ -674,6 +801,7 @@ def create_campaign(body: CreateCampaignRequest):
         )
         if create_default_npcs:
             _create_npc_cast(conn, campaign_id, body.starting_location)
+        _seed_default_objective(conn, campaign_id)
         conn.commit()
 
         # Optional: initial FLAG_SET at turn 1 so get_current_turn_number works sensibly
@@ -694,6 +822,7 @@ def get_campaign_state(
 ):
     """Return current GameState for the campaign (history populated via state_loader)."""
     conn = _get_conn()
+    start_ts = time.perf_counter()
     try:
         _ensure_campaign_and_player(conn, campaign_id, player_id)
         state = build_initial_gamestate(conn, campaign_id, player_id)
@@ -752,6 +881,76 @@ def _pad_suggestions_to_three(actions: list) -> list:
     return _pad_suggestions_for_ui(actions)
 
 
+
+
+
+
+def _seed_default_objective(conn, campaign_id: str) -> None:
+    existing = conn.execute(
+        "SELECT id FROM objectives WHERE campaign_id = ? AND status = 'active' LIMIT 1",
+        (campaign_id,),
+    ).fetchone()
+    if existing:
+        return
+    oid = f"obj-{uuid.uuid4().hex[:8]}"
+    conn.execute(
+        """
+        INSERT INTO objectives (id, campaign_id, title, description, success_conditions_json, progress_json, status, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, 'active', datetime('now'), datetime('now'))
+        """,
+        (
+            oid,
+            campaign_id,
+            "Establish your foothold",
+            "Secure intelligence and identify the primary opposition.",
+            json.dumps({"type": "discover_opposition"}),
+            json.dumps({"progress": 0, "target": 3}),
+        ),
+    )
+
+def _world_state_dict(camp: dict) -> dict:
+    ws = camp.get("world_state_json") if isinstance(camp, dict) else {}
+    if isinstance(ws, str):
+        try:
+            ws = json.loads(ws) if ws else {}
+        except json.JSONDecodeError:
+            ws = {}
+    return ws if isinstance(ws, dict) else {}
+
+
+def _active_objectives(conn, campaign_id: str) -> list[dict]:
+    rows = conn.execute(
+        "SELECT id, title, description, progress_json, status FROM objectives WHERE campaign_id = ? AND status = 'active' ORDER BY updated_at DESC LIMIT 5",
+        (campaign_id,),
+    ).fetchall()
+    out = []
+    for r in rows:
+        progress = {}
+        try:
+            progress = json.loads(r["progress_json"] or "{}")
+        except Exception:
+            pass
+        out.append({"objective_id": r["id"], "title": r["title"], "description": r["description"], "progress": progress, "status": r["status"]})
+    return out
+
+
+def _decrement_beats(conn, campaign_id: str, camp: dict) -> tuple[int, str | None, bool]:
+    ws = _world_state_dict(camp)
+    beats = int(ws.get("beats_remaining", 4)) - 1
+    scene_note = None
+    forced = False
+    if beats <= 0:
+        beats = 4
+        ws["scene_id"] = f"scene-{uuid.uuid4().hex[:8]}"
+        ws["force_scene_transition"] = True
+        forced = True
+        scene_note = "Scene transitioned due to beat budget exhaustion."
+    else:
+        ws["force_scene_transition"] = False
+    ws["beats_remaining"] = beats
+    conn.execute("UPDATE campaigns SET world_state_json = ? WHERE id = ?", (json.dumps(ws), campaign_id))
+    return beats, scene_note, forced
+
 def _pad_suggestions_for_ui(actions: list) -> list:
     """Pass through suggestions for the UI. SuggestionRefiner owns the 4-item contract."""
     if not actions:
@@ -772,10 +971,14 @@ def post_turn(
     if body is None:
         body = TurnRequest(user_input="")
     conn = _get_conn()
+    start_ts = time.perf_counter()
     try:
         _ensure_campaign_and_player(conn, campaign_id, player_id)
         state = build_initial_gamestate(conn, campaign_id, player_id)
-        state.user_input = body.user_input
+        if body.intent is not None:
+            state.user_input = body.intent.user_utterance or json.dumps(body.intent.model_dump(mode="json"))
+        else:
+            state.user_input = body.user_input
         try:
             result = run_turn(conn, state)
         except Exception as e:
@@ -887,6 +1090,51 @@ def post_turn(
             context_stats_out = result.context_stats
         warnings_out = getattr(result, "warnings", None) or []
 
+        camp_live = load_campaign(conn, campaign_id) or {}
+        beats_remaining, scene_transition_note, force_scene_transition = _decrement_beats(conn, campaign_id, camp_live)
+        ws_live = _world_state_dict(camp_live)
+        mode = str(ws_live.get("mode") or "SIM").upper()
+        ledger_facts = get_facts(conn, campaign_id)
+        objectives = _active_objectives(conn, campaign_id)
+        if not objectives:
+            _seed_default_objective(conn, campaign_id)
+            objectives = _active_objectives(conn, campaign_id)
+        if scene_transition_note:
+            warnings_out.append(scene_transition_note)
+        turn_contract = build_turn_contract(
+            mode=mode if mode in {"SIM", "PASSAGE", "HYBRID"} else "SIM",
+            campaign_id=campaign_id,
+            turn_id=f"{campaign_id}_t{state.turn_number + 1}",
+            display_text=result.final_text or "",
+            scene_goal=((getattr(result, "scene_frame", None) or {}).get("player_objective") if isinstance(getattr(result, "scene_frame", None), dict) else "Advance the current objective"),
+            obstacle=((getattr(result, "scene_frame", None) or {}).get("immediate_situation") if isinstance(getattr(result, "scene_frame", None), dict) else "Escalating opposition"),
+            stakes="Mission momentum, faction trust, and party safety.",
+            mechanic_result=result.mechanic_result,
+            suggested_actions=suggested_actions,
+            meta=TurnMeta(
+                scene_id=ws_live.get("scene_id"),
+                beats_remaining=beats_remaining,
+                active_objectives=objectives,
+                alignment=alignment_out or None,
+                reputations=faction_reputation_out or None,
+                passage_id=ws_live.get("current_passage_id"),
+            ),
+            ledger_facts=ledger_facts,
+            has_companions=bool((camp or {}).get("party")),
+            force_scene_transition=force_scene_transition,
+        )
+        if turn_contract.state_delta.facts_upsert:
+            upsert_facts(conn, campaign_id, turn_contract.turn_id, turn_contract.state_delta.facts_upsert)
+        if turn_contract.debug and turn_contract.debug.validation_errors:
+            record_event(conn, campaign_id, turn_contract.turn_id, {
+                "event_type": "turn_contract_validation_failure",
+                "errors": turn_contract.debug.validation_errors,
+                "repair_count": turn_contract.debug.repair_count,
+            })
+        conn.commit()
+
+        logger.info("turn_complete node=post_turn campaign_id=%s turn_id=%s latency_ms=%s validation_errors=%s repair_count=%s", campaign_id, turn_contract.turn_id, int((time.perf_counter()-start_ts)*1000), len((turn_contract.debug.validation_errors if turn_contract.debug else [])), (turn_contract.debug.repair_count if turn_contract.debug else 0))
+
         return TurnResponse(
             narrated_text=result.final_text or "",
             suggested_actions=suggested_actions,
@@ -903,6 +1151,7 @@ def post_turn(
             context_stats=context_stats_out,
             warnings=warnings_out,
             dialogue_turn=getattr(result, "dialogue_turn", None),
+            turn_contract=turn_contract,
         )
     except HTTPException:
         # Re-raise HTTP exceptions (e.g., 404 from _ensure_campaign_and_player)
@@ -1019,6 +1268,7 @@ def post_turn_stream(
         body = TurnRequest(user_input="")
 
     conn = _get_conn()
+    start_ts = time.perf_counter()
 
     # Validate campaign/player before starting the stream
     try:
@@ -1043,7 +1293,10 @@ def post_turn_stream(
             from backend.app.core.warnings import add_warning
 
             state = build_initial_gamestate(conn, campaign_id, player_id)
-            state.user_input = body.user_input
+            if body.intent is not None:
+                state.user_input = body.intent.user_utterance or json.dumps(body.intent.model_dump(mode="json"))
+            else:
+                state.user_input = body.user_input
 
             # Run pre-narrator pipeline (Router → ... → Director)
             pre_state = _run_pre_narrator_pipeline(conn, state)
@@ -1187,6 +1440,43 @@ def post_turn_stream(
 
             warnings_out = getattr(result_gs, "warnings", None) or []
 
+            beats_remaining, scene_transition_note, force_scene_transition = _decrement_beats(conn, campaign_id, camp)
+            ws_live = _world_state_dict(camp)
+            objectives = _active_objectives(conn, campaign_id)
+            if not objectives:
+                _seed_default_objective(conn, campaign_id)
+                objectives = _active_objectives(conn, campaign_id)
+            if scene_transition_note:
+                warnings_out.append(scene_transition_note)
+
+            turn_contract = build_turn_contract(
+                mode=str(ws_live.get("mode") or "SIM").upper(),
+                campaign_id=campaign_id,
+                turn_id=f"{campaign_id}_t{state.turn_number + 1}",
+                display_text=final_text,
+                scene_goal=((getattr(result_gs, "scene_frame", None) or {}).get("player_objective") if isinstance(getattr(result_gs, "scene_frame", None), dict) else "Advance the current objective"),
+                obstacle=((getattr(result_gs, "scene_frame", None) or {}).get("immediate_situation") if isinstance(getattr(result_gs, "scene_frame", None), dict) else "Escalating opposition"),
+                stakes="Mission momentum, faction trust, and party safety.",
+                mechanic_result=result_gs.mechanic_result,
+                suggested_actions=suggested_actions,
+                meta=TurnMeta(
+                    scene_id=ws_live.get("scene_id"),
+                    beats_remaining=beats_remaining,
+                    active_objectives=objectives,
+                    passage_id=ws_live.get("current_passage_id"),
+                ),
+                ledger_facts=get_facts(conn, campaign_id),
+                has_companions=bool((camp or {}).get("party")),
+                force_scene_transition=force_scene_transition,
+            )
+            if turn_contract.debug and turn_contract.debug.validation_errors:
+                record_event(conn, campaign_id, turn_contract.turn_id, {
+                    "event_type": "turn_contract_validation_failure",
+                    "errors": turn_contract.debug.validation_errors,
+                    "repair_count": turn_contract.debug.repair_count,
+                })
+            conn.commit()
+
             done_payload = {
                 "type": "done",
                 "narrated_text": final_text,
@@ -1200,17 +1490,57 @@ def post_turn_stream(
                 "world_time_minutes": world_time_minutes,
                 "warnings": warnings_out,
                 "dialogue_turn": getattr(result_gs, "dialogue_turn", None),
+                "turn_contract": turn_contract.model_dump(mode="json"),
             }
+            logger.info("turn_complete node=turn_stream campaign_id=%s turn_id=%s latency_ms=%s validation_errors=%s repair_count=%s", campaign_id, turn_contract.turn_id, int((time.perf_counter()-start_ts)*1000), len((turn_contract.debug.validation_errors if turn_contract.debug else [])), (turn_contract.debug.repair_count if turn_contract.debug else 0))
             yield f"data: {json.dumps(done_payload)}\n\n"
 
         except Exception as e:
-            logger.exception("SSE turn_stream failed for campaign %s", campaign_id)
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)[:200]})}\n\n"
+            logger.exception("SSE turn_stream failed node=turn_stream campaign_id=%s latency_ms=%s", campaign_id, int((time.perf_counter()-start_ts)*1000))
+            yield f"data: {json.dumps({'type': 'error', 'message': f'Stream failed; retrying via non-stream endpoint is recommended. Details: {str(e)[:160]}'})}\n\n"
         finally:
             conn.close()
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
+
+
+@router.get("/campaigns/{campaign_id}/validation_failures")
+def get_validation_failures(
+    campaign_id: str,
+    limit: int = Query(20, ge=1, le=200),
+):
+    conn = _get_conn()
+    try:
+        if load_campaign(conn, campaign_id) is None:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        rows = conn.execute(
+            """
+            SELECT turn_id, event_json, created_at FROM truth_events
+            WHERE campaign_id = ?
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (campaign_id, limit),
+        ).fetchall()
+        failures = []
+        for r in rows:
+            payload = {}
+            try:
+                payload = json.loads(r["event_json"] or "{}")
+            except Exception:
+                payload = {}
+            if payload.get("event_type") != "turn_contract_validation_failure":
+                continue
+            failures.append({
+                "turn_id": r["turn_id"],
+                "created_at": r["created_at"],
+                "errors": payload.get("errors") or [],
+                "repair_count": int(payload.get("repair_count") or 0),
+            })
+        return {"campaign_id": campaign_id, "validation_failures": failures}
+    finally:
+        conn.close()
 
 # ---------------------------------------------------------------------------
 # V2.10: Player Profiles & Cross-Campaign Legacy
@@ -1339,5 +1669,129 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest):
         )
         conn.commit()
         return {"status": "completed", "legacy_id": legacy_id, "campaign_id": campaign_id}
+    finally:
+        conn.close()
+
+class StartPassageRequest(BaseModel):
+    pack_id: str
+    mode: str = "PASSAGE"
+
+
+class ChooseRequest(BaseModel):
+    choice_id: str | None = None
+    intent: Intent | None = None
+
+
+@router.post("/campaigns/{campaign_id}/start_passage")
+def start_passage(campaign_id: str, body: StartPassageRequest):
+    conn = _get_conn()
+    start_ts = time.perf_counter()
+    try:
+        camp = load_campaign(conn, campaign_id)
+        if camp is None:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        try:
+            episode = load_episode(body.pack_id)
+        except Exception as exc:
+            logger.warning("passage_pack_load_failed campaign_id=%s pack_id=%s error=%s", campaign_id, body.pack_id, exc)
+            return {
+                "campaign_id": campaign_id,
+                "mode": body.mode.upper(),
+                "passage_id": "fallback_missing_pack",
+                "title": "Passage Pack Missing",
+                "display_text": "Passage content is unavailable. Continue in simulation mode or install a valid passage pack.",
+                "choices": [
+                    {"id": "fallback_info", "label": "Gather intel safely", "intent": {"intent_type": "INVESTIGATE", "target_ids": {}, "params": {}}, "risk": "low", "cost": {"time_minutes": 5}},
+                    {"id": "fallback_push", "label": "Push the mission forward", "intent": {"intent_type": "FIGHT", "target_ids": {}, "params": {}}, "risk": "high", "cost": {"time_minutes": 8}},
+                ],
+                "error": f"passage_pack_invalid:{body.pack_id}",
+            }
+        ws = _world_state_dict(camp)
+        ws["mode"] = body.mode.upper()
+        ws["passage_pack_id"] = body.pack_id
+        ws["current_passage_id"] = episode.get("start_passage_id")
+        ws.setdefault("flags", {})
+        ws.setdefault("beats_remaining", 4)
+        conn.execute("UPDATE campaigns SET world_state_json = ? WHERE id = ?", (json.dumps(ws), campaign_id))
+        conn.commit()
+        passage = (episode.get("passages") or {}).get(ws["current_passage_id"], {})
+        text = render_template(passage.get("text_template", ""), ws)
+        payload = {
+            "campaign_id": campaign_id,
+            "mode": ws["mode"],
+            "passage_id": ws["current_passage_id"],
+            "title": passage.get("title", ""),
+            "display_text": text,
+            "choices": [c.model_dump(mode="json") for c in build_choices(passage, ws)],
+            "ledger_summary": ledger_summary(conn, campaign_id),
+        }
+        logger.info("passage_start node=start_passage campaign_id=%s passage_id=%s latency_ms=%s", campaign_id, ws.get("current_passage_id"), int((time.perf_counter()-start_ts)*1000))
+        return payload
+    finally:
+        conn.close()
+
+
+@router.post("/campaigns/{campaign_id}/choose")
+def choose_passage(campaign_id: str, body: ChooseRequest):
+    conn = _get_conn()
+    start_ts = time.perf_counter()
+    try:
+        camp = load_campaign(conn, campaign_id)
+        if camp is None:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        ws = _world_state_dict(camp)
+        pack_id = ws.get("passage_pack_id")
+        passage_id = ws.get("current_passage_id")
+        if not pack_id or not passage_id:
+            raise HTTPException(status_code=400, detail="Passage mode not started")
+        try:
+            episode = load_episode(pack_id)
+        except Exception as exc:
+            logger.warning("passage_pack_load_failed campaign_id=%s pack_id=%s error=%s", campaign_id, pack_id, exc)
+            fallback = TurnContract(
+                mode=(ws.get("mode") or "PASSAGE"),
+                campaign_id=campaign_id,
+                turn_id=f"{campaign_id}_p_fallback",
+                display_text="Passage branch unavailable. Falling back to safe deterministic choices.",
+                scene_goal="Recover narrative continuity",
+                obstacle="Missing passage content",
+                stakes="Maintain campaign continuity",
+                outcome={"category": "PARTIAL", "consequences": ["Fallback branch used."], "tags": ["fallback"]},
+                state_delta={"time_minutes": 1},
+                choices=[
+                    {"id": "fallback_info", "label": "Gather intel safely", "intent": {"intent_type": "INVESTIGATE", "target_ids": {}, "params": {}}, "risk": "low", "cost": {"time_minutes": 5}},
+                    {"id": "fallback_push", "label": "Push the mission forward", "intent": {"intent_type": "FIGHT", "target_ids": {}, "params": {}}, "risk": "high", "cost": {"time_minutes": 8}},
+                ],
+                meta=TurnMeta(passage_id="fallback_missing_pack", beats_remaining=int(ws.get("beats_remaining", 4))),
+                debug=TurnDebug(validation_errors=[f"passage_pack_invalid:{pack_id}"], repaired=False, repair_count=0),
+            )
+            return {"turn_contract": fallback.model_dump(mode="json")}
+        choice_id = body.choice_id
+        if not choice_id and body.intent and body.intent.target_ids.get("passage_id"):
+            choice_id = body.intent.target_ids["passage_id"].split(":")[-1]
+        if not choice_id:
+            raise HTTPException(status_code=400, detail="choice_id or intent required")
+        next_passage_id, outcome, delta = apply_choice(episode, passage_id, choice_id, ws)
+        ws["current_passage_id"] = next_passage_id
+        conn.execute("UPDATE campaigns SET world_state_json = ? WHERE id = ?", (json.dumps(ws), campaign_id))
+        conn.commit()
+        nxt = (episode.get("passages") or {}).get(next_passage_id, {})
+        text = render_template(nxt.get("text_template", ""), ws)
+        turn = TurnContract(
+            mode=(ws.get("mode") or "PASSAGE"),
+            campaign_id=campaign_id,
+            turn_id=f"{campaign_id}_p_{next_passage_id}",
+            display_text=text,
+            scene_goal=nxt.get("title") or "Advance the story",
+            obstacle="Branching story pressure",
+            stakes="Episode trajectory and objective outcomes",
+            outcome=outcome,
+            state_delta=delta,
+            choices=build_choices(nxt, ws),
+            meta=TurnMeta(passage_id=next_passage_id, beats_remaining=int(ws.get("beats_remaining", 4)), active_objectives=_active_objectives(conn, campaign_id)),
+            debug=TurnDebug(),
+        )
+        logger.info("passage_choose node=choose campaign_id=%s turn_id=%s latency_ms=%s", campaign_id, turn.turn_id, int((time.perf_counter()-start_ts)*1000))
+        return {"turn_contract": turn.model_dump(mode="json")}
     finally:
         conn.close()

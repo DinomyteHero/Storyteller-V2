@@ -1,0 +1,103 @@
+id: rebellion_episode_01
+era: REBELLION
+title: Embers on Ord Mantell
+start_passage_id: p_intro
+passages:
+  p_intro:
+    id: p_intro
+    title: Smoke Over the Docks
+    text_template: |
+      The dockyard hums with nervous energy. {{player_name}} spots Imperial patrols near the fuel cells.
+      {% if spotted_imperials %}A squad is already scanning your position.{% endif %}
+    choices:
+      - id: c_blend
+        label: Blend with workers and scout
+        next: PASSAGE:p_scout
+        set_flags: { cautious_entry: true }
+        cost: { time_minutes: 10 }
+      - id: c_slice
+        label: Slice a terminal for patrol routes
+        next: PASSAGE:p_terminal
+        check: { skill: slice, dc: 12 }
+        on_success_next: PASSAGE:p_terminal_success
+        on_fail_next: PASSAGE:p_terminal_fail
+        cost: { time_minutes: 8, heat: 1 }
+  p_scout:
+    id: p_scout
+    title: Worker Lanes
+    text_template: You map patrol timing and find an unsecured service shaft.
+    choices:
+      - id: c_commit
+        label: Enter the service shaft
+        next: PASSAGE:p_mid
+        set_flags: { found_shaft: true }
+        cost: { time_minutes: 7 }
+      - id: c_regroup
+        label: Regroup with companions
+        next: PASSAGE:p_mid
+        cost: { time_minutes: 5 }
+  p_terminal:
+    id: p_terminal
+    title: Terminal Access
+    text_template: The interface resists but gives partial telemetry.
+    choices:
+      - id: c_push
+        label: Push deeper into encrypted channels
+        next: PASSAGE:p_mid
+        cost: { time_minutes: 6 }
+      - id: c_abort
+        label: Abort before alarms trigger
+        next: PASSAGE:p_mid
+        set_flags: { spotted_imperials: true }
+        cost: { time_minutes: 3 }
+  p_terminal_success:
+    id: p_terminal_success
+    title: Full Patrol Map
+    text_template: You extract patrol routes and identify a low-security corridor.
+    choices:
+      - id: c_route
+        label: Take the low-security corridor
+        next: PASSAGE:p_mid
+        set_flags: { route_advantage: true }
+        cost: { time_minutes: 4 }
+      - id: c_share
+        label: Share routes with your team
+        next: PASSAGE:p_mid
+        cost: { time_minutes: 5 }
+  p_terminal_fail:
+    id: p_terminal_fail
+    title: Alarm Spike
+    text_template: A warning ping flashes and your comlink crackles with nearby chatter.
+    choices:
+      - id: c_hide
+        label: Hide and wait for patrol to pass
+        next: PASSAGE:p_mid
+        cost: { time_minutes: 9, heat: 1 }
+      - id: c_dash
+        label: Dash to the loading gantry
+        next: PASSAGE:p_mid
+        cost: { time_minutes: 4, heat: 2 }
+  p_mid:
+    id: p_mid
+    title: Junction
+    text_template: At the junction, your crew must either negotiate or strike fast.
+    choices:
+      - id: c_talk
+        label: Open a risky negotiation
+        next: PASSAGE:p_end
+        check: { skill: persuade, dc: 14 }
+        on_success_next: PASSAGE:p_end
+        on_fail_next: PASSAGE:p_end
+      - id: c_force
+        label: Resolve it with force
+        next: PASSAGE:p_end
+        set_flags: { violent_resolution: true }
+  p_end:
+    id: p_end
+    title: Episode End
+    text_template: The team secures intel and escapes into city traffic.
+    choices:
+      - id: c_restart
+        label: Begin another sweep
+        next: PASSAGE:p_intro
+        cost: { time_minutes: 10 }

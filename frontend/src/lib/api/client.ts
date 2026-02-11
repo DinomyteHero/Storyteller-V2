@@ -2,7 +2,7 @@
  * Base HTTP client for the Storyteller AI backend API.
  */
 
-export const BASE_URL = 'http://localhost:8000';
+export const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8000';
 
 export class ApiError extends Error {
   status: number;

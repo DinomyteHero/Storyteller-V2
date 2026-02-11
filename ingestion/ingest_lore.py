@@ -279,7 +279,7 @@ def main() -> int:
     ap.add_argument("--book-title", type=str, help="Override book title (e.g. for PDFs without metadata)")
     ap.add_argument("--recursive", action="store_true", help="Recurse into subfolders")
     ap.add_argument("--era-aliases", type=str, help="JSON file mapping folder names to eras")
-    ap.add_argument("--era-mode", choices=["legacy", "ui", "folder"], default=None, help="Era output mode: legacy (default), ui (Streamlit keys), or folder (use top-level folder names)")
+    ap.add_argument("--era-mode", choices=["legacy", "ui", "folder"], default=None, help="Era output mode: legacy (default), ui (canonical era keys), or folder (use top-level folder names)")
     ap.add_argument("--rebuild", action="store_true", help="Drop and recreate the LanceDB table (use after chunk_id_scheme change)")
     ap.add_argument("--era-pack", type=str, default="", help="Era pack id for NPC tagging (defaults to time_period)")
     ap.add_argument("--tag-npcs", dest="tag_npcs", action="store_true", help="Enable deterministic NPC tagging via era pack")

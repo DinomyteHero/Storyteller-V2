@@ -144,3 +144,42 @@ class TestArcPlannerNode:
         assert "active_themes" in guidance
         assert guidance["active_themes"] == ["redemption"]
         assert "theme_guidance" in guidance
+
+
+    def test_node_uses_arc_seed_themes_when_ledger_empty(self):
+        state = {
+            "turn_number": 2,
+            "campaign": {
+                "world_state_json": {
+                    "ledger": {},
+                    "arc_seed": {
+                        "active_themes": ["duty", "trust"],
+                        "opening_threads": ["A", "B"],
+                        "climax_question": "Will they hold the line?",
+                        "arc_intent": "pressure curve",
+                    },
+                }
+            },
+        }
+        result = arc_planner_node(state)
+        guidance = result["arc_guidance"]
+        assert guidance["active_themes"] == ["duty", "trust"]
+        assert guidance["seed_climax_question"] == "Will they hold the line?"
+        assert guidance["arc_intent"] == "pressure curve"
+
+    def test_node_uses_arc_seed_threads_in_opening_turns(self):
+        state = {
+            "turn_number": 3,
+            "campaign": {
+                "world_state_json": {
+                    "ledger": {"open_threads": [], "established_facts": []},
+                    "arc_seed": {
+                        "active_themes": ["survival"],
+                        "opening_threads": ["Seed thread one", "Seed thread two", "Seed thread three"],
+                    },
+                }
+            },
+        }
+        result = arc_planner_node(state)
+        guidance = result["arc_guidance"]
+        assert guidance["priority_threads"] == ["Seed thread one", "Seed thread two"]
