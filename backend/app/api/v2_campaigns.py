@@ -308,13 +308,12 @@ def get_era_companions(era_id: str):
 @router.get("/debug/era-packs")
 def debug_era_packs():
     """Debug endpoint showing loaded era packs and their backgrounds count."""
-    from backend.app.world.era_pack_loader import load_all_era_packs
     from shared.config import ERA_PACK_DIR
     from pathlib import Path
 
     pack_dir = Path(ERA_PACK_DIR)
     try:
-        packs = load_all_era_packs()
+        packs = CONTENT_REPOSITORY.load_all_packs()
         return {
             "pack_dir": str(pack_dir),
             "pack_dir_exists": pack_dir.exists(),
