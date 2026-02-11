@@ -90,13 +90,9 @@ Rebellion tip: in campaign setup, choose Era = `REBELLION` (or set `DEFAULT_ERA=
 
 ---
 
-## Character Aliases (Optional, Feature Incomplete)
+## Character Aliases (Reference Only)
 
-Character alias tagging during ingestion is supported via `data/character_aliases.yml`, but the facet generation pipeline is incomplete. The `build_character_facets` script produces generic text statistics instead of character-specific voice profiles.
-
-**Status:** Feature is disabled by default (`ENABLE_CHARACTER_FACETS=0`) and not recommended for use. The core system works without it.
-
-If you want to implement proper character facets, see `ingestion/build_character_facets.py` and replace the deterministic heuristics with LLM-based analysis.
+The file `data/character_aliases.yml` defines character name mappings for entity resolution. This feature is not currently used during ingestion - all chunks are ingested with empty character metadata. The core system works fine without character tagging.
 
 ---
 

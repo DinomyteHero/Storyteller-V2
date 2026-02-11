@@ -128,7 +128,6 @@ Optional:
 
 ```bash
 export OLLAMA_BASE_URL="http://localhost:11434"
-export ENABLE_CHARACTER_FACETS=0           # Character facets system (experimental)
 ```
 
 ### Run API + UI

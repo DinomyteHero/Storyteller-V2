@@ -1477,9 +1477,7 @@ def post_turn_stream(
                     pass
 
             # Create NarratorAgent for streaming
-            from backend.app.config import ENABLE_CHARACTER_FACETS
             from backend.app.rag.lore_retriever import retrieve_lore
-            from backend.app.rag.character_voice_retriever import get_voice_snippets
             from backend.app.rag.retrieval_bundles import NARRATOR_DOC_TYPES, NARRATOR_SECTION_KINDS
             from backend.app.rag.style_retriever import retrieve_style_layered
 
@@ -1487,8 +1485,6 @@ def post_turn_stream(
                 return retrieve_lore(query, top_k=top_k, era=era, doc_types=NARRATOR_DOC_TYPES, section_kinds=NARRATOR_SECTION_KINDS, related_npcs=related_npcs)
 
             voice_retriever_fn = None
-            if ENABLE_CHARACTER_FACETS:
-                voice_retriever_fn = lambda cids, era, k=6: get_voice_snippets(cids, era, k=k)
 
             def style_retriever_fn(query, top_k=3, era_id=None, genre=None, archetype=None):
                 return retrieve_style_layered(query, top_k=top_k, era_id=era_id, genre=genre, archetype=archetype)

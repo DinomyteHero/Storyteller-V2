@@ -17,7 +17,6 @@ from shared.config import (
     LORE_DATA_DIR,
     MANIFESTS_DIR,
     STYLE_DATA_DIR,
-    ENABLE_CHARACTER_FACETS,
     _env_flag,
 )
 

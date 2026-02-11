@@ -11,7 +11,6 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
-from ingestion.character_aliases import extract_characters
 from ingestion.chunking import chunk_text_smart
 from ingestion.classify_document import classify_document
 from ingestion.era_aliases import load_era_aliases
@@ -32,7 +31,7 @@ from shared.lore_metadata import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-from shared.config import EMBEDDING_DIMENSION, EMBEDDING_MODEL, ENABLE_CHARACTER_FACETS
+from shared.config import EMBEDDING_DIMENSION, EMBEDDING_MODEL
 from backend.app.world.era_pack_loader import get_era_pack
 
 
@@ -99,7 +98,7 @@ def ingest_txt(file_path: Path, era: str, source_type: str, collection: str = "n
     out = []
     for i, t in enumerate(text_chunks):
         cid = stable_chunk_id(t, source=book_title, chunk_index=i, doc_id=doc_id)
-        characters = extract_characters(t) if ENABLE_CHARACTER_FACETS else default_characters()
+        characters = default_characters()
         out.append({
             "text": t,
             "metadata": _metadata(
@@ -158,7 +157,7 @@ def ingest_epub(
         ch_chunks = chunk_text_smart(ch_text, target_tokens=600, overlap_percent=0.1)
         for i, t in enumerate(ch_chunks):
             cid = stable_chunk_id(t, source=f"{book_title}:{ch_title or ch_idx}", chunk_index=i, doc_id=doc_id)
-            characters = extract_characters(t) if ENABLE_CHARACTER_FACETS else default_characters()
+            characters = default_characters()
             out.append({
                 "text": t,
                 "metadata": _metadata(

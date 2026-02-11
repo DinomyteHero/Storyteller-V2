@@ -4,7 +4,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from backend.app.config import ENABLE_CHARACTER_FACETS
 from backend.app.core.agents import NarratorAgent
 from backend.app.core.agents.base import AgentLLM
 from backend.app.core.agents.narrator import _extract_npc_utterance
@@ -57,8 +56,6 @@ def make_narrator_node():
         )
 
     voice_retriever = None
-    if ENABLE_CHARACTER_FACETS:
-        voice_retriever = lambda cids, era, k=6: get_voice_snippets(cids, era, k=k)
 
     def style_retriever_fn(query: str, top_k: int = 3, era_id=None, genre=None, archetype=None):
         return retrieve_style_layered(query, top_k=top_k, era_id=era_id, genre=genre, archetype=archetype)

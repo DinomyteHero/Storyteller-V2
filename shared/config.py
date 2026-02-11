@@ -29,8 +29,6 @@ MANIFESTS_DIR = os.environ.get("MANIFESTS_DIR", str(_PROJECT_ROOT / "data" / "ma
 ERA_PACK_DIR = os.environ.get("ERA_PACK_DIR", str(_PROJECT_ROOT / "data" / "static" / "era_packs"))
 
 # Feature flags (shared)
-ENABLE_CHARACTER_FACETS = _env_flag("ENABLE_CHARACTER_FACETS", default=False)
-
 # Era pack validation: lenient mode logs warnings instead of failing on missing references
 # Allows WIP era packs to load while data quality is being improved
 ERA_PACK_LENIENT_VALIDATION = _env_flag("ERA_PACK_LENIENT_VALIDATION", default=True)
