@@ -25,6 +25,7 @@ import logging
 import random
 from typing import Any
 
+from backend.app.constants import get_scale_profile
 from backend.app.core.agents.base import AgentLLM
 from backend.app.core.json_repair import ensure_json
 from backend.app.core.warnings import add_warning
@@ -456,18 +457,27 @@ def initialize_campaign_world(
     existing_factions: list[dict],
     skeleton: dict[str, Any],
     campaign_mode: str = "historical",
+    campaign_scale: str | None = None,
     warnings: list[str] | None = None,
 ) -> dict[str, Any]:
     """Generate per-campaign world content: locations, NPCs, and quest hooks.
 
     Returns a dict with keys: generated_locations, generated_npcs, generated_quests,
-    campaign_mode, and optionally campaign_blueprint (if cloud blueprint enabled).
+    campaign_mode, campaign_scale, and optionally campaign_blueprint (if cloud blueprint enabled).
     Uses LLM when available, falls back to deterministic generation.
+
+    The ``campaign_scale`` parameter (small/medium/large/epic) controls how many
+    locations, NPCs, and quests are generated.  Defaults to "medium" (the previous
+    hardcoded behaviour).
     """
     # Validate campaign mode
     if campaign_mode not in VALID_CAMPAIGN_MODES:
         logger.warning("Invalid campaign_mode '%s', defaulting to 'historical'", campaign_mode)
         campaign_mode = "historical"
+
+    # Resolve scale profile
+    scale_profile = get_scale_profile(campaign_scale)
+    effective_scale = campaign_scale if campaign_scale in ("small", "medium", "large", "epic") else "medium"
 
     seed = _derive_campaign_seed(campaign_id)
     rng = random.Random(seed)
@@ -526,6 +536,9 @@ def initialize_campaign_world(
             player_concept=player_concept,
             starting_location=starting_location,
             campaign_mode=campaign_mode,
+            num_locations=scale_profile.generated_locations,
+            num_npcs=scale_profile.generated_npcs,
+            num_quests=scale_profile.generated_quests,
         )
         raw = llm.complete(system_prompt, user_prompt, json_mode=True)
         generated = _parse_llm_world(raw)
@@ -546,17 +559,17 @@ def initialize_campaign_world(
     if generated and generated.get("locations"):
         gen_locations = [_normalize_generated_location(loc) for loc in generated["locations"]]
     else:
-        gen_locations = _deterministic_locations(rng, era, existing_locations, planet)
+        gen_locations = _deterministic_locations(rng, era, existing_locations, planet, count=scale_profile.generated_locations)
 
     if generated and generated.get("npcs"):
         gen_npcs = [_normalize_generated_npc(npc) for npc in generated["npcs"]]
     else:
-        gen_npcs = _deterministic_npcs(rng, gen_locations)
+        gen_npcs = _deterministic_npcs(rng, gen_locations, count=scale_profile.generated_npcs)
 
     if generated and generated.get("quests"):
         gen_quests = [_normalize_generated_quest(q) for q in generated["quests"]]
     else:
-        gen_quests = _deterministic_quests(rng, gen_npcs, gen_locations)
+        gen_quests = _deterministic_quests(rng, gen_npcs, gen_locations, count=scale_profile.generated_quests)
 
     # Ensure generated NPCs reference valid locations
     all_loc_ids = set(existing_locations) | {loc["id"] for loc in gen_locations}
@@ -570,11 +583,13 @@ def initialize_campaign_world(
         "generated_npcs": gen_npcs,
         "generated_quests": gen_quests,
         "campaign_mode": campaign_mode,
+        "campaign_scale": effective_scale,
         "world_generation": {
             "source": "llm" if (generated and generated.get("locations")) else "deterministic",
             "seed": seed,
             "lore_chunks_used": len(lore_chunks),
             "campaign_mode": campaign_mode,
+            "campaign_scale": effective_scale,
         },
     }
     if blueprint:

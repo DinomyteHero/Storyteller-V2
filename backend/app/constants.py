@@ -1,6 +1,86 @@
 """Centralized tuning constants shared across the app."""
 from __future__ import annotations
 
+from dataclasses import dataclass
+from enum import Enum
+
+# ── Campaign scale tiers ─────────────────────────────────────────────
+# Controls how many locations, NPCs, quests, and per-scene caps a campaign uses.
+# Stored in world_state_json["campaign_scale"] at creation time.
+
+VALID_CAMPAIGN_SCALES = ("small", "medium", "large", "epic")
+
+
+class CampaignScaleTier(str, Enum):
+    SMALL = "small"
+    MEDIUM = "medium"
+    LARGE = "large"
+    EPIC = "epic"
+
+
+@dataclass(frozen=True)
+class CampaignScaleProfile:
+    """Numeric profile for a campaign scale tier."""
+    generated_locations: int
+    generated_npcs: int
+    generated_quests: int
+    max_present_npcs: int       # Default per-scene NPC cap (replaces MAX_PRESENT_NPCS)
+    npc_cap_multiplier: float   # Applied to location-tag NPC caps
+    early_game_npc_cap: int     # Max new named NPCs during early-game window
+    background_figure_count: int
+
+
+CAMPAIGN_SCALE_PROFILES: dict[CampaignScaleTier, CampaignScaleProfile] = {
+    CampaignScaleTier.SMALL: CampaignScaleProfile(
+        generated_locations=3,
+        generated_npcs=5,
+        generated_quests=2,
+        max_present_npcs=1,
+        npc_cap_multiplier=0.75,
+        early_game_npc_cap=2,
+        background_figure_count=2,
+    ),
+    CampaignScaleTier.MEDIUM: CampaignScaleProfile(
+        generated_locations=5,
+        generated_npcs=10,
+        generated_quests=4,
+        max_present_npcs=2,
+        npc_cap_multiplier=1.0,
+        early_game_npc_cap=3,
+        background_figure_count=3,
+    ),
+    CampaignScaleTier.LARGE: CampaignScaleProfile(
+        generated_locations=8,
+        generated_npcs=16,
+        generated_quests=6,
+        max_present_npcs=3,
+        npc_cap_multiplier=1.5,
+        early_game_npc_cap=5,
+        background_figure_count=4,
+    ),
+    CampaignScaleTier.EPIC: CampaignScaleProfile(
+        generated_locations=12,
+        generated_npcs=24,
+        generated_quests=8,
+        max_present_npcs=4,
+        npc_cap_multiplier=2.0,
+        early_game_npc_cap=7,
+        background_figure_count=5,
+    ),
+}
+
+
+def get_scale_profile(scale: str | None = None) -> CampaignScaleProfile:
+    """Get the scale profile for a campaign scale tier. Defaults to MEDIUM."""
+    if not scale:
+        return CAMPAIGN_SCALE_PROFILES[CampaignScaleTier.MEDIUM]
+    try:
+        tier = CampaignScaleTier(scale.lower())
+    except ValueError:
+        return CAMPAIGN_SCALE_PROFILES[CampaignScaleTier.MEDIUM]
+    return CAMPAIGN_SCALE_PROFILES[tier]
+
+
 # Ledger limits
 LEDGER_MAX_FACTS = 40
 LEDGER_MAX_THREADS = 10

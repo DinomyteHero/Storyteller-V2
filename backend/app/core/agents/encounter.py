@@ -7,6 +7,7 @@ import sqlite3
 from typing import Any
 
 from backend.app.config import ENABLE_BIBLE_CASTING, ENABLE_PROCEDURAL_NPCS, NPC_RENDER_ENABLED
+from backend.app.constants import get_scale_profile
 from backend.app.world.era_pack_loader import get_era_pack
 from backend.app.world.era_pack_models import EraPack, EraNpcEntry
 from backend.app.world.npc_generator import generate_npc, derive_seed
@@ -168,12 +169,13 @@ def _arc_stage_bonus(npc: EraNpcEntry, arc_stage: str) -> int:
     return 0
 
 
-def get_dynamic_npc_cap(location_tags: set[str]) -> int:
-    """Return the dynamic NPC cap for a location based on its tags."""
-    for tag, cap in MAX_NPCS_BY_LOC_TAG.items():
+def get_dynamic_npc_cap(location_tags: set[str], campaign_scale: str | None = None) -> int:
+    """Return the dynamic NPC cap for a location based on its tags and campaign scale."""
+    profile = get_scale_profile(campaign_scale)
+    for tag, base_cap in MAX_NPCS_BY_LOC_TAG.items():
         if tag in location_tags:
-            return cap
-    return MAX_PRESENT_NPCS
+            return max(1, round(base_cap * profile.npc_cap_multiplier))
+    return profile.max_present_npcs
 
 
 def generate_background_figures(
@@ -306,6 +308,16 @@ def _npc_entry_to_payload(npc: EraNpcEntry, location_id: str, era_pack: EraPack)
     }
 
 
+def _read_campaign_scale(state: dict[str, Any] | None) -> str | None:
+    """Extract campaign_scale from the pipeline state's world_state_json."""
+    if not state:
+        return None
+    campaign = state.get("campaign") or {}
+    ws = campaign.get("world_state_json") if isinstance(campaign, dict) else {}
+    ws = ws if isinstance(ws, dict) else {}
+    return ws.get("campaign_scale")
+
+
 class EncounterManager:
     """Queries characters at a location for a campaign. Does not expose secret_agenda."""
 
@@ -413,13 +425,15 @@ class EncounterManager:
 
         existing_ids = self._existing_npc_ids(campaign_id)
 
-        # 2.5: Dynamic NPC cap based on location type
+        # 2.5: Dynamic NPC cap based on location type + campaign scale
         loc = era_pack.location_by_id(location_id) if era_pack else None
         loc_tags = set(loc.tags) if loc else set()
-        dynamic_cap = get_dynamic_npc_cap(loc_tags)
+        campaign_scale = _read_campaign_scale(state)
+        dynamic_cap = get_dynamic_npc_cap(loc_tags, campaign_scale=campaign_scale)
 
-        # 2.5: Generate background figures for atmosphere
-        bg_figures = generate_background_figures(loc_tags, era_id=era, rng=rng, count=3)
+        # 2.5: Generate background figures for atmosphere (count scaled)
+        scale_profile = get_scale_profile(campaign_scale)
+        bg_figures = generate_background_figures(loc_tags, era_id=era, rng=rng, count=scale_profile.background_figure_count)
 
         if ENABLE_BIBLE_CASTING and era_pack:
             selected = choose_present_npcs(

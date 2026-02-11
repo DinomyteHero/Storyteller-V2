@@ -130,6 +130,8 @@ class CreateCampaignRequest(BaseModel):
     starting_location: str = "Unknown"
     player_stats: dict[str, int] = Field(default_factory=dict)
     hp_current: int = 10
+    # V3.1: Campaign scale — controls NPC/location/quest density
+    campaign_scale: str = "medium"  # small | medium | large | epic
 
 
 class CreateCampaignResponse(BaseModel):
@@ -154,6 +156,8 @@ class SetupAutoRequest(BaseModel):
     player_profile_id: str | None = None
     # V3.0: Campaign mode — "historical" (lore immutable) or "sandbox" (player reshapes galaxy)
     campaign_mode: str = "historical"
+    # V3.1: Campaign scale — controls NPC/location/quest density
+    campaign_scale: str = "medium"  # small | medium | large | epic
 
 
 class SetupAutoResponse(BaseModel):
@@ -700,12 +704,14 @@ def setup_auto(body: SetupAutoRequest):
                 existing_factions=active_factions,
                 skeleton=skeleton,
                 campaign_mode=body.campaign_mode or "historical",
+                campaign_scale=body.campaign_scale or "medium",
             )
             world_state["generated_locations"] = campaign_world.get("generated_locations", [])
             world_state["generated_npcs"] = campaign_world.get("generated_npcs", [])
             world_state["generated_quests"] = campaign_world.get("generated_quests", [])
             world_state["world_generation"] = campaign_world.get("world_generation", {})
             world_state["campaign_mode"] = campaign_world.get("campaign_mode", "historical")
+            world_state["campaign_scale"] = campaign_world.get("campaign_scale", "medium")
             if campaign_world.get("campaign_blueprint"):
                 world_state["campaign_blueprint"] = campaign_world["campaign_blueprint"]
             logger.info("Campaign world generated: %d locations, %d NPCs, %d quests",
@@ -809,6 +815,7 @@ def create_campaign(body: CreateCampaignRequest):
         world_state = {"active_factions": active_factions, **companion_state}
         if body.genre:
             world_state["genre"] = body.genre
+        world_state["campaign_scale"] = body.campaign_scale or "medium"
         from datetime import datetime, timezone
         now_str = datetime.now(timezone.utc).isoformat()
         conn.execute(
