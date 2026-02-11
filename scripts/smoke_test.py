@@ -54,7 +54,7 @@ DEFAULT_INPUTS = [
 ]
 
 
-def _create_campaign_auto(conn, time_period: str | None = "LOTF") -> tuple[str, str]:
+def _create_campaign_auto(conn, time_period: str | None = "rebellion") -> tuple[str, str]:
     """Create campaign via Architect + Biographer (auto setup). Returns (campaign_id, player_id)."""
     import json
     from backend.app.core.agents import CampaignArchitect, BiographerAgent
@@ -128,7 +128,7 @@ def main() -> int:
         action="store_true",
         help="Use temporary DB (no main DB; safe for CI)",
     )
-    ap.add_argument("--time-period", type=str, default="LOTF", help="Campaign time period")
+    ap.add_argument("--time-period", type=str, default="rebellion", help="Campaign time period")
     args = ap.parse_args()
 
     _cleanup_db: str | None = None

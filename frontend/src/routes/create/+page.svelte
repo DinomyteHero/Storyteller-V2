@@ -1,12 +1,14 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
   import { setupAuto, getEraCompanions } from '$lib/api/campaigns';
   import type { CompanionPreview } from '$lib/api/campaigns';
   import { getEraBackgrounds } from '$lib/api/eras';
+  import { getContentCatalog, getContentDefault, type ContentCatalogEntry } from '$lib/api/content';
   import { streamTurn } from '$lib/api/sse';
   import { runTurn } from '$lib/api/campaigns';
   import {
-    creationStep, charName, charGender, charEra,
+    creationStep, charName, charGender, charEra, charSettingId, charPeriodId,
     selectedBackground, eraBackgrounds, loadingBackgrounds,
     backgroundAnswers, resetCreation
   } from '$lib/stores/creation';
@@ -20,7 +22,20 @@
   import { saveCampaign } from '$lib/stores/campaigns';
   import type { EraBackground, SetupAutoRequest, BackgroundQuestion } from '$lib/api/types';
 
-  const ERA_OPTIONS = Object.entries(ERA_LABELS).filter(([k]) => k !== 'CUSTOM');
+  let contentCatalog = $state<ContentCatalogEntry[]>([]);
+
+  let ERA_OPTIONS = $derived.by(() => {
+    if (contentCatalog.length > 0) {
+      return contentCatalog.map((c) => ({
+        value: c.period_id.toUpperCase(),
+        label: c.period_display_name,
+        settingId: c.setting_id,
+      }));
+    }
+    return Object.entries(ERA_LABELS)
+      .filter(([k]) => k !== 'CUSTOM')
+      .map(([value, label]) => ({ value, label, settingId: null }));
+  });
 
   let isSubmitting = $state(false);
   let errorMessage = $state('');
@@ -35,10 +50,27 @@
     { value: 'hard', label: 'Hard', desc: 'Punishing checks, increased damage. Every choice matters.' },
   ];
 
+  onMount(async () => {
+    try {
+      const [catalogResp, defaultResp] = await Promise.all([
+        getContentCatalog(),
+        getContentDefault(),
+      ]);
+      contentCatalog = catalogResp.items ?? [];
+      if (defaultResp?.setting_id) charSettingId.set(defaultResp.setting_id);
+      if (defaultResp?.period_id) charPeriodId.set(defaultResp.period_id);
+      if (defaultResp?.legacy_era_id) charEra.set(defaultResp.legacy_era_id.toUpperCase());
+    } catch {
+      // Fallback to legacy hardcoded eras
+    }
+  });
+
   // Load backgrounds when era changes
   $effect(() => {
     const era = $charEra;
     if (era && era !== 'ERA_AGNOSTIC') {
+      const period = era.toLowerCase();
+      charPeriodId.set(period);
       loadingBackgrounds.set(true);
       getEraBackgrounds(era)
         .then((result) => {
@@ -163,6 +195,8 @@
       }
 
       const request: SetupAutoRequest = {
+        setting_id: $charSettingId,
+        period_id: $charPeriodId ?? $charEra.toLowerCase(),
         time_period: $charEra,
         genre: null,
         themes: [],
@@ -184,7 +218,7 @@
         campaignId: result.campaign_id,
         playerId: result.player_id,
         playerName: $charName.trim(),
-        era: $charEra,
+        era: ($charPeriodId ?? $charEra).toUpperCase(),
         background: $selectedBackground?.name ?? null,
         createdAt: new Date().toISOString(),
         lastPlayedAt: new Date().toISOString(),
@@ -293,19 +327,21 @@
         <div class="form-field">
           <label id="era-label">Choose Your Era</label>
           <div class="era-cards" role="group" aria-labelledby="era-label">
-            {#each ERA_OPTIONS as [value, label]}
+            {#each ERA_OPTIONS as option}
               <button
                 class="card era-card"
-                class:selected={$charEra === value}
+                class:selected={$charEra === option.value}
                 onclick={() => {
-                  charEra.set(value);
+                  charEra.set(option.value);
+                  charPeriodId.set(option.value.toLowerCase());
+                  charSettingId.set(option.settingId);
                   selectedBackground.set(null);
                   backgroundAnswers.set({});
                 }}
               >
-                <div class="era-name">{label}</div>
-                {#if ERA_DESCRIPTIONS[value]}
-                  <div class="era-desc">{ERA_DESCRIPTIONS[value]}</div>
+                <div class="era-name">{option.label}</div>
+                {#if ERA_DESCRIPTIONS[option.value]}
+                  <div class="era-desc">{ERA_DESCRIPTIONS[option.value]}</div>
                 {/if}
               </button>
             {/each}
@@ -454,7 +490,7 @@
           </div>
           <div class="review-row">
             <span class="review-label">Era</span>
-            <span class="review-value">{ERA_LABELS[$charEra] ?? $charEra}</span>
+            <span class="review-value">{(contentCatalog.find((c) => c.period_id.toUpperCase() === $charEra)?.period_display_name) ?? ERA_LABELS[$charEra] ?? $charEra}</span>
           </div>
 
           {#if $selectedBackground}

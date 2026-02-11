@@ -170,7 +170,9 @@ export interface TurnContract {
 
 
 export interface SetupAutoRequest {
-  time_period: string;
+  setting_id?: string | null;
+  period_id?: string | null;
+  time_period?: string | null;
   genre: string | null;
   themes: string[];
   player_concept: string;

@@ -75,10 +75,6 @@ export function randomName(): string {
 
 /** Era descriptions for the selection cards (synced with backend era packs). */
 export const ERA_DESCRIPTIONS: Record<string, string> = {
+  // Fallback only: dynamic catalog summary text is preferred when available.
   REBELLION: 'Imperial oppression, Rebel Alliance, underdog resistance (0-4 ABY)',
-  NEW_REPUBLIC: "Post-Empire rebuilding, Thrawn's return, fragile peace (5-19 ABY)",
-  NEW_JEDI_ORDER: 'Yuuzhan Vong invasion, galaxy under siege, desperate survival (25-29 ABY)',
-  LEGACY: "Darth Krayt's Sith Empire, three-way war, shattered galaxy (130-138 ABY)",
-  DARK_TIMES: 'Jedi Purge, Order 66 aftermath, Empire rises, hope fades (19-0 BBY)',
-  KOTOR: 'Ancient Old Republic, Jedi-Sith eternal conflict, Force mysteries (~3954 BBY)',
 };

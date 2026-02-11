@@ -58,6 +58,7 @@ See `/docs/SETTING_PACK_QUICK_REFERENCE.md` for complete documentation.
 ### Campaign Creation
 
 Campaigns are created via:
+- `GET /v2/content/catalog` + `GET /v2/content/default` - Discover available settings/periods dynamically
 - `POST /v2/setup/auto` - Automated setup with CampaignArchitect + BiographerAgent
 - `POST /v2/campaigns` - Manual campaign creation
 
@@ -100,7 +101,7 @@ Optional helper:
 python -m storyteller setup --skip-deps
 ```
 
-> Note: `storyteller setup` attempts to copy `.env.example` if present. This repository may not include one, so configure env vars directly in your shell.
+`storyteller setup` creates standard runtime directories, copies `.env.example` to `.env` when missing, and runs `storyteller doctor`.
 
 ### Configure environment variables
 
@@ -108,7 +109,7 @@ Essential variables (see `backend/app/config.py` for full list):
 
 ```bash
 # Database
-export DEFAULT_DB_PATH="./storyteller.db"
+export STORYTELLER_DB_PATH="./data/storyteller.db"
 
 # Era Packs
 export ERA_PACK_DIR="./data/static/era_packs"
@@ -246,17 +247,16 @@ python scripts/audit_era_packs.py
 ### Run Tests
 
 ```bash
-# All backend tests (587 tests, V2.20)
+# Full backend test suite
 python -m pytest backend/tests -q
 
-# Specific test suites
-python -m pytest backend/tests/test_director.py -v
-python -m pytest backend/tests/test_narrator.py -v
+# CLI + ingestion command tests
+python -m pytest tests -q
 
-# Deterministic harness
+# Deterministic helper wrapper
 python scripts/run_deterministic_tests.py
 
-# Smoke test
+# Lightweight API smoke test
 python scripts/smoke_test.py
 ```
 
@@ -301,6 +301,10 @@ See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for operational details.
 - [`docs/07_known_issues_and_risks.md`](docs/07_known_issues_and_risks.md) - Known issues
 - [`docs/08_alignment_checklist.md`](docs/08_alignment_checklist.md) - Architectural alignment
 - [`docs/09_call_graph.md`](docs/09_call_graph.md) - Call graph & dependencies
+
+For concrete runnable commands, prefer:
+- [`QUICKSTART.md`](QUICKSTART.md) for setup + launch
+- [`API_REFERENCE.md`](API_REFERENCE.md) for current endpoint coverage
 
 ### Deep Dives
 - [`docs/architecture.md`](docs/architecture.md) - Complete system architecture
