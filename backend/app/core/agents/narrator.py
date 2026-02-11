@@ -153,35 +153,53 @@ def _quote_excerpt(text: str, max_words: int = 20) -> str:
 
 
 
+_PATTERN_FIRE_COUNTS: dict[str, int] = {}
+"""Track how often each cleanup pattern fires. Inspect via get_pattern_fire_counts()
+to identify patterns that can be retired as prompts improve."""
+
+
+def _track_sub(name: str, text: str, pattern: str, repl: str = "", flags: int = 0) -> str:
+    """Apply regex substitution and track if the pattern matched."""
+    result = re.sub(pattern, repl, text, flags=flags)
+    if result != text:
+        _PATTERN_FIRE_COUNTS[name] = _PATTERN_FIRE_COUNTS.get(name, 0) + 1
+    return result
+
+
+def get_pattern_fire_counts() -> dict[str, int]:
+    """Return current pattern fire counts for monitoring prompt quality improvement."""
+    return dict(_PATTERN_FIRE_COUNTS)
+
+
 def _strip_structural_artifacts(text: str) -> str:
     """Strip structural markdown artifacts that LLMs inject into narrative prose.
 
     Local models (especially qwen/llama) often add section headers, JSON code
     blocks, and metadata sections instead of clean prose. This aggressively
     removes all of those patterns so only narrative prose remains.
+
+    Pattern fire counts are tracked in _PATTERN_FIRE_COUNTS for monitoring.
     """
     result = text
 
     # Strip fenced code blocks (```json ... ```, ```text ... ```, etc.)
-    result = re.sub(r"```[\w]*\s*\n?.*?```", "", result, flags=re.DOTALL)
+    result = _track_sub("fenced_code_blocks", result, r"```[\w]*\s*\n?.*?```", flags=re.DOTALL)
 
     # Strip inline JSON objects that span multiple lines: { "key": ... }
     # Only if they look like LLM structured output (contain "text", "event", "description", etc.)
-    result = re.sub(
+    result = _track_sub(
+        "inline_json_objects", result,
         r'\{\s*"(?:text|event|description|dialogue|narrative|scene|next_turn|actions?|suggestions?)"'
         r"\s*:.*?\}",
-        "",
-        result,
         flags=re.DOTALL,
     )
 
     # Strip markdown bold headers: **Scene:**, **Narrative:**, **Next Turn:**, **Opening:**, etc.
-    result = re.sub(
+    result = _track_sub(
+        "markdown_bold_headers", result,
         r"\*{1,2}(?:Scene|Narrative|Next Turn|Opening|Opening Scene|Summary|"
         r"Description|Dialogue|Action|Actions|Response|Output|Result|"
         r"Turn \d+|Current Scene|Setting|Atmosphere|Continue|Continuation):?\*{1,2}\s*:?\s*",
-        "",
-        result,
         flags=re.IGNORECASE,
     )
 
@@ -218,7 +236,7 @@ def _strip_structural_artifacts(text: str) -> str:
     )
 
     # Strip <think>...</think> tags from reasoning models (qwen3, deepseek, etc.)
-    result = re.sub(r"<think>.*?</think>", "", result, flags=re.DOTALL)
+    result = _track_sub("think_tags", result, r"<think>.*?</think>", flags=re.DOTALL)
 
     # V2.15: Strip "Option N (Tone):" inline choice blocks that LLMs inject
     result = re.sub(
@@ -250,12 +268,11 @@ def _strip_structural_artifacts(text: str) -> str:
     )
 
     # V2.16b: Strip leaked LLM self-instructions (model echoing system prompt)
-    result = re.sub(
+    result = _track_sub(
+        "leaked_self_instructions", result,
         r"^\s*(?:Begin\s+with|Start\s+with|Open\s+with|Write\s+about|"
         r"Describe\s+the|Focus\s+on|Include|Make\s+sure|Remember\s+to|"
         r"Note\s+that|Keep\s+in\s+mind)\s+.*$",
-        "",
-        result,
         flags=re.IGNORECASE | re.MULTILINE,
     )
 

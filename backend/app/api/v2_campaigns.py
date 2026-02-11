@@ -686,6 +686,32 @@ def setup_auto(body: SetupAutoRequest):
             },
         }
 
+        # V3.0: Per-campaign world generation — generate unique locations, NPCs, and quest hooks
+        try:
+            from backend.app.core.campaign_init import initialize_campaign_world
+            campaign_world = initialize_campaign_world(
+                campaign_id=campaign_id,
+                era=time_period,
+                era_pack=era_pack_for_setup,
+                player_concept=body.player_concept or "",
+                starting_location=starting_location,
+                existing_factions=active_factions,
+                skeleton=skeleton,
+            )
+            world_state["generated_locations"] = campaign_world.get("generated_locations", [])
+            world_state["generated_npcs"] = campaign_world.get("generated_npcs", [])
+            world_state["generated_quests"] = campaign_world.get("generated_quests", [])
+            world_state["world_generation"] = campaign_world.get("world_generation", {})
+            logger.info("Campaign world generated: %d locations, %d NPCs, %d quests",
+                        len(world_state["generated_locations"]),
+                        len(world_state["generated_npcs"]),
+                        len(world_state["generated_quests"]))
+        except Exception as _world_err:
+            logger.warning("Campaign world generation failed (non-fatal): %s", _world_err)
+            world_state["generated_locations"] = []
+            world_state["generated_npcs"] = []
+            world_state["generated_quests"] = []
+
         world_state_json_str = json.dumps(world_state)
         from datetime import datetime, timezone
         now_str = datetime.now(timezone.utc).isoformat()
@@ -840,6 +866,47 @@ def get_campaign_world_state(campaign_id: str):
         if camp is None:
             raise HTTPException(status_code=404, detail="Campaign not found")
         return {"campaign_id": campaign_id, "world_state": camp.get("world_state_json") or {}}
+    finally:
+        conn.close()
+
+
+@router.get("/campaigns/{campaign_id}/locations")
+def get_campaign_locations(campaign_id: str):
+    """Return merged locations (era pack + generated) for the campaign world map."""
+    conn = _get_conn()
+    try:
+        camp = load_campaign(conn, campaign_id)
+        if camp is None:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        ws = camp.get("world_state_json") or {}
+        if isinstance(ws, str):
+            ws = json.loads(ws)
+        era_id = camp.get("time_period")
+        # Base locations from era pack
+        locations = []
+        if era_id:
+            era_pack = get_era_pack(era_id)
+            if era_pack and era_pack.locations:
+                for loc in era_pack.locations:
+                    locations.append({
+                        "id": loc.id,
+                        "name": loc.name,
+                        "tags": loc.tags or [],
+                        "planet": loc.planet or "",
+                        "threat_level": loc.threat_level or "low",
+                        "scene_types": loc.scene_types or [],
+                        "travel_links": [
+                            {"to_location_id": tl.to_location_id, "travel_time_minutes": tl.travel_time_minutes}
+                            for tl in (loc.travel_links or [])
+                        ],
+                        "origin": "era_pack",
+                    })
+        # Generated locations from campaign world
+        gen_locs = ws.get("generated_locations") or []
+        for gloc in gen_locs:
+            if isinstance(gloc, dict):
+                locations.append({**gloc, "origin": gloc.get("origin", "generated")})
+        return {"campaign_id": campaign_id, "locations": locations}
     finally:
         conn.close()
 

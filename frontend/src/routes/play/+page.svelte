@@ -27,6 +27,9 @@
   import DialogueWheel from '$lib/components/choices/DialogueWheel.svelte';
   import NpcSpeech from '$lib/components/narrative/NpcSpeech.svelte';
   import SceneContext from '$lib/components/narrative/SceneContext.svelte';
+  import CompanionSidebar from '$lib/components/game/CompanionSidebar.svelte';
+  import AlignmentIndicator from '$lib/components/game/AlignmentIndicator.svelte';
+  import QuestTracker from '$lib/components/game/QuestTracker.svelte';
 
   let isSendingTurn = $state(false);
   let narrativeEl: HTMLDivElement | undefined = $state();
@@ -818,6 +821,11 @@
       </div>
     </aside>
   {/if}
+
+  <!-- V3.0: KOTOR-soul overlays -->
+  <CompanionSidebar />
+  <QuestTracker />
+  <AlignmentIndicator score={$lastTurnResponse?.debug?.alignment_score ?? 0} />
 </div>
 {/if}
 

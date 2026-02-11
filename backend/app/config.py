@@ -65,6 +65,17 @@ def _model_config() -> dict[str, dict[str, str]]:
         override_url = _role_env("BASE_URL", role)
         if override_url:
             c["base_url"] = override_url
+        # V3.0: Per-role API key for cloud providers
+        override_api_key = _role_env("API_KEY", role)
+        if override_api_key:
+            c["api_key"] = override_api_key
+        # V3.0: Fallback provider chain (try primary, fall back to this)
+        fallback_provider = _role_env("FALLBACK_PROVIDER", role)
+        if fallback_provider:
+            c["fallback_provider"] = fallback_provider
+        fallback_model = _role_env("FALLBACK_MODEL", role)
+        if fallback_model:
+            c["fallback_model"] = fallback_model
         out[role] = c
     return out
 
