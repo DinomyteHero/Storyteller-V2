@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 from backend.app.constants import SUGGESTED_ACTIONS_TARGET
 from backend.app.config import DEFAULT_DB_PATH, DEV_CONTEXT_STATS, ENABLE_BIBLE_CASTING
 from backend.app.core.error_handling import log_error_with_context, create_error_response
-from backend.app.world.era_pack_loader import get_era_pack
+from backend.app.content.repository import CONTENT_REPOSITORY
 
 logger = logging.getLogger(__name__)
 from backend.app.db.connection import get_connection
@@ -66,7 +66,7 @@ def _active_factions_from_era(time_period: str | None) -> list[dict]:
     """Derive active_factions from Era Pack (deterministic)."""
     if not time_period:
         return []
-    pack = get_era_pack(time_period)
+    pack = CONTENT_REPOSITORY.get_pack(time_period) if time_period else None
     if not pack:
         return []
     out: list[dict] = []
@@ -262,7 +262,7 @@ def _create_npc_cast_from_skeleton(conn, campaign_id: str, skeleton: dict, start
 @router.get("/era/{era_id}/locations")
 def get_era_locations(era_id: str):
     """Return known locations for an era pack (for UI starting-area selection)."""
-    pack = get_era_pack(era_id)
+    pack = CONTENT_REPOSITORY.get_pack(era_id) if era_id else None
     if not pack:
         raise HTTPException(status_code=404, detail="Era pack not found")
     return {
@@ -275,7 +275,7 @@ def get_era_locations(era_id: str):
 def get_era_backgrounds(era_id: str):
     """Return available backgrounds and their question chains for the given era."""
     logger.info(f"Received request for era backgrounds: era_id={era_id}")
-    pack = get_era_pack(era_id)
+    pack = CONTENT_REPOSITORY.get_pack(era_id) if era_id else None
     if not pack:
         logger.error(f"Era pack not found for era_id={era_id}")
         raise HTTPException(status_code=404, detail="Era pack not found")
@@ -509,7 +509,7 @@ def setup_auto(body: SetupAutoRequest):
             _bio = BiographerAgent(llm=None)
         # V3.2: Resolve era pack early so setting_rules is available for both architect and biographer
         era_for_setup = body.time_period
-        era_pack_for_setup = get_era_pack(era_for_setup) if era_for_setup else None
+        era_pack_for_setup = CONTENT_REPOSITORY.get_pack(era_for_setup) if era_for_setup else None
         _setting_rules = era_pack_for_setup.setting_rules if (era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules")) else None
         skeleton = _arch.build(time_period=body.time_period, themes=body.themes, setting_rules=_setting_rules)
 
@@ -517,7 +517,7 @@ def setup_auto(body: SetupAutoRequest):
         if not era_for_setup:
             era_for_setup = skeleton.get("time_period")
             if era_for_setup:
-                era_pack_for_setup = get_era_pack(era_for_setup)
+                era_pack_for_setup = CONTENT_REPOSITORY.get_pack(era_for_setup)
                 _setting_rules = era_pack_for_setup.setting_rules if (era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules")) else _setting_rules
         available_locations = (
             [loc.id for loc in (era_pack_for_setup.locations or [])]
@@ -581,7 +581,7 @@ def setup_auto(body: SetupAutoRequest):
         # Resolve starting planet: from character sheet, or look up via era pack
         starting_planet = character_sheet.get("starting_planet") or None
         if not starting_planet and time_period:
-            era_pack = era_pack_for_setup if (era_pack_for_setup and era_pack_for_setup.era_id == time_period) else get_era_pack(time_period)
+            era_pack = era_pack_for_setup if (era_pack_for_setup and era_pack_for_setup.era_id == time_period) else CONTENT_REPOSITORY.get_pack(time_period) if time_period else None
             if era_pack:
                 loc_obj = era_pack.location_by_id(starting_location)
                 if loc_obj and loc_obj.planet:
@@ -940,7 +940,7 @@ def get_campaign_locations(campaign_id: str):
         # Base locations from era pack
         locations = []
         if era_id:
-            era_pack = get_era_pack(era_id)
+            era_pack = CONTENT_REPOSITORY.get_pack(era_id) if era_id else None
             if era_pack and era_pack.locations:
                 for loc in era_pack.locations:
                     locations.append({
