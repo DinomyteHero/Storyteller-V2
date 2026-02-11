@@ -55,7 +55,26 @@ Each era pack includes:
 - **Companions** with voice profiles, recruitment triggers, influence mechanics, and personal quests
 - **Quests, rumors, facts, meters** for dynamic storytelling
 
-Era packs are defined in `data/static/era_packs/{era_id}/` as YAML files. Schema reference: `docs/era_pack_schema_reference.md`.
+Era content is now setting/period based under `data/static/setting_packs/{layer}/{setting_id}/periods/{period_id}/` (for example `core/star_wars_legends/periods/rebellion`). Stacking is configured with `SETTING_PACK_PATHS` (`core;addons;overrides`) and merged deterministically by id/deep-merge rules. Legacy `data/static/era_packs/{era_id}/` remains supported through an adapter (`era_id` -> default `setting_id` + `period_id`). Schema reference: `docs/era_pack_schema_reference.md`.
+
+Example setting-pack layout:
+
+```
+data/static/setting_packs/
+  core/
+    star_wars_legends/
+      periods/rebellion/
+        manifest.yaml
+        locations.yaml
+        npcs/
+  addons/
+    star_wars_legends/
+      periods/rebellion/
+  overrides/
+    star_wars_legends/
+      periods/rebellion/
+```
+
 
 ---
 
@@ -169,7 +188,9 @@ See `.env.example` for the full list. Key variables:
 | `STORYTELLER_{ROLE}_MODEL` | Per-role LLM override | see `config.py` |
 | `STORYTELLER_DIRECTOR_MODEL` | Director model | `mistral-nemo:latest` |
 | `STORYTELLER_NARRATOR_MODEL` | Narrator model | `mistral-nemo:latest` |
-| `ERA_PACK_DIR` | Era pack directory | `./data/static/era_packs` |
+| `SETTING_PACK_PATHS` | Semicolon-separated setting-pack roots | `./data/static/setting_packs/core;./data/static/setting_packs/addons;./data/static/setting_packs/overrides` |
+| `DEFAULT_SETTING_ID` | Default setting when only legacy `era_id` is provided | `star_wars_legends` |
+| `ERA_PACK_DIR` | Legacy era pack directory adapter fallback | `./data/static/era_packs` |
 | `ENABLE_BIBLE_CASTING` | Use Era Pack casting | `1` (on) |
 | `ENABLE_PROCEDURAL_NPCS` | Deterministic procedural NPCs | `1` (on) |
 | `ENABLE_SUGGESTION_REFINER` | LLM-based suggestion refinement (V2.16) | `1` (on) |
