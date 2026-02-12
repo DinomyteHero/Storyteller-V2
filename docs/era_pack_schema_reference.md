@@ -17,7 +17,7 @@ This document defines the complete schema for Storyteller AI era pack YAML files
 5. [locations.yaml](#locationsyaml)
 6. [npcs.yaml](#npcsyaml)
 7. [backgrounds.yaml](#backgroundsyaml)
-8. [namebanks.yaml](#namebbanksyaml)
+8. [namebanks.yaml](#namebanksyaml)
 9. [quests.yaml](#questsyaml)
 10. [events.yaml](#eventsyaml)
 11. [rumors.yaml](#rumorsyaml)
