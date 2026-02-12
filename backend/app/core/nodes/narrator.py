@@ -122,10 +122,37 @@ def make_narrator_node():
             kg_context = (kg_context + "\n\n## NPC Personalities\n" + shared_personality_ctx) if kg_context else ("## NPC Personalities\n" + shared_personality_ctx)
             _narrator_logger.debug("Narrator using shared NPC personality context from Director")
 
+        # V2.21: Genre flavor injection — adapt prose style to detected genre
+        campaign_dict = getattr(gs, "campaign", None) or {}
+        campaign_ws = campaign_dict.get("world_state_json") if isinstance(campaign_dict, dict) else {}
+        if not isinstance(campaign_ws, dict):
+            campaign_ws = {}
+        active_genre = (campaign_ws.get("genre") or "").strip().lower()
+        if active_genre:
+            from backend.app.constants import GENRE_FLAVOR_DIRECTIVES
+            flavor = GENRE_FLAVOR_DIRECTIVES.get(active_genre)
+            if flavor:
+                genre_block = f"## Genre Guidance ({active_genre})\n{flavor}"
+                kg_context = (kg_context + "\n\n" + genre_block) if kg_context else genre_block
+                _narrator_logger.debug("Narrator using genre flavor: %s", active_genre)
+
+        # V2.21: Narrative guardrails — inject established facts to prevent contradictions
+        narrative_ledger = campaign_ws.get("narrative_ledger") if isinstance(campaign_ws, dict) else None
+        if isinstance(narrative_ledger, dict):
+            facts = (narrative_ledger.get("established_facts") or [])[:5]
+            constraints = (narrative_ledger.get("constraints") or [])[:3]
+            if facts or constraints:
+                guardrail_lines = ["## Narrative Guardrails (DO NOT CONTRADICT)"]
+                for f in facts:
+                    guardrail_lines.append(f"- FACT: {f}")
+                for c in constraints:
+                    guardrail_lines.append(f"- CONSTRAINT: {c}")
+                guardrail_block = "\n".join(guardrail_lines)
+                kg_context = (kg_context + "\n\n" + guardrail_block) if kg_context else guardrail_block
+
         # Episodic memory: use shared from Director if available
         if shared_mem_block:
-            if shared_mem_block:
-                kg_context = (kg_context + "\n\n" + shared_mem_block) if kg_context else shared_mem_block
+            kg_context = (kg_context + "\n\n" + shared_mem_block) if kg_context else shared_mem_block
             _narrator_logger.debug("Narrator using shared episodic memory from Director")
         else:
             # Fallback: run own episodic memory retrieval
@@ -147,7 +174,7 @@ def make_narrator_node():
                     if mem_block:
                         kg_context = (kg_context + "\n\n" + mem_block) if kg_context else mem_block
             except Exception as _epi_err:
-                _narrator_logger.debug("Episodic memory recall failed for Narrator (non-fatal): %s", _epi_err)
+                _narrator_logger.warning("Episodic memory recall failed for Narrator (non-fatal): %s", _epi_err)
         output = narrator.generate(gs, kg_context=kg_context)
         final_text = output.text
 

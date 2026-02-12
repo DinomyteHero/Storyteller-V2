@@ -16,7 +16,6 @@ from backend.app.core.director_validation import (
     build_era_factions_companions_context,
     build_style_query,
     directives_from_style_context,
-    generate_suggestions,
     sanitize_instructions_for_narrator,
     style_context_from_chunks,
 )
@@ -411,7 +410,7 @@ class DirectorAgent:
         director_instructions, story_state_summary, style_chunks, lore_chunks, allowed_entities = self._build_instructions(state, arc_guidance=arc_guidance)
 
         if self._llm is None:
-            return director_instructions, generate_suggestions(state)
+            return director_instructions, []
 
         # V2.12: Simplified system prompt — instructions only, no JSON schema
         # V3.2: Use setting_rules for universe-aware prompts
@@ -480,4 +479,4 @@ class DirectorAgent:
             logger.warning("Director LLM call failed (using built instructions): %s", e)
             llm_instructions = director_instructions
 
-        return llm_instructions, generate_suggestions(state)
+        return llm_instructions, []

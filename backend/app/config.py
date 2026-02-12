@@ -189,31 +189,11 @@ PSYCH_PROFILE_DEFAULTS: dict[str, str | int | None] = {
     "active_trauma": None,
 }
 
-# Token budgeting: per-role max context tokens and reserved output tokens
-# Aligned to model sizes: 14b roles (architect/director/narrator) get larger budgets;
-# 7b roles (casting/biographer/mechanic) get smaller. Override via env:
-# STORYTELLER_{ROLE}_MAX_CONTEXT_TOKENS, STORYTELLER_{ROLE}_RESERVED_OUTPUT_TOKENS
-# (fallback: {ROLE}_MAX_CONTEXT_TOKENS, {ROLE}_RESERVED_OUTPUT_TOKENS)
-# Optional direct input override: STORYTELLER_{ROLE}_MAX_INPUT_TOKENS or {ROLE}_MAX_INPUT_TOKENS
-_ROLE_TOKEN_BUDGETS: dict[str, dict[str, int]] = {
-    # 14b models: larger context for narrative/director/architect work
-    "architect": {"max_context_tokens": 8192, "reserved_output_tokens": 2048},
-    "director": {"max_context_tokens": 8192, "reserved_output_tokens": 2048},
-    "narrator": {"max_context_tokens": 8192, "reserved_output_tokens": 2048},
-    # 7b models: lighter context for casting/biographer/mechanic
-    "casting": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
-    "biographer": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
-    "mechanic": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
-    "npc_render": {"max_context_tokens": 2048, "reserved_output_tokens": 512},
-    # Ingestion tagger: moderate context, low output
-    "ingestion_tagger": {"max_context_tokens": 4096, "reserved_output_tokens": 512},
-    # Knowledge graph extractor: moderate context, moderate output
-    "kg_extractor": {"max_context_tokens": 6144, "reserved_output_tokens": 2048},
-    # Suggestion refiner: small context (prose + scene), small output (JSON array)
-    "suggestion_refiner": {"max_context_tokens": 2048, "reserved_output_tokens": 512},
-    # Campaign init: generous output for world generation (cloud models have big windows)
-    "campaign_init": {"max_context_tokens": 8192, "reserved_output_tokens": 4096},
-}
+# Token budgeting: per-role defaults imported from constants.py.
+# Env overrides: STORYTELLER_{ROLE}_MAX_CONTEXT_TOKENS,
+#                STORYTELLER_{ROLE}_RESERVED_OUTPUT_TOKENS,
+#                STORYTELLER_{ROLE}_MAX_INPUT_TOKENS
+from backend.app.constants import ROLE_TOKEN_BUDGETS as _ROLE_TOKEN_BUDGETS
 
 
 def _role_env_int(key: str, role: str) -> int | None:
@@ -255,6 +235,26 @@ def get_role_max_input_tokens(role: str) -> int:
     max_context = get_role_max_context_tokens(role)
     reserved = get_role_reserved_output_tokens(role)
     return max(0, max_context - reserved)
+
+
+def get_role_timeout(role: str) -> float:
+    """Get LLM timeout in seconds for a role (env override or default).
+
+    Override via STORYTELLER_{ROLE}_TIMEOUT or {ROLE}_TIMEOUT env vars.
+    Defaults: suggestion_refiner=60, narrator=120, director=120, others=300.
+    """
+    env_val = _role_env("TIMEOUT", role)
+    if env_val:
+        try:
+            return float(env_val)
+        except ValueError:
+            pass
+    _ROLE_TIMEOUT_DEFAULTS = {
+        "suggestion_refiner": 60.0,
+        "narrator": 120.0,
+        "director": 120.0,
+    }
+    return _ROLE_TIMEOUT_DEFAULTS.get(role, 300.0)
 
 
 # Dev-only flag to include context stats in TurnResponse

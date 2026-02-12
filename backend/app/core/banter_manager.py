@@ -13,14 +13,14 @@ import logging
 import random
 from typing import Any
 
-from backend.app.constants import BANTER_POOL, BANTER_MEMORY_POOL
+from backend.app.constants import (
+    BANTER_POOL,
+    BANTER_MEMORY_POOL,
+    BANTER_COMPANION_COOLDOWN,
+    BANTER_GLOBAL_COOLDOWN,
+)
 
 logger = logging.getLogger(__name__)
-
-# Minimum turns between banter from the same companion
-BANTER_COMPANION_COOLDOWN = 4
-# Minimum turns between any banter
-BANTER_GLOBAL_COOLDOWN = 2
 
 
 def _is_safe_for_banter(scene_frame: dict | None, world_state: dict | None) -> bool:

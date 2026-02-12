@@ -186,19 +186,18 @@ class TestDirectorSuggestions(unittest.TestCase):
 
     # --- LLM-driven tests ---
 
-    def test_plan_no_llm_returns_deterministic_fallback(self):
-        """When llm is None, plan() returns fallback_suggestions that pass validation."""
+    def test_plan_no_llm_returns_empty_suggestions(self):
+        """V2.21: Director returns empty suggestions; SuggestionRefiner is the sole source."""
         agent = DirectorAgent(llm=None)
         state = _make_state()
         state.present_npcs = [{"name": "Guard", "role": "NPC"}]
         instructions, actions = agent.plan(state)
         self.assertIsInstance(instructions, str)
-        self.assertEqual(len(actions), SUGGESTED_ACTIONS_TARGET)
-        valid, reason = validate_suggestions(actions)
-        self.assertTrue(valid, reason)
+        # V2.21: Director no longer generates suggestions (SuggestionRefiner does)
+        self.assertEqual(len(actions), 0)
 
-    def test_plan_llm_returns_instructions_and_fallback(self):
-        """V2.12: LLM output is merged into instructions; suggestions are always deterministic fallback."""
+    def test_plan_llm_returns_instructions_and_empty_suggestions(self):
+        """V2.21: LLM output is merged into instructions; suggestions always empty (from Director)."""
         llm = _FakeLLM(["Set the scene in a tense cantina. Emphasize the smuggler's nervousness."])
         agent = DirectorAgent(llm=llm)
         state = _make_state()
@@ -207,10 +206,8 @@ class TestDirectorSuggestions(unittest.TestCase):
         self.assertEqual(llm.call_count, 1)
         # LLM text is merged into instructions
         self.assertIn("cantina", instructions)
-        # Suggestions are always fallback (deterministic)
-        self.assertEqual(len(actions), SUGGESTED_ACTIONS_TARGET)
-        valid, reason = validate_suggestions(actions)
-        self.assertTrue(valid, reason)
+        # V2.21: Director no longer generates suggestions
+        self.assertEqual(len(actions), 0)
 
     def test_plan_llm_any_text_is_accepted(self):
         """V2.12: Director accepts any text as instructions (no JSON parsing, no retries)."""
@@ -223,10 +220,8 @@ class TestDirectorSuggestions(unittest.TestCase):
         self.assertEqual(llm.call_count, 1)
         # LLM text is merged into instructions
         self.assertIn("arbitrary scene direction", instructions)
-        # Fallback suggestions always valid
-        self.assertEqual(len(actions), SUGGESTED_ACTIONS_TARGET)
-        valid, reason = validate_suggestions(actions)
-        self.assertTrue(valid, reason)
+        # V2.21: Director no longer generates suggestions
+        self.assertEqual(len(actions), 0)
 
     def test_plan_llm_empty_response_uses_built_instructions(self):
         """V2.12: When LLM returns empty text, built instructions are used alone."""
@@ -238,10 +233,8 @@ class TestDirectorSuggestions(unittest.TestCase):
         self.assertEqual(llm.call_count, 1)
         # Built instructions still present (opening scene text)
         self.assertIn("cinematic", instructions.lower())
-        # Fallback suggestions always valid
-        self.assertEqual(len(actions), SUGGESTED_ACTIONS_TARGET)
-        valid, reason = validate_suggestions(actions)
-        self.assertTrue(valid, reason)
+        # V2.21: Director no longer generates suggestions
+        self.assertEqual(len(actions), 0)
 
     def test_plan_llm_exception_falls_back(self):
         """When LLM raises an exception, plan() falls back gracefully."""
@@ -254,12 +247,11 @@ class TestDirectorSuggestions(unittest.TestCase):
         state = _make_state()
         state.present_npcs = [{"name": "Guard", "role": "NPC"}]
         instructions, actions = agent.plan(state)
-        self.assertEqual(len(actions), SUGGESTED_ACTIONS_TARGET)
-        valid, reason = validate_suggestions(actions)
-        self.assertTrue(valid, reason)
+        # V2.21: Director no longer generates suggestions
+        self.assertEqual(len(actions), 0)
 
     def test_plan_with_fix_instruction(self):
-        """V2.12: fix_instruction param is accepted but Director always returns fallback."""
+        """V2.12: fix_instruction param is accepted but Director always returns empty suggestions."""
         llm = _FakeLLM(["Adjust the pacing to be more tense."])
         agent = DirectorAgent(llm=llm)
         state = _make_state()
@@ -267,10 +259,8 @@ class TestDirectorSuggestions(unittest.TestCase):
         instructions, actions = agent.plan(state, fix_instruction="fix something")
         # LLM should be called
         self.assertEqual(llm.call_count, 1)
-        # Suggestions are always deterministic fallback
-        self.assertEqual(len(actions), SUGGESTED_ACTIONS_TARGET)
-        valid, reason = validate_suggestions(actions)
-        self.assertTrue(valid, reason)
+        # V2.21: Director no longer generates suggestions
+        self.assertEqual(len(actions), 0)
 
 
     # --- sanitize_instructions_for_narrator ---
