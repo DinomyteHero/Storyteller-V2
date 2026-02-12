@@ -69,6 +69,32 @@ def _collect_environment_diagnostics() -> dict:
     vdb = resolve_vectordb_path()
     checks["vector_db_path"] = {"ok": vdb.exists(), "path": str(vdb)}
 
+    # LanceDB table existence and row counts
+    lancedb_tables: dict[str, Any] = {}
+    lancedb_ok = False
+    if vdb.exists():
+        try:
+            import lancedb as _ldb
+            db = _ldb.connect(str(vdb))
+            table_names = db.table_names()
+            for tname in sorted(table_names):
+                try:
+                    tbl = db.open_table(tname)
+                    row_count = tbl.count_rows()
+                    lancedb_tables[tname] = {"rows": row_count, "ok": row_count > 0}
+                except Exception as _te:
+                    lancedb_tables[tname] = {"rows": 0, "ok": False, "error": str(_te)}
+            lancedb_ok = len(table_names) > 0 and any(
+                t.get("ok", False) for t in lancedb_tables.values()
+            )
+        except Exception as _ldb_err:
+            lancedb_tables["_error"] = {"ok": False, "error": str(_ldb_err)}
+    checks["lancedb_tables"] = {
+        "ok": lancedb_ok,
+        "path": str(vdb),
+        "tables": lancedb_tables,
+    }
+
     era_dir = Path(str(ERA_PACK_DIR))
     era_pack_details: list[dict] = []
     era_ok = False
