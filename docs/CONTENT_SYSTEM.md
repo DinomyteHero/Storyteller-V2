@@ -23,13 +23,13 @@ Default root order (if env var is unset):
 
 For each root, loader looks for:
 
-```text
+```
 {root}/{setting_id}/periods/{period_id}/
-```text
+```
 
 ### Concrete directory tree example
 
-```text
+```
 data/static/setting_packs/
   core/
     lotr/
@@ -52,7 +52,7 @@ data/static/setting_packs/
       periods/
         third_age/
           npcs.yaml
-```text
+```
 
 ## Merge rules
 

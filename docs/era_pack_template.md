@@ -9,7 +9,7 @@
 
 Each era pack lives in its own folder under `data/static/era_packs/<era_key>/`:
 
-```text
+```
 data/static/era_packs/
   rebellion/
     era.yaml          # Era metadata & file index (required)
@@ -24,7 +24,7 @@ data/static/era_packs/
     rumors.yaml       # NPC-delivered rumors
     facts.yaml        # Knowledge graph seed facts
     meters.yaml       # World meter bounds/defaults
-```text
+```
 
 ---
 
@@ -71,7 +71,7 @@ metadata:
   display_name: Age of Rebellion
   time_period: 0-4 ABY (Legends)
   tone: Gritty hope; underdog resistance; found family.
-```text
+```
 
 **Gotchas:**
 - `file_index` keys must exactly match the logical names: `era`, `locations`, `npcs`, `factions`, `backgrounds`, `namebanks`, `quests`, `events`, `rumors`, `meters`, `facts`, `companions`.
@@ -91,7 +91,7 @@ locations:
 
   name: Mos Eisley Cantina
   ...
-```text
+```
 
 ### Per-Location Fields
 
@@ -181,7 +181,7 @@ locations:
   travel_links:
   - loc-bazaar_market
   - loc-cargo_docks
-```text
+```
 
 **Gotchas:**
 - `services` values are validated against a fixed allowlist; typos cause load failures.
@@ -211,7 +211,7 @@ npcs:
   - id: stormtrooper_patrol
 
     ...
-```text
+```
 
 ### Anchor / Rotating NPC Fields (`EraNpcEntry`)
 
@@ -330,7 +330,7 @@ companions:
 
   name: Kessa Vane
   ...
-```text
+```
 
 ### Per-Companion Fields
 
@@ -412,7 +412,7 @@ faction_relationships:
     cascades:
       galactic_empire: -0.6
       ...
-```text
+```
 
 ### Per-Faction Fields
 
@@ -451,7 +451,7 @@ backgrounds:
 
   name: "Smuggler"
   ...
-```text
+```
 
 ### Per-Background Fields
 
@@ -537,7 +537,7 @@ namebanks:
   corellian_surnames: [Antilles, Solo, ...]
   alderaanian_surnames: [Organa, Panteer, ...]
   outer_rim_surnames: [Rendar, Vrynn, ...]
-```text
+```
 
 **Conventions:**
 - Keys are referenced by NPC templates via the `namebank` field (e.g., `namebank: imperial_names`).
@@ -559,7 +559,7 @@ quests:
 
   title: First Contact
   ...
-```text
+```
 
 ### Per-Quest Fields
 
@@ -601,7 +601,7 @@ events:
 
   type: hard
   ...
-```text
+```
 
 ### Per-Event Fields
 
@@ -628,7 +628,7 @@ rumors:
 
   text: The Rebellion has stolen something from the Empire...
   ...
-```text
+```
 
 ### Per-Rumor Fields
 
@@ -660,7 +660,7 @@ facts:
   predicate: controls
   object: loc-star_destroyer
   confidence: 1.0
-```text
+```
 
 ### Per-Fact Fields
 
@@ -702,7 +702,7 @@ meters:
     decay_per_tick: 2
   control_shift:
     enabled: false
-```text
+```
 
 ### Meter Bounds Fields
 
@@ -743,7 +743,7 @@ bribeable: false
 # CORRECT - parsed as string "false"
 
 bribeable: 'false'
-```text
+```
 
 ### 2. Integer Aliases
 
@@ -756,7 +756,7 @@ anchor: 81
 # CORRECT
 
 anchor: "81"
-```text
+```
 
 ### 3. Em Dashes in Strings
 
@@ -769,7 +769,7 @@ description: The galaxy lives under the boot — crushed and broken.
 # CORRECT
 
 description: 'The galaxy lives under the boot -- crushed and broken.'
-```text
+```
 
 ### 4. Colons in Strings
 
@@ -782,7 +782,7 @@ goal: "War: it never changes"  # This works because it's quoted
 # SAFE — always quote strings containing colons
 
 goal: "War: it never changes"
-```text
+```
 
 ### 5. Multiline Strings
 
@@ -791,14 +791,14 @@ Use the `|` (literal block) style for descriptions:
 description: |
   This preserves newlines.
   Each line is kept as-is.
-```text
+```
 
 ### 6. Starting Starship
 
 In V2.10+, backgrounds no longer grant starting ships:
 ```yaml
 starting_starship: null  # Ships earned in-story
-```text
+```
 
 ### 7. Duplicate IDs
 

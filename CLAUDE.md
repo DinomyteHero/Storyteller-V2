@@ -40,7 +40,7 @@ These are non-negotiable constraints. Do not violate them.
 
 ## Pipeline Node Order
 
-```text
+```
 Router → Mechanic → Encounter → WorldSim → CompanionReaction → ArcPlanner → SceneFrame → Director → Narrator → NarrativeValidator → SuggestionRefiner → Commit
 ```
 

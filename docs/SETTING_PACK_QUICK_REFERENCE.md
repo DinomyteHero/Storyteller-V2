@@ -42,25 +42,25 @@ Each setting pack lives in `/data/static/setting_packs/{era_id}/` and contains *
 
 ```bash
 curl http://localhost:8000/v2/debug/setting-packs
-```text
+```
 
 ### 2. Get Era Locations
 
 ```bash
 curl http://localhost:8000/v2/era/rebellion/locations
-```text
+```
 
 ### 3. Get Era Backgrounds
 
 ```bash
 curl http://localhost:8000/v2/era/rebellion/backgrounds
-```text
+```
 
 ### 4. Get Era Companions
 
 ```bash
 curl http://localhost:8000/v2/era/rebellion/companions
-```text
+```
 
 ### 5. Create Campaign with Setting Pack
 
@@ -75,7 +75,7 @@ curl -X POST http://localhost:8000/v2/setup/auto \
     "player_concept": "Rebel spy",
     "background_id": "spy_defector"
   }'
-```text
+```
 
 ---
 
@@ -98,7 +98,7 @@ tone:
   mood: "desperate_heroism"
   aesthetic: "lived_in_universe"
   themes: ["hope", "sacrifice", "tyranny_vs_freedom"]
-```text
+```
 
 ### 2. companions.yaml
 
@@ -115,7 +115,7 @@ companions:
       belief: "The Rebellion needs people who can make hard choices"
       wound: "Killed his own informants to protect the mission"
       rhetorical_style: "Terse, pragmatic, mission-focused"
-```text
+```
 
 ### 3. quests.yaml
 
@@ -136,7 +136,7 @@ quests:
 
         description: "Infiltrate Scarif security perimeter"
         success_condition: "reach_location:loc-scarif-citadel"
-```text
+```
 
 ### 4. backgrounds.yaml
 
@@ -163,7 +163,7 @@ backgrounds:
 
             label: "The Empire betrayed you"
             stat_bonus: {charisma: +2}
-```text
+```
 
 ---
 
@@ -175,7 +175,7 @@ backgrounds:
 
    ```bash
    cp -r data/static/setting_packs/_template data/static/setting_packs/new_era
-   ```text
+   ```
 
 2. Edit `era.yaml` with the new era's metadata
 
@@ -185,7 +185,7 @@ backgrounds:
 
    ```bash
    python scripts/validate_setting_pack.py new_era
-   ```text
+   ```
 
 ### Regenerating Deleted Setting Packs
 
@@ -199,7 +199,7 @@ python -m backend.app.scripts.generate_setting_pack \
   --time_period "3956 BBY" \
   --primary_conflict "Jedi vs. Sith" \
   --output data/static/setting_packs/kotor
-```text
+```
 
 Or manually using the template in `/docs/setting_pack_template.md`.
 
@@ -213,7 +213,7 @@ When enabled, NPCs are cast from setting pack `npcs.yaml` templates rather than 
 
 ```python
 ENABLE_BIBLE_CASTING = 1  # Use setting pack deterministic casting
-```text
+```
 
 **Impact:**
 - NPCs are pulled from setting pack `npcs.yaml`
@@ -229,19 +229,19 @@ ENABLE_BIBLE_CASTING = 1  # Use setting pack deterministic casting
 
 ```bash
 python scripts/validate_setting_pack.py rebellion
-```text
+```
 
 ### Validate All Setting Packs
 
 ```bash
 python scripts/validate_setting_packs.py
-```text
+```
 
 ### Audit Setting Pack Completeness
 
 ```bash
 python scripts/audit_setting_packs.py
-```text
+```
 
 ---
 
@@ -268,7 +268,7 @@ backgrounds = pack.backgrounds
 location = pack.location_by_id("loc-cantina")
 companion = pack.companion_by_id("comp-cassian")
 background = pack.background_by_id("spy_defector")
-```text
+```
 
 ---
 
@@ -354,7 +354,7 @@ locations:
       - to_location_id: loc-marketplace
 
         travel_time_minutes: 15
-```text
+```
 
 ### NPC with Voice Profile
 
@@ -369,7 +369,7 @@ npcs:
       belief: "Order through strength"
       wound: "Lost everything to the dark side"
       rhetorical_style: "Ominous, commanding, never wastes words"
-```text
+```
 
 ### Quest with Multiple Stages
 
@@ -388,7 +388,7 @@ quests:
       - id: stage-3
 
         description: "Escape with Leia"
-```text
+```
 
 ---
 

@@ -38,7 +38,7 @@ export STORYTELLER_NARRATOR_MODEL=qwen3:8b
 # optional:
 
 export STORYTELLER_NARRATOR_BASE_URL=http://localhost:11434
-```text
+```
 
 ### Cloud narrator (GPT-5.2 mini style setup)
 
@@ -46,7 +46,7 @@ export STORYTELLER_NARRATOR_BASE_URL=http://localhost:11434
 export STORYTELLER_NARRATOR_PROVIDER=openai
 export STORYTELLER_NARRATOR_MODEL=gpt-5.2-mini
 export STORYTELLER_NARRATOR_API_KEY=...
-```text
+```
 
 ### Hybrid narrator with local fallback
 
@@ -57,7 +57,7 @@ export STORYTELLER_NARRATOR_API_KEY=...
 
 export STORYTELLER_NARRATOR_FALLBACK_PROVIDER=ollama
 export STORYTELLER_NARRATOR_FALLBACK_MODEL=mistral-nemo:latest
-```text
+```
 
 ## 4) Inspect effective model config
 
@@ -65,7 +65,7 @@ Use:
 
 ```bash
 storyteller models
-```text
+```
 
 This prints the resolved per-role provider/model (including fallback chain if set).
 
@@ -128,6 +128,6 @@ storyteller build-style-pack --input <corpus_root> --output <style_root>
 
 storyteller build-style-pack --input <corpus_root> --output <style_root> --use-llm --llm-role ingestion_tagger
 python scripts/ingest_style.py --input <style_root>
-```text
+```
 
 This follows Option A: deterministic extraction first, optional LLM polish second, then ingest.

@@ -84,7 +84,7 @@ INSERT INTO campaigns (
   datetime('now'),
   datetime('now')
 );
-```text
+```
 
 ### 2. Create Test Player Character
 
@@ -124,7 +124,7 @@ INSERT INTO characters (
   datetime('now'),
   datetime('now')
 );
-```text
+```
 
 ### 3. Create Test NPCs
 
@@ -219,7 +219,7 @@ INSERT INTO characters (
   datetime('now'),
   datetime('now')
 );
-```text
+```
 
 ### 4. Seed Initial Events
 
@@ -259,7 +259,7 @@ INSERT INTO turn_events (
   0,
   datetime('now')
 );
-```text
+```
 
 ### 5. Seed Initial Objective
 
@@ -285,7 +285,7 @@ INSERT INTO objectives (
   datetime('now'),
   datetime('now')
 );
-```text
+```
 
 ---
 
@@ -384,7 +384,7 @@ INSERT INTO campaigns (
   datetime('now'),
   datetime('now')
 );
-```text
+```
 
 ---
 
@@ -394,7 +394,7 @@ INSERT INTO campaigns (
 
 ```sql
 SELECT id, title, time_period, created_at FROM campaigns WHERE id = 'test-campaign-001';
-```text
+```
 
 ### 2. Verify Player Character
 
@@ -402,7 +402,7 @@ SELECT id, title, time_period, created_at FROM campaigns WHERE id = 'test-campai
 SELECT c.id, c.name, c.role, c.location_id, c.hp_current, c.credits
 FROM characters c
 WHERE c.campaign_id = 'test-campaign-001' AND c.role = 'Player';
-```text
+```
 
 ### 3. Verify NPCs
 
@@ -411,7 +411,7 @@ SELECT c.id, c.name, c.role, c.location_id, c.relationship_score
 FROM characters c
 WHERE c.campaign_id = 'test-campaign-001' AND c.role != 'Player'
 ORDER BY c.relationship_score DESC;
-```text
+```
 
 ### 4. Verify Turn Events
 
@@ -420,7 +420,7 @@ SELECT turn_number, event_type, payload_json, created_at
 FROM turn_events
 WHERE campaign_id = 'test-campaign-001'
 ORDER BY turn_number, id;
-```text
+```
 
 ### 5. Verify Objectives
 
@@ -428,7 +428,7 @@ ORDER BY turn_number, id;
 SELECT id, title, description, status, progress_json
 FROM objectives
 WHERE campaign_id = 'test-campaign-001' AND status = 'active';
-```text
+```
 
 ---
 
@@ -447,7 +447,7 @@ DELETE FROM campaigns WHERE id LIKE 'test-campaign-%';
 -- Verify cleanup
 
 SELECT COUNT(*) as remaining FROM campaigns WHERE id LIKE 'test-campaign-%';
-```text
+```
 
 ---
 
@@ -457,26 +457,26 @@ SELECT COUNT(*) as remaining FROM campaigns WHERE id LIKE 'test-campaign-%';
 
 ```sql
 SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
-```text
+```
 
 ### Inspect Campaigns Table
 
 ```sql
 PRAGMA table_info(campaigns);
-```text
+```
 
 ### Check Indexes
 
 ```sql
 SELECT name, tbl_name, sql FROM sqlite_master WHERE type='index';
-```text
+```
 
 ### View Foreign Keys
 
 ```sql
 PRAGMA foreign_keys;
 PRAGMA foreign_key_list(characters);
-```text
+```
 
 ---
 

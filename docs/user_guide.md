@@ -328,7 +328,7 @@ canonical_id:
   - "Display Name 1"
   - "Display Name 2"
   - "Alias"
-```text
+```
 
 Example:
 
@@ -342,7 +342,7 @@ leia_organa:
   - "Leia"
   - "Leia Organa"
   - "Leia Organa Solo"
-```text
+```
 
 - **canonical_id**: The stable ID stored in `characters[]` (use snake_case, e.g. `luke_skywalker`).
 - **aliases**: Display names or nicknames that appear in text. Matching is **case-insensitive** and uses **word boundaries**—so "Luke" matches, but "Lukewarm" does not.

@@ -10,7 +10,7 @@ Pick a stable `setting_id` and create it under one or more pack roots.
 
 Example (`lotr` in core root):
 
-```text
+```
 data/static/setting_packs/core/
   lotr/
     periods/
@@ -19,7 +19,7 @@ data/static/setting_packs/core/
         locations.yaml
         npcs.yaml
         quests.yaml
-```text
+```
 
 Minimum practical starting files:
 
@@ -34,9 +34,9 @@ Minimum practical starting files:
 
 Create a new period directory:
 
-```text
+```
 data/static/setting_packs/core/lotr/periods/war_of_the_ring/
-```text
+```
 
 Then add the same section files (`era.yaml`, `locations.yaml`, etc.) for that period.
 
@@ -46,9 +46,9 @@ Layer additional content without modifying core files.
 
 ### Addon example
 
-```text
+```
 data/static/setting_packs/addons/lotr/periods/third_age/locations/rohan.yaml
-```text
+```
 
 This appends or merges location objects by `id`.
 
@@ -67,7 +67,7 @@ npcs:
       extends: npc_ranger_base
       role: scout_captain
       tags: [wilderness, elite]
-```text
+```
 
 What this does:
 
@@ -80,7 +80,7 @@ Assume this root order:
 
 ```bash
 SETTING_PACK_PATHS="./data/static/setting_packs/core;./data/static/setting_packs/addons;./data/static/setting_packs/overrides"
-```text
+```
 
 Merge flow for `(setting_id=lotr, period_id=third_age)`:
 
@@ -105,13 +105,13 @@ Run validator after any pack change:
 
 ```bash
 python scripts/validate_setting_packs.py
-```text
+```
 
 Validate against specific roots:
 
 ```bash
 python scripts/validate_setting_packs.py --paths "./data/static/setting_packs/core;./data/static/setting_packs/overrides"
-```text
+```
 
 ## 7) Legacy-era interoperability
 

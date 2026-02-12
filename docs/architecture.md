@@ -16,7 +16,7 @@ The story engine is a **LangGraph** pipeline. Every turn flows through the "Livi
 
 ### 1.1 Flow Diagram
 
-```text
+```
                     ┌─────────┐
                     │  Router │  route + action_class (three-way: META, TALK, ACTION)
                     └────┬────┘
@@ -92,7 +92,7 @@ The story engine is a **LangGraph** pipeline. Every turn flows through the "Livi
                         │            (META path arrives here directly from Router)
                         ▼
                        END
-```text
+```
 
 ### 1.2 Step-by-Step
 
@@ -286,9 +286,9 @@ PDFs are converted to **Markdown** with layout preservation (headers, tables) us
 
 Child text stored in the vector DB is **prefixed** so retrieval carries source and section context:
 
-```text
+```
 [Source: {filename}, Section: {parent_header}] {child_text}
-```text
+```
 
 This is built in `_hierarchical_chunks` and stored in the `text` field of child chunks.
 
@@ -347,7 +347,7 @@ The SvelteKit frontend provides a KOTOR-inspired game interface: a single-page n
 
 ### 6.2 Component Hierarchy
 
-```text
+```
 +page.svelte (route: /play)
   |
   +-- <header> HUD Bar (inline)
@@ -377,7 +377,7 @@ The SvelteKit frontend provides a KOTOR-inspired game interface: a single-page n
         |-- Quests tab          (quest log with status badges and stage progress)
         |-- Comms tab           (news feed: headline, source, urgency, related factions)
         +-- Journal tab         (turn transcript with time deltas)
-```text
+```
 
 Extracted components live in `frontend/src/lib/components/`:
 
@@ -391,7 +391,7 @@ Extracted components live in `frontend/src/lib/components/`:
 
 Stores live in `frontend/src/lib/stores/`. All use Svelte's `writable` / `derived` primitives.
 
-```text
+```
 API Response (TurnResponse)
   |
   v
@@ -411,7 +411,7 @@ lastTurnResponse (writable)  <-- set after runTurn() or streamTurn() completes
           +---> sceneFrame (derived)       -- $dt.scene_frame
           +---> npcUtterance (derived)     -- $dt.npc_utterance
           +---> playerResponses (derived)  -- $dt.player_responses (primary choices)
-```text
+```
 
 | Store file | Purpose | Persistence |
 |------------|---------|-------------|
@@ -475,7 +475,7 @@ Theme selection is persisted in localStorage via the `ui` store and can be chang
 
 **Data flow on `/play`:**
 
-```text
+```
 User clicks choice (or presses 1-4)
   |
   v
@@ -488,6 +488,6 @@ handleChoiceInput(userInput, label)
   |
   v
 Typewriter effect (if enabled) --> choicesReady flag --> DialogueWheel renders
-```text
+```
 
 **Accessibility:** ARIA labels on all interactive elements, `aria-live` regions for dynamic content, screen reader announcements via `announce()` utility, focus trapping in the info drawer, keyboard navigation for all choices.

@@ -33,7 +33,7 @@ docker compose exec api python -m ingestion.ingest_lore
 
 curl http://localhost:8000/health
 curl http://localhost:8000/health/detail
-```text
+```
 
 ## Manual Setup (Without Docker)
 
@@ -56,7 +56,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -e .
 cp .env.production.example .env  # Edit as needed
 uvicorn backend.main:app --host 0.0.0.0 --port 8000
-```text
+```
 
 ### Frontend
 
@@ -65,7 +65,7 @@ cd frontend
 npm install && npm run build
 # Built files are served automatically by the backend at /
 
-```text
+```
 
 ### Ollama Models
 
@@ -74,7 +74,7 @@ ollama pull mistral-nemo:latest
 ollama pull qwen3:4b
 ollama pull qwen3:8b
 ollama pull nomic-embed-text
-```text
+```
 
 ## Runtime verification
 
@@ -82,7 +82,7 @@ ollama pull nomic-embed-text
 
 ```bash
 curl http://localhost:8000/v2/campaigns
-```text
+```
 
 - Turn contract now includes prompt pack versions under `turn_contract.meta.prompt_versions` for reproducibility auditing.
 
@@ -108,7 +108,7 @@ cp data/storyteller.db data/storyteller.db.backup.$(date +%Y%m%d)
 # Restore
 
 cp data/storyteller.db.backup.YYYYMMDD data/storyteller.db
-```text
+```
 
 ### LanceDB Vector Store
 
@@ -120,13 +120,13 @@ tar -czf lancedb-backup-$(date +%Y%m%d).tar.gz data/lancedb/
 # Restore
 
 tar -xzf lancedb-backup-YYYYMMDD.tar.gz
-```text
+```
 
 ### Full Data Backup
 
 ```bash
 tar -czf storyteller-data-$(date +%Y%m%d).tar.gz data/
-```text
+```
 
 ## Architecture Notes
 

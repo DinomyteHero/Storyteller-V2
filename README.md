@@ -243,7 +243,7 @@ For detailed authoring guidance, see:
 
 ### Directory Structure
 
-```text
+```
 data/static/era_packs/
   _template/           # Reference structure
   rebellion/           # Canonical example (Galactic Civil War)

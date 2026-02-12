@@ -31,7 +31,7 @@ The automated setup flow uses CampaignArchitect and BiographerAgent to generate 
   "player_profile_id": null,
   "campaign_mode": "historical"
 }
-```text
+```
 
 #### Response Schema
 
@@ -75,7 +75,7 @@ The automated setup flow uses CampaignArchitect and BiographerAgent to generate 
     "hp_current": 10
   }
 }
-```text
+```
 
 ### 2. Manual Setup (Advanced)
 
@@ -99,7 +99,7 @@ For direct campaign creation without LLM assistance.
   },
   "hp_current": 10
 }
-```text
+```
 
 ---
 
@@ -329,7 +329,7 @@ The `world_state_json` field stores all campaign-specific metadata. Here's the c
     }
   ]
 }
-```text
+```
 
 ---
 
@@ -369,7 +369,7 @@ CREATE TABLE turn_events (
   timestamp TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
 );
-```text
+```
 
 ### Extended Tables (from migrations 0002-0021)
 
@@ -394,7 +394,7 @@ See `/backend/app/db/migrations/` for full schema evolution.
 {
   "campaign_mode": "historical"
 }
-```text
+```
 - Canon events are immutable
 - Player operates in the margins of galactic history
 - NPCs and quests fit within established lore
@@ -407,7 +407,7 @@ See `/backend/app/db/migrations/` for full schema evolution.
 {
   "campaign_mode": "sandbox"
 }
-```text
+```
 - Player choices can reshape galactic history
 - Canon events are starting conditions, not certainties
 - Factions can be altered by player actions
@@ -429,7 +429,7 @@ See `/backend/app/db/migrations/` for full schema evolution.
   "background_id": "imperial_defector",
   "campaign_mode": "historical"
 }
-```text
+```
 
 ### Example 2: Sandbox Political Intrigue
 
@@ -442,7 +442,7 @@ See `/backend/app/db/migrations/` for full schema evolution.
   "background_id": "political_operative",
   "campaign_mode": "sandbox"
 }
-```text
+```
 
 ### Example 3: KOTOR-Style Classic Hero's Journey
 
@@ -455,7 +455,7 @@ See `/backend/app/db/migrations/` for full schema evolution.
   "background_id": "force_awakening",
   "campaign_mode": "historical"
 }
-```text
+```
 
 ---
 
@@ -484,7 +484,7 @@ curl "http://localhost:8000/v2/campaigns/{campaign_id}/state?player_id={player_i
 curl -X POST "http://localhost:8000/v2/campaigns/{campaign_id}/turn?player_id={player_id}" \
   -H "Content-Type: application/json" \
   -d '{"user_input": "Look around the cantina", "debug": true}'
-```text
+```
 
 ---
 

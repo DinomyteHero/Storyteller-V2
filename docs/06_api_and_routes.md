@@ -41,7 +41,7 @@ Creates a campaign using LLM-generated skeleton + character sheet.
   "player_gender": "male",                 // optional: "male" or "female" (drives pronoun usage)
   "player_profile_id": null                // optional: cross-campaign player profile UUID
 }
-```text
+```
 
 **Response:**
 ```json
@@ -51,7 +51,7 @@ Creates a campaign using LLM-generated skeleton + character sheet.
   "skeleton": { /* campaign skeleton from Architect */ },
   "character_sheet": { /* from Biographer */ }
 }
-```text
+```
 
 **Process (high level):** CampaignArchitect.build() -> BiographerAgent.build() -> INSERT campaign + player -> initial FLAG_SET event.
 
@@ -72,7 +72,7 @@ Notes:
   "player_stats": {},
   "hp_current": 10
 }
-```text
+```
 
 **Response:**
 ```json
@@ -80,7 +80,7 @@ Notes:
   "campaign_id": "uuid",
   "player_id": "uuid"
 }
-```text
+```
 
 **Process:** INSERT campaign with companion state (+ Era Pack factions when enabled) -> INSERT player character -> initial FLAG_SET event.
 
@@ -98,7 +98,7 @@ Notes:
   "campaign_id": "uuid",
   "world_state": { /* world_state_json contents */ }
 }
-```text
+```
 
 #### `GET /v2/campaigns/{campaign_id}/rumors` — Get Public Rumors
 
@@ -110,7 +110,7 @@ Notes:
   "campaign_id": "uuid",
   "rumors": [ /* list of recent public rumor texts */ ]
 }
-```text
+```
 
 #### `GET /v2/campaigns/{campaign_id}/transcript` — Get Turn Transcript
 
@@ -129,7 +129,7 @@ Notes:
     }
   ]
 }
-```text
+```
 
 #### `GET /v2/era/{era_id}/locations` — Get Era Locations
 
@@ -141,7 +141,7 @@ Returns known locations for an era pack (for UI starting-area selection).
   "era_id": "rebellion",
   "locations": [ /* list of location dicts */ ]
 }
-```text
+```
 
 #### `GET /v2/era/{era_id}/backgrounds` — Get Era Backgrounds
 
@@ -153,7 +153,7 @@ Returns available backgrounds and their question chains for the given era (CYOA 
   "era_id": "rebellion",
   "backgrounds": [ /* list of background dicts with question chains */ ]
 }
-```text
+```
 
 #### `POST /v2/campaigns/{campaign_id}/turn` — Run One Turn
 
@@ -168,7 +168,7 @@ Returns available backgrounds and their question chains for the given era (CYOA 
   "debug": false,        // optional: include debug info
   "include_state": false  // optional: include full GameState
 }
-```text
+```
 
 **Response (`TurnResponse`):**
 ```json
@@ -247,7 +247,7 @@ Returns available backgrounds and their question chains for the given era (CYOA 
   // Dev-only (when DEV_CONTEXT_STATS=1):
   "context_stats": { /* token budgeting report */ }
 }
-```text
+```
 
 `warnings` is always present (may be empty). `context_stats` is optional and only populated when `DEV_CONTEXT_STATS=1`.
 
@@ -269,11 +269,11 @@ Streams narration via Server-Sent Events. Runs the full pipeline synchronously u
 **Request:** Same as `/turn` (`TurnRequest`)
 
 **SSE event format:**
-```text
+```
 data: {"type": "token", "text": "..."}         — individual token
 data: {"type": "done", "narrated_text": "...", "suggested_actions": [...], ...}  — final metadata
 data: {"type": "error", "message": "..."}      — on failure
-```text
+```
 
 **Notes:**
 - META input shortcuts directly to commit (no streaming needed)
@@ -322,7 +322,7 @@ Mounted at `/v2/starships`. Manages player-owned starship acquisition, customiza
     }
   }
 ]
-```text
+```
 
 #### `POST /v2/starships/campaign/{campaign_id}/acquire` — Acquire Starship
 
@@ -333,7 +333,7 @@ Mounted at `/v2/starships`. Manages player-owned starship acquisition, customiza
   "custom_name": "My Ship",
   "acquired_method": "quest_reward"
 }
-```text
+```
 
 **Response:** `PlayerStarshipResponse` (ship + definition + available upgrades).
 
@@ -345,7 +345,7 @@ Mounted at `/v2/starships`. Manages player-owned starship acquisition, customiza
   "slot": "weapons",
   "upgrade": "quad_laser"
 }
-```text
+```
 
 **Response:** `PlayerStarshipResponse` (updated ship + remaining upgrades).
 
@@ -379,7 +379,7 @@ class ActionSuggestion(BaseModel):
     consequence_hint: str = ""    # "may gain trust", "may escalate", "learn more"
     companion_reactions: dict[str, int] = {}  # {companion_id: affinity_delta}
     risk_factors: list[str] = []              # ["Outnumbered 3-to-1", "No cover"]
-```text
+```
 
 ### `CharacterSheet`
 
@@ -399,7 +399,7 @@ class CharacterSheet(BaseModel):
     background: str | None = None     # POV identity from BiographerAgent
     cyoa_answers: dict | None = None  # CYOA character creation answers
     gender: str | None = None         # "male" or "female" — drives pronoun usage
-```text
+```
 
 ### `TurnResponse`
 
@@ -421,7 +421,7 @@ class TurnResponse(BaseModel):
     news_feed: list[dict] | None = None
     context_stats: dict | None = None          # when DEV_CONTEXT_STATS=1
     warnings: list[str] = []
-```text
+```
 
 Note: `embedded_suggestions` is always `None` as of V2.15 (Narrator writes prose only; suggestions are deterministic).
 
@@ -439,7 +439,7 @@ Note: `embedded_suggestions` is always `None` as of V2.15 (Narrator writes prose
   "node": "string (optional, which pipeline node failed)",
   "details": {}
 }
-```text
+```
 
 HTTP status codes: `200` for success, `400` for bad request (missing params), `404` for campaign/player not found, `500` for internal errors (LLM failures, DB errors).
 
@@ -529,4 +529,4 @@ curl "http://localhost:8000/v2/era/rebellion/locations"
 # Get era backgrounds (for CYOA character creation)
 
 curl "http://localhost:8000/v2/era/rebellion/backgrounds"
-```text
+```

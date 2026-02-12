@@ -82,7 +82,7 @@ graph TD
     DIR -.-> Ollama
     NAR -.-> Ollama
     COMMIT --> API
-```text
+```
 
 ## Quickstart
 
@@ -102,7 +102,7 @@ graph TD
 ```powershell
 .\setup_dev.bat
 .\start_dev.bat
-```text
+```
 
 **Cross-platform:**
 
@@ -113,7 +113,7 @@ python -m venv venv
 pip install -e .
 python -m storyteller setup
 python -m storyteller dev
-```text
+```
 
 ### Create a Campaign & Play
 
@@ -129,7 +129,7 @@ curl -X POST http://localhost:8000/v2/setup/auto \
 curl -X POST "http://localhost:8000/v2/campaigns/{campaign_id}/turn?player_id={player_id}" \
   -H "Content-Type: application/json" \
   -d '{"user_input": "I search the back alley for clues"}'
-```text
+```
 
 ## Tech Stack Summary
 

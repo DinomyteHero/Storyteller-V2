@@ -48,7 +48,7 @@ An era pack is a collection of YAML files defining all content for a specific St
 
 Each era pack directory must contain:
 
-```text
+```
 data/static/era_packs/{era_id}/
 ├── era.yaml              # Required: era metadata, file index, start locations
 ├── factions.yaml         # Required: faction definitions
@@ -62,7 +62,7 @@ data/static/era_packs/{era_id}/
 ├── meters.yaml           # Required: faction reputation mechanics
 ├── facts.yaml            # Required: knowledge base entries
 └── companions.yaml       # Required: era-specific companions
-```text
+```
 
 ---
 
@@ -112,7 +112,7 @@ metadata:                            # Required: Human-readable era info
   themes:
     - Restoration of the Republic
     - Sacrifice and compartmentalization
-```text
+```
 
 **Required Fields:**
 - `era_id` (string, UPPERCASE)
@@ -150,7 +150,7 @@ factions:
       empire: -80                    # Hostile (-100 to 100)
       hutts: -20                     # Distrustful
     metadata: {}                     # Optional: Extension point
-```text
+```
 
 **Required Fields:**
 - `id` (string)
@@ -235,7 +235,7 @@ locations:
       - loc-docking_bay              # Shorthand: just location ID
 
     metadata: {}                     # Optional: Extension point
-```text
+```
 
 **Required Fields:**
 - `id` (string)
@@ -374,7 +374,7 @@ templates:
       rumors: []
 
     metadata: {}                     # Optional
-```text
+```
 
 **Required Fields (anchors/rotating):**
 - `id` (string)
@@ -435,7 +435,7 @@ backgrounds:
               thread_seed: lost_family
               stat_bonus:
                 leadership: 1
-```text
+```
 
 **Required Fields:**
 - `id` (string)
@@ -473,7 +473,7 @@ namebanks:
     - Dodonna
     - Draven
     - Rieek an
-```text
+```
 
 **Format:** Dict of `{namebank_id: [name_list]}`
 
@@ -509,7 +509,7 @@ quests:
         # ...
 
     consequences: null               # Optional: Quest completion effects
-```text
+```
 
 **Required Fields:**
 - `id` (string)
@@ -531,7 +531,7 @@ events:
     location_selector: null          # Optional: Location selection logic
     effects: null                    # Optional: Event effects
     broadcast_rules: null            # Optional: Narrative broadcast rules
-```text
+```
 
 **Required Fields:**
 - `id` (string)
@@ -555,7 +555,7 @@ rumors:
 
     scope: global                    # Optional: global|location
     credibility: rumor               # Optional: rumor|likely|confirmed
-```text
+```
 
 **Required Fields:**
 - `id` (string)
@@ -596,7 +596,7 @@ meters:
     decay_per_tick: 2
 
   control_shift: {}
-```text
+```
 
 **Required Fields:**
 - `reputation_by_faction` (EraMetersBounds)
@@ -627,7 +627,7 @@ facts:
     predicate: is                    # Required: Relationship
     object: Anakin Skywalker         # Required: Object entity
     confidence: 0.95                 # Optional: Confidence (0.0-1.0)
-```text
+```
 
 **Required Fields:**
 - `id` (string)
@@ -707,7 +707,7 @@ companions:
     personal_quest_id: quest_kira_revenge  # Optional: Personal quest ID
 
     metadata: {}                     # Optional: Extension (e.g., old schema fields)
-```text
+```
 
 **Required Fields:**
 - `id` (string)
@@ -736,44 +736,44 @@ Old LEGACY companions have deprecated fields:
 
 ### Scene Types (ALLOWED_SCENE_TYPES)
 
-```text
+```
 dialogue, stealth, combat, travel, investigation, puzzle,
 philosophical_dialogue, meditation, tech_investigation,
 survival, exploration, training
-```text
+```
 
 ### Services (ALLOWED_SERVICES)
 
-```text
+```
 briefing_room, medbay, arms_dealer, slicer, transport,
 bounty_board, safehouse, market, cantina
-```text
+```
 
 ### Bypass Methods (ALLOWED_BYPASS_METHODS)
 
-```text
+```
 violence, sneak, stealth, climb, navigate, bribe, charm,
 intimidate, deception, credential, hack, slice, disable,
 force, force_dark, logic_puzzle, sith_amulet
-```text
+```
 
 ### Lever Ratings (LeverRating)
 
-```text
+```
 "false", "low", "medium", "high"
-```text
+```
 **CRITICAL:** Must be strings in YAML, not booleans!
 
 ### Patrol Intensity (ALLOWED_PATROL_INTENSITY)
 
-```text
+```
 low, medium, high, constant, none
-```text
+```
 
 ### Voice Tags (VOICE_TAG_SPEECH_PATTERNS)
 
 **40 valid tags:**
-```text
+```
 earnest, hopeful, warm, weary, nervous, defensive, apologetic,
 commanding, authoritative, regal, formal, diplomatic,
 sarcastic, wry, snarky, dry,
@@ -782,7 +782,7 @@ fast, measured, deliberate, clipped, terse,
 growling, mechanical, rasping, hissing, deep, smooth, serene, mystical, expressive,
 calculating, analytical, academic, tactical, professional,
 young, grave, uncertain, disdainful, clear, gravelly, gruff, beeps, wise
-```text
+```
 
 See `backend/app/core/personality_profile.py` lines 18-86 for full definitions.
 
@@ -834,13 +834,13 @@ The following references are validated:
 ```yaml
 levers:
   bribeable: false  # This is a boolean!
-```text
+```
 
 **Right:**
 ```yaml
 levers:
   bribeable: "false"  # This is a string
-```text
+```
 
 ### 2. Integer Aliases Need Quoting
 
@@ -849,12 +849,12 @@ levers:
 **Wrong:**
 ```yaml
 &ref81 some_value
-```text
+```
 
 **Right:**
 ```yaml
 &ref_81 some_value  # Use underscore or quote
-```text
+```
 
 ### 3. Em Dashes in Quoted Strings
 
@@ -863,7 +863,7 @@ levers:
 **Wrong:**
 ```yaml
 description: "The Empire—ruthless and vast—controls the galaxy."
-```text
+```
 
 **Right:**
 ```yaml
@@ -871,7 +871,7 @@ description: 'The Empire—ruthless and vast—controls the galaxy.'
 # OR
 
 description: The Empire—ruthless and vast—controls the galaxy.
-```text
+```
 
 ### 4. Quest Stage ID vs Stage
 
@@ -883,7 +883,7 @@ stages:
   - stage: stage_1  # WRONG
 
     objective: Find pilot
-```text
+```
 
 **Right:**
 ```yaml
@@ -891,7 +891,7 @@ stages:
   - stage_id: stage_1  # CORRECT
 
     objective: Find pilot
-```text
+```
 
 ### 5. Rumor Text vs Content
 
@@ -903,7 +903,7 @@ rumors:
   - id: rumor1
 
     content: I heard...  # WRONG
-```text
+```
 
 **Right:**
 ```yaml
@@ -911,7 +911,7 @@ rumors:
   - id: rumor1
 
     text: I heard...  # CORRECT
-```text
+```
 
 ### 6. Voice Tags Must Be Validated
 
@@ -921,13 +921,13 @@ rumors:
 ```yaml
 voice_tags:
   - scholarly  # NOT in VOICE_TAG_SPEECH_PATTERNS
-```text
+```
 
 **Right:**
 ```yaml
 voice_tags:
   - academic  # Valid tag
-```text
+```
 
 **Valid voice tags list:** See Common Enums section above or `personality_profile.py`.
 
@@ -941,7 +941,7 @@ templates:
   - id: luke_skywalker  # WRONG - should be in anchors
 
     role: Jedi Knight
-```text
+```
 
 **Right:**
 ```yaml
@@ -949,7 +949,7 @@ anchors:
   - id: luke_skywalker  # CORRECT
 
     name: Luke Skywalker
-```text
+```
 
 ### 8. Background Starting Ship Field Name
 
@@ -961,7 +961,7 @@ backgrounds:
   - id: bg_pilot
 
     starship_id: yt1300  # WRONG
-```text
+```
 
 **Right:**
 ```yaml
@@ -969,7 +969,7 @@ backgrounds:
   - id: bg_pilot
 
     starting_starship: yt1300  # CORRECT
-```text
+```
 
 ---
 
@@ -980,7 +980,7 @@ Current schema version: **2**
 Set in `era.yaml`:
 ```yaml
 schema_version: 2
-```text
+```
 
 Schema changes are tracked in `docs/era_pack_migration_guide.md`.
 

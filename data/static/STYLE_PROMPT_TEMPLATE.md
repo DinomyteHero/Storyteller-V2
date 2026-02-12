@@ -65,7 +65,7 @@ A default 3-5 step pattern for how scenes unfold. Write this as a numbered list 
 
 Example format:
 
-```text
+```
 1) Establish the space (one concrete sensory detail).
 2) Reveal the pressure (what's at stake right now).
 3) Present a choice (two obvious paths, one clever path).

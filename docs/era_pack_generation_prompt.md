@@ -345,7 +345,7 @@ meters:
     decay_per_tick: 2
   control_shift:
     enabled: false
-```text
+```
 
 ---
 
@@ -361,7 +361,7 @@ bribeable: false
 # CORRECT - string "false"
 
 bribeable: 'false'
-```text
+```
 
 ## 2. Integer Anchors
 
@@ -373,7 +373,7 @@ anchor: 81
 # CORRECT
 
 anchor: "81"
-```text
+```
 
 ## 3. Em Dashes and Colons
 
@@ -385,7 +385,7 @@ description: War — it never ends.
 # CORRECT (single-quote the whole line)
 
 description: 'War -- it never ends.'
-```text
+```
 
 ## 4. Multiline Strings
 
@@ -396,7 +396,7 @@ description: |
   Line one.
   Line two.
   Line three.
-```text
+```
 
 ## 5. Starting Starships
 
@@ -404,7 +404,7 @@ description: |
 # V2.10+: ships earned in-story, not starting equipment
 
 starting_starship: null
-```text
+```
 
 ---
 
@@ -484,7 +484,7 @@ Generate complete YAML files for all 12 era pack components. For each file:
 # ============================================================
 
 [Full file content with all entries]
-```text
+```
 
 Provide all 12 files in order:
 1. `era.yaml`

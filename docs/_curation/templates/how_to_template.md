@@ -17,14 +17,14 @@
 ```bash
 # command example
 
-```text
+```
 
 ## Validation
 
 ```bash
 # verification command
 
-```text
+```
 
 ## Related docs
 
