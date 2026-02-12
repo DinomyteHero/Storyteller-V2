@@ -104,7 +104,7 @@ def make_director_node():
                 if director_mem_block:
                     kg_context = (kg_context + "\n\n" + director_mem_block) if kg_context else director_mem_block
         except Exception as _epi_err:
-            logger.debug("Episodic memory recall failed for Director (non-fatal): %s", _epi_err)
+            logger.warning("Episodic memory recall failed for Director (non-fatal): %s", _epi_err)
 
         # --- V2.10: Dynamic genre detection ---
         try:

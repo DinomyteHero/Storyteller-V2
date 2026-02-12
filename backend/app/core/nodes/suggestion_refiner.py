@@ -51,7 +51,7 @@ TONES (pick one per option, use at least 3 different tones):
 - NEUTRAL: practical, tactical, detached
 
 MEANING TAGS (pick one per option):
-reveal_values, probe_belief, challenge_premise, seek_history, set_boundary, pragmatic, deflect
+reveal_values, probe_belief, challenge_premise, seek_history, set_boundary, pragmatic, deflect, offer_alliance, express_doubt, invoke_authority, show_vulnerability, make_demand
 
 RULES:
 - Each "text" is 8-16 words, first person, spoken by the PLAYER CHARACTER
@@ -257,6 +257,8 @@ def _apply_stat_gating(gs: GameState, suggestions: list[ActionSuggestion]) -> li
 _VALID_MEANING_TAGS = {
     "reveal_values", "probe_belief", "challenge_premise",
     "seek_history", "set_boundary", "pragmatic", "deflect",
+    "offer_alliance", "express_doubt", "invoke_authority",
+    "show_vulnerability", "make_demand",
 }
 
 
@@ -410,13 +412,27 @@ def make_suggestion_refiner_node():
         return _llm_holder[0]
 
     def _emergency_fallback(state: dict[str, Any]) -> dict[str, Any]:
-        """Generate minimal emergency player responses when LLM refinement is unavailable.
-
-        These are simple, generic one-liners — just enough to keep the game playable.
-        """
+        """Generate emergency player responses, preferring context-aware deterministic suggestions."""
         if state.get("player_responses"):
             return state
 
+        # Tier 1: Try deterministic context-aware suggestions from director_validation
+        try:
+            from backend.app.core.director_validation import generate_suggestions
+            from backend.app.core.nodes import dict_to_state
+            gs = dict_to_state(state)
+            det_suggestions = generate_suggestions(gs, mechanic_result=state.get("mechanic_result"))
+            if det_suggestions and len(det_suggestions) >= 2:
+                det_suggestions = det_suggestions[:SUGGESTED_ACTIONS_TARGET]
+                logger.info("SuggestionRefiner: using deterministic context-aware fallback (%d suggestions)", len(det_suggestions))
+                actions_list = [s.model_dump(mode="json") if hasattr(s, "model_dump") else s for s in det_suggestions]
+                scene_frame = state.get("scene_frame")
+                player_responses = action_suggestions_to_player_responses(det_suggestions, scene_frame)
+                return {**state, "suggested_actions": actions_list, "player_responses": player_responses}
+        except Exception as _det_err:
+            logger.warning("SuggestionRefiner: deterministic fallback failed (%s), using generic emergency", _det_err)
+
+        # Tier 2: Generic emergency suggestions (last resort)
         emergency_suggestions = [
             ActionSuggestion(
                 label="Tell me more about what's going on.",

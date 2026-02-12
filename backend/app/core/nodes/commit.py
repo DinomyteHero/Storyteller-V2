@@ -272,8 +272,51 @@ def make_commit_node():
                     for qn in quest_notifications:
                         existing_warnings.append(f"[QUEST] {qn}")
                     state["warnings"] = existing_warnings
+                # V2.21: Quest-to-ledger integration — feed quest events into narrative ledger
+                if quest_notifications:
+                    try:
+                        quest_log = world_state.get("quest_log") or {}
+                        ledger = world_state.get("narrative_ledger") or {}
+                        facts = list(ledger.get("established_facts") or [])
+                        threads = list(ledger.get("open_threads") or [])
+                        for qn in quest_notifications:
+                            if "completed" in qn.lower():
+                                quest_title = qn.replace("Quest completed: ", "")
+                                facts.append(f"Resolved: {quest_title}")
+                                # Remove matching open thread
+                                threads = [t for t in threads if quest_title.lower() not in t.lower()]
+                            elif "New quest" in qn:
+                                quest_title = qn.replace("New quest: ", "")
+                                threads.append(f"Active quest: {quest_title}")
+                            elif "Objective complete" in qn:
+                                facts.append(qn)
+                        ledger["established_facts"] = facts
+                        ledger["open_threads"] = threads
+                        world_state["narrative_ledger"] = ledger
+                    except Exception as _ql_err:
+                        logger.warning("Quest-ledger integration failed (non-fatal): %s", _ql_err)
             except Exception as _quest_err:
                 logger.warning("Quest tracking failed (non-fatal): %s", _quest_err)
+
+            # V2.21: NPC persistent memory — record NPC interactions from turn events
+            try:
+                from backend.app.core.npc_memory import (
+                    ensure_npc_memory_table,
+                    extract_npc_memories_from_events,
+                    record_npc_interaction,
+                )
+                ensure_npc_memory_table(conn)
+                npc_mems = extract_npc_memories_from_events(
+                    [{"event_type": e.event_type, "payload": e.payload or {}} if isinstance(e, Event) else e for e in events],
+                    present_npcs=state.get("present_npcs"),
+                )
+                for mem in npc_mems:
+                    record_npc_interaction(
+                        conn, campaign_id, mem["npc_name"], next_turn_number,
+                        mem["event_type"], mem["summary"], mem.get("sentiment", 0),
+                    )
+            except Exception as _npc_mem_err:
+                logger.warning("NPC memory recording failed (non-fatal): %s", _npc_mem_err)
 
             # Phase 1-3: advance story-position timeline (year/chapter + divergence signals)
             try:

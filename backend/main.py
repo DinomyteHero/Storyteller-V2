@@ -1,6 +1,8 @@
 """FastAPI main application (V2)."""
 import logging
 import os
+import time as _time
+from collections import defaultdict as _defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -40,6 +42,45 @@ API_TOKEN = os.environ.get("STORYTELLER_API_TOKEN", "").strip()
 CORS_ALLOW_ORIGINS = _parse_cors_allowlist(os.environ.get("STORYTELLER_CORS_ALLOW_ORIGINS", ""))
 
 
+def _validate_environment() -> None:
+    """Log environment health checks at startup. Never fails — graceful degradation."""
+    import httpx
+    from backend.app.config import resolve_vectordb_path, ERA_PACK_DIR, DATA_ROOT
+
+    # Check Ollama connectivity
+    ollama_url = os.environ.get("OLLAMA_BASE_URL", os.environ.get("OLLAMA_HOST", "http://localhost:11434"))
+    try:
+        resp = httpx.get(f"{ollama_url}/api/tags", timeout=5.0)
+        models = [m.get("name", "") for m in resp.json().get("models", [])]
+        logger.info("Ollama reachable at %s (%d models loaded)", ollama_url, len(models))
+    except Exception as e:
+        logger.warning("Ollama NOT reachable at %s: %s (LLM calls will fail until resolved)", ollama_url, e)
+
+    # Check data directories
+    if DATA_ROOT.exists():
+        logger.info("Data root: %s (exists)", DATA_ROOT)
+    else:
+        logger.warning("Data root missing: %s (create with 'storyteller setup')", DATA_ROOT)
+
+    # Check vector DB
+    vdb = resolve_vectordb_path()
+    if vdb.exists():
+        logger.info("Vector DB: %s (exists)", vdb)
+    else:
+        logger.warning("Vector DB missing: %s (run ingestion first)", vdb)
+
+    # Check era packs
+    era_dir = Path(str(ERA_PACK_DIR))
+    if era_dir.exists():
+        yamls = list(era_dir.glob("*.yaml")) + list(era_dir.glob("*.yml"))
+        if yamls:
+            logger.info("Era packs: %d found in %s", len(yamls), era_dir)
+        else:
+            logger.warning("No era pack YAML files in %s", era_dir)
+    else:
+        logger.warning("Era pack directory missing: %s", era_dir)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if not DEV_MODE:
@@ -53,6 +94,7 @@ async def lifespan(app: FastAPI):
                 "STORYTELLER_API_TOKEN is required when STORYTELLER_DEV_MODE=0."
             )
     apply_schema(DEFAULT_DB_PATH)
+    _validate_environment()
     logger.info(
         "API startup complete (dev_mode=%s, auth=%s, db=%s)",
         DEV_MODE,
@@ -101,6 +143,30 @@ async def auth_middleware(request: Request, call_next):
             details={"path": path},
         )
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=error_response)
+    return await call_next(request)
+
+
+_RATE_LIMITS: dict[str, list[float]] = _defaultdict(list)
+_RATE_LIMIT_WINDOW = 60  # seconds
+_RATE_LIMIT_MAX = 10     # max turn requests per minute per IP
+
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    """Simple per-IP rate limiting for turn endpoints."""
+    path = request.url.path or ""
+    if "/turn" not in path:
+        return await call_next(request)
+    client_ip = request.client.host if request.client else "unknown"
+    now = _time.monotonic()
+    # Clean old entries
+    _RATE_LIMITS[client_ip] = [t for t in _RATE_LIMITS[client_ip] if now - t < _RATE_LIMIT_WINDOW]
+    if len(_RATE_LIMITS[client_ip]) >= _RATE_LIMIT_MAX:
+        return JSONResponse(
+            status_code=429,
+            content={"error": "Rate limit exceeded. Max 10 turn requests per minute.", "error_code": "RATE_LIMIT"},
+        )
+    _RATE_LIMITS[client_ip].append(now)
     return await call_next(request)
 
 
