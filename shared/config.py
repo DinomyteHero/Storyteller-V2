@@ -4,6 +4,8 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from shared.ingest_paths import lore_dir, manifests_dir, style_dir
+
 
 def _env_flag(name: str, default: bool = False) -> bool:
     """Read boolean env flag."""
@@ -22,10 +24,11 @@ EMBEDDING_DIMENSION = int(_emb_dim) if _emb_dim else 384
 # Project root: resolve relative to this file's location
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-# Data directories (shared) - use absolute paths to avoid CWD dependency
-STYLE_DATA_DIR = os.environ.get("STYLE_DATA_DIR", str(_PROJECT_ROOT / "data" / "style"))
-LORE_DATA_DIR = os.environ.get("LORE_DATA_DIR", str(_PROJECT_ROOT / "data" / "lore"))
-MANIFESTS_DIR = os.environ.get("MANIFESTS_DIR", str(_PROJECT_ROOT / "data" / "manifests"))
+# Data directories (shared) - use absolute paths to avoid CWD dependency.
+# Ingestion dirs can be relocated via STORYTELLER_INGEST_ROOT for portability.
+STYLE_DATA_DIR = os.environ.get("STYLE_DATA_DIR", str(style_dir()))
+LORE_DATA_DIR = os.environ.get("LORE_DATA_DIR", str(lore_dir()))
+MANIFESTS_DIR = os.environ.get("MANIFESTS_DIR", str(manifests_dir()))
 ERA_PACK_DIR = os.environ.get("ERA_PACK_DIR", str(_PROJECT_ROOT / "data" / "static" / "era_packs"))
 
 # Feature flags (shared)

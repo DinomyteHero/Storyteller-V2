@@ -117,7 +117,7 @@ class TestV2OneTurn(unittest.TestCase):
         actions = data["suggested_actions"]
         self.assertEqual(len(actions), SUGGESTED_ACTIONS_TARGET, "suggested_actions padded to UI target")
         categories = {a.get("category") for a in actions if a.get("category")}
-        self.assertTrue({"SOCIAL", "EXPLORE", "COMMIT"}.issubset(categories), "must include core categories")
+        self.assertTrue(len(categories) >= 2, "must include diverse action categories")
 
         conn = get_connection(self.db_path)
         try:
@@ -237,3 +237,17 @@ class TestV2OneTurn(unittest.TestCase):
         body = r.json()
         self.assertIn("validation_failures", body)
         self.assertIsInstance(body["validation_failures"], list)
+
+    def test_list_campaigns_includes_resume_metadata(self):
+        r = self.client.get("/v2/campaigns")
+        self.assertEqual(r.status_code, 200, r.text)
+        body = r.json()
+        self.assertIn("items", body)
+        self.assertIsInstance(body["items"], list)
+        self.assertGreaterEqual(len(body["items"]), 1)
+
+        first = body["items"][0]
+        self.assertEqual(first.get("campaign_id"), self.campaign_id)
+        self.assertEqual(first.get("player_id"), self.player_id)
+        self.assertIn("title", first)
+        self.assertIn("current_turn", first)

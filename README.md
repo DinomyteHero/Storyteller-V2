@@ -7,7 +7,7 @@ Storyteller AI is a local-first narrative RPG engine powered by a FastAPI backen
 - Era Pack system for deterministic world content (`/data/static/era_packs/`)
 - Event sourcing architecture with SQLite persistence
 - RAG-powered lore retrieval from ingested novels
-- Ollama-only local LLM execution (no cloud dependencies)
+- Ollama-first local LLM execution (cloud providers supported per-role when explicitly configured)
 
 **Repository Status:**
 - Streamlined to `_template` + `rebellion` era packs (others can be regenerated)
@@ -32,6 +32,7 @@ Storyteller AI combines deterministic game systems with LLM-powered narrative ge
 - Companion affinity and party dynamics
 - Multi-lane RAG retrieval (lore, style, character voice, knowledge graph)
 - Streaming narration via SSE
+- Prompt version tracking in `turn_contract.meta.prompt_versions`
 
 ---
 
@@ -61,6 +62,7 @@ Campaigns are created via:
 - `GET /v2/content/catalog` + `GET /v2/content/default` - Discover available settings/periods dynamically
 - `POST /v2/setup/auto` - Automated setup with CampaignArchitect + BiographerAgent
 - `POST /v2/campaigns` - Manual campaign creation
+- `GET /v2/campaigns` - List resumable campaigns
 
 Each campaign includes:
 - Player character with background and stats
@@ -102,6 +104,25 @@ python -m storyteller setup --skip-deps
 ```
 
 `storyteller setup` creates standard runtime directories, copies `.env.example` to `.env` when missing, and runs `storyteller doctor`.
+
+
+Ingestion note:
+- `storyteller ingest --pipeline lore` is the recommended/default path.
+- Deprecated simple pipeline now requires explicit opt-in: `--pipeline simple --allow-legacy`.
+- For CI/automation use `--yes` to run non-interactively.
+
+
+One-command bootstrap (new machine):
+
+```bash
+bash scripts/bootstrap.sh
+```
+
+Validation shortcut:
+
+```bash
+make check
+```
 
 ### Configure environment variables
 
@@ -149,6 +170,12 @@ Quick checks without starting processes:
 
 ```bash
 python run_app.py --check
+```
+
+Detailed runtime diagnostics:
+
+```bash
+curl http://localhost:8000/health/detail
 ```
 
 Useful launch modes:

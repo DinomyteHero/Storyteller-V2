@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Any, List
 
 from backend.app.config import EMBEDDING_MODEL, STYLE_TABLE_NAME, resolve_vectordb_path
-from backend.app.rag._cache import get_encoder, get_lancedb_table
+from backend.app.rag._cache import get_encoder
+from backend.app.rag.vector_store import create_vector_store, LanceDBStore
 from backend.app.rag.utils import assert_vector_dim, safe_filter_token
 from backend.app.core.warnings import add_warning
 
@@ -50,37 +51,32 @@ def retrieve_style(
         return []
 
     try:
-        table = get_lancedb_table(db_path, table_name)
+        store = create_vector_store(db_path, table_name)
+        if isinstance(store, LanceDBStore):
+            _assert_vector_dim(store._get_table(), str(table_name))
     except Exception as e:
         logger.warning("Could not open style table %s: %s", table_name, e)
         add_warning(warnings, "Style retrieval failed: continuing without style context.")
         return []
-
-    _assert_vector_dim(table, str(table_name))
     encoder = get_encoder(EMBEDDING_MODEL)
     query_vector = encoder.encode([query], show_progress_bar=False)[0]
     if hasattr(query_vector, "tolist"):
         query_vector = query_vector.tolist()
 
     try:
-        results = table.search(query_vector).limit(top_k)
-        tbl = results.to_arrow()
+        rows = store.search(query_vector, top_k=top_k)
     except Exception as e:
         logger.warning("Style search failed: %s", e)
         add_warning(warnings, "Style retrieval failed: continuing without style context.")
         return []
 
-    if tbl.num_rows == 0:
+    if not rows:
         return []
 
-    d = tbl.to_pydict()
     out: List[dict[str, Any]] = []
-    for i in range(tbl.num_rows):
+    for row in rows:
         def _v(name: str, default: Any = ""):
-            col = d.get(name)
-            if col is None:
-                return default
-            return col[i] if i < len(col) else default
+            return row.get(name, default)
 
         dist = _v("_distance", 0.0)
         score = float(1.0 - (dist if dist is not None else 0.0))
@@ -108,6 +104,29 @@ def retrieve_style(
 
     return out
 
+
+
+def _parse_row_dicts(rows: List[dict[str, Any]]) -> List[dict[str, Any]]:
+    """Parse row dicts into normalized style chunk dicts."""
+    if not rows:
+        return []
+    out: List[dict[str, Any]] = []
+    for row in rows:
+        dist = row.get("_distance", 0.0)
+        score = float(1.0 - (dist if dist is not None else 0.0))
+        tags_json = row.get("tags_json", "[]")
+        try:
+            tags = json.loads(tags_json) if isinstance(tags_json, str) else list(tags_json or [])
+        except Exception:
+            tags = []
+        out.append({
+            "text": row.get("text") or "",
+            "source_title": row.get("source_title") or "",
+            "tags": tags,
+            "score": score,
+            "id": row.get("id") or "",
+        })
+    return out
 
 def _parse_rows(tbl) -> List[dict[str, Any]]:
     """Parse Arrow table rows into style chunk dicts."""
@@ -198,19 +217,25 @@ def retrieve_style_layered(
     db_path = resolve_vectordb_path(db_path)
     table_name = table_name or STYLE_TABLE_NAME
 
+    if not era_id and not genre and not archetype:
+        return retrieve_style(
+            query, top_k=top_k, db_path=db_path, table_name=table_name,
+            warnings=warnings, style_tags=style_tags,
+        )
+
     if not db_path.exists():
         logger.warning("LanceDB path does not exist: %s. Run style ingestion first.", db_path)
         add_warning(warnings, "Style retrieval failed: continuing without style context.")
         return []
 
     try:
-        table = get_lancedb_table(db_path, table_name)
+        store = create_vector_store(db_path, table_name)
+        if isinstance(store, LanceDBStore):
+            _assert_vector_dim(store._get_table(), str(table_name))
     except Exception as e:
         logger.warning("Could not open style table %s: %s", table_name, e)
         add_warning(warnings, "Style retrieval failed: continuing without style context.")
         return []
-
-    _assert_vector_dim(table, str(table_name))
     encoder = get_encoder(EMBEDDING_MODEL)
     query_vector = encoder.encode([query], show_progress_bar=False)[0]
     if hasattr(query_vector, "tolist"):
@@ -221,8 +246,8 @@ def retrieve_style_layered(
 
     def _run_lane(source_filter: str, limit: int) -> None:
         try:
-            tbl = table.search(query_vector).where(source_filter).limit(limit).to_arrow()
-            for row in _parse_rows(tbl):
+            rows = store.search(query_vector, top_k=limit, where=source_filter)
+            for row in _parse_row_dicts(rows):
                 rid = row.get("id") or row.get("text", "")[:60]
                 if rid not in seen_ids:
                     seen_ids.add(rid)

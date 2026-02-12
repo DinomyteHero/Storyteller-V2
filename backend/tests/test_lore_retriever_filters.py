@@ -45,15 +45,22 @@ class _FakeQuery:
         return _FakeArrow(self._rows)
 
 
-class _FakeTable:
+class _FakeStore:
     def __init__(self, rows):
         self._rows = rows
-        self.schema = [_FakeField(k) for k in rows[0].keys()]
-        self.last_query = None
+        self.last_clauses = []
 
-    def search(self, _vector):
-        self.last_query = _FakeQuery(self._rows)
-        return self.last_query
+    def get_schema_columns(self):
+        return set(self._rows[0].keys())
+
+    def search_multi_where(self, _vector, top_k=6, where_clauses=None):
+        self.last_clauses = list(where_clauses or [])
+        return self._rows[:top_k]
+
+    def search(self, _vector, top_k=6, where=None):
+        self.last_clauses = [where] if where else []
+        return self._rows[:top_k]
+
 
 
 def test_retrieve_lore_applies_setting_period_and_related_npc_filters(monkeypatch):
@@ -78,9 +85,9 @@ def test_retrieve_lore_applies_setting_period_and_related_npc_filters(monkeypatc
             "universe": "sw",
         }
     ]
-    fake_table = _FakeTable(rows)
+    fake_store = _FakeStore(rows)
 
-    monkeypatch.setattr(lore_retriever, "get_lancedb_table", lambda *_: fake_table)
+    monkeypatch.setattr(lore_retriever, "create_vector_store", lambda *_: fake_store)
     monkeypatch.setattr(lore_retriever, "get_encoder", lambda *_: _FakeEncoder())
     monkeypatch.setattr(lore_retriever, "_assert_vector_dim", lambda *_: None)
 
@@ -95,7 +102,7 @@ def test_retrieve_lore_applies_setting_period_and_related_npc_filters(monkeypatc
     )
 
     assert out
-    applied = "\n".join(fake_table.last_query.filters)
+    applied = "\n".join(fake_store.last_clauses)
     assert "setting_id = 'star_wars_legends'" in applied
     assert "period_id = 'rebellion'" in applied
     assert "related_npcs_json LIKE '%\"leia_organa\"%'" in applied

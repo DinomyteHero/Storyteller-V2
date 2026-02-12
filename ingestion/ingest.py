@@ -1,6 +1,9 @@
 """CLI for ingesting documents into the vector store.
 
-Usage:
+DEPRECATED: This module is the legacy ingestion path. Use ingestion.ingest_lore instead.
+This file will be removed in V3.0. See ingestion/ingest_lore.py for the current pipeline.
+
+Usage (legacy):
   python -m ingestion.ingest --input_dir <dir> --era LOTF --source_type novel --out_db ./data/lancedb
 
 Supported: TXT (book_title from filename), EPUB (metadata + spine/nav chapters). PDF is TODO.

@@ -140,3 +140,5 @@ curl -X POST "http://localhost:8000/v2/campaigns/{campaign_id}/turn?player_id={p
 | Default LLM | Ollama (local; multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:4b` for Architect/Casting/Biographer/KG, `qwen3:8b` for Mechanic/Ingestion, `nomic-embed-text` for embedding) |
 | Frontend | SvelteKit (`frontend/`) |
 | Tests | 467+ passing (`pytest`) |
+
+For model/provider overrides, cloud/local/hybrid decisions, and campaign timeline planning, see: `docs/10_model_selection_and_timeline.md`.

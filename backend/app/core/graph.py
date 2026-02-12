@@ -104,8 +104,21 @@ def run_turn(conn: sqlite3.Connection, state: GameState) -> GameState:
     MUST NOT be persisted or checkpointed. It is stripped from the result before converting back
     to GameState.
     """
+    import logging
+    import time
+
+    _logger = logging.getLogger(__name__)
     initial = state_to_dict(state)
     initial["__runtime_conn"] = conn
+    t0 = time.monotonic()
     result = _get_compiled_graph().invoke(initial)
+    elapsed = time.monotonic() - t0
     result.pop("__runtime_conn", None)
+    _logger.info(
+        "Turn completed in %.2fs (campaign=%s, turn=%d, intent=%s)",
+        elapsed,
+        state.campaign_id or "unknown",
+        state.turn_number or 0,
+        state.intent or "unknown",
+    )
     return dict_to_state(result)

@@ -1,6 +1,8 @@
 """FastAPI main application (V2)."""
 import logging
 import os
+import time as _time
+from collections import defaultdict as _defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -10,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from backend.app.api import v2_campaigns as v2_campaigns_api, starships as starships_api
-from backend.app.config import DEFAULT_DB_PATH
+from backend.app.config import DEFAULT_DB_PATH, MODEL_CONFIG
 from backend.app.core.error_handling import create_error_response, log_error_with_context
 from backend.app.db.migrate import apply_schema
 from shared.config import _env_flag
@@ -40,6 +42,124 @@ API_TOKEN = os.environ.get("STORYTELLER_API_TOKEN", "").strip()
 CORS_ALLOW_ORIGINS = _parse_cors_allowlist(os.environ.get("STORYTELLER_CORS_ALLOW_ORIGINS", ""))
 
 
+
+
+def _collect_environment_diagnostics() -> dict:
+    """Collect structured environment diagnostics for /health/detail."""
+    import httpx
+    from backend.app.config import resolve_vectordb_path, ERA_PACK_DIR, DATA_ROOT
+
+    checks: dict[str, dict] = {}
+
+    ollama_url = os.environ.get("OLLAMA_BASE_URL", os.environ.get("OLLAMA_HOST", "http://localhost:11434"))
+    try:
+        resp = httpx.get(f"{ollama_url}/api/tags", timeout=5.0)
+        models = [m.get("name", "") for m in resp.json().get("models", [])]
+        checks["ollama"] = {
+            "ok": True,
+            "url": ollama_url,
+            "models_loaded": len(models),
+        }
+    except Exception as e:
+        checks["ollama"] = {"ok": False, "url": ollama_url, "error": str(e)}
+
+    data_root_ok = DATA_ROOT.exists()
+    checks["data_root"] = {"ok": data_root_ok, "path": str(DATA_ROOT)}
+
+    vdb = resolve_vectordb_path()
+    checks["vector_db_path"] = {"ok": vdb.exists(), "path": str(vdb)}
+
+    # LanceDB table existence and row counts
+    lancedb_tables: dict[str, Any] = {}
+    lancedb_ok = False
+    if vdb.exists():
+        try:
+            import lancedb as _ldb
+            db = _ldb.connect(str(vdb))
+            table_names = db.table_names()
+            for tname in sorted(table_names):
+                try:
+                    tbl = db.open_table(tname)
+                    row_count = tbl.count_rows()
+                    lancedb_tables[tname] = {"rows": row_count, "ok": row_count > 0}
+                except Exception as _te:
+                    lancedb_tables[tname] = {"rows": 0, "ok": False, "error": str(_te)}
+            lancedb_ok = len(table_names) > 0 and any(
+                t.get("ok", False) for t in lancedb_tables.values()
+            )
+        except Exception as _ldb_err:
+            lancedb_tables["_error"] = {"ok": False, "error": str(_ldb_err)}
+    checks["lancedb_tables"] = {
+        "ok": lancedb_ok,
+        "path": str(vdb),
+        "tables": lancedb_tables,
+    }
+
+    era_dir = Path(str(ERA_PACK_DIR))
+    era_pack_details: list[dict] = []
+    era_ok = False
+    if era_dir.exists() and era_dir.is_dir():
+        for d in sorted([x for x in era_dir.iterdir() if x.is_dir()]):
+            yml_count = len(list(d.glob("*.yml")) + list(d.glob("*.yaml")))
+            era_pack_details.append({
+                "era_id": d.name,
+                "yaml_files": yml_count,
+                "pack_contract_ok": yml_count >= 12,
+            })
+        era_ok = len(era_pack_details) > 0
+    checks["era_packs"] = {
+        "ok": era_ok,
+        "path": str(era_dir),
+        "packs": era_pack_details,
+    }
+
+    checks["llm_roles"] = {
+        "ok": True,
+        "configured_roles": sorted(list(MODEL_CONFIG.keys())),
+    }
+
+    overall_ok = all(v.get("ok", False) for v in checks.values())
+    return {"ok": overall_ok, "checks": checks}
+
+def _validate_environment() -> None:
+    """Log environment health checks at startup. Never fails — graceful degradation."""
+    import httpx
+    from backend.app.config import resolve_vectordb_path, ERA_PACK_DIR, DATA_ROOT
+
+    # Check Ollama connectivity
+    ollama_url = os.environ.get("OLLAMA_BASE_URL", os.environ.get("OLLAMA_HOST", "http://localhost:11434"))
+    try:
+        resp = httpx.get(f"{ollama_url}/api/tags", timeout=5.0)
+        models = [m.get("name", "") for m in resp.json().get("models", [])]
+        logger.info("Ollama reachable at %s (%d models loaded)", ollama_url, len(models))
+    except Exception as e:
+        logger.warning("Ollama NOT reachable at %s: %s (LLM calls will fail until resolved)", ollama_url, e)
+
+    # Check data directories
+    if DATA_ROOT.exists():
+        logger.info("Data root: %s (exists)", DATA_ROOT)
+    else:
+        logger.warning("Data root missing: %s (create with 'storyteller setup')", DATA_ROOT)
+
+    # Check vector DB
+    vdb = resolve_vectordb_path()
+    if vdb.exists():
+        logger.info("Vector DB: %s (exists)", vdb)
+    else:
+        logger.warning("Vector DB missing: %s (run ingestion first)", vdb)
+
+    # Check era packs
+    era_dir = Path(str(ERA_PACK_DIR))
+    if era_dir.exists():
+        yamls = list(era_dir.glob("*.yaml")) + list(era_dir.glob("*.yml"))
+        if yamls:
+            logger.info("Era packs: %d found in %s", len(yamls), era_dir)
+        else:
+            logger.warning("No era pack YAML files in %s", era_dir)
+    else:
+        logger.warning("Era pack directory missing: %s", era_dir)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if not DEV_MODE:
@@ -53,6 +173,7 @@ async def lifespan(app: FastAPI):
                 "STORYTELLER_API_TOKEN is required when STORYTELLER_DEV_MODE=0."
             )
     apply_schema(DEFAULT_DB_PATH)
+    _validate_environment()
     logger.info(
         "API startup complete (dev_mode=%s, auth=%s, db=%s)",
         DEV_MODE,
@@ -101,6 +222,30 @@ async def auth_middleware(request: Request, call_next):
             details={"path": path},
         )
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=error_response)
+    return await call_next(request)
+
+
+_RATE_LIMITS: dict[str, list[float]] = _defaultdict(list)
+_RATE_LIMIT_WINDOW = 60  # seconds
+_RATE_LIMIT_MAX = 10     # max turn requests per minute per IP
+
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    """Simple per-IP rate limiting for turn endpoints."""
+    path = request.url.path or ""
+    if "/turn" not in path:
+        return await call_next(request)
+    client_ip = request.client.host if request.client else "unknown"
+    now = _time.monotonic()
+    # Clean old entries
+    _RATE_LIMITS[client_ip] = [t for t in _RATE_LIMITS[client_ip] if now - t < _RATE_LIMIT_WINDOW]
+    if len(_RATE_LIMITS[client_ip]) >= _RATE_LIMIT_MAX:
+        return JSONResponse(
+            status_code=429,
+            content={"error": "Rate limit exceeded. Max 10 turn requests per minute.", "error_code": "RATE_LIMIT"},
+        )
+    _RATE_LIMITS[client_ip].append(now)
     return await call_next(request)
 
 
@@ -193,6 +338,13 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+
+@app.get("/health/detail")
+async def health_detail():
+    """Structured readiness diagnostics for deployment checks."""
+    diag = _collect_environment_diagnostics()
+    return {"status": "healthy" if diag.get("ok") else "degraded", **diag}
 
 
 # Serve SvelteKit static build in production.

@@ -19,6 +19,13 @@ ollama pull nomic-embed-text
 
 ---
 
+## 0) Fast bootstrap (recommended)
+
+```bash
+bash scripts/bootstrap.sh
+make check
+```
+
 ## 1) Install dependencies
 
 ```bash
@@ -94,6 +101,7 @@ python -m storyteller dev
 
 - API root: `http://localhost:8000/`
 - API health: `http://localhost:8000/health`
+- API diagnostics: `http://localhost:8000/health/detail`
 - OpenAPI: `http://localhost:8000/docs`
 - UI (dev): `http://localhost:5173`
 
@@ -131,16 +139,22 @@ curl -X POST "http://localhost:8000/v2/campaigns/<campaign_id>/turn?player_id=<p
 
 ## 6) Optional ingestion commands
 
-Flat ingestion (TXT/EPUB):
+CLI ingestion (recommended):
 
 ```bash
-python -m ingestion.ingest --input_dir sample_data --era rebellion --source_type novel --out_db ./data/lancedb
+python -m storyteller ingest --pipeline lore --input ./data/lore/rebellion --out-db ./data/lancedb --era rebellion --yes
 ```
 
-Hierarchical ingestion (PDF/EPUB/TXT):
+Direct lore ingestion (advanced):
 
 ```bash
 python -m ingestion.ingest_lore --input ./data/lore/rebellion --db ./data/lancedb --setting-id star_wars_legends --period-id rebellion --time-period REBELLION --era-mode ui --recursive
+```
+
+Legacy simple pipeline (deprecated, explicit opt-in):
+
+```bash
+python -m storyteller ingest --pipeline simple --allow-legacy --input sample_data --out-db ./data/lancedb
 ```
 
 Style ingestion:

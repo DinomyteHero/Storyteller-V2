@@ -1,4 +1,8 @@
-"""Centralized tuning constants shared across the app."""
+"""Centralized tuning constants shared across the app.
+
+All numeric tuning parameters live here (not in agent code or config.py).
+Environment-variable overrides live in config.py; this file holds defaults only.
+"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -81,45 +85,110 @@ def get_scale_profile(scale: str | None = None) -> CampaignScaleProfile:
     return CAMPAIGN_SCALE_PROFILES[tier]
 
 
-# Ledger limits
-LEDGER_MAX_FACTS = 40
-LEDGER_MAX_THREADS = 10
-LEDGER_MAX_GOALS = 10
-LEDGER_MAX_CONSTRAINTS = 10
-LEDGER_MAX_TONE_TAGS = 5
+# ── Narrative ledger limits ───────────────────────────────────────────
+# Maximum items retained in each ledger list. Oldest are evicted FIFO when full.
+LEDGER_MAX_FACTS = 40           # Established facts (world truths the Narrator must respect)
+LEDGER_MAX_THREADS = 10         # Open narrative threads (unresolved plot hooks)
+LEDGER_MAX_GOALS = 10           # Active player/party goals
+LEDGER_MAX_CONSTRAINTS = 10     # Hard constraints (e.g., "NPC X is dead")
+LEDGER_MAX_TONE_TAGS = 5        # Tone descriptors for the current narrative mood
 
-# Memory compression
-MEMORY_RECENT_TURNS = 10
-MEMORY_COMPRESSION_CHUNK_SIZE = 10
-MEMORY_MAX_ERA_SUMMARIES = 5
-MEMORY_ERA_SUMMARY_MAX_CHARS = 300
+# ── Memory compression ────────────────────────────────────────────────
+# Controls how turn history is compressed into summaries for LLM context.
+MEMORY_RECENT_TURNS = 10                # Number of recent turns kept verbatim in hot state
+MEMORY_COMPRESSION_CHUNK_SIZE = 10      # Turns grouped per era summary during compression
+MEMORY_MAX_ERA_SUMMARIES = 5            # Maximum era summaries retained
+MEMORY_ERA_SUMMARY_MAX_CHARS = 300      # Max characters per era summary
 
-# Mechanic delta clamps
+# ── Mechanic delta clamps ─────────────────────────────────────────────
+# Maximum per-turn stat change from any single mechanic event.
+# Prevents runaway stat inflation/deflation from a single action.
 DELTA_CLAMP_MIN = -10
 DELTA_CLAMP_MAX = 10
 
-# Token estimation factors (ContextBudget)
-TOKEN_ESTIMATE_CHARS_PER_TOKEN = 4
-TOKEN_ESTIMATE_WORDS_PER_TOKEN = 1.3
+# ── Token estimation factors (ContextBudget) ──────────────────────────
+# Rough ratios for estimating token counts without a tokenizer.
+TOKEN_ESTIMATE_CHARS_PER_TOKEN = 4      # ~4 characters per token (English average)
+TOKEN_ESTIMATE_WORDS_PER_TOKEN = 1.3    # ~1.3 words per token
 
-# Retry counts
-DIRECTOR_MAX_RETRIES = 2
-JSON_RELIABILITY_MAX_RETRIES = 3
+# ── Retry counts ──────────────────────────────────────────────────────
+DIRECTOR_MAX_RETRIES = 2                # Max LLM retries for Director instructions
+JSON_RELIABILITY_MAX_RETRIES = 3        # Max retries for JSON parse/repair cycle
 
-# Similarity thresholds
-INTENT_JACCARD_THRESHOLD = 0.6
+# ── Similarity thresholds ─────────────────────────────────────────────
+INTENT_JACCARD_THRESHOLD = 0.6          # Min Jaccard similarity to consider intents equivalent
 
-# Suggested actions UX contract:
-# - Director may propose a variable number, but the UI expects we pad/trim to TARGET.
+# ── Suggested actions UX contract ─────────────────────────────────────
+# The KOTOR dialogue wheel expects exactly TARGET options. Director may propose
+# a variable number; SuggestionRefiner pads/trims to TARGET.
 SUGGESTED_ACTIONS_MIN = 3
-SUGGESTED_ACTIONS_TARGET = 4
+SUGGESTED_ACTIONS_TARGET = 4            # KOTOR-style: 4 dialogue options
 SUGGESTED_ACTIONS_MAX = 10
 
-# Knowledge Graph retrieval defaults
-KG_MAX_RELATIONSHIPS_PER_CHAR = 8
-KG_MAX_EVENTS = 3
-KG_DIRECTOR_MAX_TOKENS = 600
-KG_NARRATOR_MAX_TOKENS = 800
+# ── Knowledge Graph retrieval defaults ────────────────────────────────
+KG_MAX_RELATIONSHIPS_PER_CHAR = 8       # Max relationship edges per character in KG context
+KG_MAX_EVENTS = 3                       # Max recent events per character/location
+KG_DIRECTOR_MAX_TOKENS = 600            # Token budget for Director's KG context section
+KG_NARRATOR_MAX_TOKENS = 800            # Token budget for Narrator's KG context section
+
+# ── Banter system ─────────────────────────────────────────────────────
+# Controls companion banter injection frequency. Moved from banter_manager.py.
+BANTER_COMPANION_COOLDOWN = 4           # Min turns between banter from the same companion
+BANTER_GLOBAL_COOLDOWN = 2              # Min turns between any banter
+BANTER_HISTORY_MAX = 20                 # Max unique LLM-generated banter lines tracked per companion
+
+# ── Companion emotional volatility ────────────────────────────────────
+# Emotional states modify companion reactions and banter style.
+COMPANION_EMOTIONAL_STATES = ("calm", "agitated", "angry", "vulnerable", "elated")
+COMPANION_EMOTION_DECAY_PER_TURN = 1    # Intensity decays by this much each turn toward calm
+COMPANION_EMOTION_MAX_INTENSITY = 10    # Maximum emotional intensity (0 = calm)
+# Mapping from (tone, emotion) -> affinity multiplier (1.0 = normal)
+COMPANION_EMOTION_MULTIPLIERS: dict[tuple[str, str], float] = {
+    ("RENEGADE", "angry"): 1.5,         # Angry companions react more strongly to aggression
+    ("PARAGON", "vulnerable"): 1.5,     # Vulnerable companions react more to kindness
+    ("RENEGADE", "vulnerable"): 0.5,    # Vulnerable companions hurt less by aggression
+    ("PARAGON", "angry"): 0.5,          # Angry companions don't care about kindness
+    ("INVESTIGATE", "agitated"): 1.3,   # Agitated companions value caution more
+}
+
+# ── Genre flavor directives ───────────────────────────────────────────
+# Brief prose style guidance injected into Narrator context when genre shifts.
+GENRE_FLAVOR_DIRECTIVES: dict[str, str] = {
+    "noir": "Use shadow metaphors, moral ambiguity, and cynical internal monologue. Short declarative sentences.",
+    "horror": "Emphasize isolation, dread, and sensory detail. Short sentences build tension. What is unseen matters.",
+    "heist": "Focus on precision, timing, and the plan. Every detail matters. Build momentum through logistics.",
+    "war": "Convey scale, sacrifice, and the fog of battle. Personal moments amid chaos. Visceral sensory detail.",
+    "mystery": "Layer clues into environmental description. Let the reader notice before the character does.",
+    "romance": "Heighten emotional subtext. Body language speaks louder than dialogue. Lingering details.",
+    "thriller": "Escalating stakes. Ticking clocks. Paragraphs get shorter as tension rises.",
+    "western": "Sparse prose. Let landscape mirror mood. Silence is as meaningful as speech.",
+}
+
+# ── Token budgeting: per-role defaults ────────────────────────────────
+# Default max context tokens and reserved output tokens for each LLM role.
+# 14b models (narrator/director/architect) get larger budgets;
+# lighter models (casting/biographer/mechanic) get smaller.
+# Override via env: STORYTELLER_{ROLE}_MAX_CONTEXT_TOKENS,
+#                   STORYTELLER_{ROLE}_RESERVED_OUTPUT_TOKENS
+ROLE_TOKEN_BUDGETS: dict[str, dict[str, int]] = {
+    # Quality-critical roles: larger context for narrative/direction
+    "architect": {"max_context_tokens": 8192, "reserved_output_tokens": 2048},
+    "director": {"max_context_tokens": 8192, "reserved_output_tokens": 2048},
+    "narrator": {"max_context_tokens": 8192, "reserved_output_tokens": 2048},
+    # Lighter roles: smaller context for faster inference
+    "casting": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
+    "biographer": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
+    "mechanic": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
+    "npc_render": {"max_context_tokens": 2048, "reserved_output_tokens": 512},
+    # Ingestion tagger: moderate context, low output
+    "ingestion_tagger": {"max_context_tokens": 4096, "reserved_output_tokens": 512},
+    # Knowledge graph extractor: moderate context, moderate output
+    "kg_extractor": {"max_context_tokens": 6144, "reserved_output_tokens": 2048},
+    # Suggestion refiner: small context (prose + scene), small output (JSON array)
+    "suggestion_refiner": {"max_context_tokens": 2048, "reserved_output_tokens": 512},
+    # Campaign init: generous output for world generation (cloud models have big windows)
+    "campaign_init": {"max_context_tokens": 8192, "reserved_output_tokens": 4096},
+}
 
 # Thematic resonance (Phase 3)
 LEDGER_MAX_THEMES = 3
