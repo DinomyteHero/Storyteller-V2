@@ -14,6 +14,16 @@ import time
 from pathlib import Path
 from typing import TextIO
 
+from storyteller.runtime.app_runner import (
+    AppRunnerError,
+    detect_ui_mode,
+    ensure_prod_env_safety,
+    find_venv_python,
+    is_port_available,
+    load_dotenv,
+    sanitize_config,
+)
+
 try:
     import httpx
 except Exception:  # pragma: no cover - surfaced by preflight
@@ -26,56 +36,6 @@ DEFAULT_UI_PORT = 5173
 DEFAULT_OLLAMA_BASE_URL = "http://127.0.0.1:11434"
 
 
-class AppRunnerError(RuntimeError):
-    """Raised for wrapper failures."""
-
-
-def load_dotenv(dotenv_path: Path) -> None:
-    """Load simple KEY=VALUE pairs from .env into process env (non-destructive)."""
-    if not dotenv_path.exists():
-        return
-
-    for raw_line in dotenv_path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, _, value = line.partition("=")
-        key = key.strip()
-        if not key:
-            continue
-        value = value.strip().strip('"').strip("'")
-        os.environ.setdefault(key, value)
-
-
-def find_venv_python(root: Path) -> str | None:
-    candidates = [
-        root / "venv" / "Scripts" / "python.exe",
-        root / ".venv" / "Scripts" / "python.exe",
-        root / "venv" / "bin" / "python",
-        root / ".venv" / "bin" / "python",
-    ]
-    for c in candidates:
-        if c.exists():
-            return str(c)
-    return None
-
-
-def is_port_available(host: str, port: int) -> bool:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        try:
-            sock.bind((host, port))
-            return True
-        except OSError:
-            return False
-
-
-def detect_ui_mode(root: Path) -> str | None:
-    if (root / "frontend" / "package.json").exists() and shutil.which("npm"):
-        return "svelte"
-    if (root / "streamlit_app.py").exists():
-        return "streamlit"
-    return None
 
 
 def parse_args() -> argparse.Namespace:
@@ -103,16 +63,6 @@ def parse_args() -> argparse.Namespace:
     if args.ui_only and args.no_ui:
         parser.error("--ui-only and --no-ui cannot be combined")
     return args
-
-
-def sanitize_config(cfg: dict[str, str | int | bool | None]) -> dict[str, str | int | bool | None]:
-    redacted: dict[str, str | int | bool | None] = {}
-    for key, value in cfg.items():
-        if any(token in key.upper() for token in ("TOKEN", "KEY", "SECRET", "PASSWORD")) and value:
-            redacted[key] = "***"
-        else:
-            redacted[key] = value
-    return redacted
 
 
 def run_validate_packs(python_exe: str) -> None:
@@ -250,23 +200,10 @@ def build_commands(args: argparse.Namespace, python_exe: str, ui_mode: str | Non
 
 def _ensure_prod_env_safety() -> None:
     """Validate production auth/cors env when STORYTELLER_DEV_MODE=0."""
+    ensure_prod_env_safety()
     dev_mode = os.environ.get("STORYTELLER_DEV_MODE", "1").strip().lower()
-    if dev_mode not in {"0", "false", "no", "off"}:
-        return
-
-    api_token = os.environ.get("STORYTELLER_API_TOKEN", "").strip()
-    if not api_token:
-        raise AppRunnerError("Production mode requires STORYTELLER_API_TOKEN")
-
-    raw_allowlist = os.environ.get("STORYTELLER_CORS_ALLOW_ORIGINS", "").strip()
-    if not raw_allowlist:
-        raise AppRunnerError("Production mode requires explicit STORYTELLER_CORS_ALLOW_ORIGINS")
-
-    origins = [o.strip() for o in raw_allowlist.split(",") if o.strip()]
-    if not origins or "*" in origins:
-        raise AppRunnerError("Production mode forbids wildcard CORS; set explicit STORYTELLER_CORS_ALLOW_ORIGINS")
-
-    print("[OK] Production env safety checks (dev_mode=0, explicit CORS, API token)")
+    if dev_mode in {"0", "false", "no", "off"}:
+        print("[OK] Production env safety checks (dev_mode=0, explicit CORS, API token)")
 
 
 def run_preflight(args: argparse.Namespace, python_exe: str, ui_mode: str | None) -> None:
