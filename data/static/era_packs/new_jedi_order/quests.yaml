@@ -1,0 +1,378 @@
+quests:
+
+# ── Quest 1: FIRST CONTACT (starter, onboarding) ──────────────────
+- id: quest_first_contact
+  title: First Contact
+  description: Make contact with the local Rebel cell and prove yourself.
+  entry_conditions:
+    turn:
+      min: 3
+  stages:
+  - stage_id: locate_contact
+    objective: Find the Rebel contact in the local cantina
+    success_conditions:
+      npc_met: rebel_contact
+  - stage_id: prove_loyalty
+    objective: Complete a task to prove your loyalty to the Rebellion
+    success_conditions:
+      action_taken: assist_rebellion
+  - stage_id: report_back
+    objective: Return to the contact and report your success
+    success_conditions:
+      npc_met: rebel_contact
+      stage_completed: prove_loyalty
+  consequences:
+    reputation_rebel_alliance: '+10'
+
+# ── Quest 2: GHOSTS OF ALDERAAN (mid-game, moral weight) ──────────
+- id: quest_ghosts_of_alderaan
+  title: Ghosts of Alderaan
+  description: >
+    An Alderaanian refugee is hunted by ISB agents who believe she carries
+    encrypted Alliance intelligence in a locket she refuses to open.
+    Protect her, uncover the truth, and decide what to do with what you find.
+  entry_conditions:
+    turn:
+      min: 8
+      max: 30
+  stages:
+  - stage_id: encounter_refugee
+    objective: Meet the Alderaanian refugee Tessa Morain at the bazaar market
+    success_conditions:
+      location: loc-bazaar_market
+  - stage_id: evade_isb
+    objective: Help Tessa escape the ISB patrol closing on the market
+    success_conditions:
+      action_taken: evade_patrol
+    fail_conditions:
+      event_type: PLAYER_CAPTURED
+  - stage_id: open_the_locket
+    objective: Convince Tessa to open the locket — or decide not to press her
+    resolution_paths:
+    - path_id: persuade
+      label: Persuade Tessa to open the locket
+      success_conditions:
+        action_taken: persuade_tessa
+      next_stage_idx: 3
+    - path_id: respect_privacy
+      label: Respect her privacy and destroy the locket
+      success_conditions:
+        action_taken: destroy_locket
+      next_stage_idx: 3
+    - path_id: force_open
+      label: Take the locket by force
+      success_conditions:
+        action_taken: force_locket
+      next_stage_idx: 3
+  - stage_id: deliver_or_destroy
+    objective: Deliver Tessa to safety or hand the intelligence to Mon Mothma
+    success_conditions:
+      action_taken: deliver_tessa
+  consequences:
+    reputation_rebel_alliance: '+15'
+
+# ── Quest 3: SHADOW FREIGHT (smuggling / underworld) ──────────────
+- id: quest_shadow_freight
+  title: Shadow Freight
+  description: >
+    A smuggler owes Jabba a shipment that never arrived. The cargo is medical
+    supplies desperately needed by a Rebel field hospital — but Jabba's bounty
+    hunters are already on the trail. Negotiate, steal, or fight your way
+    to the cargo before it disappears into the Hutt's warehouses.
+  entry_conditions:
+    turn:
+      min: 5
+      max: 25
+    location: loc-cantina
+  stages:
+  - stage_id: find_the_smuggler
+    objective: Track down the smuggler Vek Torr at the cantina
+    success_conditions:
+      location: loc-cantina
+  - stage_id: locate_cargo
+    objective: Follow Vek's coordinates to the hidden cargo at the docks
+    success_conditions:
+      location: loc-cargo_docks
+      stage_completed: find_the_smuggler
+  - stage_id: handle_the_hunters
+    objective: Deal with the bounty hunters guarding the cargo
+    resolution_paths:
+    - path_id: fight
+      label: Fight the bounty hunters
+      success_conditions:
+        action_taken: fight_hunters
+      next_stage_idx: 3
+    - path_id: negotiate
+      label: Negotiate with the hunters
+      success_conditions:
+        action_taken: negotiate_hunters
+      next_stage_idx: 3
+    - path_id: stealth
+      label: Steal the cargo undetected
+      success_conditions:
+        action_taken: steal_cargo
+      next_stage_idx: 3
+  - stage_id: deliver_cargo
+    objective: Deliver the medical supplies to the Rebel field hospital
+    success_conditions:
+      action_taken: deliver_supplies
+  consequences:
+    reputation_rebel_alliance: '+10'
+    reputation_hutt_cartel: '-15'
+
+# ── Quest 4: THE DEFECTOR (espionage / trust) ─────────────────────
+- id: quest_the_defector
+  title: The Defector
+  description: >
+    An Imperial officer claims to want asylum with the Alliance. She offers
+    Star Destroyer patrol routes in exchange for extraction. But Bothan
+    intelligence suggests she may be an ISB plant. Verify her story, extract
+    her if genuine, or turn her into a double agent.
+  entry_conditions:
+    turn:
+      min: 10
+      max: 40
+  stages:
+  - stage_id: receive_transmission
+    objective: Receive the encrypted transmission at the safe house
+    success_conditions:
+      location: loc-safe_house
+  - stage_id: verify_identity
+    objective: Cross-reference the defector's identity with Bothan intelligence
+    success_conditions:
+      action_taken: verify_defector
+      stage_completed: receive_transmission
+  - stage_id: make_contact
+    objective: Meet the defector at Cloud City under cover
+    success_conditions:
+      location: loc-cloud_city
+      stage_completed: verify_identity
+  - stage_id: extraction_decision
+    objective: Extract the defector, turn her as a double agent, or expose the trap
+    resolution_paths:
+    - path_id: extract
+      label: Extract to Alliance safety
+      success_conditions:
+        action_taken: extract_defector
+      next_stage_idx: 4
+    - path_id: double_agent
+      label: Turn her as a double agent
+      success_conditions:
+        action_taken: turn_double_agent
+      next_stage_idx: 4
+    - path_id: expose_trap
+      label: Expose her as an ISB plant
+      success_conditions:
+        action_taken: expose_trap
+      next_stage_idx: 4
+  - stage_id: report_to_command
+    objective: Report the outcome to Alliance Intelligence
+    success_conditions:
+      action_taken: report_defector
+  consequences:
+    reputation_rebel_alliance: '+10'
+    reputation_bothan_spynet: '+5'
+
+# ── Quest 5: IRON FIST (military / sabotage) ──────────────────────
+- id: quest_iron_fist
+  title: Iron Fist
+  description: >
+    An Imperial garrison is constructing a sensor array that will expose
+    every Rebel supply route in the sector within days. Alliance command
+    needs it destroyed — but the garrison shelters a civilian population
+    that will suffer Imperial reprisals. Plan the operation carefully.
+  entry_conditions:
+    turn:
+      min: 15
+      max: 50
+    reputation_min:
+      rebel_alliance: 10
+  stages:
+  - stage_id: briefing
+    objective: Attend the tactical briefing at the Rebel base
+    success_conditions:
+      location: loc-yavin_base
+  - stage_id: reconnaissance
+    objective: Scout the Imperial garrison and identify the sensor array
+    success_conditions:
+      location: loc-imperial_garrison
+      stage_completed: briefing
+  - stage_id: recruit_locals
+    objective: Enlist the local resistance to assist with the operation
+    success_conditions:
+      action_taken: recruit_resistance
+      stage_completed: reconnaissance
+  - stage_id: execute_plan
+    objective: Destroy the sensor array while minimizing civilian harm
+    resolution_paths:
+    - path_id: surgical_strike
+      label: Precision strike — target array only
+      success_conditions:
+        action_taken: surgical_strike
+      next_stage_idx: 4
+    - path_id: full_assault
+      label: Full assault — destroy the entire garrison
+      success_conditions:
+        action_taken: full_assault
+      next_stage_idx: 4
+    - path_id: sabotage
+      label: Infiltrate and sabotage from within
+      success_conditions:
+        action_taken: sabotage_array
+      next_stage_idx: 4
+  - stage_id: exfiltration
+    objective: Escape the garrison before Imperial reinforcements arrive
+    success_conditions:
+      action_taken: exfiltrate
+  consequences:
+    reputation_rebel_alliance: '+20'
+    reputation_galactic_empire: '-20'
+    reputation_local_resistance: '+15'
+
+# ── Quest 6: DEBTS AND DAGGERS (underworld / noir) ────────────────
+- id: quest_debts_and_daggers
+  title: Debts and Daggers
+  description: >
+    A contact in the criminal underworld is being squeezed by Black Sun
+    enforcers. She has information vital to the Rebellion — but she won't
+    talk until her debts are cleared. Navigate the underworld's treacherous
+    politics, settle her account, and extract the intelligence.
+  entry_conditions:
+    turn:
+      min: 6
+      max: 35
+    location: loc-smuggler_den
+  stages:
+  - stage_id: meet_the_contact
+    objective: Find Mira Vel in the smuggler's den
+    success_conditions:
+      location: loc-smuggler_den
+  - stage_id: learn_the_debt
+    objective: Learn who holds Mira's debt and how much is owed
+    success_conditions:
+      action_taken: investigate_debt
+      stage_completed: meet_the_contact
+  - stage_id: settle_the_score
+    objective: Settle Mira's debt with Black Sun
+    resolution_paths:
+    - path_id: pay_credits
+      label: Pay the debt in credits
+      success_conditions:
+        action_taken: pay_debt
+      next_stage_idx: 3
+    - path_id: forge_ledger
+      label: Slice the ledger and erase the debt
+      success_conditions:
+        action_taken: forge_ledger
+      next_stage_idx: 3
+    - path_id: intimidate
+      label: Intimidate the Black Sun enforcer into backing off
+      success_conditions:
+        action_taken: intimidate_enforcer
+      next_stage_idx: 3
+  - stage_id: extract_intelligence
+    objective: Get the intel from Mira and deliver it to the Alliance
+    success_conditions:
+      action_taken: extract_intel
+  consequences:
+    reputation_rebel_alliance: '+5'
+    reputation_underworld: '+10'
+    reputation_black_sun: '-10'
+
+# ── Quest 7: THE LAST JEDI HOLOCRON (Force / exploration) ─────────
+- id: quest_last_jedi_holocron
+  title: The Last Jedi Holocron
+  description: >
+    Rumours circulate of a Jedi holocron hidden on Dagobah — a repository
+    of knowledge from the old Order. The Empire wants it destroyed. A
+    mysterious hermit guards it. Reaching Dagobah is only the beginning.
+  entry_conditions:
+    turn:
+      min: 20
+      max: 60
+  stages:
+  - stage_id: hear_the_rumor
+    objective: Learn about the holocron from a knowledgeable source
+    success_conditions:
+      action_taken: learn_holocron_rumor
+  - stage_id: reach_dagobah
+    objective: Navigate to Dagobah through treacherous hyperspace lanes
+    success_conditions:
+      location: loc-dagobah
+      stage_completed: hear_the_rumor
+  - stage_id: find_the_hermit
+    objective: Locate the guardian of the holocron deep in the swamp
+    success_conditions:
+      action_taken: find_hermit
+      stage_completed: reach_dagobah
+  - stage_id: prove_worthy
+    objective: Pass the guardian's trial to earn the holocron
+    resolution_paths:
+    - path_id: wisdom
+      label: Answer the guardian's philosophical challenge
+      success_conditions:
+        action_taken: answer_trial
+      next_stage_idx: 4
+    - path_id: compassion
+      label: Show compassion for the guardian's loneliness
+      success_conditions:
+        action_taken: show_compassion
+      next_stage_idx: 4
+    - path_id: take_by_force
+      label: Take the holocron without permission
+      success_conditions:
+        action_taken: take_holocron_force
+      next_stage_idx: 4
+  - stage_id: decide_fate
+    objective: Choose what to do with the holocron's knowledge
+    success_conditions:
+      action_taken: decide_holocron
+  consequences:
+    reputation_rebel_alliance: '+5'
+
+# ── Quest 8: BORROWED TIME (companion loyalty / personal stakes) ──
+- id: quest_borrowed_time
+  title: Borrowed Time
+  description: >
+    One of your companions receives a distress signal from someone in
+    their past — a sibling, a former mentor, or a lost love — trapped
+    behind Imperial lines. Divert from the mission to mount a rescue,
+    or stay the course and let someone's past die.
+  entry_conditions:
+    turn:
+      min: 12
+      max: 45
+  stages:
+  - stage_id: receive_distress
+    objective: Receive the distress signal and decide whether to investigate
+    success_conditions:
+      action_taken: investigate_distress
+  - stage_id: locate_prisoner
+    objective: Infiltrate the Imperial black site where the captive is held
+    success_conditions:
+      location: loc-black_site
+      stage_completed: receive_distress
+  - stage_id: rescue_or_abandon
+    objective: Rescue the captive or determine the cost is too high
+    resolution_paths:
+    - path_id: rescue
+      label: Mount the rescue despite the risk
+      success_conditions:
+        action_taken: rescue_captive
+      next_stage_idx: 3
+    - path_id: abandon
+      label: Leave to protect the mission
+      success_conditions:
+        action_taken: abandon_captive
+      next_stage_idx: 3
+    - path_id: negotiate
+      label: Trade something valuable for the captive's release
+      success_conditions:
+        action_taken: negotiate_release
+      next_stage_idx: 3
+  - stage_id: aftermath
+    objective: Deal with the consequences of your choice
+    success_conditions:
+      action_taken: resolve_aftermath
+  consequences:
+    reputation_rebel_alliance: '+5'

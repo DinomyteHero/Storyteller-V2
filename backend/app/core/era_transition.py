@@ -27,6 +27,8 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Literal
 
+from backend.app.content.repository import CONTENT_REPOSITORY
+
 logger = logging.getLogger(__name__)
 
 # ── Campaign Modes ───────────────────────────────────────────────────
@@ -217,6 +219,12 @@ def validate_era_transition(
         return False, f"Unknown source era: {from_era}"
     if not to_def:
         return False, f"Unknown target era: {to_era}"
+
+    # Ensure target era has playable content on disk before allowing transition.
+    try:
+        CONTENT_REPOSITORY.get_pack(to_upper)
+    except Exception:
+        return False, f"No era pack found for target era: {to_era}"
 
     # Same era: always OK
     if from_upper == to_upper:

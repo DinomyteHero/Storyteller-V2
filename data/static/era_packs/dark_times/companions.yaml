@@ -1,0 +1,279 @@
+companions:
+
+# ── Companion 1: KESSA VANE (Scout / Navigator) ───────────────────
+- id: comp-reb-kessa
+  name: Kessa Vane
+  species: Zabrak
+  gender: female
+  archetype: Alliance scout
+  faction_id: rebel_alliance
+  role_in_party: specialist
+  voice_tags: [earnest, analytical, warm]
+  motivation: To map safe hyperspace routes for Rebel convoys before the Empire shuts them down.
+  speech_quirk: Lists tactical options under her breath before committing to a plan.
+  voice:
+    belief: Every route saved is a hundred lives saved.
+    wound: Lost her entire scouting cell to an Imperial ambush she failed to predict.
+    taboo: Never fly blind into a system without at least two escape vectors.
+    rhetorical_style: analytical
+    tell: Traces invisible star charts on any flat surface while thinking.
+  traits:
+    idealist_pragmatic: 40
+    merciful_ruthless: -20
+    lawful_rebellious: 30
+  default_affinity: 5
+  recruitment:
+    unlock_conditions: Encounter Kessa at a Rebel safe house or spaceport; she offers her services after the player assists with a supply run.
+    first_meeting_location: loc-safe_house
+  tags: [scout, navigator, rebellion]
+  enables_affordances: [astrogation, sensor_sweep]
+  blocks_affordances: []
+  influence:
+    starts_at: 5
+    min: -100
+    max: 100
+    triggers:
+    - intent: threaten
+      delta: -3
+    - intent: help
+      delta: 2
+    - meaning_tag: reveal_values
+      delta: 2
+    - meaning_tag: set_boundary
+      delta: -2
+  banter:
+    frequency: normal
+    style: warm
+    triggers: [hyperspace, navigation, empire, convoy]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Lost her entire scouting cell to an Imperial ambush; hides her guilt behind relentless planning.
+    recruitment_context: Found at a Rebel safe house, plotting hyperspace routes on a cracked datapad.
+    banter_style: warm
+    faction_interest: [Rebel Alliance, Smuggler Network]
+
+# ── Companion 2: TORRIN MALK (Soldier / Muscle) ───────────────────
+- id: comp-reb-torrin
+  name: Torrin Malk
+  species: Human
+  gender: male
+  archetype: Rebel shock trooper
+  faction_id: rebel_alliance
+  role_in_party: companion
+  voice_tags: [gruff, loyal, dry_humor]
+  motivation: To make the Empire pay for the village they burned on Lothal when he was twelve.
+  speech_quirk: Ends tense silences with a deadpan observation about the odds of survival.
+  voice:
+    belief: You fight for the people next to you, not the speeches on the holo.
+    wound: Watched Imperial troops raze his village on Lothal; carried his sister out of the fire and swore he would never run again.
+    taboo: Will not leave wounded behind — ever.
+    rhetorical_style: blunt
+    tell: Unconsciously checks his blaster's power cell when he's nervous.
+  traits:
+    idealist_pragmatic: -20
+    merciful_ruthless: 10
+    lawful_rebellious: 20
+  default_affinity: 0
+  recruitment:
+    unlock_conditions: Meet Torrin during a firefight or Imperial encounter; he joins after the player holds the line instead of retreating.
+    first_meeting_location: loc-occupied_street
+  tags: [soldier, combat, rebellion, lothal]
+  enables_affordances: [suppressive_fire, breach_door]
+  blocks_affordances: []
+  influence:
+    starts_at: 0
+    min: -100
+    max: 100
+    triggers:
+    - intent: threaten
+      delta: -1
+    - intent: help
+      delta: 3
+    - meaning_tag: show_courage
+      delta: 3
+    - meaning_tag: abandon_ally
+      delta: -5
+    - meaning_tag: surrender
+      delta: -4
+    - meaning_tag: reveal_values
+      delta: 1
+  banter:
+    frequency: normal
+    style: snarky
+    triggers: [empire, combat, lothal, soldier, blaster]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Carries survivor's guilt from Lothal; covers it with gallows humor and an unshakeable refusal to leave anyone behind.
+    recruitment_context: Found pinned down by stormtroopers in an occupied street, firing back with a grin that says he's been waiting for backup.
+    banter_style: snarky
+    faction_interest: [Rebel Alliance, Local Resistance]
+
+# ── Companion 3: SABLE NOOR (Scoundrel / Slicer) ──────────────────
+- id: comp-reb-sable
+  name: Sable Noor
+  species: Twi'lek
+  gender: female
+  archetype: Underworld slicer
+  faction_id: underworld
+  role_in_party: specialist
+  voice_tags: [sardonic, clever, guarded]
+  motivation: To buy passage off this side of the galaxy and start over somewhere the Empire hasn't touched — but she keeps finding reasons to stay.
+  speech_quirk: Narrates her own actions as though recounting them to an audience, e.g., 'And then Sable did the smart thing for once.'
+  voice:
+    belief: Information is the only currency that never devalues.
+    wound: Sold out by her former crew to the ISB; spent eight months in an Imperial labor camp before slicing her way out.
+    taboo: Refuses to trust anyone who says 'trust me.'
+    rhetorical_style: sardonic
+    tell: Fidgets with a data spike she keeps on a cord around her neck — the one she used to escape the labor camp.
+  traits:
+    idealist_pragmatic: -40
+    merciful_ruthless: -10
+    lawful_rebellious: -30
+  default_affinity: -5
+  recruitment:
+    unlock_conditions: Encounter Sable while she's running a con or slicing a terminal; she joins when the player proves useful enough to keep around — or desperate enough to need her.
+    first_meeting_location: loc-cantina
+  tags: [slicer, hacker, underworld, con_artist]
+  enables_affordances: [slice_terminal, forge_credentials, decrypt]
+  blocks_affordances: [imperial_salute]
+  influence:
+    starts_at: -5
+    min: -100
+    max: 100
+    triggers:
+    - intent: threaten
+      delta: -4
+    - intent: help
+      delta: 1
+    - meaning_tag: clever_solution
+      delta: 3
+    - meaning_tag: naive_trust
+      delta: -2
+    - meaning_tag: reveal_values
+      delta: 2
+    - meaning_tag: betray
+      delta: -6
+  banter:
+    frequency: high
+    style: snarky
+    triggers: [empire, credits, slicing, con, prison, isb, data]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Pretends loyalty is a business transaction; secretly terrified of caring about people who could sell her out again.
+    recruitment_context: Found at a cantina, three steps ahead of an ISB informant and two steps behind on her bar tab.
+    banter_style: snarky
+    faction_interest: [Criminal Syndicates, Smuggler Network]
+
+# ── Companion 4: VOSS ANDARI (Diplomat / Face) ────────────────────
+- id: comp-reb-voss
+  name: Voss Andari
+  species: Bothan
+  gender: male
+  archetype: Alliance intelligence liaison
+  faction_id: bothan_spynet
+  role_in_party: specialist
+  voice_tags: [measured, perceptive, morally_ambiguous]
+  motivation: To ensure the Bothan Spy Network's sacrifices are not wasted — and that the Alliance remembers who paid the price for every piece of intelligence.
+  speech_quirk: Phrases observations as questions, letting others draw the conclusions he's already reached.
+  voice:
+    belief: The truth is a weapon; the trick is knowing when to fire and when to reload.
+    wound: Ordered an operative into a mission he knew was a trap — necessary for the greater intelligence gain, but her death still visits him at 0300.
+    taboo: Never wastes a life for information he could get another way.
+    rhetorical_style: socratic
+    tell: Smooths his fur when processing new information — the more vigorously, the worse the news.
+  traits:
+    idealist_pragmatic: -30
+    merciful_ruthless: 20
+    lawful_rebellious: -10
+  default_affinity: 0
+  recruitment:
+    unlock_conditions: Encounter Voss during an intelligence operation or at the Bothan spynet; he joins when the player demonstrates they can keep a secret.
+    first_meeting_location: loc-bothawui_spynet
+  tags: [spy, diplomat, intelligence, bothan]
+  enables_affordances: [interrogate, read_deception, encrypt_comms]
+  blocks_affordances: []
+  influence:
+    starts_at: 0
+    min: -100
+    max: 100
+    triggers:
+    - intent: threaten
+      delta: -2
+    - intent: help
+      delta: 1
+    - meaning_tag: strategic_thinking
+      delta: 3
+    - meaning_tag: reckless_action
+      delta: -3
+    - meaning_tag: reveal_values
+      delta: 2
+    - meaning_tag: waste_intelligence
+      delta: -4
+  banter:
+    frequency: low
+    style: stoic
+    triggers: [intelligence, bothan, spy, empire, secrets, sacrifice]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Carries the weight of every operative he's sent to die; justifies it as necessary calculus, but his fur ripples when their names come up.
+    recruitment_context: Found at the Bothan Spy Network hub, reviewing intercepts with the quiet intensity of someone who knows exactly how many lives each data point costs.
+    banter_style: stoic
+    faction_interest: [Bothan Spy Network, Rebel Alliance]
+
+# ── Companion 5: REN CADERA (Medic / Moral Compass) ───────────────
+- id: comp-reb-ren
+  name: Ren Cadera
+  species: Human
+  gender: nonbinary
+  archetype: Field medic and former Imperial physician
+  faction_id: rebel_alliance
+  role_in_party: companion
+  voice_tags: [compassionate, principled, haunted]
+  motivation: To heal the damage the Empire inflicts — starting with the damage they did through Ren's own hands when they served as an Imperial military physician.
+  speech_quirk: Uses medical metaphors for non-medical situations, e.g., 'This plan has a sepsis problem.'
+  voice:
+    belief: Every life matters, even the ones wearing the wrong uniform.
+    wound: Served as an Imperial military physician and discovered the Empire was testing biological weapons on prisoners; defected and carries the guilt of every subject they couldn't save.
+    taboo: Will not allow torture or harm to prisoners, regardless of what intelligence they might hold.
+    rhetorical_style: empathetic
+    tell: Adjusts their medpack straps compulsively when entering a dangerous situation — a ritual from their Imperial service days.
+  traits:
+    idealist_pragmatic: 50
+    merciful_ruthless: -50
+    lawful_rebellious: 10
+  default_affinity: 5
+  recruitment:
+    unlock_conditions: Encounter Ren at a Rebel medbay or field hospital; they join after the player shows respect for an injured enemy or makes a merciful choice.
+    first_meeting_location: loc-yavin_medbay
+  tags: [medic, healer, defector, imperial_past, compassion]
+  enables_affordances: [field_medicine, diagnose, stabilize]
+  blocks_affordances: []
+  influence:
+    starts_at: 5
+    min: -100
+    max: 100
+    triggers:
+    - intent: threaten
+      delta: -3
+    - intent: help
+      delta: 3
+    - meaning_tag: show_mercy
+      delta: 4
+    - meaning_tag: cruelty
+      delta: -5
+    - meaning_tag: torture
+      delta: -8
+    - meaning_tag: reveal_values
+      delta: 2
+    - meaning_tag: protect_innocent
+      delta: 3
+  banter:
+    frequency: normal
+    style: warm
+    triggers: [medicine, healing, empire, defector, prisoner, biological, ethics]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Defected from the Empire after discovering biological weapons research on prisoners; carries dual guilt — for what they did and what they failed to stop.
+    recruitment_context: Found in the Rebel medbay, treating a wounded stormtrooper with the same care as an Alliance pilot, and daring anyone to challenge them on it.
+    banter_style: warm
+    faction_interest: [Rebel Alliance, Local Resistance]

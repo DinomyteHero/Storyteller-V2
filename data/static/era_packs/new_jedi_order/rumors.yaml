@@ -1,0 +1,41 @@
+rumors:
+- id: rumor_death_star_plans
+  text: The Rebellion has stolen something from the Empire—plans that could turn the tide.
+  tags:
+  - rebellion
+  - empire
+  - death_star
+  scope: global
+  credibility: rumor
+- id: rumor_imperial_crackdown
+  text: Imperial patrols have doubled in the Outer Rim. Someone important is hunting someone.
+  tags:
+  - empire
+  - hunt
+  - outer_rim
+  scope: global
+  credibility: likely
+- id: rumor_yavin_base
+  text: There's a secret Rebel base hidden in the jungles of Yavin 4.
+  tags:
+  - rebellion
+  - yavin
+  - base
+  scope: global
+  credibility: rumor
+- id: rumor_hutt_smuggling
+  text: Jabba's smuggling routes are moving Imperial supplies to the black market.
+  tags:
+  - hutt
+  - smuggling
+  - black_market
+  scope: global
+  credibility: likely
+- id: rumor_bounty_hunters
+  text: A bounty hunter guild is offering high credits for information on Rebel sympathizers.
+  tags:
+  - bounty_hunter
+  - credits
+  - rebellion
+  scope: global
+  credibility: confirmed
