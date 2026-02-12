@@ -34,9 +34,11 @@ VOICE_TAG_SPEECH_PATTERNS: dict[str, str] = {
 
     # Humor/wit registers
     "sarcastic": "Uses deflecting humor. Short sentences. Avoids emotional honesty.",
+    "sardonic": "Mocking humor with an edge. Cynical observations wrapped in wit.",
     "wry": "Dry observations. Understatement. Favors contractions and spacer slang.",
     "snarky": "Quick retorts. Finds the absurd angle. Laughs at danger.",
     "dry": "Deadpan delivery. Says more with less. Lets silences do the work.",
+    "dry_humor": "Bone-dry wit. Delivers jokes with a straight face. Humor through understatement.",
 
     # Intensity registers
     "menacing": "Low, deliberate voice. Lets threats hang in the air. Never raises volume.",
@@ -69,6 +71,8 @@ VOICE_TAG_SPEECH_PATTERNS: dict[str, str] = {
     "academic": "References theory and history. Qualifies statements. Enjoys complexity.",
     "tactical": "Speaks in objectives and contingencies. Maps conversations like battlefields.",
     "professional": "Competent and composed. Sticks to facts. Minimal personal disclosure.",
+    "clever": "Quick-witted. Makes unexpected connections. Enjoys verbal sparring.",
+    "perceptive": "Notices what others miss. Reads between lines. Comments on unspoken truths.",
 
     # Authenticity registers
     "young": "Vocal uncertainty mixed with enthusiasm. Still finding their voice.",
@@ -82,6 +86,7 @@ VOICE_TAG_SPEECH_PATTERNS: dict[str, str] = {
 
     # Ethical registers
     "wise": "Speaks from experience. Offers perspective rather than answers. Patient.",
+    "morally_ambiguous": "Navigates grey areas. Questions absolute right and wrong. Justifies through context.",
 
     # Extended registers (V3.0) — covers era-pack companion voice diversity
     # Determination & drive
@@ -101,6 +106,7 @@ VOICE_TAG_SPEECH_PATTERNS: dict[str, str] = {
     "bitter": "Acid undertone. Past grievances flavor every observation.",
     "desperate": "Urgency overrides composure. Pleads between the lines.",
     "gentle": "Soft volume. Careful word choice. Never wants to cause harm with speech.",
+    "compassionate": "Leads with empathy. Acknowledges pain. Speaks to heal, not to harm.",
     "calm": "Even tempo regardless of chaos. Unruffled. Steadying presence.",
     "bright": "Upbeat energy. Finds the positive angle. Voice lifts others.",
 
