@@ -36,8 +36,9 @@ For each role (example: `narrator`):
 export STORYTELLER_NARRATOR_PROVIDER=ollama
 export STORYTELLER_NARRATOR_MODEL=qwen3:8b
 # optional:
+
 export STORYTELLER_NARRATOR_BASE_URL=http://localhost:11434
-```
+```text
 
 ### Cloud narrator (GPT-5.2 mini style setup)
 
@@ -45,7 +46,7 @@ export STORYTELLER_NARRATOR_BASE_URL=http://localhost:11434
 export STORYTELLER_NARRATOR_PROVIDER=openai
 export STORYTELLER_NARRATOR_MODEL=gpt-5.2-mini
 export STORYTELLER_NARRATOR_API_KEY=...
-```
+```text
 
 ### Hybrid narrator with local fallback
 
@@ -56,7 +57,7 @@ export STORYTELLER_NARRATOR_API_KEY=...
 
 export STORYTELLER_NARRATOR_FALLBACK_PROVIDER=ollama
 export STORYTELLER_NARRATOR_FALLBACK_MODEL=mistral-nemo:latest
-```
+```text
 
 ## 4) Inspect effective model config
 
@@ -64,7 +65,7 @@ Use:
 
 ```bash
 storyteller models
-```
+```text
 
 This prints the resolved per-role provider/model (including fallback chain if set).
 
@@ -117,7 +118,6 @@ Per role:
 
 Total is the sum across roles plus ingestion jobs. Use this to compare all-cloud vs hybrid vs local.
 
-
 ## 8) Option A automation pipeline (recommended)
 
 To reduce manual style authoring, use the hybrid generator:
@@ -125,8 +125,9 @@ To reduce manual style authoring, use the hybrid generator:
 ```bash
 storyteller build-style-pack --input <corpus_root> --output <style_root>
 # optional cloud/local polish step:
+
 storyteller build-style-pack --input <corpus_root> --output <style_root> --use-llm --llm-role ingestion_tagger
 python scripts/ingest_style.py --input <style_root>
-```
+```text
 
 This follows Option A: deterministic extraction first, optional LLM polish second, then ingest.

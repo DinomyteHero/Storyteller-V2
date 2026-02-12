@@ -2,7 +2,7 @@
 
 ## Directory Structure (High-Level)
 
-```
+```text
 Storyteller AI/
   backend/                       # FastAPI backend + engine runtime
     main.py                      # FastAPI app wiring (V2)
@@ -168,7 +168,7 @@ Storyteller AI/
     templates/                   # Template documentation
       CAMPAIGN_INIT_TEMPLATE.md  # Campaign creation guide
       DB_SEED_TEMPLATE.md        # Database seeding guide
-```
+```text
 
 ## Entry Points
 
@@ -245,4 +245,4 @@ graph LR
     nodes --> episodic
     v2 --> db
     kg --> db
-```
+```text

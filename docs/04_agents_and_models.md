@@ -222,7 +222,7 @@ Transforms NPC data into structured prompt blocks for Director/Narrator context 
 **Input:** NPC dict (from era pack or companion YAML) with fields: `name`, `voice_tags`, `traits`, `archetype`, `motivation`, `speech_quirk`, `banter_style`.
 
 **Output:** Formatted text block:
-```
+```text
 [NPC_NAME -- Personality]
 Archetype: <archetype>
 Voice: <voice_tags>
@@ -232,7 +232,7 @@ Behavior: <from TRAIT_BEHAVIOR_MAP lookup, max 2>
 Interaction: <from ARCHETYPE_INTERACTION_MAP lookup>
 Quirk: <speech_quirk>
 Drives: <motivation>
-```
+```text
 
 ### Constant Mappings
 
@@ -261,10 +261,10 @@ Generates pronoun context for Director/Narrator prompts. Returns empty string wh
 **Supported genders:** `male` (he/him/his/himself), `female` (she/her/her/herself).
 
 **Output format:**
-```
+```text
 CHARACTER PRONOUNS: {name} uses {subject}/{object}/{possessive} pronouns.
 Always use these pronouns when referring to {name} in narration and dialogue.
-```
+```text
 
 Injected into both Director and Narrator prompts during turn execution. Gender is set at character creation via `SetupAutoRequest.player_gender` and persisted on `CharacterSheet.gender`.
 

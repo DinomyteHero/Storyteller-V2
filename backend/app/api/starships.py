@@ -4,6 +4,7 @@ Supports acquisition, customization, and upgrade mechanics.
 """
 
 import json
+import logging
 import sqlite3
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
@@ -18,6 +19,8 @@ from backend.app.models.starship import (
     PlayerStarshipUpgrades,
     StarshipDefinition,
 )
+
+logger = logging.getLogger(__name__)
 from backend.app.db.connection import get_db
 from backend.app.config import DATA_ROOT
 
@@ -37,7 +40,7 @@ def _load_starship_definitions() -> dict[str, StarshipDefinition]:
             definitions[ship.id] = ship
         except ValidationError as e:
             # Log validation errors but don't crash
-            print(f"Warning: Failed to validate starship {ship_data.get('id')}: {e}")
+            logger.warning(f"Failed to validate starship {ship_data.get('id')}: {e}")
 
     return definitions
 

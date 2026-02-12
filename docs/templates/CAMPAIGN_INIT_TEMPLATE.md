@@ -5,6 +5,7 @@ This document provides templates and examples for creating new campaigns in Stor
 ## Campaign Creation Flow
 
 ### 1. Automated Setup (Recommended)
+
 **Endpoint:** `POST /v2/setup/auto`
 
 The automated setup flow uses CampaignArchitect and BiographerAgent to generate a complete campaign.
@@ -30,7 +31,7 @@ The automated setup flow uses CampaignArchitect and BiographerAgent to generate 
   "player_profile_id": null,
   "campaign_mode": "historical"
 }
-```
+```text
 
 #### Response Schema
 
@@ -74,9 +75,10 @@ The automated setup flow uses CampaignArchitect and BiographerAgent to generate 
     "hp_current": 10
   }
 }
-```
+```text
 
 ### 2. Manual Setup (Advanced)
+
 **Endpoint:** `POST /v2/campaigns`
 
 For direct campaign creation without LLM assistance.
@@ -97,7 +99,7 @@ For direct campaign creation without LLM assistance.
   },
   "hp_current": 10
 }
-```
+```text
 
 ---
 
@@ -327,13 +329,14 @@ The `world_state_json` field stores all campaign-specific metadata. Here's the c
     }
   ]
 }
-```
+```text
 
 ---
 
 ## Database Schema Quick Reference
 
 ### Core Tables (from 0001_init.sql)
+
 ```sql
 CREATE TABLE campaigns (
   id TEXT PRIMARY KEY,
@@ -366,9 +369,10 @@ CREATE TABLE turn_events (
   timestamp TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
 );
-```
+```text
 
 ### Extended Tables (from migrations 0002-0021)
+
 - `rendered_turns` - Turn narration cache
 - `objectives` - Quest/objective tracking
 - `episodic_memories` - Long-term memory with embeddings
@@ -385,11 +389,12 @@ See `/backend/app/db/migrations/` for full schema evolution.
 ## Campaign Modes (V3.0)
 
 ### Historical Mode (Default)
+
 ```json
 {
   "campaign_mode": "historical"
 }
-```
+```text
 - Canon events are immutable
 - Player operates in the margins of galactic history
 - NPCs and quests fit within established lore
@@ -397,11 +402,12 @@ See `/backend/app/db/migrations/` for full schema evolution.
 - Galactic-scale events proceed as canon
 
 ### Sandbox Mode
+
 ```json
 {
   "campaign_mode": "sandbox"
 }
-```
+```text
 - Player choices can reshape galactic history
 - Canon events are starting conditions, not certainties
 - Factions can be altered by player actions
@@ -423,7 +429,7 @@ See `/backend/app/db/migrations/` for full schema evolution.
   "background_id": "imperial_defector",
   "campaign_mode": "historical"
 }
-```
+```text
 
 ### Example 2: Sandbox Political Intrigue
 
@@ -436,7 +442,7 @@ See `/backend/app/db/migrations/` for full schema evolution.
   "background_id": "political_operative",
   "campaign_mode": "sandbox"
 }
-```
+```text
 
 ### Example 3: KOTOR-Style Classic Hero's Journey
 
@@ -449,7 +455,7 @@ See `/backend/app/db/migrations/` for full schema evolution.
   "background_id": "force_awakening",
   "campaign_mode": "historical"
 }
-```
+```text
 
 ---
 
@@ -457,9 +463,11 @@ See `/backend/app/db/migrations/` for full schema evolution.
 
 ```bash
 # 1. Create campaign via API
+
 curl -X POST http://localhost:8000/v2/setup/auto \
   -H "Content-Type: application/json" \
   -d '{
+
     "time_period": "rebellion",
     "genre": "espionage_thriller",
     "themes": ["trust"],
@@ -468,13 +476,15 @@ curl -X POST http://localhost:8000/v2/setup/auto \
   }'
 
 # 2. Get campaign state
+
 curl "http://localhost:8000/v2/campaigns/{campaign_id}/state?player_id={player_id}"
 
 # 3. Run first turn
+
 curl -X POST "http://localhost:8000/v2/campaigns/{campaign_id}/turn?player_id={player_id}" \
   -H "Content-Type: application/json" \
   -d '{"user_input": "Look around the cantina", "debug": true}'
-```
+```text
 
 ---
 

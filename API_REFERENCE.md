@@ -3,6 +3,7 @@
 This file documents the current API surface exposed by the FastAPI app.
 
 Primary sources:
+
 - `backend/main.py`
 - `backend/app/api/v2_campaigns.py`
 - `backend/app/api/starships.py`
@@ -119,12 +120,12 @@ Example response:
 }
 ```
 
-
 ## `GET /v2/campaigns`
 
 Lists existing campaigns so clients can resume prior sessions after restart.
 
 Query params:
+
 - `limit` (default 25, max 200)
 - `offset` (default 0)
 
@@ -151,6 +152,7 @@ Response shape:
 Auto-builds a campaign skeleton + initial character sheet through setup agents.
 
 Request supports both canonical and legacy selectors:
+
 - canonical: `setting_id` + `period_id`
 - legacy: `time_period`
 
@@ -171,6 +173,7 @@ Request body:
 ```
 
 Turn response always includes:
+
 - `narrated_text`
 - `suggested_actions`
 - `player_sheet`
@@ -179,6 +182,7 @@ Turn response always includes:
 - `warnings`
 
 May also include:
+
 - `world_time_minutes`
 - `party_status`
 - `alignment`
@@ -202,14 +206,15 @@ May also include:
 ## Compatibility note
 
 For exact payload schemas, refer to Pydantic models in:
+
 - `backend/app/api/v2_campaigns.py`
 - `backend/app/models/state.py`
 - `backend/app/models/turn_contract.py`
 - `backend/app/models/starship.py`
 
 OpenAPI remains the most precise runtime contract:
-- `http://localhost:8000/docs`
 
+- `http://localhost:8000/docs`
 
 ## `GET /health/detail`
 

@@ -18,7 +18,8 @@
 
 ```bash
 # health check
-```
+
+```text
 
 ## Troubleshooting
 

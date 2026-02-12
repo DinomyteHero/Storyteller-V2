@@ -12,13 +12,13 @@
 
 ```json
 {}
-```
+```text
 
 ## Response
 
 ```json
 {}
-```
+```text
 
 ## Errors and constraints
 

@@ -1,6 +1,7 @@
 # Dialogue System Architecture
 
 ## Overview
+
 This document explains how Storyteller AI generates NPC dialogue, tracks conversations, and maintains dialogue state across turns. This is the technical companion to `player_ux_flow.md`.
 
 ---
@@ -55,7 +56,7 @@ flowchart TD
     style SuggRefine fill:#FFB6C1
     style Commit fill:#90EE90
     style UI fill:#90EE90
-```
+```text
 
 ---
 
@@ -123,7 +124,7 @@ flowchart TD
     style NPCRef fill:#FFB6C1
     style Output fill:#90EE90
     style ImmutableState fill:#90EE90
-```
+```text
 
 ---
 
@@ -156,7 +157,7 @@ flowchart LR
     style Taboo fill:#FF6B6B
     style Rhetoric fill:#DDA0DD
     style Tell fill:#FFE5B4
-```
+```text
 
 **Voice Profile Sources by NPC Type:**
 
@@ -194,22 +195,23 @@ flowchart TD
 
     style ValidateSpeaker fill:#FFD700
     style BuildUtterance fill:#90EE90
-```
+```text
 
 **Code Reference:** `backend/app/core/agents/narrator.py` → `_extract_npc_utterance()`
 
 **Example Narrator Output:**
-```
+```text
 The cantina is thick with smoke and the smell of spice. You
 approach the bar where the Devaronian barkeep is polishing
 glasses with a grimy rag. He looks up as you approach, his
 red eyes narrowing with suspicion.
 
 ---NPC_LINE---
+
 SPEAKER: Grumthar the Barkeep
 "You got business, or you just here to gawk? I don't got
 time for tourists."
-```
+```text
 
 **Parsed Result:**
 ```python
@@ -220,7 +222,7 @@ NPCUtterance(
     subtext_hint="",
     rhetorical_moves=[]
 )
-```
+```text
 
 ---
 
@@ -252,7 +254,7 @@ flowchart TD
 
     style Search fill:#DDA0DD
     style VoiceSnippet fill:#B0E0E6
-```
+```text
 
 **Storage:** `lancedb/` directory, table `character_voice_chunks`
 
@@ -264,8 +266,7 @@ VoiceSnippet(
     text='"I\'m not afraid." He squared his shoulders, lightsaber igniting with a snap-hiss. "You\'re going to find that I\'m full of surprises."',
     chunk_id="luke_voice_003"
 )
-```
-
+```text
 
 ---
 
@@ -311,7 +312,7 @@ flowchart TD
     style TurnEvents fill:#90EE90
     style DialogueEvent fill:#B0E0E6
     style RebuildHistory fill:#DDA0DD
-```
+```text
 
 **Key Insight:** No mutable conversation state object exists. All conversation continuity comes from:
 1. **Event log** (authoritative source)
@@ -353,7 +354,7 @@ flowchart TD
     style LLMCall fill:#FFB6C1
     style StatGate fill:#FFD700
     style PlayerResp fill:#90EE90
-```
+```text
 
 **Code Reference:**
 - `backend/app/core/nodes/suggestion_refiner.py` → `make_suggestion_refiner_node()`
@@ -435,7 +436,7 @@ classDiagram
     SceneFrame --> NPCRef
     NPCRef --> VoiceProfile
     PlayerResponse --> PlayerAction
-```
+```text
 
 ---
 
@@ -473,7 +474,7 @@ sequenceDiagram
     API-->>Player: GameState with history populated
 
     Note over API,Pipeline: Turn continues with history context
-```
+```text
 
 ---
 
@@ -482,21 +483,27 @@ sequenceDiagram
 From `CLAUDE.md`:
 
 **1. Prose-Only Narrator (V2.15)**
+
 > The Narrator generates only prose text (5-8 sentences, max 250 words). It does NOT generate action suggestions.
 
 **2. KOTOR Dialogue Wheel (4 suggestions)**
+
 > The SuggestionRefiner node is the sole source of suggestions. It generates 4 LLM-powered suggestions per turn.
 
 **3. Single Transaction Boundary**
+
 > Only the Commit node writes to the database. All other nodes are pure functions.
 
 **4. Event Sourcing**
+
 > The `turn_events` table is append-only. Never update or delete events.
 
 **5. SceneFrame Immutability**
+
 > SceneFrame is built once per turn and read by all downstream nodes. No node modifies it.
 
 **6. JSON Retry Pattern**
+
 > LLM agents that expect JSON output must:
 > - Use `json_mode=True`
 > - Attempt `ensure_json()` repair
@@ -504,6 +511,7 @@ From `CLAUDE.md`:
 > - Fall back to deterministic output on double failure
 
 **7. Deterministic Fallbacks**
+
 > Every LLM-dependent agent must have a deterministic fallback. If the LLM fails, the game continues with safe defaults.
 
 ---
@@ -544,7 +552,7 @@ flowchart LR
 
     style DB fill:#90EE90
     style Context fill:#DDA0DD
-```
+```text
 
 **State Fields for Continuity:**
 - `history: list[str]` — Last 2-3 narrative paragraphs (prose only)
@@ -603,7 +611,7 @@ flowchart TB
     style NarratorLLM fill:#B0E0E6
     style EventsDB fill:#90EE90
     style UI fill:#FFD700
-```
+```text
 
 ---
 

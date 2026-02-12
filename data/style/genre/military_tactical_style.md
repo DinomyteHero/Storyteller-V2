@@ -53,6 +53,7 @@ Avoid heroic speeches and melodrama — squad leaders do not give inspirational 
 ## Sensory Lexicon
 
 ### Sound
+
 - suppressed rifle fire, sharp cracks instead of booms, signature of disciplined engagement
 - the mechanical click of a magazine seating, tactile confirmation of readiness
 - comms chatter through an earpiece, clipped voices over encrypted channels
@@ -61,6 +62,7 @@ Avoid heroic speeches and melodrama — squad leaders do not give inspirational 
 - the absence of sound after detonation, temporary deafness, world gone muffled
 
 ### Sight
+
 - HUD overlays on helmet visor, threat tags, waypoint markers, squad vitals
 - muzzle flash in dim environment, momentary illumination revealing positions
 - smoke obscuring line of sight, thermal imaging showing heat signatures through haze
@@ -69,6 +71,7 @@ Avoid heroic speeches and melodrama — squad leaders do not give inspirational 
 - the terrain from elevated position, commanding view of approach vectors and kill zones
 
 ### Smell
+
 - gun smoke and propellant residue, chemical tang that coats the throat
 - sweat and gear, the smell of soldiers under load in hot environments
 - ozone from energy weapon discharge, ionized air sharp in the nostrils
@@ -77,6 +80,7 @@ Avoid heroic speeches and melodrama — squad leaders do not give inspirational 
 - sterile packaged MRE contents, sustenance that tastes like obligation
 
 ### Touch
+
 - weapon weight distributed across sling and grip, familiar mass that becomes extension of body
 - recoil absorbed through stock and shoulder, controlled violence translated to kinetic feedback
 - sweat-soaked gloves gripping textured polymer, hands maintaining purchase under stress

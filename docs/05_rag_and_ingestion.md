@@ -17,7 +17,7 @@ flowchart LR
     end
 
 LANCE --> SEARCH
-```
+```text
 
 ## Era Packs (Bible) + RAG Library
 
@@ -70,15 +70,14 @@ To use a different embedding model, set env vars and rebuild LanceDB:
 **bge-m3 example:**
 ```bash
 EMBEDDING_MODEL=BAAI/bge-m3 EMBEDDING_DIMENSION=1024 python scripts/rebuild_lancedb.py --db ./data/lancedb
-```
+```text
 
 **nomic-embed-text:v1.5 (sentence-transformers):**
 ```bash
 EMBEDDING_MODEL=nomic-ai/nomic-embed-text-v1.5 EMBEDDING_DIMENSION=768 python scripts/rebuild_lancedb.py --db ./data/lancedb
-```
+```text
 
 Note: `nomic-embed-text` via Ollama has different dimensions; use the sentence-transformers variant above for consistency.
-
 
 ### Portable ingestion bundle (plug-and-play)
 
@@ -95,7 +94,7 @@ Example:
 export STORYTELLER_INGEST_ROOT="$HOME/Documents/Storyteller-AI-ingestion-data"
 storyteller setup --skip-deps
 storyteller ingest --pipeline lore
-```
+```text
 
 You can also override per-run with `storyteller ingest --ingest-root <path>`.
 
@@ -109,14 +108,13 @@ You can also override per-run with `storyteller ingest --ingest-root <path>`.
 
 For detailed ingestion workflows, see `/docs/lore_pipeline_guide.md`.
 
-
 ### Automated style-pack generation (Hybrid Option A)
 
 You can reduce manual style authoring with:
 
 ```bash
 storyteller build-style-pack --input <corpus_root> --output <style_root>
-```
+```text
 
 This command:
 - performs deterministic extraction from your corpus,
@@ -128,11 +126,12 @@ Then ingest the generated style docs:
 
 ```bash
 python scripts/ingest_style.py --input <style_root>
-```
+```text
 
 Recommended production flow: deterministic generation + optional cloud polish + human review + ingest.
 
 ### Style Ingestion
+
 **File:** `backend/app/rag/style_ingest.py` — `ingest_style_dir(data_dir)`
 
 **Input:** Directory of `.txt` and `.md` files containing writing style examples.
@@ -148,7 +147,7 @@ Recommended production flow: deterministic generation + optional cloud polish + 
 3. Each row stored with: `id`, `text`, `vector`, `source_title`, `source_type`, `tags_json`, `chunk_index`
 
 **Table schema** (PyArrow):
-```
+```text
 id: string
 text: string
 vector: list<float32>[384]
@@ -156,15 +155,16 @@ source_title: string
 source_type: string ("book" | "article" | "notes")
 tags_json: string (JSON array)
 chunk_index: int32
-```
+```text
 
 **CLI entry point:** `backend/app/scripts/ingest_style.py`
 
 ### Lore Ingestion
+
 **Files:** `ingestion/ingest.py` (flat TXT/EPUB) and `ingestion/ingest_lore.py` (hierarchical PDF/EPUB/TXT). The lore retriever (`lore_retriever.py`) expects a LanceDB table with rich metadata columns populated by these scripts.
 
 **Expected lore table schema** (inferred from `lore_retriever.py` column access):
-```
+```text
 text: string            — chunk content
 vector: list<float32>   — embedding vector
 era: string             — time period / era
@@ -178,11 +178,12 @@ characters_json: string — JSON array of character names in this chunk
 book_title: string      — source book/document title
 chapter_title: string   — chapter within source
 chunk_id: string        — unique chunk identifier
-```
+```text
 
 ## Retrieval Modules
 
 ### Lore Retriever
+
 **File:** `backend/app/rag/lore_retriever.py` — `retrieve_lore()`
 
 **Consumers:**
@@ -192,6 +193,7 @@ chunk_id: string        — unique chunk identifier
 **Filter support:** The retriever dynamically checks which columns exist in the table schema (`schema_cols`) before applying filters. This allows older DBs missing new columns to work without crashing.
 
 **Filters available:**
+
 | Filter | Type | SQL Generation |
 |--------|------|---------------|
 | `era` | Exact match | `era = '{value}'` |
@@ -219,9 +221,10 @@ chunk_id: string        — unique chunk identifier
     },
     "score": float         # 1.0 - distance (higher = more similar)
 }
-```
+```text
 
 ### Style Retriever
+
 **File:** `backend/app/rag/style_retriever.py`
 
 **Consumer:** Director (tone/writing style reference)
@@ -234,7 +237,6 @@ Pure vector similarity search with optional tag boosting. Results whose tags ove
 
 #### Layered Retrieval (V2.8): `retrieve_style_layered()`
 
-
 ### Are `data/style/base`, `data/style/era`, and `data/style/genre` deprecated?
 
 No — these are active in the current layered retrieval design:
@@ -246,7 +248,7 @@ To audit for truly unused style files, run:
 
 ```bash
 storyteller style-audit
-```
+```text
 
 This reports active mapped files, ignored templates (`PROMPT_TEMPLATE`/`README`), and orphan files not referenced by mappings.
 
@@ -262,6 +264,7 @@ This reports active mapped files, ignored templates (`PROMPT_TEMPLATE`/`README`)
 Lanes query the `style_chunks` LanceDB table using `source_title` filters. Results are merged (deduplicated by ID), sorted by score, truncated to `top_k`, then optionally tag-boosted. Falls back to unfiltered `retrieve_style()` if no lanes produce results.
 
 ### Style Mappings
+
 **File:** `backend/app/rag/style_mappings.py`
 
 Static mappings from `source_title` (filename stem) to classification:
@@ -276,7 +279,7 @@ Static mappings from `source_title` (filename stem) to classification:
 **Genre list:** noir_detective, cosmic_horror, samurai_cinema, mythic_quest, survival_horror, political_thriller, military_tactical, heist_caper, gothic_romance, espionage_thriller, space_western, court_intrigue, post_apocalyptic, murder_mystery, epic_fantasy_quest.
 
 **Data directory structure:**
-```
+```text
 data/style/
   base/star_wars_base_style.md     # Lane 0: always-on foundation
   era/rebellion_style.md            # Lane 1: era-specific
@@ -286,11 +289,12 @@ data/style/
   genre/noir_detective_style.md     # Lane 2: genre overlays
   genre/cosmic_horror_style.md
   genre/...                         # (15 genre files)
-```
+```text
 
 Helper functions: `era_source_titles(era_id)`, `genre_source_title(genre_slug)`, `archetype_source_title(archetype_slug)`.
 
 ### Character Voice Retriever
+
 **File:** `backend/app/rag/character_voice_retriever.py` — `get_voice_snippets()`
 
 **Consumer:** Narrator (character dialogue voice)
@@ -307,6 +311,7 @@ Helper functions: `era_source_titles(era_id)`, `genre_source_title(genre_slug)`,
 **Note:** This retriever uses vector search plus `.where()` filters on `character_id` and (when present) `era`, and widens the era filter only when results are sparse.
 
 ### Knowledge Graph Retriever (runtime)
+
 **File:** `backend/app/rag/kg_retriever.py` — `KGRetriever`
 
 **Consumers:**
@@ -332,7 +337,7 @@ Build/populate KG tables with:
 
 ```bash
 python -m storyteller extract-knowledge --era rebellion --resume
-```
+```text
 
 ### ContextBudget: Token Trimming
 
@@ -341,11 +346,11 @@ python -m storyteller extract-knowledge --era rebellion --resume
 The `ContextBudget` manages token allocation for agents. Token estimation uses `max(len(text) // 4, len(text.split()) * 1.3)`.
 
 **Budget calculation:**
-```
+```text
 max_input_tokens = max_context_tokens - reserved_output_tokens
 system_tokens = estimate_tokens(system_prompt)
 max_user_tokens = max_input_tokens - system_tokens
-```
+```text
 
 **Trimming order** (cascading, applied until under budget):
 1. Style chunks (drop lowest-scoring first)
@@ -360,6 +365,7 @@ max_user_tokens = max_input_tokens - system_tokens
 **Current usage:** Both Narrator and Director use `build_context(...)` to apply token budgeting and trimming. Narrator can surface dev-only `context_stats` in the turn response when `DEV_CONTEXT_STATS=1`.
 
 ## Retrieval Bundles (Per-Agent Filter Presets)
+
 **File:** `backend/app/rag/retrieval_bundles.py`
 
 | Constant | Value | Used By |
@@ -375,9 +381,9 @@ max_user_tokens = max_input_tokens - system_tokens
 
 All ingestion pipelines follow this sequence:
 
-```
+```text
 Extract → Chunk → (optional Tagger) → Embed → Upsert → Manifest
-```
+```text
 
 1. **Extract:** Read source files (TXT, EPUB via `epub_reader.py`, PDF via `pymupdf4llm`)
 2. **Chunk:** Split into token-aware chunks with overlap (`chunking.py`). Flat ingestion: ~600 tokens. Hierarchical: parent ~1024, child ~256 tokens
@@ -433,7 +439,7 @@ Each ingestion run writes a JSON manifest to `MANIFESTS_DIR` (default: `./data/m
   "output": {"table_name": "lore_chunks", "vectordb_path": "./data/lancedb"},
   "counts": {"chunks": 450, "failed": 2}
 }
-```
+```text
 
 The last ingestion metadata is also tracked in `data/last_ingest.json`.
 
