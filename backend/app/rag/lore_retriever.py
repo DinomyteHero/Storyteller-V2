@@ -53,6 +53,10 @@ def retrieve_lore(
     setting_id: str | None = None,
     period_id: str | None = None,
     universe: str | None = None,
+    source_title: str | None = None,
+    source_titles: List[str] | None = None,
+    chapter_index_min: int | None = None,
+    chapter_index_max: int | None = None,
     db_path: str | Path | None = None,
     table_name: str | None = None,
     warnings: list[str] | None = None,
@@ -107,10 +111,12 @@ def retrieve_lore(
         setting_id = _safe_filter_token(setting_id)
         period_id = _safe_filter_token(period_id)
         universe = _safe_filter_token(universe)
+        source_title = _safe_filter_token(source_title)
         safe_doc_types = _safe_filter_tokens(doc_types)
         safe_section_kinds = _safe_filter_tokens(section_kinds)
         safe_char_filter = _safe_filter_tokens(char_filter)
         safe_npc_filter = _safe_filter_tokens(npc_filter)
+        safe_source_titles = _safe_filter_tokens(source_titles)
 
         if setting_id and "setting_id" in schema_cols:
             q = q.where(f"setting_id = '{_esc(setting_id)}'")
@@ -118,6 +124,24 @@ def retrieve_lore(
             q = q.where(f"period_id = '{_esc(period_id)}'")
         if universe and "universe" in schema_cols:
             q = q.where(f"universe = '{_esc(universe)}'")
+        if "source" in schema_cols:
+            if safe_source_titles:
+                parts = [f"source = '{_esc(s)}'" for s in safe_source_titles]
+                if parts:
+                    q = q.where(f"({' OR '.join(parts)})")
+            elif source_title:
+                q = q.where(f"source = '{_esc(source_title)}'")
+        elif "book_title" in schema_cols:
+            if safe_source_titles:
+                parts = [f"book_title = '{_esc(s)}'" for s in safe_source_titles]
+                if parts:
+                    q = q.where(f"({' OR '.join(parts)})")
+            elif source_title:
+                q = q.where(f"book_title = '{_esc(source_title)}'")
+        if chapter_index_min is not None and "chapter_index" in schema_cols:
+            q = q.where(f"chapter_index >= {int(chapter_index_min)}")
+        if chapter_index_max is not None and "chapter_index" in schema_cols:
+            q = q.where(f"chapter_index <= {int(chapter_index_max)}")
         if era and "era" in schema_cols:
             q = q.where(f"era = '{_esc(era)}'")
         if time_period and "time_period" in schema_cols:
@@ -224,7 +248,8 @@ class LoreRetriever:
         warnings: list[str] | None = None,
     ) -> List[dict[str, Any]]:
         """Query lore. filters: {planet, faction, time_period, era, doc_type, section_kind,
-        doc_types (list), section_kinds (list), characters, related_npcs} (optional).
+        doc_types (list), section_kinds (list), characters, related_npcs,
+        source_title, source_titles, chapter_index_min, chapter_index_max} (optional).
         characters/related_npcs can be a string or list of strings for contains-match."""
         filters = filters or {}
         chars = filters.get("characters")
@@ -246,6 +271,10 @@ class LoreRetriever:
             setting_id=filters.get("setting_id"),
             period_id=filters.get("period_id"),
             universe=filters.get("universe"),
+            source_title=filters.get("source_title"),
+            source_titles=filters.get("source_titles"),
+            chapter_index_min=filters.get("chapter_index_min"),
+            chapter_index_max=filters.get("chapter_index_max"),
             db_path=self.db_path,
             table_name=self.table_name,
             warnings=warnings,

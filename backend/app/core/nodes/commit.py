@@ -15,6 +15,7 @@ from backend.app.core.state_loader import build_initial_gamestate, load_turn_his
 from backend.app.core.transcript_store import write_rendered_turn
 from backend.app.core.ledger import update_ledger, update_era_summaries
 from backend.app.constants import MEMORY_COMPRESSION_CHUNK_SIZE
+from backend.app.core.story_position import advance_story_position
 from backend.app.core.encounter_throttle import (
     apply_last_location_update_from_event,
     apply_npc_introduction_from_event,
@@ -273,6 +274,23 @@ def make_commit_node():
                     state["warnings"] = existing_warnings
             except Exception as _quest_err:
                 logger.warning("Quest tracking failed (non-fatal): %s", _quest_err)
+
+            # Phase 1-3: advance story-position timeline (year/chapter + divergence signals)
+            try:
+                base_world_time = int(camp.get("world_time_minutes") or 0) if isinstance(camp, dict) else 0
+                pending_world_time = state.get("pending_world_time_minutes")
+                if pending_world_time is not None:
+                    effective_world_time = int(pending_world_time)
+                else:
+                    effective_world_time = base_world_time + int(mechanic_result.get("time_cost_minutes") or 0)
+                world_state["story_position"] = advance_story_position(
+                    story_position=world_state.get("story_position") if isinstance(world_state, dict) else None,
+                    world_time_minutes=effective_world_time,
+                    campaign_mode=str(world_state.get("campaign_mode") or "historical"),
+                    event_types=[getattr(e, "event_type", "") for e in events if isinstance(e, Event)],
+                )
+            except Exception as _story_pos_err:
+                logger.warning("Story-position advance failed (non-fatal): %s", _story_pos_err)
 
             conn.execute(
                 "UPDATE campaigns SET world_state_json = ? WHERE id = ?",

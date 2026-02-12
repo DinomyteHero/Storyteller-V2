@@ -144,6 +144,7 @@ export interface TurnResponse {
   inventory: InventoryItem[];
   quest_log: Record<string, unknown>;
   world_time_minutes: number | null;
+  canonical_year_label?: string | null;
   party_status: PartyStatusItem[] | null;
   faction_reputation: Record<string, number> | null;
   news_feed: NewsFeedItem[] | null;
@@ -231,6 +232,7 @@ export interface SSEEvent {
   inventory?: InventoryItem[];
   quest_log?: Record<string, unknown>;
   world_time_minutes?: number | null;
+  canonical_year_label?: string | null;
   party_status?: PartyStatusItem[] | null;
   faction_reputation?: Record<string, number> | null;
   news_feed?: NewsFeedItem[] | null;

@@ -15,7 +15,7 @@
     startStreaming, appendToken, finishStreaming, failStreaming, resetStreaming
   } from '$lib/stores/streaming';
   import { ui } from '$lib/stores/ui';
-  import { humanizeLocation, worldClockParts, formatTimeDelta, safeInt } from '$lib/utils/format';
+  import { humanizeLocation, formatTimeDelta, safeInt } from '$lib/utils/format';
   import { parseNarrative } from '$lib/utils/narrative';
   import { startTypewriter } from '$lib/utils/typewriter';
   import { announce, trapFocus } from '$lib/utils/a11y';
@@ -84,12 +84,11 @@
     const ps = $playerSheet;
     const resp = $lastTurnResponse;
     if (!ps) return null;
-    const [day, timeStr] = worldClockParts(resp?.world_time_minutes);
+    const yearLabel = resp?.canonical_year_label || 'Unknown';
     return {
       location: humanizeLocation(ps.location_id),
       planet: humanizeLocation(ps.planet_id),
-      day,
-      timeStr,
+      yearLabel,
       hp: safeInt(ps.hp_current, 10),
       credits: safeInt(ps.credits, 0),
       stress: safeInt(ps.psych_profile?.stress_level, 0),
@@ -371,13 +370,9 @@
           <span class="label">LOC</span>
           <span class="value">{hudData.location}</span>
         </div>
-        <div class="pill" aria-label="Day {hudData.day}">
-          <span class="label">DAY</span>
-          <span class="value">{hudData.day}</span>
-        </div>
-        <div class="pill" aria-label="Time: {hudData.timeStr}">
-          <span class="label">TIME</span>
-          <span class="value">{hudData.timeStr}</span>
+        <div class="pill" aria-label="Year: {hudData.yearLabel}">
+          <span class="label">YEAR</span>
+          <span class="value">{hudData.yearLabel}</span>
         </div>
       {/if}
     </div>
@@ -1637,4 +1632,109 @@
       max-height: 45vh;
     }
   }
+
+
+  /* ======================== V3.3 VISUAL UPGRADE ======================== */
+  .hud-bar {
+    border-bottom: 1px solid rgba(118, 176, 255, 0.35);
+    background:
+      linear-gradient(180deg, rgba(9, 18, 40, 0.95), rgba(8, 16, 35, 0.88));
+    box-shadow:
+      0 12px 30px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(162, 210, 255, 0.12);
+  }
+
+  .gameplay-main {
+    max-width: 840px;
+    padding: 1.8rem 1.2rem 2rem;
+  }
+
+  .mission-briefing {
+    border-color: rgba(132, 186, 255, 0.75);
+    background:
+      radial-gradient(130% 120% at 50% -10%, rgba(122, 180, 255, 0.22), transparent 65%),
+      linear-gradient(165deg, rgba(13, 31, 68, 0.92), rgba(10, 22, 49, 0.88));
+    box-shadow:
+      inset 0 0 0 1px rgba(149, 203, 255, 0.2),
+      0 12px 28px rgba(5, 13, 30, 0.46),
+      0 0 30px rgba(78, 147, 255, 0.16);
+  }
+
+  .mission-header {
+    color: #92c3ff;
+    text-shadow: 0 0 10px rgba(108, 169, 255, 0.45);
+  }
+
+  .mission-subtitle {
+    color: #d7e8ff;
+  }
+
+  .narrative-container {
+    border: 1px solid rgba(112, 167, 240, 0.28);
+    border-radius: 12px;
+    padding: 14px 16px;
+    background:
+      linear-gradient(180deg, rgba(11, 23, 51, 0.8), rgba(10, 19, 43, 0.84));
+    box-shadow: inset 0 1px 0 rgba(154, 205, 255, 0.12);
+  }
+
+  .turn-label {
+    color: #86b7fb;
+    font-weight: 700;
+  }
+
+  .scene-subtitle {
+    color: #b4ccef;
+  }
+
+  .previously-content {
+    border-left-color: rgba(120, 171, 237, 0.5);
+  }
+
+  .previous-turn {
+    border-bottom-color: rgba(120, 171, 237, 0.25);
+  }
+
+  .drawer-backdrop {
+    background: rgba(2, 6, 14, 0.68);
+    backdrop-filter: blur(2px);
+  }
+
+  .info-drawer {
+    border-left: 1px solid rgba(118, 176, 255, 0.4);
+    background:
+      radial-gradient(70% 60% at 20% 0%, rgba(75, 136, 232, 0.18), transparent 72%),
+      linear-gradient(180deg, rgba(9, 21, 47, 0.96), rgba(7, 16, 36, 0.94));
+    box-shadow: -12px 0 35px rgba(0, 0, 0, 0.45);
+  }
+
+  .drawer-tabs {
+    border-bottom: 1px solid rgba(114, 168, 239, 0.35);
+    background: rgba(8, 18, 42, 0.95);
+  }
+
+  .drawer-tab {
+    border: 1px solid transparent;
+  }
+
+  .drawer-tab:hover {
+    background: rgba(86, 142, 228, 0.2);
+    border-color: rgba(127, 182, 255, 0.4);
+    color: #d6e9ff;
+  }
+
+  .drawer-tab.active {
+    color: #e4f1ff;
+    border-color: rgba(145, 199, 255, 0.48);
+    background: linear-gradient(150deg, rgba(78, 138, 226, 0.32), rgba(40, 80, 150, 0.28));
+    box-shadow: inset 0 1px 0 rgba(179, 221, 255, 0.24);
+  }
+
+  .info-row,
+  .quest-entry,
+  .warning-item,
+  .companion-card-drawer {
+    border-bottom-color: rgba(120, 171, 237, 0.25);
+  }
+
 </style>

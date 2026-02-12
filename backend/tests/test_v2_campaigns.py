@@ -63,9 +63,12 @@ class TestV2SetupAuto(unittest.TestCase):
             self.assertIn("party_affinity", camp)
             self.assertIn("alignment", camp)
             self.assertIn("faction_reputation", camp)
+            self.assertIn("story_position", camp["world_state_json"])
             self.assertIsInstance(camp["party"], list)
             self.assertIsInstance(camp["party_affinity"], dict)
             self.assertIsInstance(camp["alignment"], dict)
+            self.assertIsInstance(camp["world_state_json"]["story_position"], dict)
+            self.assertTrue(camp["world_state_json"]["story_position"].get("canonical_year_label"))
             self.assertEqual(camp["alignment"].get("light_dark"), 0)
             self.assertEqual(camp["alignment"].get("paragon_renegade"), 0)
             # Party starts EMPTY — companions are recruited organically through gameplay
@@ -108,6 +111,8 @@ class TestV2OneTurn(unittest.TestCase):
         self.assertIn("narrated_text", data)
         self.assertIn("suggested_actions", data)
         self.assertIn("warnings", data)
+        self.assertIn("canonical_year_label", data)
+        self.assertTrue(data.get("canonical_year_label"))
         self.assertIsInstance(data["warnings"], list)
         actions = data["suggested_actions"]
         self.assertEqual(len(actions), SUGGESTED_ACTIONS_TARGET, "suggested_actions padded to UI target")
@@ -223,6 +228,7 @@ class TestV2OneTurn(unittest.TestCase):
                         break
             self.assertIsNotNone(done, "stream must emit done event")
             self.assertIn("turn_contract", done)
+            self.assertIn("canonical_year_label", done)
             self.assertIsInstance(done["turn_contract"], dict)
 
     def test_validation_failures_endpoint_exists(self):
