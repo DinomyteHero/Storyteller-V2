@@ -72,9 +72,9 @@ Storyteller AI/
         utils.py                 # RAG utility functions
         style_ingest.py          # Style document ingestion
         _cache.py                # RAG retrieval caching
-      world/                     # Era Packs + deterministic world generation
-        era_pack_loader.py       # Load era pack YAML files
-        era_pack_models.py       # Era pack Pydantic models
+      world/                     # Setting Packs + deterministic world generation
+        setting_pack_loader.py   # Setting pack loader (thin wrapper)
+        era_pack_models.py       # Pack Pydantic models (EraPack for backward compat)
         faction_engine.py        # Deterministic faction engine (no LLM)
         npc_generator.py         # Procedural NPC generation
         npc_renderer.py          # NPC rendering for prompts
@@ -133,7 +133,7 @@ Storyteller AI/
           namebanks.yaml, factions.yaml, events.yaml, locations.yaml,
           rumors.yaml, facts.yaml, backgrounds.yaml
       starships.yaml             # Starship database
-      ERA_PACK_PROMPT_TEMPLATE.md
+      SETTING_PACK_PROMPT_TEMPLATE.md
       STYLE_PROMPT_TEMPLATE.md
     style/
       base/                      # Base Star Wars style (always-on Lane 0)
@@ -142,10 +142,8 @@ Storyteller AI/
     lore/                        # Lore source files (EPUB/PDF/TXT)
     manifests/                   # Ingestion manifest files
 
-  ingestion_app.py               # Legacy ingestion studio entrypoint (deprecated)
-  start_dev.bat                  # Windows: start backend + SvelteKit UI (`python -m storyteller dev`)
-  start_backend.bat              # Windows: start backend only
-  start_ingestion_ui.bat         # Windows: start ingestion studio
+  start_app.bat                  # Windows: unified launcher wrapper (backend + UI)
+  run_app.py                     # Cross-platform launcher with preflight/check modes
 
   README.md                      # Main overview + setup + usage
   QUICKSTART.md                  # Quick setup path
@@ -160,13 +158,13 @@ Storyteller AI/
     era_pack_template.md         # Comprehensive era pack template
     era_pack_schema_reference.md # Era pack schema validation rules
     era_pack_generation_prompt.md# LLM prompt for automated era pack generation
-    ERA_PACK_QUICK_REFERENCE.md  # Quick reference for era packs
+    SETTING_PACK_QUICK_REFERENCE.md  # Quick reference for setting packs
     PACK_AUTHORING.md            # Pack creation guide
     MIGRATION_FROM_ERA_PACKS.md  # Migration guide (future setting packs)
     CONTENT_SYSTEM.md            # Content loading system
     IMPLEMENTATION_PLAN.md       # Implementation roadmap
     RUNBOOK.md                   # Operations runbook
-    ui_improvements_v2.9.md      # UI improvements documentation
+    archive/                     # Archived historical documentation (V1, V2.9, V2.20)
     templates/                   # Template documentation
       CAMPAIGN_INIT_TEMPLATE.md  # Campaign creation guide
       DB_SEED_TEMPLATE.md        # Database seeding guide
@@ -176,16 +174,16 @@ Storyteller AI/
 
 | Entry Point | File / Command | Purpose |
 |------------|------------------|---------|
-| **Dev stack (recommended)** | `python -m storyteller dev` | Start backend + UI (and try to start Ollama) |
+| **Dev stack (recommended)** | `python run_app.py --dev` | Start backend + UI with preflight checks |
+| **Alternative dev launcher** | `python -m storyteller dev` | Start backend + UI from CLI command |
 | **First-time setup** | `python -m storyteller setup` | Create data dirs + copy `.env` + run health check |
 | **Health check** | `python -m storyteller doctor` | Verify Python/venv/deps/.env/data dirs/Ollama/LanceDB |
 | **API server** | `uvicorn backend.main:app` | Start FastAPI backend |
 | **SvelteKit UI** | `npm run dev` (in `frontend/`) | Player-facing UI |
-| **Ingestion Studio (legacy)** | `python -m streamlit run ingestion_app.py` | Local ingestion dashboard |
 | **Flat ingestion** | `python -m ingestion.ingest ...` | TXT/EPUB ingestion (no PDF) |
 | **Hierarchical ingestion** | `python -m ingestion.ingest_lore ...` | PDF/EPUB/TXT parent/child ingestion |
 | **KG extraction** | `python -m storyteller extract-knowledge ...` | Build SQLite KG tables from ingested lore |
-| **Style ingestion** | `python -m backend.app.scripts.ingest_style ...` | Ingest `data/style/` docs |
+| **Style ingestion** | `python scripts/ingest_style.py ...` | Ingest `data/style/` docs |
 
 ## Key Dependency Map (Conceptual)
 

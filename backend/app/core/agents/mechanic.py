@@ -369,6 +369,10 @@ def _compute_dc(state: GameState, action_type: str, user_input: str) -> int:
     modifier = _get_modifier(state, action_type)
     dc -= modifier
 
+    # V3.2: Difficulty profile DC modifier
+    diff_profile = ws.get("difficulty_profile") or {}
+    dc += int(diff_profile.get("dc_modifier", 0))
+
     return max(6, min(20, dc))
 
 

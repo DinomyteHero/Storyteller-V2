@@ -70,6 +70,7 @@ def write_run_manifest(
     chunk_id_scheme: str = "",
     root: Path | None = None,
     run_id: str | None = None,
+    context: dict[str, Any] | None = None,
 ) -> Path:
     if root is None:
         root = Path(__file__).resolve().parents[1]
@@ -89,6 +90,8 @@ def write_run_manifest(
         "counts": counts,
         "chunk_id_scheme": chunk_id_scheme,
     }
+    if context:
+        payload["context"] = context
     out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     _write_last_ingest(
         db_path=vectordb_path,
@@ -96,6 +99,7 @@ def write_run_manifest(
         tagger_enabled=tagger_enabled,
         tagger_model=tagger_model,
         root=root,
+        context=context,
     )
     return out_path
 
@@ -139,6 +143,7 @@ def _write_last_ingest(
     tagger_enabled: bool,
     tagger_model: str,
     root: Path | None = None,
+    context: dict[str, Any] | None = None,
 ) -> Path:
     if root is None:
         root = Path(__file__).resolve().parents[1]
@@ -151,5 +156,7 @@ def _write_last_ingest(
         "tagger_model": tagger_model or "",
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
+    if context:
+        payload["context"] = context
     out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return out_path

@@ -11,7 +11,7 @@ from backend.app.world.era_pack_models import (
     EraCompanionVoice,
     EraPack,
 )
-from backend.app.world.era_pack_loader import clear_era_pack_cache, load_era_pack
+from backend.app.content.repository import CONTENT_REPOSITORY
 from backend.app.core.party_state import (
     PartyState,
     CompanionRuntimeState,
@@ -97,10 +97,10 @@ class TestEraPackCompanionLoading:
     """Rebellion era pack loads companions.yaml correctly."""
 
     def setup_method(self):
-        clear_era_pack_cache()
+        CONTENT_REPOSITORY.clear_cache()
 
     def test_rebellion_pack_has_companions(self):
-        pack = load_era_pack("REBELLION")
+        pack = CONTENT_REPOSITORY.get_pack("REBELLION")
         assert len(pack.companions) >= 1
         kessa = pack.companion_by_id("comp-reb-kessa")
         assert kessa is not None

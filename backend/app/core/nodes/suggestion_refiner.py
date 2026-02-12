@@ -32,8 +32,11 @@ logger = logging.getLogger(__name__)
 
 _VALID_TONES = {"PARAGON", "INVESTIGATE", "RENEGADE", "NEUTRAL"}
 
-_SYSTEM_PROMPT = """\
-You write SHORT player dialogue options for a Star Wars KOTOR-style game.
+_DEFAULT_SUGGESTION_STYLE = "a Star Wars KOTOR-style game"
+
+# Placeholder __SUGGESTION_STYLE__ is replaced at runtime with setting_rules.suggestion_style
+_SYSTEM_PROMPT_TEMPLATE = """\
+You write SHORT player dialogue options for __SUGGESTION_STYLE__.
 
 TASK: Given scene context, output EXACTLY 4 options the player character can say or do.
 
@@ -546,8 +549,13 @@ def make_suggestion_refiner_node():
             director_intent=str((state.get("director_instructions") or ""))[:300],
         )
 
+        # V3.2: Resolve setting_rules for universe-aware suggestion prompt
+        from backend.app.core.setting_context import get_setting_rules
+        _sr = get_setting_rules(state)
+        _system_prompt = _SYSTEM_PROMPT_TEMPLATE.replace("__SUGGESTION_STYLE__", _sr.suggestion_style)
+
         try:
-            raw = llm.complete(_SYSTEM_PROMPT, user_prompt, json_mode=True, raw_json_mode=True)
+            raw = llm.complete(_system_prompt, user_prompt, json_mode=True, raw_json_mode=True)
             logger.debug("SuggestionRefiner raw LLM output (first 600 chars): %s", (raw or "")[:600])
             items = _parse_and_validate(raw, npc_names)
 
@@ -561,7 +569,7 @@ def make_suggestion_refiner_node():
                     'and "meaning" (one tag). Start with [ and end with ]. No other text.\n\n'
                     + user_prompt
                 )
-                raw2 = llm.complete(_SYSTEM_PROMPT, correction_prompt, json_mode=True, raw_json_mode=True)
+                raw2 = llm.complete(_system_prompt, correction_prompt, json_mode=True, raw_json_mode=True)
                 logger.debug("SuggestionRefiner retry output (first 600 chars): %s", (raw2 or "")[:600])
                 items = _parse_and_validate(raw2, npc_names)
                 if items is not None:

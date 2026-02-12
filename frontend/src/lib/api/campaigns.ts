@@ -65,6 +65,32 @@ export async function getRumors(
   return apiFetch(`/v2/campaigns/${campaignId}/rumors?limit=${limit}`);
 }
 
+export interface CompleteCampaignResponse {
+  status: string;
+  legacy_id: string;
+  campaign_id: string;
+  recommended_next_scale: string;
+  next_campaign_pitch: string;
+}
+
+export async function completeCampaign(
+  campaignId: string,
+  outcomeSummary: string = '',
+  characterFate: string = ''
+): Promise<CompleteCampaignResponse> {
+  return apiFetch<CompleteCampaignResponse>(
+    `/v2/campaigns/${campaignId}/complete`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        outcome_summary: outcomeSummary,
+        character_fate: characterFate,
+      }),
+    },
+    60_000
+  );
+}
+
 export interface CompanionPreview {
   id: string;
   name: string;

@@ -18,10 +18,14 @@ logger = logging.getLogger(__name__)
 
 def make_director_node():
     """Build the Director node."""
+    retrieval_guardrails: dict[str, Any] = {}
+
     def style_retriever(q, k, era_id=None, genre=None, archetype=None):
         return retrieve_style_layered(q, top_k=k, era_id=era_id, genre=genre, archetype=archetype)
 
     def lore_retriever(query: str, top_k: int = 4, era: str | None = None, related_npcs: list[str] | None = None):
+        chapter_max = retrieval_guardrails.get("max_chapter_index")
+        source_titles = retrieval_guardrails.get("allowed_sources")
         return retrieve_lore(
             query,
             top_k=top_k,
@@ -29,6 +33,8 @@ def make_director_node():
             doc_type=DIRECTOR_DOC_TYPE,
             section_kind=DIRECTOR_SECTION_KIND,
             related_npcs=related_npcs,
+            source_titles=source_titles if isinstance(source_titles, list) and source_titles else None,
+            chapter_index_max=int(chapter_max) if chapter_max is not None else None,
         )
 
     try:
@@ -49,11 +55,15 @@ def make_director_node():
 
     def director_node(state: dict[str, Any]) -> dict[str, Any]:
         gs = dict_to_state(state)
+        nonlocal retrieval_guardrails
 
         campaign = getattr(gs, "campaign", None) or {}
         campaign_ws = campaign.get("world_state_json") if isinstance(campaign, dict) else None
         if not isinstance(campaign_ws, dict):
             campaign_ws = {}
+        story_position = campaign_ws.get("story_position") if isinstance(campaign_ws, dict) else None
+        guardrails = story_position.get("retrieval_guardrails") if isinstance(story_position, dict) else None
+        retrieval_guardrails = guardrails if isinstance(guardrails, dict) else {}
 
         # --- V2.8: Shared RAG retrieval (compute once, pass to Narrator via state) ---
         era = (campaign.get("time_period") or campaign.get("era") or "rebellion").strip() or "rebellion"
@@ -99,14 +109,14 @@ def make_director_node():
         # --- V2.10: Dynamic genre detection ---
         try:
             from backend.app.core.genre_triggers import detect_genre_shift
-            from backend.app.world.era_pack_loader import get_era_pack as _get_era_pack_for_genre
+            from backend.app.content.repository import CONTENT_REPOSITORY
             current_genre = campaign_ws.get("genre")
             genre_last_turn = int(campaign_ws.get("genre_last_changed_turn", 0))
             cache_turn = int(gs.turn_number or 0)
             cache_arc_stage = (state.get("arc_guidance") or {}).get("arc_stage", "SETUP")
             turns_since = max(0, cache_turn - genre_last_turn)
             loc_tags_for_genre: list[str] = []
-            _genre_pack = _get_era_pack_for_genre(era)
+            _genre_pack = CONTENT_REPOSITORY.get_pack(era) if era else None
             if _genre_pack:
                 _genre_loc = _genre_pack.location_by_id(gs.current_location or "")
                 if _genre_loc:
@@ -126,10 +136,10 @@ def make_director_node():
         # --- V2.10: Build NPC personality context for scene ---
         npc_personality_ctx = ""
         try:
-            from backend.app.world.era_pack_loader import get_era_pack
+            from backend.app.content.repository import CONTENT_REPOSITORY
             from backend.app.core.companions import get_companion_by_id
             era_npc_lookup: dict[str, Any] = {}
-            pack = get_era_pack(era)
+            pack = CONTENT_REPOSITORY.get_pack(era) if era else None
             if pack:
                 for npc_entry in pack.all_npcs():
                     era_npc_lookup[npc_entry.id] = npc_entry.model_dump(mode="json")

@@ -45,6 +45,7 @@ class CampaignArchitect:
         self,
         time_period: str | None = None,
         themes: list[str] | None = None,
+        setting_rules: Any | None = None,
     ) -> dict[str, Any]:
         """
         Return skeleton dict (SetupOutput shape): title, time_period, locations, npc_cast, active_factions.
@@ -88,11 +89,16 @@ class CampaignArchitect:
                 },
             }
 
+        # V3.2: Use setting_rules for universe-aware prompts
+        from backend.app.world.era_pack_models import SettingRules
+        sr: SettingRules = setting_rules if isinstance(setting_rules, SettingRules) else SettingRules()
+        species_list = ", ".join(sr.common_species)
+        factions_list = ", ".join(sr.example_factions)
         system = (
-            "You are the World Architect for a Star Wars narrative RPG. "
-            "All factions, NPCs, and locations must be Star Wars-appropriate "
-            "(e.g., use species like Twi'lek, Rodian, Wookiee, Zabrak, Bothan, Chiss; "
-            "factions like syndicates, cartels, Imperial remnants, rebel cells, Hutt clans; "
+            f"You are {sr.architect_role}. "
+            f"All factions, NPCs, and locations must be {sr.setting_name}-appropriate "
+            f"(e.g., use species like {species_list}; "
+            f"factions like {factions_list}; "
             "locations like cantinas, docking bays, spaceports, hangars). "
             "When creating the campaign skeleton, you MUST create 3-5 active factions with conflicting goals. "
             "Assign them specific starting locations within the world. "

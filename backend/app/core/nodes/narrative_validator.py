@@ -59,17 +59,6 @@ def _check_mechanic_consistency(
     return warnings
 
 
-def _check_constraint_contradictions(
-    final_text: str,
-    constraints: list[str],
-) -> list[str]:
-    """Disabled (V3.0): too many false positives in Star Wars context.
-
-    Previously checked for negation keywords near constraint keywords in a 40-char
-    window, but the heuristic was too crude and flagged legitimate prose constantly.
-    Kept as no-op for API compatibility.
-    """
-    return []
 
 
 def _check_dialogue_turn_validity(state: dict[str, Any]) -> tuple[list[str], list[str]]:
@@ -214,12 +203,7 @@ def narrative_validator_node(state: dict[str, Any]) -> dict[str, Any]:
         _check_mechanic_consistency(final_text, mechanic_result)
     )
 
-    # Check 2: Constraint contradictions
-    validation_warnings.extend(
-        _check_constraint_contradictions(final_text, constraints)
-    )
-
-    # Check 3: V2.17 DialogueTurn component validity
+    # Check 2: V2.17 DialogueTurn component validity
     dt_warnings, dt_repairs = _check_dialogue_turn_validity(state)
     validation_warnings.extend(dt_warnings)
     if dt_repairs:

@@ -40,7 +40,7 @@ ALLOWED_SERVICES: set[str] = {
     "market",
     "cantina",
 }
-ALLOWED_BYPASS_METHODS: set[str] = {
+_CORE_BYPASS_METHODS: set[str] = {
     # Physical
     "violence",
     "sneak",
@@ -57,12 +57,26 @@ ALLOWED_BYPASS_METHODS: set[str] = {
     "hack",
     "slice",
     "disable",
-    # Force / special
-    "force",
-    "force_dark",
+    # Generic special
     "logic_puzzle",
-    "sith_amulet",
 }
+
+
+def _load_setting_bypass_methods() -> set[str]:
+    """Load setting-specific bypass methods from SETTING_BYPASS_METHODS env var.
+
+    Default: Star Wars-specific methods (force, force_dark, sith_amulet).
+    Other settings can override: e.g. SETTING_BYPASS_METHODS="magic,potion,enchantment"
+    """
+    import os
+    env_val = os.environ.get("SETTING_BYPASS_METHODS", "").strip()
+    if env_val:
+        return {m.strip().lower() for m in env_val.split(",") if m.strip()}
+    # Default: Star Wars methods
+    return {"force", "force_dark", "sith_amulet"}
+
+
+ALLOWED_BYPASS_METHODS: set[str] = _CORE_BYPASS_METHODS | _load_setting_bypass_methods()
 LeverRating = Literal["low", "medium", "high", "false"]
 RumorScope = Literal["global", "location"]
 RumorCredibility = Literal["rumor", "likely", "confirmed"]
@@ -606,6 +620,35 @@ class EraCompanion(BaseModel):
     metadata: Dict[str, object] = Field(default_factory=dict)
 
 
+class SettingRules(BaseModel):
+    """Universe-specific text carried through the pipeline to prevent cross-setting contamination.
+
+    Defaults are Star Wars Legends — zero behavior change for existing setup.
+    Other settings (Harry Potter, LOTR, etc.) override these fields via their EraPack.
+    """
+    model_config = ConfigDict(extra="forbid")
+
+    setting_name: str = "Star Wars Legends"
+    setting_genre: str = "science fantasy"
+    # Agent prompt role strings
+    biographer_role: str = "a biographer for a Star Wars narrative RPG"
+    architect_role: str = "the World Architect for a Star Wars narrative RPG"
+    director_role: str = "the Director for an interactive Star Wars story engine"
+    suggestion_style: str = "a Star Wars KOTOR-style game"
+    # Setting-specific data for prompts
+    common_species: List[str] = Field(
+        default=["Twi'lek", "Rodian", "Wookiee", "Zabrak", "Bothan", "Chiss", "Human"],
+    )
+    example_factions: List[str] = Field(
+        default=["Rebellion", "Empire", "criminal syndicates"],
+    )
+    historical_lore_label: str = "established Star Wars Legends lore"
+    concept_location_map: Dict[str, List[str]] = Field(default_factory=dict)
+    location_display_names: Dict[str, str] = Field(default_factory=dict)
+    bypass_methods: List[str] = Field(default=["force", "force_dark", "sith_amulet"])
+    fallback_background: str = "A traveler in a vast galaxy."
+
+
 class EraPack(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -630,6 +673,12 @@ class EraPack(BaseModel):
     companions: List[EraCompanion] = Field(default_factory=list)
     faction_relationships: Dict[str, Any] | None = None
     style_ref: str | None = None
+    # V3.1: Per-pack background figures for universe modularity
+    background_figures: Dict[str, List[str]] = Field(default_factory=dict)
+    # V3.1: Setting name for prompts (e.g. "Star Wars Legends", "Harry Potter")
+    setting_name: str | None = None
+    # V3.2: Universe rules — all setting-specific text for agent prompts
+    setting_rules: SettingRules = Field(default_factory=SettingRules)
     metadata: Dict[str, object] = Field(default_factory=dict)
 
     def all_npcs(self) -> List[EraNpcEntry]:

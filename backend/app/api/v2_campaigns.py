@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import logging
 import random
 import uuid
@@ -13,7 +14,7 @@ from pydantic import BaseModel, Field
 from backend.app.constants import SUGGESTED_ACTIONS_TARGET
 from backend.app.config import DEFAULT_DB_PATH, DEV_CONTEXT_STATS, ENABLE_BIBLE_CASTING
 from backend.app.core.error_handling import log_error_with_context, create_error_response
-from backend.app.world.era_pack_loader import get_era_pack
+from backend.app.content.repository import CONTENT_REPOSITORY
 
 logger = logging.getLogger(__name__)
 from backend.app.db.connection import get_connection
@@ -32,6 +33,10 @@ from backend.app.core.truth_ledger import get_facts, ledger_summary, upsert_fact
 from backend.app.core.passages.engine import load_episode, render_template, build_choices, apply_choice
 from backend.app.models.events import Event
 from backend.app.core.agents import CampaignArchitect, BiographerAgent
+from backend.app.core.story_position import (
+    canonical_year_label_from_campaign,
+    initialize_story_position,
+)
 
 router = APIRouter(prefix="/v2", tags=["v2-campaigns"])
 
@@ -66,7 +71,7 @@ def _active_factions_from_era(time_period: str | None) -> list[dict]:
     """Derive active_factions from Era Pack (deterministic)."""
     if not time_period:
         return []
-    pack = get_era_pack(time_period)
+    pack = CONTENT_REPOSITORY.get_pack(time_period) if time_period else None
     if not pack:
         return []
     out: list[dict] = []
@@ -130,6 +135,8 @@ class CreateCampaignRequest(BaseModel):
     starting_location: str = "Unknown"
     player_stats: dict[str, int] = Field(default_factory=dict)
     hp_current: int = 10
+    # V3.1: Campaign scale — controls NPC/location/quest density
+    campaign_scale: str = "medium"  # small | medium | large | epic
 
 
 class CreateCampaignResponse(BaseModel):
@@ -138,6 +145,10 @@ class CreateCampaignResponse(BaseModel):
 
 
 class SetupAutoRequest(BaseModel):
+    # Canonical content coordinates
+    setting_id: str | None = None
+    period_id: str | None = None
+    # Legacy alias still accepted for backward compatibility
     time_period: str | None = None
     genre: str | None = None
     themes: list[str] = Field(default_factory=list)
@@ -154,6 +165,10 @@ class SetupAutoRequest(BaseModel):
     player_profile_id: str | None = None
     # V3.0: Campaign mode — "historical" (lore immutable) or "sandbox" (player reshapes galaxy)
     campaign_mode: str = "historical"
+    # V3.1: Campaign scale — controls NPC/location/quest density
+    campaign_scale: str = "medium"  # small | medium | large | epic
+    # V3.2: Difficulty — affects DC, damage, and HP modifiers
+    difficulty: str = "normal"  # easy | normal | hard
 
 
 class SetupAutoResponse(BaseModel):
@@ -161,6 +176,82 @@ class SetupAutoResponse(BaseModel):
     player_id: str
     skeleton: dict
     character_sheet: dict
+
+
+class ContentCatalogEntry(BaseModel):
+    setting_id: str
+    setting_display_name: str
+    period_id: str
+    period_display_name: str
+    legacy_era_id: str
+    source: str
+    summary: str = ""
+    playable: bool = True
+    playability_reasons: list[str] = Field(default_factory=list)
+    locations_count: int = 0
+    backgrounds_count: int = 0
+    companions_count: int = 0
+    quests_count: int = 0
+
+
+class ContentCatalogResponse(BaseModel):
+    items: list[ContentCatalogEntry]
+
+
+class ContentDefaultResponse(BaseModel):
+    setting_id: str
+    period_id: str
+    legacy_era_id: str
+
+
+class ContentSummaryResponse(BaseModel):
+    setting_id: str
+    period_id: str
+    legacy_era_id: str
+    backgrounds_count: int
+    locations_count: int
+    companions_count: int
+    quests_count: int
+    playable: bool
+
+
+def _catalog_items() -> list[dict]:
+    return CONTENT_REPOSITORY.list_catalog()
+
+
+def _resolve_requested_period(*, setting_id: str | None, period_id: str | None, time_period: str | None) -> tuple[str, str, str]:
+    """Resolve request into canonical (setting_id, period_id, legacy_era_id)."""
+    items = _catalog_items()
+    if setting_id and period_id:
+        s = str(setting_id).strip().lower().replace("-", "_")
+        p = str(period_id).strip().lower().replace("-", "_")
+        for item in items:
+            if item["setting_id"] == s and item["period_id"] == p:
+                return s, p, item["legacy_era_id"]
+        available = ", ".join(sorted({f"{i['setting_id']}/{i['period_id']}" for i in items})) or "none"
+        raise HTTPException(status_code=400, detail=f"Unknown period '{s}/{p}'. Available: {available}")
+
+    if time_period:
+        era = str(time_period).strip().lower().replace("-", "_")
+        for item in items:
+            if item["period_id"] == era or item["legacy_era_id"].strip().lower() == era:
+                return item["setting_id"], item["period_id"], item["legacy_era_id"]
+        # Legacy compatibility: unknown time_period falls back to default instead of hard-failing.
+        # Canonical callers should use setting_id/period_id for strict validation.
+        if items:
+            fallback = items[0]
+            return fallback["setting_id"], fallback["period_id"], fallback["legacy_era_id"]
+
+    # Default resolver
+    default_setting = (os.environ.get("DEFAULT_SETTING_ID") or "star_wars_legends").strip().lower().replace("-", "_")
+    default_period = (os.environ.get("DEFAULT_PERIOD_ID") or "rebellion").strip().lower().replace("-", "_")
+    for item in items:
+        if item["setting_id"] == default_setting and item["period_id"] == default_period:
+            return default_setting, default_period, item["legacy_era_id"]
+    if items:
+        first = items[0]
+        return first["setting_id"], first["period_id"], first["legacy_era_id"]
+    raise HTTPException(status_code=500, detail="No content packs discovered")
 
 
 class TurnRequest(BaseModel):
@@ -192,6 +283,7 @@ class TurnResponse(BaseModel):
     inventory: list
     quest_log: dict
     world_time_minutes: int | None = None
+    canonical_year_label: str | None = None
     state: dict | None = None
     debug: dict | None = None
     # Optional companion/alignment UI (render if present)
@@ -253,10 +345,42 @@ def _create_npc_cast_from_skeleton(conn, campaign_id: str, skeleton: dict, start
         )
 
 
+@router.get("/content/catalog", response_model=ContentCatalogResponse)
+def get_content_catalog():
+    """Return discovered setting/period catalog for dynamic frontend selectors."""
+    return {"items": _catalog_items()}
+
+
+@router.get("/content/default", response_model=ContentDefaultResponse)
+def get_content_default():
+    setting_id, period_id, legacy_era_id = _resolve_requested_period(setting_id=None, period_id=None, time_period=None)
+    return {"setting_id": setting_id, "period_id": period_id, "legacy_era_id": legacy_era_id}
+
+
+@router.get("/content/{setting_id}/{period_id}/summary", response_model=ContentSummaryResponse)
+def get_content_summary(setting_id: str, period_id: str):
+    s, p, legacy = _resolve_requested_period(setting_id=setting_id, period_id=period_id, time_period=None)
+    pack = CONTENT_REPOSITORY.get_content(s, p)
+    playable = bool(pack.locations) and bool(pack.backgrounds)
+    return {
+        "setting_id": s,
+        "period_id": p,
+        "legacy_era_id": legacy,
+        "backgrounds_count": len(pack.backgrounds or []),
+        "locations_count": len(pack.locations or []),
+        "companions_count": len(pack.companions or []),
+        "quests_count": len(pack.quests or []),
+        "playable": playable,
+    }
+
+
 @router.get("/era/{era_id}/locations")
 def get_era_locations(era_id: str):
     """Return known locations for an era pack (for UI starting-area selection)."""
-    pack = get_era_pack(era_id)
+    try:
+        pack = CONTENT_REPOSITORY.get_pack(era_id) if era_id else None
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Era pack not found")
     if not pack:
         raise HTTPException(status_code=404, detail="Era pack not found")
     return {
@@ -269,7 +393,11 @@ def get_era_locations(era_id: str):
 def get_era_backgrounds(era_id: str):
     """Return available backgrounds and their question chains for the given era."""
     logger.info(f"Received request for era backgrounds: era_id={era_id}")
-    pack = get_era_pack(era_id)
+    try:
+        pack = CONTENT_REPOSITORY.get_pack(era_id) if era_id else None
+    except FileNotFoundError:
+        logger.error(f"Era pack not found for era_id={era_id}")
+        raise HTTPException(status_code=404, detail="Era pack not found")
     if not pack:
         logger.error(f"Era pack not found for era_id={era_id}")
         raise HTTPException(status_code=404, detail="Era pack not found")
@@ -302,13 +430,12 @@ def get_era_companions(era_id: str):
 @router.get("/debug/era-packs")
 def debug_era_packs():
     """Debug endpoint showing loaded era packs and their backgrounds count."""
-    from backend.app.world.era_pack_loader import load_all_era_packs
     from shared.config import ERA_PACK_DIR
     from pathlib import Path
 
     pack_dir = Path(ERA_PACK_DIR)
     try:
-        packs = load_all_era_packs()
+        packs = CONTENT_REPOSITORY.load_all_packs()
         return {
             "pack_dir": str(pack_dir),
             "pack_dir_exists": pack_dir.exists(),
@@ -501,10 +628,24 @@ def setup_auto(body: SetupAutoRequest):
         except Exception as e:
             logger.warning("Failed to initialize BiographerAgent with LLM, using fallback: %s", e, exc_info=True)
             _bio = BiographerAgent(llm=None)
-        skeleton = _arch.build(time_period=body.time_period, themes=body.themes)
+        # Resolve requested content coordinates with graceful validation.
+        req_setting, req_period, req_legacy_era = _resolve_requested_period(
+            setting_id=body.setting_id,
+            period_id=body.period_id,
+            time_period=body.time_period,
+        )
+        era_for_setup = req_period
+        era_pack_for_setup = CONTENT_REPOSITORY.get_content(req_setting, req_period)
+        _setting_rules = era_pack_for_setup.setting_rules if (era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules")) else None
+        skeleton = _arch.build(time_period=era_for_setup, themes=body.themes, setting_rules=_setting_rules)
 
-        era_for_setup = body.time_period or skeleton.get("time_period")
-        era_pack_for_setup = get_era_pack(era_for_setup) if era_for_setup else None
+        # Refine era pack if architect resolved a different time_period
+        if not era_for_setup:
+            era_for_setup = skeleton.get("time_period")
+            if era_for_setup:
+                _, era_for_setup, _ = _resolve_requested_period(setting_id=req_setting, period_id=None, time_period=era_for_setup)
+                era_pack_for_setup = CONTENT_REPOSITORY.get_content(req_setting, era_for_setup)
+                _setting_rules = era_pack_for_setup.setting_rules if (era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules")) else _setting_rules
         available_locations = (
             [loc.id for loc in (era_pack_for_setup.locations or [])]
             if (era_pack_for_setup and era_pack_for_setup.locations)
@@ -514,6 +655,7 @@ def setup_auto(body: SetupAutoRequest):
             body.player_concept,
             skeleton.get("time_period"),
             available_locations=available_locations,
+            setting_rules=_setting_rules,
         )
 
         # Safety net: if biographer produced generic background but we have
@@ -566,7 +708,7 @@ def setup_auto(body: SetupAutoRequest):
         # Resolve starting planet: from character sheet, or look up via era pack
         starting_planet = character_sheet.get("starting_planet") or None
         if not starting_planet and time_period:
-            era_pack = era_pack_for_setup if (era_pack_for_setup and era_pack_for_setup.era_id == time_period) else get_era_pack(time_period)
+            era_pack = era_pack_for_setup if (era_pack_for_setup and era_pack_for_setup.era_id == time_period) else CONTENT_REPOSITORY.get_pack(time_period) if time_period else None
             if era_pack:
                 loc_obj = era_pack.location_by_id(starting_location)
                 if loc_obj and loc_obj.planet:
@@ -591,6 +733,14 @@ def setup_auto(body: SetupAutoRequest):
                 create_default_npcs = True
         companion_state = build_initial_companion_state(world_time_minutes=0, era=time_period)
         world_state = {"active_factions": active_factions, **companion_state}
+        world_state["setting_id"] = req_setting
+        world_state["period_id"] = req_period
+        world_state["story_position"] = initialize_story_position(
+            setting_id=req_setting,
+            period_id=req_period,
+            campaign_mode=body.campaign_mode or "historical",
+            world_time_minutes=0,
+        )
         # Hybrid arc approach: one setup-time scaffold (LLM when available),
         # then deterministic arc progression for all runtime turns.
         world_state["arc_seed"] = _generate_arc_seed(
@@ -618,10 +768,11 @@ def setup_auto(body: SetupAutoRequest):
             except Exception as _genre_err:
                 logger.debug("Genre auto-assignment failed (non-fatal): %s", _genre_err)
         # V2.10: Seed faction standings from player legacy if profile linked
+        # V3.1: Also read recommended_next_scale and next_campaign_pitch from legacy
         if body.player_profile_id:
             try:
                 legacy_rows = conn.execute(
-                    "SELECT faction_standings_json FROM campaign_legacy WHERE player_profile_id = ? ORDER BY completed_at DESC LIMIT 3",
+                    "SELECT faction_standings_json, major_decisions_json FROM campaign_legacy WHERE player_profile_id = ? ORDER BY completed_at DESC LIMIT 3",
                     (body.player_profile_id,),
                 ).fetchall()
                 if legacy_rows:
@@ -638,6 +789,27 @@ def setup_auto(body: SetupAutoRequest):
                         existing_rep[faction] = existing_rep.get(faction, 0) + delta
                     world_state["faction_reputation"] = existing_rep
                     logger.info("Seeded faction reputation from %d legacy campaign(s)", len(legacy_rows))
+
+                    # V3.1: Inter-campaign scale + pitch from most recent legacy
+                    most_recent_decisions = json.loads(legacy_rows[0][1] or "[]")
+                    if isinstance(most_recent_decisions, list):
+                        completion_entry = next(
+                            (d for d in reversed(most_recent_decisions)
+                             if isinstance(d, dict) and d.get("type") == "campaign_completion"),
+                            None,
+                        )
+                        if completion_entry:
+                            legacy_scale = completion_entry.get("recommended_next_scale")
+                            legacy_pitch = completion_entry.get("next_campaign_pitch", "")
+                            # Use legacy scale as default if player didn't explicitly set one
+                            if legacy_scale and body.campaign_scale == "medium":
+                                world_state["campaign_scale"] = legacy_scale
+                                logger.info(
+                                    "Applied legacy recommended scale: %s", legacy_scale,
+                                )
+                            if legacy_pitch:
+                                world_state["legacy_campaign_pitch"] = legacy_pitch
+                                logger.info("Injected legacy campaign pitch for architect context")
             except Exception as _legacy_err:
                 logger.debug("Legacy faction seeding failed (non-fatal): %s", _legacy_err)
 
@@ -700,12 +872,14 @@ def setup_auto(body: SetupAutoRequest):
                 existing_factions=active_factions,
                 skeleton=skeleton,
                 campaign_mode=body.campaign_mode or "historical",
+                campaign_scale=body.campaign_scale or "medium",
             )
             world_state["generated_locations"] = campaign_world.get("generated_locations", [])
             world_state["generated_npcs"] = campaign_world.get("generated_npcs", [])
             world_state["generated_quests"] = campaign_world.get("generated_quests", [])
             world_state["world_generation"] = campaign_world.get("world_generation", {})
             world_state["campaign_mode"] = campaign_world.get("campaign_mode", "historical")
+            world_state["campaign_scale"] = campaign_world.get("campaign_scale", "medium")
             if campaign_world.get("campaign_blueprint"):
                 world_state["campaign_blueprint"] = campaign_world["campaign_blueprint"]
             logger.info("Campaign world generated: %d locations, %d NPCs, %d quests",
@@ -717,6 +891,15 @@ def setup_auto(body: SetupAutoRequest):
             world_state["generated_locations"] = []
             world_state["generated_npcs"] = []
             world_state["generated_quests"] = []
+
+        # V3.2: Persist SettingRules from era pack (universe contamination prevention)
+        if era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules"):
+            world_state["setting_rules"] = era_pack_for_setup.setting_rules.model_dump(mode="json")
+
+        # V3.2: Persist difficulty profile
+        from backend.app.constants import DIFFICULTY_PROFILES
+        _difficulty = body.difficulty if body.difficulty in DIFFICULTY_PROFILES else "normal"
+        world_state["difficulty_profile"] = DIFFICULTY_PROFILES[_difficulty]
 
         world_state_json_str = json.dumps(world_state)
         from datetime import datetime, timezone
@@ -782,7 +965,7 @@ def setup_auto(body: SetupAutoRequest):
             campaign_id=None,
             turn_number=None,
             agent_name="setup_auto",
-            extra_context={"time_period": body.time_period, "themes": body.themes},
+            extra_context={"time_period": era_for_setup, "themes": body.themes},
         )
         raise
     finally:
@@ -807,8 +990,15 @@ def create_campaign(body: CreateCampaignRequest):
         else:
             active_factions = []
         world_state = {"active_factions": active_factions, **companion_state}
+        world_state["story_position"] = initialize_story_position(
+            setting_id=body.setting_id if hasattr(body, "setting_id") else None,
+            period_id=body.time_period,
+            campaign_mode="historical",
+            world_time_minutes=0,
+        )
         if body.genre:
             world_state["genre"] = body.genre
+        world_state["campaign_scale"] = body.campaign_scale or "medium"
         from datetime import datetime, timezone
         now_str = datetime.now(timezone.utc).isoformat()
         conn.execute(
@@ -891,7 +1081,7 @@ def get_campaign_locations(campaign_id: str):
         # Base locations from era pack
         locations = []
         if era_id:
-            era_pack = get_era_pack(era_id)
+            era_pack = CONTENT_REPOSITORY.get_pack(era_id) if era_id else None
             if era_pack and era_pack.locations:
                 for loc in era_pack.locations:
                     locations.append({
@@ -1087,6 +1277,7 @@ def post_turn(
             world_time_minutes = result.campaign.get("world_time_minutes")
         if world_time_minutes is None and camp:
             world_time_minutes = camp.get("world_time_minutes")
+        canonical_year_label = canonical_year_label_from_campaign(campaign=result.campaign, world_state=_ws_raw)
 
         debug_out = None
         if body.debug:
@@ -1215,6 +1406,7 @@ def post_turn(
             inventory=inventory,
             quest_log=quest_log or {},
             world_time_minutes=world_time_minutes,
+            canonical_year_label=canonical_year_label,
             state=state_out,
             debug=debug_out,
             party_status=party_status,
@@ -1428,9 +1620,7 @@ def post_turn_stream(
                     pass
 
             # Create NarratorAgent for streaming
-            from backend.app.config import ENABLE_CHARACTER_FACETS
             from backend.app.rag.lore_retriever import retrieve_lore
-            from backend.app.rag.character_voice_retriever import get_voice_snippets
             from backend.app.rag.retrieval_bundles import NARRATOR_DOC_TYPES, NARRATOR_SECTION_KINDS
             from backend.app.rag.style_retriever import retrieve_style_layered
 
@@ -1438,8 +1628,6 @@ def post_turn_stream(
                 return retrieve_lore(query, top_k=top_k, era=era, doc_types=NARRATOR_DOC_TYPES, section_kinds=NARRATOR_SECTION_KINDS, related_npcs=related_npcs)
 
             voice_retriever_fn = None
-            if ENABLE_CHARACTER_FACETS:
-                voice_retriever_fn = lambda cids, era, k=6: get_voice_snippets(cids, era, k=k)
 
             def style_retriever_fn(query, top_k=3, era_id=None, genre=None, archetype=None):
                 return retrieve_style_layered(query, top_k=top_k, era_id=era_id, genre=genre, archetype=archetype)
@@ -1510,6 +1698,7 @@ def post_turn_stream(
                 world_time_minutes = result_gs.campaign.get("world_time_minutes")
             if world_time_minutes is None and camp:
                 world_time_minutes = camp.get("world_time_minutes")
+            canonical_year_label = canonical_year_label_from_campaign(campaign=result_gs.campaign, world_state=_ws_sse_raw)
 
             warnings_out = getattr(result_gs, "warnings", None) or []
 
@@ -1561,6 +1750,7 @@ def post_turn_stream(
                 "inventory": inventory,
                 "quest_log": quest_log or {},
                 "world_time_minutes": world_time_minutes,
+                "canonical_year_label": canonical_year_label,
                 "warnings": warnings_out,
                 "dialogue_turn": getattr(result_gs, "dialogue_turn", None),
                 "turn_contract": turn_contract.model_dump(mode="json"),
@@ -1699,6 +1889,7 @@ def get_player_legacy(player_profile_id: str):
 @router.post("/campaigns/{campaign_id}/complete")
 def complete_campaign(campaign_id: str, body: CompleteCampaignRequest):
     """Mark a campaign as completed and save legacy data for cross-campaign influence."""
+    from backend.app.constants import INTER_CAMPAIGN_SCALE_MAP
     conn = _get_conn()
     try:
         campaign = load_campaign(conn, campaign_id)
@@ -1718,6 +1909,58 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest):
             except json.JSONDecodeError:
                 ws = {}
         ws = ws if isinstance(ws, dict) else {}
+
+        arc_stage_reached = (
+            ws.get("arc_state", {}).get("current_stage", "SETUP")
+            if isinstance(ws.get("arc_state"), dict)
+            else "SETUP"
+        )
+
+        # V3.1: Compute recommended next campaign scale from arc stage reached
+        recommended_next_scale = INTER_CAMPAIGN_SCALE_MAP.get(arc_stage_reached, "medium")
+
+        # V3.1: Generate next campaign pitch via LLM (deterministic fallback)
+        conclusion_plan = ws.get("conclusion_plan") or {}
+        dangling_hooks = conclusion_plan.get("dangling_hooks", []) if isinstance(conclusion_plan, dict) else []
+        next_campaign_pitch = ""
+        try:
+            from backend.app.core.agents.base import AgentLLM
+            llm = AgentLLM("campaign_init")
+            hooks_text = "; ".join(dangling_hooks[:5]) if dangling_hooks else "no unresolved threads"
+            pitch_prompt = (
+                "Based on a completed RPG campaign, write a 1-2 sentence hook for the NEXT campaign.\n"
+                f"Arc stage reached: {arc_stage_reached}\n"
+                f"Outcome: {body.outcome_summary or 'unknown'}\n"
+                f"Character fate: {body.character_fate or 'unknown'}\n"
+                f"Dangling plot threads: {hooks_text}\n"
+                f"Recommended scale: {recommended_next_scale}\n\n"
+                "Write ONLY the pitch text (1-2 sentences). No JSON, no formatting."
+            )
+            raw = llm.complete(
+                "You write compelling RPG campaign hooks. Output plain text only.",
+                pitch_prompt,
+            )
+            if raw and isinstance(raw, str) and len(raw.strip()) > 10:
+                next_campaign_pitch = raw.strip()[:500]
+        except Exception as _pitch_err:
+            logger.warning("Next campaign pitch generation failed (non-fatal): %s", _pitch_err)
+
+        # Deterministic fallback pitch if LLM failed
+        if not next_campaign_pitch:
+            if dangling_hooks:
+                next_campaign_pitch = f"Unfinished business awaits: {dangling_hooks[0]}"
+            else:
+                next_campaign_pitch = "A new chapter begins. The galaxy remembers your choices."
+
+        # Store pitch + recommended scale in major_decisions_json
+        major_decisions = list(ws.get("major_decisions", []))
+        major_decisions.append({
+            "type": "campaign_completion",
+            "recommended_next_scale": recommended_next_scale,
+            "next_campaign_pitch": next_campaign_pitch,
+            "arc_stage_reached": arc_stage_reached,
+        })
+
         legacy_id = str(uuid.uuid4())
         from datetime import datetime, timezone
         now_str = datetime.now(timezone.utc).isoformat()
@@ -1734,14 +1977,20 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest):
                 ws.get("genre"),
                 body.outcome_summary,
                 json.dumps(ws.get("faction_reputation", {})),
-                json.dumps(ws.get("major_decisions", [])),
+                json.dumps(major_decisions),
                 body.character_fate,
-                (ws.get("arc_state", {}).get("current_stage", "SETUP") if isinstance(ws.get("arc_state"), dict) else "SETUP"),
+                arc_stage_reached,
                 now_str,
             ),
         )
         conn.commit()
-        return {"status": "completed", "legacy_id": legacy_id, "campaign_id": campaign_id}
+        return {
+            "status": "completed",
+            "legacy_id": legacy_id,
+            "campaign_id": campaign_id,
+            "recommended_next_scale": recommended_next_scale,
+            "next_campaign_pitch": next_campaign_pitch,
+        }
     finally:
         conn.close()
 

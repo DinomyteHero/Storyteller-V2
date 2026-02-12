@@ -4,7 +4,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from backend.app.config import ENABLE_CHARACTER_FACETS
 from backend.app.core.agents import NarratorAgent
 from backend.app.core.agents.base import AgentLLM
 from backend.app.core.agents.narrator import _extract_npc_utterance
@@ -46,7 +45,11 @@ def _inject_companion_interjection(prose: str, speaker: str, line: str) -> str:
 
 def make_narrator_node():
     """Build the Narrator node."""
+    retrieval_guardrails: dict[str, Any] = {}
+
     def lore_retriever(query: str, top_k: int = 6, era: str | None = None, related_npcs: list[str] | None = None):
+        chapter_max = retrieval_guardrails.get("max_chapter_index")
+        source_titles = retrieval_guardrails.get("allowed_sources")
         return retrieve_lore(
             query,
             top_k=top_k,
@@ -54,11 +57,11 @@ def make_narrator_node():
             doc_types=NARRATOR_DOC_TYPES,
             section_kinds=NARRATOR_SECTION_KINDS,
             related_npcs=related_npcs,
+            source_titles=source_titles if isinstance(source_titles, list) and source_titles else None,
+            chapter_index_max=int(chapter_max) if chapter_max is not None else None,
         )
 
     voice_retriever = None
-    if ENABLE_CHARACTER_FACETS:
-        voice_retriever = lambda cids, era, k=6: get_voice_snippets(cids, era, k=k)
 
     def style_retriever_fn(query: str, top_k: int = 3, era_id=None, genre=None, archetype=None):
         return retrieve_style_layered(query, top_k=top_k, era_id=era_id, genre=genre, archetype=archetype)
@@ -85,6 +88,14 @@ def make_narrator_node():
         import logging as _logging
         _narrator_logger = _logging.getLogger(__name__)
         gs = dict_to_state(state)
+        nonlocal retrieval_guardrails
+        campaign_dict_for_guardrails = getattr(gs, "campaign", None) or {}
+        ws_for_guardrails = campaign_dict_for_guardrails.get("world_state_json") if isinstance(campaign_dict_for_guardrails, dict) else {}
+        if not isinstance(ws_for_guardrails, dict):
+            ws_for_guardrails = {}
+        story_position = ws_for_guardrails.get("story_position") if isinstance(ws_for_guardrails, dict) else None
+        guardrails = story_position.get("retrieval_guardrails") if isinstance(story_position, dict) else None
+        retrieval_guardrails = guardrails if isinstance(guardrails, dict) else {}
 
         # --- V2.8: Use shared RAG data from Director if available ---
         shared_char_ctx = state.get("shared_kg_character_context", "")
