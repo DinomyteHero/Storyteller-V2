@@ -7,6 +7,10 @@ Commands:
     ingest   – run ingestion (simple or lore pipeline)
     query    – search the vector store
     extract-knowledge – build SQLite KG tables from ingested lore
+    organize-ingest – organize messy document libraries for ingestion
+    models   – show resolved per-role model/provider configuration
+    style-audit – audit active/deprecated style assets
+    build-style-pack – auto-generate style docs from corpus
 """
 from storyteller.cli import main
 

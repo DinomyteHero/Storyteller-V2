@@ -10,7 +10,7 @@ from collections import defaultdict
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from backend.app.world.era_pack_loader import load_era_pack
+from backend.app.content.repository import CONTENT_REPOSITORY
 from backend.app.world.era_pack_models import ALLOWED_SCENE_TYPES, ALLOWED_BYPASS_METHODS
 
 
@@ -42,7 +42,7 @@ def audit_era_pack_loading(era_id: str, era_dir: Path) -> dict:
     }
 
     try:
-        pack = load_era_pack(era_id)
+        pack = CONTENT_REPOSITORY.get_pack(era_id)
         result["load_success"] = True
         result["backgrounds_count"] = len(pack.backgrounds or [])
         result["locations_count"] = len(pack.locations or [])

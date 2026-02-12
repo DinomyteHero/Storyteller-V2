@@ -27,43 +27,91 @@ from backend.app.core.director_validation import (
 from backend.app.core.action_lint import lint_actions
 from backend.app.core.warnings import add_warning
 from backend.app.models.state import ActionSuggestion, GameState
+from backend.app.prompts.registry import load_prompt
 
 logger = logging.getLogger(__name__)
 
 _VALID_TONES = {"PARAGON", "INVESTIGATE", "RENEGADE", "NEUTRAL"}
 
-_SYSTEM_PROMPT = """\
-You write SHORT player dialogue options for a Star Wars KOTOR-style game.
+_DEFAULT_SUGGESTION_STYLE = "a Star Wars KOTOR-style game"
 
-TASK: Given scene context, output EXACTLY 4 options the player character can say or do.
+# Era-specific emergency fallback suggestions for when LLM and deterministic systems both fail.
+# Each era uses era-appropriate language while maintaining the SOCIAL/SOCIAL/COMMIT/EXPLORE structure.
+_ERA_EMERGENCY_SUGGESTIONS: dict[str, list[dict]] = {
+    "REBELLION": [
+        {"label": "We need to stay sharp. What's the Alliance hearing?",
+         "intent_text": "We need to stay sharp. What's the Alliance hearing?",
+         "category": "SOCIAL", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "PARAGON",
+         "intent_style": "calm", "consequence_hint": "gather Rebel intelligence"},
+        {"label": "Something doesn't add up. Who's really pulling the strings here?",
+         "intent_text": "Something doesn't add up. Who's really pulling the strings here?",
+         "category": "SOCIAL", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "INVESTIGATE",
+         "intent_style": "probing", "consequence_hint": "press for hidden motives"},
+        {"label": "The Empire won't wait. Neither will I.",
+         "intent_text": "The Empire won't wait. Neither will I.",
+         "category": "COMMIT", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "RENEGADE",
+         "intent_style": "firm", "consequence_hint": "take decisive action"},
+        {"label": "Let me check the perimeter before we move.",
+         "intent_text": "Let me check the perimeter before we move.",
+         "category": "EXPLORE", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "NEUTRAL",
+         "intent_style": "patient", "consequence_hint": "scout the area"},
+    ],
+    "LEGACY": [
+        {"label": "The old wars cast long shadows. What do you know about what happened here?",
+         "intent_text": "The old wars cast long shadows. What do you know about what happened here?",
+         "category": "SOCIAL", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "PARAGON",
+         "intent_style": "calm", "consequence_hint": "learn the history"},
+        {"label": "Everyone's got an angle in this new order. What's yours?",
+         "intent_text": "Everyone's got an angle in this new order. What's yours?",
+         "category": "SOCIAL", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "INVESTIGATE",
+         "intent_style": "probing", "consequence_hint": "uncover allegiances"},
+        {"label": "The galaxy doesn't fix itself. Let's move.",
+         "intent_text": "The galaxy doesn't fix itself. Let's move.",
+         "category": "COMMIT", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "RENEGADE",
+         "intent_style": "firm", "consequence_hint": "take action now"},
+        {"label": "I want to see what this place has to offer before committing.",
+         "intent_text": "I want to see what this place has to offer before committing.",
+         "category": "EXPLORE", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "NEUTRAL",
+         "intent_style": "patient", "consequence_hint": "explore the area"},
+    ],
+    "_DEFAULT": [
+        {"label": "Tell me more about what's going on.",
+         "intent_text": "Tell me more about what's going on.",
+         "category": "SOCIAL", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "PARAGON",
+         "intent_style": "calm", "consequence_hint": "learn more"},
+        {"label": "What aren't you telling me?",
+         "intent_text": "What aren't you telling me?",
+         "category": "SOCIAL", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "INVESTIGATE",
+         "intent_style": "probing", "consequence_hint": "press for truth"},
+        {"label": "Enough talk. Let's get this done.",
+         "intent_text": "Enough talk. Let's get this done.",
+         "category": "COMMIT", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "RENEGADE",
+         "intent_style": "firm", "consequence_hint": "move things along"},
+        {"label": "I'll look around first.",
+         "intent_text": "I'll look around first.",
+         "category": "EXPLORE", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "NEUTRAL",
+         "intent_style": "patient", "consequence_hint": "observe the situation"},
+    ],
+}
 
-OUTPUT FORMAT: A JSON array containing exactly 4 objects. Your response MUST start with [ and end with ].
-Do NOT output a single object. Do NOT wrap in {"suggestions": [...]}.
-Each object has exactly 3 keys: "text", "tone", "meaning"
-
-TONES (pick one per option, use at least 3 different tones):
-- PARAGON: kind, principled, empathetic
-- INVESTIGATE: curious, cautious, probing
-- RENEGADE: aggressive, ruthless, blunt
-- NEUTRAL: practical, tactical, detached
-
-MEANING TAGS (pick one per option):
-reveal_values, probe_belief, challenge_premise, seek_history, set_boundary, pragmatic, deflect
-
-RULES:
-- Each "text" is 8-16 words, first person, spoken by the PLAYER CHARACTER
-- These are player CHOICES, not NPC dialogue or narration
-- DO NOT continue the scene or write NPC responses
-- DO NOT add fields beyond text/tone/meaning
-- Always output ALL 4 options in a single JSON array
-
-EXAMPLE OUTPUT:
-[
-  {"text": "What happened to you out there?", "tone": "PARAGON", "meaning": "seek_history"},
-  {"text": "That's convenient. Who told you that?", "tone": "INVESTIGATE", "meaning": "challenge_premise"},
-  {"text": "I don't need your guilt. Where's the ship?", "tone": "RENEGADE", "meaning": "set_boundary"},
-  {"text": "Save the philosophy. What's the job?", "tone": "NEUTRAL", "meaning": "pragmatic"}
-]"""
+# Placeholder __SUGGESTION_STYLE__ is replaced at runtime with setting_rules.suggestion_style
+# Loaded from versioned prompt pack with fallback for resilience.
+try:
+    _SYSTEM_PROMPT_TEMPLATE = load_prompt("suggestion_refiner_system")
+except Exception:
+    _SYSTEM_PROMPT_TEMPLATE = """You write SHORT player dialogue options for __SUGGESTION_STYLE__."""
 
 
 def _build_user_prompt(
@@ -254,6 +302,8 @@ def _apply_stat_gating(gs: GameState, suggestions: list[ActionSuggestion]) -> li
 _VALID_MEANING_TAGS = {
     "reveal_values", "probe_belief", "challenge_premise",
     "seek_history", "set_boundary", "pragmatic", "deflect",
+    "offer_alliance", "express_doubt", "invoke_authority",
+    "show_vulnerability", "make_demand",
 }
 
 
@@ -407,42 +457,36 @@ def make_suggestion_refiner_node():
         return _llm_holder[0]
 
     def _emergency_fallback(state: dict[str, Any]) -> dict[str, Any]:
-        """Generate minimal emergency player responses when LLM refinement is unavailable.
-
-        These are simple, generic one-liners — just enough to keep the game playable.
-        """
+        """Generate emergency player responses, preferring context-aware deterministic suggestions."""
         if state.get("player_responses"):
             return state
 
+        # Tier 1: Try deterministic context-aware suggestions from director_validation
+        try:
+            from backend.app.core.director_validation import generate_suggestions
+            from backend.app.core.nodes import dict_to_state
+            gs = dict_to_state(state)
+            det_suggestions = generate_suggestions(gs, mechanic_result=state.get("mechanic_result"))
+            if det_suggestions and len(det_suggestions) >= 2:
+                det_suggestions = det_suggestions[:SUGGESTED_ACTIONS_TARGET]
+                logger.info("SuggestionRefiner: using deterministic context-aware fallback (%d suggestions)", len(det_suggestions))
+                actions_list = [s.model_dump(mode="json") if hasattr(s, "model_dump") else s for s in det_suggestions]
+                scene_frame = state.get("scene_frame")
+                player_responses = action_suggestions_to_player_responses(det_suggestions, scene_frame)
+                return {**state, "suggested_actions": actions_list, "player_responses": player_responses}
+        except Exception as _det_err:
+            logger.warning("SuggestionRefiner: deterministic fallback failed (%s), using generic emergency", _det_err)
+
+        # Tier 2: Era-aware emergency suggestions (last resort)
+        # Select era-specific or default suggestion set
+        era_id = ""
+        ws = state.get("campaign") or {}
+        if isinstance(ws, dict):
+            ws_json = ws.get("world_state_json") if isinstance(ws.get("world_state_json"), dict) else {}
+            era_id = (ws_json.get("era") or ws_json.get("era_id") or "").upper() if isinstance(ws_json, dict) else ""
+        era_set = _ERA_EMERGENCY_SUGGESTIONS.get(era_id, _ERA_EMERGENCY_SUGGESTIONS["_DEFAULT"])
         emergency_suggestions = [
-            ActionSuggestion(
-                label="Tell me more about what's going on.",
-                intent_text="Tell me more about what's going on.",
-                category="SOCIAL", risk_level="SAFE",
-                strategy_tag="ALTERNATIVE", tone_tag="PARAGON",
-                intent_style="calm", consequence_hint="learn more",
-            ),
-            ActionSuggestion(
-                label="What aren't you telling me?",
-                intent_text="What aren't you telling me?",
-                category="SOCIAL", risk_level="SAFE",
-                strategy_tag="ALTERNATIVE", tone_tag="INVESTIGATE",
-                intent_style="probing", consequence_hint="press for truth",
-            ),
-            ActionSuggestion(
-                label="Enough talk. Let's get this done.",
-                intent_text="Enough talk. Let's get this done.",
-                category="COMMIT", risk_level="SAFE",
-                strategy_tag="ALTERNATIVE", tone_tag="RENEGADE",
-                intent_style="firm", consequence_hint="move things along",
-            ),
-            ActionSuggestion(
-                label="I'll look around first.",
-                intent_text="I'll look around first.",
-                category="EXPLORE", risk_level="SAFE",
-                strategy_tag="ALTERNATIVE", tone_tag="NEUTRAL",
-                intent_style="patient", consequence_hint="observe the situation",
-            ),
+            ActionSuggestion(**s) for s in era_set
         ]
         actions_list = [a.model_dump(mode="json") for a in emergency_suggestions]
         scene_frame = state.get("scene_frame")
@@ -546,8 +590,13 @@ def make_suggestion_refiner_node():
             director_intent=str((state.get("director_instructions") or ""))[:300],
         )
 
+        # V3.2: Resolve setting_rules for universe-aware suggestion prompt
+        from backend.app.core.setting_context import get_setting_rules
+        _sr = get_setting_rules(state)
+        _system_prompt = _SYSTEM_PROMPT_TEMPLATE.replace("__SUGGESTION_STYLE__", _sr.suggestion_style)
+
         try:
-            raw = llm.complete(_SYSTEM_PROMPT, user_prompt, json_mode=True, raw_json_mode=True)
+            raw = llm.complete(_system_prompt, user_prompt, json_mode=True, raw_json_mode=True)
             logger.debug("SuggestionRefiner raw LLM output (first 600 chars): %s", (raw or "")[:600])
             items = _parse_and_validate(raw, npc_names)
 
@@ -561,7 +610,7 @@ def make_suggestion_refiner_node():
                     'and "meaning" (one tag). Start with [ and end with ]. No other text.\n\n'
                     + user_prompt
                 )
-                raw2 = llm.complete(_SYSTEM_PROMPT, correction_prompt, json_mode=True, raw_json_mode=True)
+                raw2 = llm.complete(_system_prompt, correction_prompt, json_mode=True, raw_json_mode=True)
                 logger.debug("SuggestionRefiner retry output (first 600 chars): %s", (raw2 or "")[:600])
                 items = _parse_and_validate(raw2, npc_names)
                 if items is not None:

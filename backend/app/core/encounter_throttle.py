@@ -5,6 +5,8 @@ import json
 import sqlite3
 from typing import Any
 
+from backend.app.constants import get_scale_profile
+
 # Early game: first 60 in-world minutes; cap new NPC introductions at 3
 EARLY_GAME_WINDOW_MINUTES = 60
 EARLY_GAME_NPC_CAP = 3
@@ -89,12 +91,17 @@ def can_introduce_new_npc(
     if not isinstance(npc_introduction_triggers, list):
         npc_introduction_triggers = []
 
+    # Use campaign-scale-aware NPC cap (falls back to EARLY_GAME_NPC_CAP default)
+    campaign_scale = world_state.get("campaign_scale")
+    scale_profile = get_scale_profile(campaign_scale)
+    scaled_npc_cap = scale_profile.early_game_npc_cap
+
     effective_location = get_effective_location(state)
     world_time = _get_world_time_minutes(state)
     early_game = world_time < EARLY_GAME_WINDOW_MINUTES
     location_changed = effective_location != last_location_id
     has_trigger = len(npc_introduction_triggers) > 0
-    at_cap = len(introduced_npcs) >= EARLY_GAME_NPC_CAP
+    at_cap = len(introduced_npcs) >= scaled_npc_cap
 
     if not early_game:
         return True, "past_early_game"

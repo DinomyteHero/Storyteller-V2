@@ -1,6 +1,9 @@
 """CLI for ingesting documents into the vector store.
 
-Usage:
+DEPRECATED: This module is the legacy ingestion path. Use ingestion.ingest_lore instead.
+This file will be removed in V3.0. See ingestion/ingest_lore.py for the current pipeline.
+
+Usage (legacy):
   python -m ingestion.ingest --input_dir <dir> --era LOTF --source_type novel --out_db ./data/lancedb
 
 Supported: TXT (book_title from filename), EPUB (metadata + spine/nav chapters). PDF is TODO.
@@ -11,7 +14,6 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
-from ingestion.character_aliases import extract_characters
 from ingestion.chunking import chunk_text_smart
 from ingestion.classify_document import classify_document
 from ingestion.era_aliases import load_era_aliases
@@ -32,8 +34,8 @@ from shared.lore_metadata import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-from shared.config import EMBEDDING_DIMENSION, EMBEDDING_MODEL, ENABLE_CHARACTER_FACETS
-from backend.app.world.era_pack_loader import get_era_pack
+from shared.config import EMBEDDING_DIMENSION, EMBEDDING_MODEL
+from backend.app.content.repository import CONTENT_REPOSITORY
 
 
 def read_txt(path: Path) -> str:
@@ -99,7 +101,7 @@ def ingest_txt(file_path: Path, era: str, source_type: str, collection: str = "n
     out = []
     for i, t in enumerate(text_chunks):
         cid = stable_chunk_id(t, source=book_title, chunk_index=i, doc_id=doc_id)
-        characters = extract_characters(t) if ENABLE_CHARACTER_FACETS else default_characters()
+        characters = default_characters()
         out.append({
             "text": t,
             "metadata": _metadata(
@@ -158,7 +160,7 @@ def ingest_epub(
         ch_chunks = chunk_text_smart(ch_text, target_tokens=600, overlap_percent=0.1)
         for i, t in enumerate(ch_chunks):
             cid = stable_chunk_id(t, source=f"{book_title}:{ch_title or ch_idx}", chunk_index=i, doc_id=doc_id)
-            characters = extract_characters(t) if ENABLE_CHARACTER_FACETS else default_characters()
+            characters = default_characters()
             out.append({
                 "text": t,
                 "metadata": _metadata(
@@ -277,7 +279,12 @@ def main() -> int:
         logger.error("No chunks produced (%d file failures)", file_failures)
         return 1
     era_pack_id = (args.era_pack or args.era or "").strip()
-    era_pack = get_era_pack(era_pack_id) if era_pack_id else None
+    era_pack = None
+    if era_pack_id:
+        try:
+            era_pack = CONTENT_REPOSITORY.get_pack(era_pack_id)
+        except Exception as exc:
+            logger.error("Failed to load era pack '%s': %s", era_pack_id, exc, exc_info=True)
     tag_npcs_enabled = args.tag_npcs if args.tag_npcs is not None else bool(era_pack)
     all_chunks, npc_tag_stats = apply_npc_tags_to_chunks(
         all_chunks,

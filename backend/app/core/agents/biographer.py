@@ -12,7 +12,8 @@ from shared.schemas import CharacterSheetOutput
 logger = logging.getLogger(__name__)
 
 
-# Deterministic concept-to-location mapping for fallback and validation
+# Deterministic concept-to-location mapping for fallback and validation.
+# Used when SettingRules.concept_location_map is empty (default SW setup).
 _CONCEPT_LOCATION_MAP: dict[str, list[str]] = {
     "smuggler": ["docking-bay", "spaceport", "cantina"],
     "pilot": ["hangar", "spaceport", "docking-bay"],
@@ -40,11 +41,14 @@ _CONCEPT_LOCATION_MAP: dict[str, list[str]] = {
 def _suggest_starting_location(
     player_concept: str,
     available_locations: list[str] | None = None,
+    concept_location_map: dict[str, list[str]] | None = None,
 ) -> str:
     """Map player concept keywords to a starting location from available_locations.
 
     Scans player_concept for known archetype keywords, finds the first matching
     location in available_locations, falls back to loc-cantina.
+
+    ``concept_location_map`` overrides the builtin map when provided by SettingRules.
     """
     concept_lower = player_concept.lower() if player_concept else ""
     available = available_locations or []
@@ -58,8 +62,11 @@ def _suggest_starting_location(
                 break
         available_suffixes[bare] = loc
 
+    # Use setting-specific map if provided, else fall back to builtin SW map
+    loc_map = concept_location_map if concept_location_map else _CONCEPT_LOCATION_MAP
+
     # Check each concept keyword against the map
-    for keyword, loc_prefs in _CONCEPT_LOCATION_MAP.items():
+    for keyword, loc_prefs in loc_map.items():
         if keyword in concept_lower:
             for pref in loc_prefs:
                 if pref in available_suffixes:
@@ -86,15 +93,23 @@ class BiographerAgent:
         player_concept: str,
         time_period: str | None = None,
         available_locations: list[str] | None = None,
+        setting_rules: Any | None = None,
     ) -> dict[str, Any]:
         """
         Return character_sheet dict: name, stats (e.g. Combat, Stealth, Charisma, Tech, General),
         hp_current, starting_location, background (short string).
+
+        ``setting_rules`` is an optional SettingRules instance for universe-aware prompts.
         """
+        # Resolve setting context
+        from backend.app.world.era_pack_models import SettingRules
+        sr: SettingRules = setting_rules if isinstance(setting_rules, SettingRules) else SettingRules()
+        concept_map = sr.concept_location_map if sr.concept_location_map else None
+
         def fallback() -> dict[str, Any]:
             """Safe fallback character sheet with concept-aware starting location.
             Enhanced to parse CYOA elements from player_concept if LLM fails."""
-            loc = _suggest_starting_location(player_concept, available_locations)
+            loc = _suggest_starting_location(player_concept, available_locations, concept_location_map=concept_map)
 
             # Parse name from player_concept
             # Format: "Name -- motivation, origin, inciting_incident, edge"
@@ -108,7 +123,7 @@ class BiographerAgent:
             # Supports both formats:
             #   Era background: "Name -- Background Name: concept1, concept2"
             #   Legacy CYOA:    "Name -- motivation, origin, inciting_incident"
-            bg = "A traveler in a vast galaxy."
+            bg = sr.fallback_background
             if player_concept and "--" in player_concept:
                 after_dash = player_concept.split("--", 1)[1].strip()
                 if after_dash:
@@ -128,7 +143,7 @@ class BiographerAgent:
 
         locations_list = ", ".join(available_locations) if available_locations else "loc-cantina, loc-docking-bay, loc-marketplace, loc-hangar, loc-spaceport"
         system = (
-            "You are a biographer for a Star Wars narrative RPG. Output ONLY valid JSON with keys: "
+            f"You are {sr.biographer_role}. Output ONLY valid JSON with keys: "
             "name, stats (object with numeric values for Combat, Stealth, Charisma, Tech, General), "
             "hp_current (int), starting_location (string), background (short string).\n"
             "Choose starting_location based on the character's background:\n"
@@ -138,7 +153,7 @@ class BiographerAgent:
             "- Military, soldiers -> loc-command-center, loc-hangar\n"
             "- Diplomats, politicians -> loc-marketplace, loc-spaceport\n"
             f"Available locations: {locations_list}\n"
-            "Use Star Wars-appropriate location names.\n\n"
+            f"Use {sr.setting_name}-appropriate location names.\n\n"
             "Example output:\n"
             '{"name":"Kael Dorne","stats":{"Combat":3,"Stealth":2,"Charisma":1,"Tech":1,"General":2},'
             '"hp_current":12,"starting_location":"loc-docking-bay",'

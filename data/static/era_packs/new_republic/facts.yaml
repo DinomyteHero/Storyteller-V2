@@ -1,0 +1,11 @@
+facts:
+- id: fact_empire_controls_garrisons
+  subject: galactic_empire
+  predicate: controls
+  object: loc-star_destroyer
+  confidence: 1.0
+- id: fact_rebellion_hides_yavin
+  subject: rebel_alliance
+  predicate: hides_in
+  object: loc-yavin_base
+  confidence: 0.8

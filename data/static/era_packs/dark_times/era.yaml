@@ -1,0 +1,67 @@
+era_id: DARK_TIMES
+style_ref: data/style/era/dark_times_style.md
+schema_version: 2
+file_index:
+  era: era.yaml
+  locations: locations.yaml
+  npcs: npcs.yaml
+  factions: factions.yaml
+  backgrounds: backgrounds.yaml
+  namebanks: namebanks.yaml
+  quests: quests.yaml
+  events: events.yaml
+  rumors: rumors.yaml
+  meters: meters.yaml
+  facts: facts.yaml
+  companions: companions.yaml
+start_location_pool:
+- loc-cantina
+- loc-bazaar_market
+- loc-safe_house
+- loc-yavin_base
+global_event_templates: []
+travel_graph: []
+default_scene_pacing: {}
+metadata:
+  display_name: The Dark Times
+  time_period: 19-0 BBY (Legends)
+  calendar_note: From Order 66 to the opening spark of Rebellion.
+  summary: The Republic is dead and the Empire rules by fear. Surviving Jedi are hunted,
+    clone veterans are discarded, and systems submit under garrisons and surveillance.
+    Criminal syndicates and desperate resistance networks thrive in the cracks between
+    Imperial crackdowns. Every act of compassion is dangerous, and every witness might
+    be an informant.
+  tone: Paranoid oppression; clandestine resistance; survival noir.
+  key_conflicts:
+  - Imperial security state vs. hidden survivors and dissidents.
+  - Jedi fugitives vs. Inquisitors and propaganda machinery.
+  - Local survival economies vs. extractive military occupation.
+  themes:
+  - Identity under persecution.
+  - Moral courage in small, deniable acts.
+  - Memory of the Republic versus normalization of tyranny.
+setting_rules:
+  setting_name: Star Wars Legends
+  setting_genre: science fantasy
+  biographer_role: a biographer for a Star Wars narrative RPG
+  architect_role: the World Architect for a Star Wars narrative RPG
+  director_role: the Director for an interactive Star Wars story engine
+  suggestion_style: a Star Wars KOTOR-style game
+  common_species:
+  - Human
+  - Twi'lek
+  - Rodian
+  - Wookiee
+  - Zabrak
+  - Bothan
+  - Chiss
+  example_factions:
+  - Rebellion
+  - Empire
+  - Hutt Cartel
+  historical_lore_label: established Star Wars Legends lore
+  bypass_methods:
+  - force
+  - force_dark
+  - sith_amulet
+  fallback_background: A traveler in a vast galaxy.

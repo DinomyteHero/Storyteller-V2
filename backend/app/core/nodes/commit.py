@@ -15,6 +15,7 @@ from backend.app.core.state_loader import build_initial_gamestate, load_turn_his
 from backend.app.core.transcript_store import write_rendered_turn
 from backend.app.core.ledger import update_ledger, update_era_summaries
 from backend.app.constants import MEMORY_COMPRESSION_CHUNK_SIZE
+from backend.app.core.story_position import advance_story_position
 from backend.app.core.encounter_throttle import (
     apply_last_location_update_from_event,
     apply_npc_introduction_from_event,
@@ -161,6 +162,46 @@ def make_commit_node():
             arc_guidance = state.get("arc_guidance") or {}
             if isinstance(arc_guidance, dict) and "arc_state" in arc_guidance:
                 world_state["arc_state"] = arc_guidance["arc_state"]
+
+            # V3.1: Scale advisor — auto-apply recommended scale change
+            scale_rec = arc_guidance.get("scale_recommendation") if isinstance(arc_guidance, dict) else None
+            if isinstance(scale_rec, dict) and scale_rec.get("recommended_scale"):
+                new_scale = scale_rec["recommended_scale"]
+                old_scale = world_state.get("campaign_scale", "medium")
+                world_state["campaign_scale"] = new_scale
+                world_state["last_scale_change_turn"] = next_turn_number
+                events.append(Event(
+                    event_type="SCALE_CHANGE",
+                    payload={
+                        "from_scale": old_scale,
+                        "to_scale": new_scale,
+                        "direction": scale_rec.get("direction", ""),
+                        "reason": scale_rec.get("reason", ""),
+                    },
+                    is_hidden=False,
+                ))
+                existing_warnings = list(state.get("warnings") or [])
+                existing_warnings.append(
+                    f"[SCALE_CHANGED] Campaign scale shifted from {old_scale} to {new_scale}: "
+                    f"{scale_rec.get('reason', '')}"
+                )
+                state["warnings"] = existing_warnings
+                logger.info(
+                    "Scale auto-applied: %s -> %s (campaign %s, turn %d)",
+                    old_scale, new_scale, campaign_id, next_turn_number,
+                )
+
+            # V3.1: Conclusion planner — surface conclusion_ready warning
+            conclusion_plan = arc_guidance.get("conclusion_plan") if isinstance(arc_guidance, dict) else None
+            if isinstance(conclusion_plan, dict):
+                world_state["conclusion_plan"] = conclusion_plan
+                if conclusion_plan.get("conclusion_ready"):
+                    existing_warnings = list(state.get("warnings") or [])
+                    existing_warnings.append(
+                        f"[CONCLUSION_READY] Campaign ending style: {conclusion_plan.get('ending_style', 'unknown')} "
+                        f"(resolved ratio: {conclusion_plan.get('resolved_ratio', 0):.0%})"
+                    )
+                    state["warnings"] = existing_warnings
             # Era transition: execute if pending
             if isinstance(arc_guidance, dict) and arc_guidance.get("era_transition_pending"):
                 try:
@@ -231,8 +272,68 @@ def make_commit_node():
                     for qn in quest_notifications:
                         existing_warnings.append(f"[QUEST] {qn}")
                     state["warnings"] = existing_warnings
+                # V2.21: Quest-to-ledger integration — feed quest events into narrative ledger
+                if quest_notifications:
+                    try:
+                        quest_log = world_state.get("quest_log") or {}
+                        ledger = world_state.get("narrative_ledger") or {}
+                        facts = list(ledger.get("established_facts") or [])
+                        threads = list(ledger.get("open_threads") or [])
+                        for qn in quest_notifications:
+                            if "completed" in qn.lower():
+                                quest_title = qn.replace("Quest completed: ", "")
+                                facts.append(f"Resolved: {quest_title}")
+                                # Remove matching open thread
+                                threads = [t for t in threads if quest_title.lower() not in t.lower()]
+                            elif "New quest" in qn:
+                                quest_title = qn.replace("New quest: ", "")
+                                threads.append(f"Active quest: {quest_title}")
+                            elif "Objective complete" in qn:
+                                facts.append(qn)
+                        ledger["established_facts"] = facts
+                        ledger["open_threads"] = threads
+                        world_state["narrative_ledger"] = ledger
+                    except Exception as _ql_err:
+                        logger.warning("Quest-ledger integration failed (non-fatal): %s", _ql_err)
             except Exception as _quest_err:
                 logger.warning("Quest tracking failed (non-fatal): %s", _quest_err)
+
+            # V2.21: NPC persistent memory — record NPC interactions from turn events
+            try:
+                from backend.app.core.npc_memory import (
+                    ensure_npc_memory_table,
+                    extract_npc_memories_from_events,
+                    record_npc_interaction,
+                )
+                ensure_npc_memory_table(conn)
+                npc_mems = extract_npc_memories_from_events(
+                    [{"event_type": e.event_type, "payload": e.payload or {}} if isinstance(e, Event) else e for e in events],
+                    present_npcs=state.get("present_npcs"),
+                )
+                for mem in npc_mems:
+                    record_npc_interaction(
+                        conn, campaign_id, mem["npc_name"], next_turn_number,
+                        mem["event_type"], mem["summary"], mem.get("sentiment", 0),
+                    )
+            except Exception as _npc_mem_err:
+                logger.warning("NPC memory recording failed (non-fatal): %s", _npc_mem_err)
+
+            # Phase 1-3: advance story-position timeline (year/chapter + divergence signals)
+            try:
+                base_world_time = int(camp.get("world_time_minutes") or 0) if isinstance(camp, dict) else 0
+                pending_world_time = state.get("pending_world_time_minutes")
+                if pending_world_time is not None:
+                    effective_world_time = int(pending_world_time)
+                else:
+                    effective_world_time = base_world_time + int(mechanic_result.get("time_cost_minutes") or 0)
+                world_state["story_position"] = advance_story_position(
+                    story_position=world_state.get("story_position") if isinstance(world_state, dict) else None,
+                    world_time_minutes=effective_world_time,
+                    campaign_mode=str(world_state.get("campaign_mode") or "historical"),
+                    event_types=[getattr(e, "event_type", "") for e in events if isinstance(e, Event)],
+                )
+            except Exception as _story_pos_err:
+                logger.warning("Story-position advance failed (non-fatal): %s", _story_pos_err)
 
             conn.execute(
                 "UPDATE campaigns SET world_state_json = ? WHERE id = ?",
@@ -313,6 +414,11 @@ def make_commit_node():
                     narrative_text=final_text or "",
                     prev_arc_stage=prev_arc,
                 )
+                # V3.1: Track pivotal events for scale advisor density scoring
+                from backend.app.core.episodic_memory import _is_pivotal
+                if _is_pivotal(key_events_for_mem, cur_arc, prev_arc, stress_lvl):
+                    piv_count = int(world_state.get("pivotal_event_count") or 0) + 1
+                    world_state["pivotal_event_count"] = piv_count
             except Exception as _epi_err:
                 logger.warning(
                     "Episodic memory store failed (non-fatal): %s", _epi_err

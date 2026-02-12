@@ -15,6 +15,9 @@ from backend.app.constants import (
     COMPANION_CONFLICT_SHARP_DROP,
     COMPANION_CONFLICT_THRESHOLD_CROSS,
     COMPANION_MAX_MEMORIES,
+    COMPANION_EMOTION_DECAY_PER_TURN,
+    COMPANION_EMOTION_MAX_INTENSITY,
+    COMPANION_EMOTION_MULTIPLIERS,
 )
 from backend.app.models.state import (
     TONE_TAG_PARAGON,
@@ -120,6 +123,15 @@ def compute_companion_reactions(
     explicit_affinity = mr.get("companion_affinity_delta") or {}
     explicit_reasons = mr.get("companion_reaction_reason") or {}
 
+    # V2.21: Companion emotional state from world_state (if available)
+    emotional_states: dict[str, str] = {}
+    ws = mr.get("__world_state") or {}
+    companion_emotions = ws.get("companion_emotions") or {}
+    if isinstance(companion_emotions, dict):
+        for cid_key, emo_data in companion_emotions.items():
+            if isinstance(emo_data, dict):
+                emotional_states[cid_key] = emo_data.get("state", "calm")
+
     for cid in party or []:
         traits = (party_traits or {}).get(cid) or {}
         if cid in explicit_affinity:
@@ -128,17 +140,67 @@ def compute_companion_reactions(
             continue
         score = _tone_match_score(tone_tag, traits)
         delta = _score_to_affinity_delta(score)
+
+        # V2.21: Apply emotional volatility multiplier
+        emotion = emotional_states.get(cid, "calm")
+        multiplier = COMPANION_EMOTION_MULTIPLIERS.get((tone_tag, emotion), 1.0)
+        if multiplier != 1.0 and delta != 0:
+            delta = max(AFFINITY_DELTA_MIN, min(AFFINITY_DELTA_MAX, round(delta * multiplier)))
+
         if delta != 0:
             affinity_delta_map[cid] = delta
+            emotion_suffix = f" ({emotion})" if emotion != "calm" else ""
             if tone_tag == TONE_TAG_PARAGON:
-                reasons_map[cid] = "paragon choice" if score > 0 else "disapproved paragon"
+                reasons_map[cid] = f"paragon choice{emotion_suffix}" if score > 0 else f"disapproved paragon{emotion_suffix}"
             elif tone_tag == TONE_TAG_RENEGADE:
-                reasons_map[cid] = "renegade choice" if score > 0 else "disapproved renegade"
+                reasons_map[cid] = f"renegade choice{emotion_suffix}" if score > 0 else f"disapproved renegade{emotion_suffix}"
             elif tone_tag == TONE_TAG_INVESTIGATE:
-                reasons_map[cid] = "investigate choice" if score > 0 else "neutral to investigate"
+                reasons_map[cid] = f"investigate choice{emotion_suffix}" if score > 0 else f"neutral to investigate{emotion_suffix}"
             else:
                 reasons_map[cid] = "neutral"
     return affinity_delta_map, reasons_map
+
+
+def decay_companion_emotions(world_state: dict[str, Any]) -> None:
+    """Decay companion emotional intensity by 1 per turn toward calm.
+
+    Called from the companion_reaction node each turn.
+    Modifies world_state["companion_emotions"] in place.
+    """
+    emotions = world_state.get("companion_emotions")
+    if not isinstance(emotions, dict):
+        return
+    for cid, emo_data in list(emotions.items()):
+        if not isinstance(emo_data, dict):
+            continue
+        intensity = int(emo_data.get("intensity", 0))
+        if intensity > 0:
+            intensity = max(0, intensity - COMPANION_EMOTION_DECAY_PER_TURN)
+            emo_data["intensity"] = intensity
+            if intensity == 0:
+                emo_data["state"] = "calm"
+            emotions[cid] = emo_data
+    world_state["companion_emotions"] = emotions
+
+
+def trigger_companion_emotion(
+    world_state: dict[str, Any],
+    companion_id: str,
+    emotion: str,
+    intensity: int = 5,
+) -> None:
+    """Set a companion's emotional state (e.g., after a betrayal or rescue).
+
+    Called from commit node or event processing when significant events occur.
+    """
+    emotions = world_state.get("companion_emotions")
+    if not isinstance(emotions, dict):
+        emotions = {}
+    emotions[companion_id] = {
+        "state": emotion,
+        "intensity": min(COMPANION_EMOTION_MAX_INTENSITY, max(0, intensity)),
+    }
+    world_state["companion_emotions"] = emotions
 
 
 def update_party_state(

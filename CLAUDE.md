@@ -18,7 +18,7 @@ This file defines the coding standards, architectural invariants, and constraint
 
 These are non-negotiable constraints. Do not violate them.
 
-1. **Ollama-Only.** Cloud LLM providers are deprecated. All LLM calls go through `AgentLLM` → `llm_client.py` → Ollama HTTP API. Do not add OpenAI, Anthropic, or other cloud provider paths.
+1. **Ollama-Default.** All per-turn pipeline LLM calls go through `AgentLLM` → Ollama HTTP API by default. Cloud providers (Anthropic, OpenAI, OpenAI-compat) are supported for the `campaign_init` role and as fallback providers when explicitly configured via `STORYTELLER_{ROLE}_PROVIDER` / `STORYTELLER_{ROLE}_FALLBACK_PROVIDER` env vars. The pipeline always falls back to Ollama or deterministic output if cloud is unavailable.
 
 2. **Single Transaction Boundary.** Only the Commit node (`backend/app/core/nodes/commit.py` via `make_commit_node()`) writes to the database. All other pipeline nodes are pure functions that pass state forward via the LangGraph state dict. No DB mutations in Router, Mechanic, Encounter, WorldSim, CompanionReaction, ArcPlanner, SceneFrame, Director, Narrator, NarrativeValidator, or SuggestionRefiner nodes.
 
@@ -55,8 +55,8 @@ Router → Mechanic → Encounter → WorldSim → CompanionReaction → ArcPlan
 | `ENABLE_BIBLE_CASTING` | `1` (on) | Use Era Pack deterministic NPC casting instead of LLM CastingAgent |
 | `ENABLE_PROCEDURAL_NPCS` | `1` (on) | Deterministic procedural NPC generation fallback |
 | `ENABLE_SUGGESTION_REFINER` | `1` (on) | LLM-based suggestion refinement (V2.16+) |
-| `ENABLE_CHARACTER_FACETS` | `0` (off) | Character facets system (disabled/incomplete) |
 | `ENABLE_CLOUD_BLUEPRINT` | `0` (off) | Cloud LLM for strategic campaign blueprint at bootup (V3.0) |
+| `ENABLE_SCALE_ADVISOR` | `0` (off) | Dynamic campaign scale auto-adjustment based on narrative density (V3.1) |
 
 ## Code Conventions
 

@@ -44,7 +44,6 @@ class PartyState(BaseModel):
 
     def companion_affordances(self) -> tuple[list[str], list[str]]:
         """Return (enables, blocks) aggregated from all active companions."""
-        from backend.app.world.era_pack_loader import get_era_pack
         from backend.app.core.companions import get_companion_by_id
 
         enables: list[str] = []

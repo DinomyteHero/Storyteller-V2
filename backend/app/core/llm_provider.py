@@ -48,12 +48,14 @@ class AnthropicClient:
         api_key: str | None = None,
         base_url: str | None = None,
         max_tokens: int = 4096,
+        timeout: float | None = None,
     ):
         self.model = model
         self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY", "")
         self.base_url = (base_url or "https://api.anthropic.com").rstrip("/")
         self.max_tokens = max_tokens
-        self.client = httpx.Client(timeout=_DEFAULT_TIMEOUT)
+        self._timeout = timeout or _DEFAULT_TIMEOUT
+        self.client = httpx.Client(timeout=self._timeout)
 
     def close(self) -> None:
         self.client.close()
@@ -142,7 +144,7 @@ class AnthropicClient:
                 f"{self.base_url}/v1/messages",
                 json=payload,
                 headers=headers,
-                timeout=_DEFAULT_TIMEOUT,
+                timeout=self._timeout,
             ) as response:
                 response.raise_for_status()
                 for line in response.iter_lines():
@@ -182,12 +184,14 @@ class OpenAICompatClient:
         api_key: str | None = None,
         base_url: str | None = None,
         max_tokens: int = 4096,
+        timeout: float | None = None,
     ):
         self.model = model
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY", "")
         self.base_url = (base_url or "https://api.openai.com").rstrip("/")
         self.max_tokens = max_tokens
-        self.client = httpx.Client(timeout=_DEFAULT_TIMEOUT)
+        self._timeout = timeout or _DEFAULT_TIMEOUT
+        self.client = httpx.Client(timeout=self._timeout)
 
     def close(self) -> None:
         self.client.close()
@@ -269,7 +273,7 @@ class OpenAICompatClient:
                 f"{self.base_url}/v1/chat/completions",
                 json=payload,
                 headers=headers,
-                timeout=_DEFAULT_TIMEOUT,
+                timeout=self._timeout,
             ) as response:
                 response.raise_for_status()
                 for line in response.iter_lines():
@@ -299,25 +303,29 @@ def create_provider(
     model: str,
     base_url: str = "",
     api_key: str = "",
+    timeout: float | None = None,
 ) -> Any:
     """Factory: create an LLM provider client by name.
 
     Supported providers: 'ollama', 'anthropic', 'openai', 'openai_compat'.
     """
+    effective_timeout = timeout or _DEFAULT_TIMEOUT
     if provider == "ollama":
         from backend.llm_client import LLMClient
-        return LLMClient(base_url=base_url or None, model=model)
+        return LLMClient(base_url=base_url or None, model=model, timeout=effective_timeout)
     elif provider == "anthropic":
         return AnthropicClient(
             model=model,
             api_key=api_key or None,
             base_url=base_url or None,
+            timeout=effective_timeout,
         )
     elif provider in ("openai", "openai_compat"):
         return OpenAICompatClient(
             model=model,
             api_key=api_key or None,
             base_url=base_url or None,
+            timeout=effective_timeout,
         )
     else:
         raise NotImplementedError(

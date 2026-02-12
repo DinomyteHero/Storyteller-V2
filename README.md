@@ -7,7 +7,7 @@ Storyteller AI is a local-first narrative RPG engine powered by a FastAPI backen
 - Era Pack system for deterministic world content (`/data/static/era_packs/`)
 - Event sourcing architecture with SQLite persistence
 - RAG-powered lore retrieval from ingested novels
-- Ollama-only local LLM execution (no cloud dependencies)
+- Ollama-first local LLM execution (cloud providers supported per-role when explicitly configured)
 
 **Repository Status:**
 - Streamlined to `_template` + `rebellion` era packs (others can be regenerated)
@@ -32,6 +32,7 @@ Storyteller AI combines deterministic game systems with LLM-powered narrative ge
 - Companion affinity and party dynamics
 - Multi-lane RAG retrieval (lore, style, character voice, knowledge graph)
 - Streaming narration via SSE
+- Prompt version tracking in `turn_contract.meta.prompt_versions`
 
 ---
 
@@ -53,13 +54,15 @@ Era Packs are YAML-based content bundles that define a playable Star Wars Legend
 
 **Location:** `/data/static/era_packs/{era_id}/`
 
-See `/docs/ERA_PACK_QUICK_REFERENCE.md` for complete documentation.
+See `/docs/SETTING_PACK_QUICK_REFERENCE.md` for complete documentation.
 
 ### Campaign Creation
 
 Campaigns are created via:
+- `GET /v2/content/catalog` + `GET /v2/content/default` - Discover available settings/periods dynamically
 - `POST /v2/setup/auto` - Automated setup with CampaignArchitect + BiographerAgent
 - `POST /v2/campaigns` - Manual campaign creation
+- `GET /v2/campaigns` - List resumable campaigns
 
 Each campaign includes:
 - Player character with background and stats
@@ -100,7 +103,26 @@ Optional helper:
 python -m storyteller setup --skip-deps
 ```
 
-> Note: `storyteller setup` attempts to copy `.env.example` if present. This repository may not include one, so configure env vars directly in your shell.
+`storyteller setup` creates standard runtime directories, copies `.env.example` to `.env` when missing, and runs `storyteller doctor`.
+
+
+Ingestion note:
+- `storyteller ingest --pipeline lore` is the recommended/default path.
+- Deprecated simple pipeline now requires explicit opt-in: `--pipeline simple --allow-legacy`.
+- For CI/automation use `--yes` to run non-interactively.
+
+
+One-command bootstrap (new machine):
+
+```bash
+bash scripts/bootstrap.sh
+```
+
+Validation shortcut:
+
+```bash
+make check
+```
 
 ### Configure environment variables
 
@@ -108,7 +130,7 @@ Essential variables (see `backend/app/config.py` for full list):
 
 ```bash
 # Database
-export DEFAULT_DB_PATH="./storyteller.db"
+export STORYTELLER_DB_PATH="./data/storyteller.db"
 
 # Era Packs
 export ERA_PACK_DIR="./data/static/era_packs"
@@ -128,7 +150,6 @@ Optional:
 
 ```bash
 export OLLAMA_BASE_URL="http://localhost:11434"
-export ENABLE_CHARACTER_FACETS=0           # Character facets system (experimental)
 ```
 
 ### Run API + UI
@@ -149,6 +170,12 @@ Quick checks without starting processes:
 
 ```bash
 python run_app.py --check
+```
+
+Detailed runtime diagnostics:
+
+```bash
+curl http://localhost:8000/health/detail
 ```
 
 Useful launch modes:
@@ -187,7 +214,7 @@ ollama serve
 
 For detailed authoring guidance, see:
 
-- [`docs/ERA_PACK_QUICK_REFERENCE.md`](docs/ERA_PACK_QUICK_REFERENCE.md)
+- [`docs/SETTING_PACK_QUICK_REFERENCE.md`](docs/SETTING_PACK_QUICK_REFERENCE.md)
 - [`docs/era_pack_template.md`](docs/era_pack_template.md)
 - [`docs/era_pack_schema_reference.md`](docs/era_pack_schema_reference.md)
 
@@ -247,17 +274,16 @@ python scripts/audit_era_packs.py
 ### Run Tests
 
 ```bash
-# All backend tests (587 tests, V2.20)
+# Full backend test suite
 python -m pytest backend/tests -q
 
-# Specific test suites
-python -m pytest backend/tests/test_director.py -v
-python -m pytest backend/tests/test_narrator.py -v
+# CLI + ingestion command tests
+python -m pytest tests -q
 
-# Deterministic harness
+# Deterministic helper wrapper
 python scripts/run_deterministic_tests.py
 
-# Smoke test
+# Lightweight API smoke test
 python scripts/smoke_test.py
 ```
 
@@ -303,6 +329,10 @@ See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for operational details.
 - [`docs/08_alignment_checklist.md`](docs/08_alignment_checklist.md) - Architectural alignment
 - [`docs/09_call_graph.md`](docs/09_call_graph.md) - Call graph & dependencies
 
+For concrete runnable commands, prefer:
+- [`QUICKSTART.md`](QUICKSTART.md) for setup + launch
+- [`API_REFERENCE.md`](API_REFERENCE.md) for current endpoint coverage
+
 ### Deep Dives
 - [`docs/architecture.md`](docs/architecture.md) - Complete system architecture
 - [`docs/user_guide.md`](docs/user_guide.md) - Player-facing documentation
@@ -311,7 +341,7 @@ See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for operational details.
 ### Templates
 - [`docs/templates/CAMPAIGN_INIT_TEMPLATE.md`](docs/templates/CAMPAIGN_INIT_TEMPLATE.md) - Campaign creation
 - [`docs/templates/DB_SEED_TEMPLATE.md`](docs/templates/DB_SEED_TEMPLATE.md) - Database seeding
-- [`docs/ERA_PACK_QUICK_REFERENCE.md`](docs/ERA_PACK_QUICK_REFERENCE.md) - Era pack guide
+- [`docs/SETTING_PACK_QUICK_REFERENCE.md`](docs/SETTING_PACK_QUICK_REFERENCE.md) - Era pack guide
 
 ### Root Documentation
 - [`README.md`](README.md) - This file

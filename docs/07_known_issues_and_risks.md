@@ -62,18 +62,7 @@ Commit assumes it is the only writer for a campaign (no version checks).
 
 ---
 
-### 6) Character Facets Not Implemented
-
-**Severity:** Low (feature gap)
-**File:** `ingestion/build_character_facets.py`, `backend/app/config.py`
-
-Character facets generation is disabled by default (`ENABLE_CHARACTER_FACETS=0`). The `build_character_facets.py` script produces unusable output and the feature is not wired into the pipeline.
-
-**Impact:** Character voice retrieval works but lacks facet-based personality enrichment. Voice snippets fall back to era-scoped retrieval without facet filtering.
-
----
-
-### 7) Suggestion Cache Is Basic
+### 6) Suggestion Cache Is Basic
 
 **Severity:** Low (optimization opportunity)
 **File:** `backend/app/core/suggestion_cache.py`
@@ -108,5 +97,4 @@ The suggestion cache uses a one-turn TTL with a simple `(location, arc_stage)` c
 - Add optimistic locking/versioning if concurrent writers are ever supported.
 - Add reranking (cross-encoder / hybrid search) if retrieval relevance becomes a bottleneck.
 - Replace token estimation heuristics with a tokenizer-based estimate if needed.
-- Implement character facets pipeline for personality-enriched voice retrieval.
 - Upgrade suggestion cache with scene-hash keys and multi-turn TTL.

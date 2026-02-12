@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import threading
 from dataclasses import dataclass
+from typing import Any
 
 from backend.app.content.index import ContentIndices, build_indices
 from backend.app.content.loader import (
@@ -105,6 +106,52 @@ class ContentRepository:
                 except FileNotFoundError:
                     continue
         return packs
+
+    def list_catalog(self) -> list[dict[str, Any]]:
+        """Return discovered content entries for API/UI catalog usage.
+
+        Each row represents a playable (or potentially playable) period.
+        """
+        entries: list[dict[str, Any]] = []
+        packs = self.load_all_packs()
+        for pack in packs:
+            raw_era = str(pack.era_id or "").strip()
+            setting_id, period_id = resolve_legacy_era(raw_era)
+            md = pack.metadata if isinstance(pack.metadata, dict) else {}
+            display_name = (
+                str(md.get("display_name") or "").strip()
+                or raw_era.replace("_", " ").title()
+                or period_id.replace("_", " ").title()
+            )
+            summary = str(md.get("summary") or "").strip()
+            playable = bool(pack.locations) and bool(pack.backgrounds)
+            reasons: list[str] = []
+            if not pack.locations:
+                reasons.append("no_locations")
+            if not pack.backgrounds:
+                reasons.append("no_backgrounds")
+            if not pack.quests:
+                reasons.append("no_quests")
+            entries.append(
+                {
+                    "setting_id": setting_id,
+                    "setting_display_name": str(pack.setting_name or md.get("setting_name") or setting_id.replace("_", " ").title()),
+                    "period_id": period_id,
+                    "period_display_name": display_name,
+                    "legacy_era_id": raw_era,
+                    "source": "legacy_era_pack",
+                    "summary": summary,
+                    "playable": playable,
+                    "playability_reasons": reasons,
+                    "locations_count": len(pack.locations or []),
+                    "backgrounds_count": len(pack.backgrounds or []),
+                    "companions_count": len(pack.companions or []),
+                    "quests_count": len(pack.quests or []),
+                }
+            )
+        # deterministic ordering for UI
+        entries.sort(key=lambda e: (str(e.get("setting_id", "")), str(e.get("period_id", ""))))
+        return entries
 
     def clear_cache(self) -> None:
         with self._lock:

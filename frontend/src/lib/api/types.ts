@@ -144,6 +144,7 @@ export interface TurnResponse {
   inventory: InventoryItem[];
   quest_log: Record<string, unknown>;
   world_time_minutes: number | null;
+  canonical_year_label?: string | null;
   party_status: PartyStatusItem[] | null;
   faction_reputation: Record<string, number> | null;
   news_feed: NewsFeedItem[] | null;
@@ -152,6 +153,8 @@ export interface TurnResponse {
   // V2.17: DialogueTurn contract (primary UI source when available)
   dialogue_turn?: DialogueTurn | null;
   turn_contract?: TurnContract | null;
+  // V3.2: Alignment data from backend
+  alignment?: { light_dark: number; paragon_renegade: number } | null;
 }
 
 export interface TurnContract {
@@ -168,7 +171,9 @@ export interface TurnContract {
 
 
 export interface SetupAutoRequest {
-  time_period: string;
+  setting_id?: string | null;
+  period_id?: string | null;
+  time_period?: string | null;
   genre: string | null;
   themes: string[];
   player_concept: string;
@@ -177,6 +182,11 @@ export interface SetupAutoRequest {
   background_id: string | null;
   background_answers: Record<string, number>;
   player_gender: string;
+  // V3.1: Campaign scale and mode
+  campaign_scale?: string;
+  campaign_mode?: string;
+  // V3.2: Difficulty selection
+  difficulty?: string;
 }
 
 export interface SetupAutoResponse {
@@ -222,6 +232,7 @@ export interface SSEEvent {
   inventory?: InventoryItem[];
   quest_log?: Record<string, unknown>;
   world_time_minutes?: number | null;
+  canonical_year_label?: string | null;
   party_status?: PartyStatusItem[] | null;
   faction_reputation?: Record<string, number> | null;
   news_feed?: NewsFeedItem[] | null;
@@ -230,19 +241,6 @@ export interface SSEEvent {
   dialogue_turn?: DialogueTurn | null;
   turn_contract?: TurnContract | null;
 }
-
-export interface TurnContract {
-  mode: "SIM"|"PASSAGE"|"HYBRID";
-  campaign_id: string;
-  turn_id: string;
-  display_text: string;
-  scene_goal: string;
-  obstacle: string;
-  stakes: string;
-  outcome: { category: string };
-  choices: Array<{ id: string; label: string; intent: Intent }>;
-}
-
 
 export interface EraBackground {
   id: string;

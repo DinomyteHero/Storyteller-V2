@@ -92,10 +92,6 @@ Notes:
 
 ```powershell
 # DO NOT RUN - produces unusable output
-python -m ingestion build_character_facets --db ./data/lancedb --out ./data/character_facets.json
-```
-
-**Status:** This command produces generic text statistics instead of character-specific voice profiles. The feature is disabled by default (`ENABLE_CHARACTER_FACETS=0`) and not recommended for use.
 
 The implementation is incomplete - it uses deterministic heuristics (modal verb counts, sentence length) instead of LLM-based character voice analysis. The system works fine without character facets.
 
@@ -150,10 +146,6 @@ python -m pytest ingestion/test_classify_document.py
 python -m pytest ingestion/test_manifest.py
 python -m pytest ingestion/test_tagger.py
 python -m pytest ingestion/test_tagger_pipeline.py
-python -m pytest ingestion/test_build_character_facets.py  # Note: Tests incomplete implementation
-```
-
-## See Also
 
 - `docs/lore_pipeline_guide.md` — recommended folder structure, classification, multi-era characters
 - `docs/05_rag_and_ingestion.md` — full RAG architecture and retrieval details

@@ -83,6 +83,7 @@ class TurnMeta(BaseModel):
     active_objectives: list[dict[str, Any]] = Field(default_factory=list)
     alignment: dict[str, int] | None = None
     reputations: dict[str, int] | None = None
+    prompt_versions: dict[str, str] = Field(default_factory=dict)
 
 
 class TurnDebug(BaseModel):

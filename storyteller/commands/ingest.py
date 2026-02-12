@@ -12,6 +12,8 @@ import os
 import sys
 from pathlib import Path
 
+from shared.ingest_paths import ingest_root
+
 
 def register(subparsers) -> None:
     p = subparsers.add_parser("ingest", help="Ingest documents into the vector store")
@@ -19,21 +21,24 @@ def register(subparsers) -> None:
         "--pipeline", choices=["simple", "lore"], default="lore",
         help="Ingestion pipeline: 'simple' (TXT/EPUB flat chunks) or 'lore' (PDF/EPUB/TXT enriched). Default: lore",
     )
-    p.add_argument("--input", type=str, default="./data/lore", help="Input directory (default: ./data/lore)")
+    p.add_argument("--input", type=str, default=None, help="Input directory (default: <ingest-root>/lore)")
     p.add_argument("--era", "--time-period", type=str, help="Era / time period label (e.g. LOTF)")
     p.add_argument("--source-type", type=str, help="Source type (e.g. novel, reference)")
     p.add_argument("--planet", type=str, help="Planet filter (lore pipeline)")
     p.add_argument("--faction", type=str, help="Faction filter (lore pipeline)")
     p.add_argument("--collection", type=str, help="Collection name (lore pipeline)")
     p.add_argument("--book-title", type=str, help="Book title override")
-    p.add_argument("--out-db", type=str, default="./data/lancedb", help="LanceDB output path")
+    p.add_argument("--out-db", type=str, default=None, help="LanceDB output path (default: <ingest-root>/lancedb)")
     p.add_argument("--era-pack", type=str, help="Era pack id for NPC tagging (defaults to --era)")
     p.add_argument("--tag-npcs", dest="tag_npcs", action="store_true", help="Enable deterministic NPC tagging")
     p.add_argument("--no-tag-npcs", dest="tag_npcs", action="store_false", help="Disable NPC tagging")
     p.set_defaults(tag_npcs=None)
     p.add_argument("--npc-tagging-mode", choices=["strict", "lenient"], default=None, help="NPC tagging mode")
     p.add_argument("--skip-checks", action="store_true", help="Skip Ollama/model pre-flight checks")
+    p.add_argument("--ingest-root", type=str, default=None, help="Portable ingestion root (uses <root>/lore + <root>/lancedb)")
     p.add_argument("--no-venv", action="store_true", help="Skip venv detection, use current Python")
+    p.add_argument("--yes", "--non-interactive", dest="yes", action="store_true", help="Run non-interactively (auto-confirm prompts)")
+    p.add_argument("--allow-legacy", action="store_true", help="Allow deprecated simple ingestion pipeline")
     p.set_defaults(func=run)
 
 
@@ -100,9 +105,12 @@ def run(args) -> int:
                 print(f"    source {venv_python.parent.parent.name}/bin/activate")
             print(f"  Then run: storyteller ingest ...")
             print()
-            resp = input("  Continue anyway? [y/N]: ")
-            if resp.strip().lower() != "y":
-                return 0
+            if not args.yes:
+                resp = input("  Continue anyway? [y/N]: ")
+                if resp.strip().lower() != "y":
+                    return 0
+            else:
+                print("  --yes supplied: continuing without prompt")
         elif venv_python and _is_in_venv():
             print(f"  Using virtual environment: {Path(sys.prefix).name}/")
         elif not venv_python:
@@ -110,7 +118,13 @@ def run(args) -> int:
             print("        Consider creating one with: python -m venv venv")
             print()
 
-    input_dir = Path(args.input).resolve()
+    resolved_root = Path(args.ingest_root).expanduser().resolve() if args.ingest_root else ingest_root()
+    input_arg = args.input or str(resolved_root / "lore")
+    out_db_arg = args.out_db or str(resolved_root / "lancedb")
+
+    input_dir = Path(input_arg).resolve()
+    args._resolved_input = str(input_dir)
+    args._resolved_out_db = str(Path(out_db_arg).expanduser().resolve())
 
     # Validate input directory
     if not input_dir.is_dir():
@@ -123,17 +137,26 @@ def run(args) -> int:
         print(f"         Supported formats: .txt, .epub, .pdf")
         return 1
 
+    # Guardrail: legacy simple pipeline requires explicit opt-in
+    if args.pipeline == "simple" and not args.allow_legacy:
+        print("  ERROR: The simple pipeline is deprecated and gated behind --allow-legacy")
+        print("         Use --pipeline lore (recommended) or re-run with --allow-legacy")
+        return 1
+
     # Guardrail: PDFs found but using simple pipeline
     if args.pipeline == "simple" and _has_pdfs(input_dir):
         print(f"  WARNING: PDF files detected in {input_dir}")
         print(f"           The 'simple' pipeline does NOT support PDFs.")
         print(f"           Use the 'lore' pipeline instead:")
         print(f"")
-        print(f"             python -m storyteller ingest --pipeline lore --input {args.input}")
+        print(f"             python -m storyteller ingest --pipeline lore --input {args._resolved_input}")
         print(f"")
-        resp = input("  Continue with simple pipeline anyway? (PDFs will be skipped) [y/N]: ")
-        if resp.strip().lower() != "y":
-            return 0
+        if not args.yes:
+            resp = input("  Continue with simple pipeline anyway? (PDFs will be skipped) [y/N]: ")
+            if resp.strip().lower() != "y":
+                return 0
+        else:
+            print("  --yes supplied: continuing with simple pipeline")
 
     # Pre-flight checks (unless skipped)
     if not args.skip_checks:
@@ -148,7 +171,7 @@ def run(args) -> int:
 
 def _run_lore(args) -> int:
     """Dispatch to ingestion.ingest_lore.main()."""
-    argv = ["ingest_lore", "--input", str(args.input)]
+    argv = ["ingest_lore", "--input", str(args._resolved_input)]
     if args.era:
         argv.extend(["--time-period", args.era])
     if args.planet:
@@ -169,11 +192,11 @@ def _run_lore(args) -> int:
         argv.append("--no-tag-npcs")
     if args.npc_tagging_mode:
         argv.extend(["--npc-tagging-mode", args.npc_tagging_mode])
-    if args.out_db != "./data/lancedb":
-        argv.extend(["--db", args.out_db])
+    if args._resolved_out_db:
+        argv.extend(["--db", args._resolved_out_db])
 
     print(f"\n  Running lore ingestion pipeline ...")
-    print(f"  Input: {args.input}")
+    print(f"  Input: {args._resolved_input}")
     print()
 
     # Temporarily replace sys.argv for argparse in the target module
@@ -189,7 +212,7 @@ def _run_lore(args) -> int:
 
 def _run_simple(args) -> int:
     """Dispatch to ingestion.ingest.main()."""
-    argv = ["ingest", "--input_dir", str(args.input)]
+    argv = ["ingest", "--input_dir", str(args._resolved_input)]
     if args.era:
         argv.extend(["--era", args.era])
     if args.source_type:
@@ -202,11 +225,11 @@ def _run_simple(args) -> int:
         argv.append("--no-tag-npcs")
     if args.npc_tagging_mode:
         argv.extend(["--npc-tagging-mode", args.npc_tagging_mode])
-    if args.out_db != "./data/lancedb":
-        argv.extend(["--db", args.out_db])
+    if args._resolved_out_db:
+        argv.extend(["--db", args._resolved_out_db])
 
     print(f"\n  Running simple ingestion pipeline ...")
-    print(f"  Input: {args.input}")
+    print(f"  Input: {args._resolved_input}")
     print()
 
     old_argv = sys.argv

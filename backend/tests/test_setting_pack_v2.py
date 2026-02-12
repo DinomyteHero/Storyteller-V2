@@ -6,13 +6,13 @@ import sys
 import tempfile
 from pathlib import Path
 
-from backend.app.world.era_pack_loader import clear_era_pack_cache, load_era_pack
+from backend.app.content.repository import CONTENT_REPOSITORY
 from backend.app.world.npc_generator import generate_npc
 
 
 def test_load_rebellion_pack_v2():
-    clear_era_pack_cache()
-    pack = load_era_pack("REBELLION")
+    CONTENT_REPOSITORY.clear_cache()
+    pack = CONTENT_REPOSITORY.get_pack("REBELLION")
     assert pack.era_id == "REBELLION"
     assert pack.schema_version == 2
     assert pack.meters is not None
@@ -26,20 +26,20 @@ def test_load_rebellion_pack_v2():
 
 
 def test_faction_relationships_loaded_when_present():
-    clear_era_pack_cache()
-    reb = load_era_pack("REBELLION")
+    CONTENT_REPOSITORY.clear_cache()
+    reb = CONTENT_REPOSITORY.get_pack("REBELLION")
     assert isinstance(reb.faction_relationships, dict)
     assert "rebel_alliance" in reb.faction_relationships
 
-    clear_era_pack_cache()
-    nr = load_era_pack("NEW_REPUBLIC")
+    CONTENT_REPOSITORY.clear_cache()
+    nr = CONTENT_REPOSITORY.get_pack("NEW_REPUBLIC")
     assert isinstance(nr.faction_relationships, dict)
     assert "new_republic" in nr.faction_relationships
 
 
 def test_procedural_npc_uses_location_encounter_table_when_available():
-    clear_era_pack_cache()
-    pack = load_era_pack("REBELLION")
+    CONTENT_REPOSITORY.clear_cache()
+    pack = CONTENT_REPOSITORY.get_pack("REBELLION")
     loc = pack.location_by_id("loc-yavin_base")
     assert loc is not None
     assert loc.encounter_table
