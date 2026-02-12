@@ -51,7 +51,7 @@ Example:
 
 ```text
 data/static/setting_packs/core/star_wars_legends/periods/rebellion/
-```
+```text
 
 2. **Copy existing files** from `data/static/era_packs/rebellion/` into the new period folder.
 
@@ -63,7 +63,7 @@ data/static/setting_packs/core/star_wars_legends/periods/rebellion/
 
 ```bash
 python scripts/validate_setting_packs.py
-```
+```text
 
 6. **Optionally define explicit mappings** with `ERA_TO_SETTING_PERIOD_MAP` YAML while callers still pass `era_id`.
 

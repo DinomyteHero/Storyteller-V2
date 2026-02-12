@@ -82,11 +82,12 @@ graph TD
     DIR -.-> Ollama
     NAR -.-> Ollama
     COMMIT --> API
-```
+```text
 
 ## Quickstart
 
 ### Prerequisites
+
 - Python 3.11+
 - Ollama running locally (`http://localhost:11434`) with models pulled:
   - `ollama pull mistral-nemo` (Director/Narrator — quality-critical roles)
@@ -101,30 +102,34 @@ graph TD
 ```powershell
 .\setup_dev.bat
 .\start_dev.bat
-```
+```text
 
 **Cross-platform:**
 
 ```bash
 python -m venv venv
 # Activate venv, then:
+
 pip install -e .
 python -m storyteller setup
 python -m storyteller dev
-```
+```text
 
 ### Create a Campaign & Play
+
 ```bash
 # Auto-setup (LLM generates campaign skeleton + character sheet)
+
 curl -X POST http://localhost:8000/v2/setup/auto \
   -H "Content-Type: application/json" \
   -d '{"player_concept": "A bounty hunter in a cyberpunk city"}'
 
 # Run a turn
+
 curl -X POST "http://localhost:8000/v2/campaigns/{campaign_id}/turn?player_id={player_id}" \
   -H "Content-Type: application/json" \
   -d '{"user_input": "I search the back alley for clues"}'
-```
+```text
 
 ## Tech Stack Summary
 

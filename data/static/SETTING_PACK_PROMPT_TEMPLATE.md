@@ -136,7 +136,8 @@ After running KG extraction on the {{ERA_NAME}} novels, here are the top entitie
 {{PASTE_KG_CANDIDATE_REPORT_HERE}}
 
 To generate this report after KG extraction, run:
-```
+
+```python
 python -c "
 from backend.app.kg.store import KGStore
 store = KGStore('data/storyteller.db')
@@ -177,6 +178,7 @@ for f in sorted(facs, key=lambda x: len(store.get_triples_for_entity(x['id'], er
 ### REFERENCE: EXISTING REBELLION SETTING PACK STATS
 
 For calibration, here is what the existing Rebellion setting pack contains:
+
 - 6 factions (2 Imperial, 1 Rebel, 1 Underworld, 1 Civilian Resistance, 1 Corporate)
 - 9 locations (3 low threat, 3 moderate, 2 high, 1 extreme)
 - 8 anchor NPCs, 9 rotating NPCs, 8 templates

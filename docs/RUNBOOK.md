@@ -8,7 +8,7 @@ Operational reference for running Storyteller AI locally with the V2.20 Era Pack
 
 ```bash
 python run_app.py --dev
-```
+```text
 
 Starts backend and frontend with development reload behavior.
 
@@ -18,7 +18,7 @@ Backend:
 
 ```bash
 python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
-```
+```text
 
 Frontend:
 
@@ -26,13 +26,13 @@ Frontend:
 cd frontend
 npm install
 npm run dev -- --port 5173
-```
+```text
 
 ### Option C: CLI launcher
 
 ```bash
 python -m storyteller dev
-```
+```text
 
 Useful if you prefer CLI-based orchestration.
 
@@ -64,19 +64,19 @@ Useful if you prefer CLI-based orchestration.
 
 ```bash
 python scripts/validate_era_packs.py
-```
+```text
 
 ### Validate custom pack roots
 
 ```bash
 python scripts/validate_era_pack.py --paths "./data/static/era_packs"
-```
+```text
 
 ### Run backend tests
 
 ```bash
 python -m pytest backend/tests -q
-```
+```text
 
 ## Common operational issues
 

@@ -9,7 +9,7 @@
 
 Each era pack lives in its own folder under `data/static/era_packs/<era_key>/`:
 
-```
+```text
 data/static/era_packs/
   rebellion/
     era.yaml          # Era metadata & file index (required)
@@ -24,7 +24,7 @@ data/static/era_packs/
     rumors.yaml       # NPC-delivered rumors
     facts.yaml        # Knowledge graph seed facts
     meters.yaml       # World meter bounds/defaults
-```
+```text
 
 ---
 
@@ -66,11 +66,12 @@ start_location_pool:
 - loc-cantina
 - loc-bazaar_market
 - loc-safe_house
+
 metadata:
   display_name: Age of Rebellion
   time_period: 0-4 ABY (Legends)
   tone: Gritty hope; underdog resistance; found family.
-```
+```text
 
 **Gotchas:**
 - `file_index` keys must exactly match the logical names: `era`, `locations`, `npcs`, `factions`, `backgrounds`, `namebanks`, `quests`, `events`, `rumors`, `meters`, `facts`, `companions`.
@@ -87,9 +88,10 @@ metadata:
 ```yaml
 locations:
 - id: loc-cantina
+
   name: Mos Eisley Cantina
   ...
-```
+```text
 
 ### Per-Location Fields
 
@@ -142,6 +144,7 @@ locations:
 **Example:**
 ```yaml
 - id: loc-cantina
+
   name: Mos Eisley Cantina
   tags: [cantina, underworld, smuggler]
   region: Outer Rim
@@ -159,22 +162,26 @@ locations:
   services: [cantina, bounty_board]
   access_points:
   - id: main_entrance
+
     type: door
     visibility: public
     bypass_methods: [credential]
   - id: back_room
+
     type: door
     visibility: hidden
     bypass_methods: [bribe, charm]
   encounter_table:
   - template_id: smuggler_contact
+
     weight: 3
   - template_id: bounty_hunter_solo
+
     weight: 2
   travel_links:
   - loc-bazaar_market
   - loc-cargo_docks
-```
+```text
 
 **Gotchas:**
 - `services` values are validated against a fixed allowlist; typos cause load failures.
@@ -194,14 +201,17 @@ locations:
 npcs:
   anchors:
   - id: luke_skywalker
+
     ...
   rotating:
   - id: some_recurring_npc
+
     ...
   templates:
   - id: stormtrooper_patrol
+
     ...
-```
+```text
 
 ### Anchor / Rotating NPC Fields (`EraNpcEntry`)
 
@@ -317,9 +327,10 @@ Templates define archetypes for dynamically spawned NPCs. Key differences from a
 ```yaml
 companions:
 - id: comp-reb-kessa
+
   name: Kessa Vane
   ...
-```
+```text
 
 ### Per-Companion Fields
 
@@ -389,6 +400,7 @@ companions:
 ```yaml
 factions:
 - id: rebel_alliance
+
   name: Alliance to Restore the Republic
   ...
 
@@ -400,7 +412,7 @@ faction_relationships:
     cascades:
       galactic_empire: -0.6
       ...
-```
+```text
 
 ### Per-Faction Fields
 
@@ -436,9 +448,10 @@ faction_relationships:
 ```yaml
 backgrounds:
 - id: smuggler
+
   name: "Smuggler"
   ...
-```
+```text
 
 ### Per-Background Fields
 
@@ -524,7 +537,7 @@ namebanks:
   corellian_surnames: [Antilles, Solo, ...]
   alderaanian_surnames: [Organa, Panteer, ...]
   outer_rim_surnames: [Rendar, Vrynn, ...]
-```
+```text
 
 **Conventions:**
 - Keys are referenced by NPC templates via the `namebank` field (e.g., `namebank: imperial_names`).
@@ -543,9 +556,10 @@ namebanks:
 ```yaml
 quests:
 - id: quest_first_contact
+
   title: First Contact
   ...
-```
+```text
 
 ### Per-Quest Fields
 
@@ -584,9 +598,10 @@ quests:
 ```yaml
 events:
 - id: event_imperial_inspection
+
   type: hard
   ...
-```
+```text
 
 ### Per-Event Fields
 
@@ -610,9 +625,10 @@ events:
 ```yaml
 rumors:
 - id: rumor_death_star_plans
+
   text: The Rebellion has stolen something from the Empire...
   ...
-```
+```text
 
 ### Per-Rumor Fields
 
@@ -639,11 +655,12 @@ rumors:
 ```yaml
 facts:
 - id: fact_empire_controls_garrisons
+
   subject: galactic_empire
   predicate: controls
   object: loc-star_destroyer
   confidence: 1.0
-```
+```text
 
 ### Per-Fact Fields
 
@@ -685,7 +702,7 @@ meters:
     decay_per_tick: 2
   control_shift:
     enabled: false
-```
+```text
 
 ### Meter Bounds Fields
 
@@ -716,60 +733,75 @@ meters:
 These are common pitfalls when authoring era pack YAML files:
 
 ### 1. Boolean Quoting
+
 YAML `false` and `true` are booleans. For string fields that expect `"false"`:
 ```yaml
 # WRONG - parsed as boolean false
+
 bribeable: false
 
 # CORRECT - parsed as string "false"
+
 bribeable: 'false'
-```
+```text
 
 ### 2. Integer Aliases
+
 YAML anchors that look like integers need quoting:
 ```yaml
 # WRONG - parsed as integer 81
+
 anchor: 81
 
 # CORRECT
+
 anchor: "81"
-```
+```text
 
 ### 3. Em Dashes in Strings
+
 Em dashes can break YAML parsing. Single-quote the entire line:
 ```yaml
 # WRONG - may fail
+
 description: The galaxy lives under the boot — crushed and broken.
 
 # CORRECT
+
 description: 'The galaxy lives under the boot -- crushed and broken.'
-```
+```text
 
 ### 4. Colons in Strings
+
 Colons followed by spaces trigger YAML mapping syntax:
 ```yaml
 # WRONG
+
 goal: "War: it never changes"  # This works because it's quoted
 
 # SAFE — always quote strings containing colons
+
 goal: "War: it never changes"
-```
+```text
 
 ### 5. Multiline Strings
+
 Use the `|` (literal block) style for descriptions:
 ```yaml
 description: |
   This preserves newlines.
   Each line is kept as-is.
-```
+```text
 
 ### 6. Starting Starship
+
 In V2.10+, backgrounds no longer grant starting ships:
 ```yaml
 starting_starship: null  # Ships earned in-story
-```
+```text
 
 ### 7. Duplicate IDs
+
 The loader deduplicates by `id`; the last entry wins. Avoid duplicate IDs across `anchors` and `rotating`.
 
 ---

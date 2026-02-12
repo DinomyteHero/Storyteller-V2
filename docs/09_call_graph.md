@@ -41,9 +41,10 @@ It intentionally avoids line numbers (they go stale quickly). Use file paths + f
 
 Primary execution path for gameplay is the V2 turn endpoint:
 
-```
+```text
 SvelteKit frontend
   -> POST /v2/campaigns/{campaign_id}/turn?player_id=...
+
       backend/app/api/v2_campaigns.py:post_turn()
         -> _get_conn() (apply_schema + open sqlite connection)
         -> backend/app/core/state_loader.py:build_initial_gamestate()
@@ -52,7 +53,7 @@ SvelteKit frontend
             -> compiled LangGraph invokes nodes (see §3)
             -> strips "__runtime_conn" and returns updated GameState
         -> builds TurnResponse (pads suggestions to exactly 4; optional debug/state)
-```
+```text
 
 **Important detail:** `__runtime_conn` is a **runtime-only** handle. Nodes that need DB access read it from `state["__runtime_conn"]`. It must never be persisted or returned in API responses.
 
@@ -78,7 +79,7 @@ flowchart LR
   encounter --> world_sim[world_sim] --> companion[companion_reaction]
   companion --> arc[arc_planner] --> director[director] --> narrator[narrator]
   narrator --> validator[narrative_validator] --> commit
-```
+```text
 
 ---
 
@@ -195,24 +196,24 @@ All nodes live under `backend/app/core/nodes/`. The LangGraph state is a `dict` 
 
 ### Manual Campaign Creation
 
-```
+```text
 POST /v2/campaigns
   -> inserts campaigns row (world_state_json seeded with companion state and (optionally) Era Pack factions)
   -> inserts player character row
   -> inserts static NPC cast only when ENABLE_BIBLE_CASTING=0 (legacy path)
   -> appends initial FLAG_SET event + applies projection
-```
+```text
 
 ### Auto Setup (Architect + Biographer)
 
-```
+```text
 POST /v2/setup/auto
   -> CampaignArchitect.build()  (LLM optional; deterministic fallback)
   -> BiographerAgent.build()    (LLM optional; deterministic fallback)
   -> inserts campaigns + player
   -> inserts static NPC cast only when ENABLE_BIBLE_CASTING=0 (legacy path)
   -> appends initial FLAG_SET event + applies projection
-```
+```text
 
 When `ENABLE_BIBLE_CASTING=1`, the canonical cast/factions/locations are sourced from Era Packs under `data/static/era_packs/` (loaded via `backend/app/world/era_pack_loader.py`).
 

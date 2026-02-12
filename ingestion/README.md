@@ -8,7 +8,7 @@ Ingest TXT, EPUB, and PDF documents into a LanceDB vector store. Two pipelines a
 ## Supported Formats
 
 | Format | Flat (`ingest.py`) | Hierarchical (`ingest_lore.py`) | Notes |
-|--------|------|---------------|-------|
+| ------ | ------------------ | -------------------------------- | ----- |
 | **TXT** | ✅ | ✅ | Book title from filename |
 | **EPUB** | ✅ | ✅ | Title from metadata; chapters from spine/nav |
 | **PDF** | ❌ (skipped with warning) | ✅ | Uses `pymupdf4llm` for layout-preserving extraction |
@@ -75,6 +75,7 @@ You can also set `STORYTELLER_ERA_MODE=ui` (or `folder`) to make that mode the d
 ### Rebellion MVP (starter pack)
 
 This repo includes a ready-to-ingest Rebellion starter pack under:
+
 - `data/lore/rebellion/sourcebooks/` (Narrator grounding)
 - `data/lore/rebellion/adventures/` (Director hook grounding)
 
@@ -85,6 +86,7 @@ python -m ingestion.ingest_lore --input ./data/lore/rebellion --db ./data/lanced
 ```
 
 Notes:
+
 - Director retrieval expects `doc_type=adventure` + `section_kind=hook` (use filenames containing `adventure` and start the text with `Adventure Summary:` / `Act I` / `Encounter:`).
 - Narrator retrieval expects `doc_type in {novel, sourcebook}` + `section_kind in {lore, location, faction}` (use filenames containing `sourcebook` and start the text with `Chapter` / `Faction:` / `Planet:` / `Location:`).
 
@@ -110,11 +112,13 @@ python -m ingestion.query --query "ISB tactics" --k 5 --era REBELLION --db ./dat
 ## Chunking and Metadata
 
 ### Flat Pipeline
+
 - ~600-token chunks with ~10% overlap; chunks do not cross chapter boundaries
 - Per-chunk metadata: `era`, `source_type`, `book_title`, `chapter_title`, `chapter_index`, `chunk_id`, `chunk_index`
 - Optional: `related_npcs` (from Era Pack tagging)
 
 ### Hierarchical Pipeline
+
 - Parent chunks: ~1024 tokens; child chunks: ~256 tokens
 - Child text prefixed: `[Source: {filename}, Section: {parent_header}] {child_text}`
 - Parent-child relationship via `parent_id` UUID and `level` field (`"parent"` or `"child"`)
@@ -122,6 +126,7 @@ python -m ingestion.query --query "ISB tactics" --k 5 --era REBELLION --db ./dat
 - Optional: `related_npcs` (from Era Pack tagging)
 
 ### Embeddings
+
 - Default: `sentence-transformers/all-MiniLM-L6-v2` (384-dim)
 - Override via `EMBEDDING_MODEL` and `EMBEDDING_DIMENSION` env vars
 - If you change embedding model, rebuild LanceDB: `python scripts/rebuild_lancedb.py --db ./data/lancedb`

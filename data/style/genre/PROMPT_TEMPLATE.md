@@ -7,6 +7,7 @@ Use this prompt to generate genre/mode overlay style guides. Copy everything bel
 You are writing a Genre Style Guide for a Star Wars tabletop RPG AI narrator system. This document will be chunked into ~384-word paragraphs, embedded as vectors, and retrieved at runtime to shape the AI's narrative output. It functions as a GENRE OVERLAY — it is LAYERED ON TOP of an era-specific style guide that provides the setting foundation. This document must add genre flavor WITHOUT contradicting the era baseline underneath.
 
 The document is consumed by two AI agents:
+
 - The DIRECTOR agent extracts 2-4 concrete directive sentences to shape scene planning and action suggestions.
 - The NARRATOR agent uses retrieved chunks as prose-shaping context for sensory detail, dialogue tone, and atmospheric grounding.
 
@@ -30,6 +31,7 @@ Premise: [One sentence — the genre's core narrative mode stated as a storytell
 The emotional and atmospheric register this genre brings. How does this genre TRANSFORM whatever era it's applied to? What feelings should the player experience? What lens does this genre put on the existing setting?
 
 Write 3-5 paragraphs covering:
+
 - The dominant emotional register (paranoia, dread, excitement, moral complexity, etc.)
 - How the player character relates to the world differently in this genre (observer, survivor, schemer, etc.)
 - The genre's relationship to truth, morality, and resolution
@@ -41,6 +43,7 @@ Write 3-5 paragraphs covering:
 How this genre changes the rhythm of scenes compared to default Star Wars storytelling.
 
 Write 2-3 paragraphs covering:
+
 - How scenes open — action first? Observation? Tension?
 - How information flows — discovery, conversation, investigation, revelation?
 - How turns end — cliffhangers, questions, betrayals, horror beats, moral weight?
@@ -55,6 +58,7 @@ Numbered structural template (4-5 steps) for composing a typical scene in this g
 How this genre transforms character speech patterns. Not specific character types (the era guide handles that) but the GENRE FILTER applied to how everyone talks.
 
 Write 3-4 paragraphs covering:
+
 - The genre's signature dialogue style (clipped, verbose, coded, theatrical, etc.)
 - How subtext works — what's said vs what's meant
 - How threats, deals, and revelations are delivered
@@ -71,6 +75,7 @@ Categories: Sound, Sight, Smell, Touch
 What this genre does NOT do in a Star Wars context. How to prevent the genre from overwhelming the era foundation. This section is critical.
 
 Write 2-3 paragraphs covering:
+
 - Where the genre ends and the era begins — what should the era guide control?
 - Genre tropes that DON'T translate well to Star Wars and should be avoided
 - How to maintain Star Wars identity while using this genre's tools
@@ -79,6 +84,7 @@ Write 2-3 paragraphs covering:
 ---
 
 WRITING RULES:
+
 - Every sentence should be usable as a standalone directive when extracted
 - Use imperative second person: "Show the player...", "Avoid...", "Frame scenes as..."
 - Be ERA-AGNOSTIC — no references to specific factions, characters, or timeline events

@@ -25,7 +25,7 @@ For each root, loader looks for:
 
 ```text
 {root}/{setting_id}/periods/{period_id}/
-```
+```text
 
 ### Concrete directory tree example
 
@@ -52,7 +52,7 @@ data/static/setting_packs/
       periods/
         third_age/
           npcs.yaml
-```
+```text
 
 ## Merge rules
 

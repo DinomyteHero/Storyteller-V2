@@ -48,3 +48,9 @@ nul
 
 # Data variants (local vector DB)
 data/lancedb*/
+
+# Node modules
+node_modules/
+
+# Backup files
+*.bak

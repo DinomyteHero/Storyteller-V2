@@ -89,6 +89,7 @@ Avoid modern slang and anachronisms in all dialogue — no "okay," "guys," "yeah
 ## Sensory Lexicon
 
 **Sound:**
+
 - comlink crackle, feedback squeal, distant siren wail
 - hydraulics hiss, coolant whine, generator thrum
 - bootfalls on durasteel, patrol chatter, lock snap
@@ -97,6 +98,7 @@ Avoid modern slang and anachronisms in all dialogue — no "okay," "guys," "yeah
 - TIE fighter scream overhead, Star Destroyer engine rumble
 
 **Smell:**
+
 - hot metal stink, coolant tang, recycled air
 - blaster scorch, ozone bite, ionized atmosphere
 - caf gone cold, ration paste, smoke-laced breath
@@ -105,6 +107,7 @@ Avoid modern slang and anachronisms in all dialogue — no "okay," "guys," "yeah
 - spice smoke, cheap tabac, cantina cooking grease
 
 **Sight:**
+
 - heat shimmer off engines, red emergency lights
 - dust motes in spotlight beams, flickering holos
 - stormtrooper white against grimy walls, Imperial grey
@@ -113,6 +116,7 @@ Avoid modern slang and anachronisms in all dialogue — no "okay," "guys," "yeah
 - carbon scoring on hull panels, patched armor plates
 
 **Touch:**
+
 - cold durasteel, worn grips, frayed cable
 - sweat-slick controls, vibration through deck plates
 - dust grit on fingers, static shock from consoles
@@ -120,6 +124,7 @@ Avoid modern slang and anachronisms in all dialogue — no "okay," "guys," "yeah
 - slick oil under fingernails, heat radiating from overworked engines
 
 **Taste:**
+
 - metallic recycled water, bitter caf
 - ration bar grit, cheap cantina food
 - dust on lips, adrenaline copper-tang
