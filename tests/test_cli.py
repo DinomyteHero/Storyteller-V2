@@ -30,6 +30,10 @@ class TestCLIHelp:
         assert "dev" in result.stdout
         assert "ingest" in result.stdout
         assert "query" in result.stdout
+        assert "organize-ingest" in result.stdout
+        assert "models" in result.stdout
+        assert "style-audit" in result.stdout
+        assert "build-style-pack" in result.stdout
 
     def test_doctor_help(self):
         result = _run_cli("doctor", "--help")
@@ -59,6 +63,27 @@ class TestCLIHelp:
         assert result.returncode == 0
         assert "--k" in result.stdout
 
+    def test_organize_ingest_help(self):
+        result = _run_cli("organize-ingest", "--help")
+        assert result.returncode == 0
+        assert "--input" in result.stdout
+
+    def test_models_help(self):
+        result = _run_cli("models", "--help")
+        assert result.returncode == 0
+        assert "model" in result.stdout.lower()
+
+    def test_style_audit_help(self):
+        result = _run_cli("style-audit", "--help")
+        assert result.returncode == 0
+        assert "style" in result.stdout.lower()
+
+    def test_build_style_pack_help(self):
+        result = _run_cli("build-style-pack", "--help")
+        assert result.returncode == 0
+        assert "--input" in result.stdout
+
+
 
 class TestDoctorRuns:
     """Doctor should run without crashing (some checks may warn/fail depending on env)."""
@@ -82,3 +107,17 @@ class TestIngestGuardrails:
         result = _run_cli("query", "test query", "--db", "/nonexistent/db/abc123")
         assert result.returncode == 1
         assert "not found" in result.stdout.lower() or "ERROR" in result.stdout
+
+class TestModelsCommand:
+    def test_models_runs(self):
+        result = _run_cli("models")
+        assert result.returncode == 0
+        assert "narrator" in result.stdout.lower()
+        assert "provider=" in result.stdout.lower()
+
+
+class TestStyleAuditCommand:
+    def test_style_audit_runs(self):
+        result = _run_cli("style-audit")
+        assert result.returncode in (0, 2)
+        assert "Style root:" in result.stdout

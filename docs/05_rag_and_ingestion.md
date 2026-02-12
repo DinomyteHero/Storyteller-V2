@@ -28,7 +28,7 @@ LANCE --> SEARCH
 
 ## Vector Database: LanceDB
 
-**Path:** Configured via `VECTORDB_PATH` env var (default: `./data/lancedb`)
+**Path:** Configured via `VECTORDB_PATH` env var. If unset, defaults to `<STORYTELLER_INGEST_ROOT>/lancedb` (or `./data/lancedb` when `STORYTELLER_INGEST_ROOT` is not set).
 
 LanceDB is an embedded columnar vector database (no server needed). Tables are stored as Lance files on disk. Connections and table handles are cached per path in `backend/app/rag/_cache.py`.
 
@@ -79,6 +79,26 @@ EMBEDDING_MODEL=nomic-ai/nomic-embed-text-v1.5 EMBEDDING_DIMENSION=768 python sc
 
 Note: `nomic-embed-text` via Ollama has different dimensions; use the sentence-transformers variant above for consistency.
 
+
+### Portable ingestion bundle (plug-and-play)
+
+Set `STORYTELLER_INGEST_ROOT` to move all ingestion assets into one folder you can copy between machines:
+
+- `<INGEST_ROOT>/lore`
+- `<INGEST_ROOT>/style`
+- `<INGEST_ROOT>/manifests`
+- `<INGEST_ROOT>/lancedb`
+
+Example:
+
+```bash
+export STORYTELLER_INGEST_ROOT="$HOME/Documents/Storyteller-AI-ingestion-data"
+storyteller setup --skip-deps
+storyteller ingest --pipeline lore
+```
+
+You can also override per-run with `storyteller ingest --ingest-root <path>`.
+
 ## Ingestion Pipeline
 
 **Available ingestion methods:**
@@ -88,6 +108,29 @@ Note: `nomic-embed-text` via Ollama has different dimensions; use the sentence-t
 - **Verify/query**: `scripts/verify_lore_store.py`, `python -m ingestion query`
 
 For detailed ingestion workflows, see `/docs/lore_pipeline_guide.md`.
+
+
+### Automated style-pack generation (Hybrid Option A)
+
+You can reduce manual style authoring with:
+
+```bash
+storyteller build-style-pack --input <corpus_root> --output <style_root>
+```
+
+This command:
+- performs deterministic extraction from your corpus,
+- generates base + era + top genre style docs,
+- optionally polishes output with an LLM (`--use-llm --llm-role ingestion_tagger`),
+- writes `_style_pack_manifest.json` for traceability.
+
+Then ingest the generated style docs:
+
+```bash
+python scripts/ingest_style.py --input <style_root>
+```
+
+Recommended production flow: deterministic generation + optional cloud polish + human review + ingest.
 
 ### Style Ingestion
 **File:** `backend/app/rag/style_ingest.py` — `ingest_style_dir(data_dir)`
@@ -190,6 +233,22 @@ Two retrieval modes:
 Pure vector similarity search with optional tag boosting. Results whose tags overlap with requested `style_tags` are sorted first.
 
 #### Layered Retrieval (V2.8): `retrieve_style_layered()`
+
+
+### Are `data/style/base`, `data/style/era`, and `data/style/genre` deprecated?
+
+No — these are active in the current layered retrieval design:
+- `base/` = always-on Star Wars foundation lane
+- `era/` = era-specific lane
+- `genre/` = genre + archetype overlays
+
+To audit for truly unused style files, run:
+
+```bash
+storyteller style-audit
+```
+
+This reports active mapped files, ignored templates (`PROMPT_TEMPLATE`/`README`), and orphan files not referenced by mappings.
 
 4-lane retrieval system. Star Wars is always the foundation; genre and archetype modify but never replace it.
 

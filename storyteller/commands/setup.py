@@ -5,11 +5,12 @@ and runs ``storyteller doctor`` to verify.
 """
 from __future__ import annotations
 
-import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+from shared.ingest_paths import ensure_layout, standard_dirs, static_dirs
 
 
 def register(subparsers) -> None:
@@ -19,13 +20,14 @@ def register(subparsers) -> None:
 
 
 def _ensure_dirs() -> None:
-    root = Path.cwd()
-    dirs = ["data", "data/lancedb", "data/lore", "data/style", "data/manifests", "data/static", "data/static/era_packs"]
-    for d in dirs:
-        p = root / d
-        existed = p.exists()
+    dirs = standard_dirs() + static_dirs()
+    existed = {p: p.exists() for p in dirs}
+    ensure_layout()
+    for p in static_dirs():
         p.mkdir(parents=True, exist_ok=True)
-        print(f"  Directory: {d}/ {'(exists)' if existed else '(created)'}")
+    for p in dirs:
+        status = "(exists)" if existed[p] else "(created)"
+        print(f"  Directory: {p} {status}")
 
 
 def _copy_env() -> None:
@@ -58,14 +60,7 @@ def run(args) -> int:
     print("\n  Storyteller AI — Setup\n")
 
     # Data dirs
-    root = Path.cwd()
-    dirs = ["data", "data/lancedb", "data/lore", "data/style", "data/manifests", "data/static", "data/static/era_packs"]
-    for d in dirs:
-        p = root / d
-        existed = p.exists()
-        p.mkdir(parents=True, exist_ok=True)
-        status = "(exists)" if existed else "(created)"
-        print(f"  Directory: {d}/ {status}")
+    _ensure_dirs()
 
     # .env
     _copy_env()
