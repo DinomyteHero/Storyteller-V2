@@ -1,6 +1,4 @@
-# The Dark Times — Meters (v2)
-# Bounds and defaults for reputation, heat, and control.
-
+# Meter definitions (v2) — bounds/defaults for persistent world meters.
 meters:
   reputation_by_faction:
     min: -100
@@ -18,3 +16,4 @@ meters:
     decay_per_tick: 2
   control_shift:
     enabled: false
+

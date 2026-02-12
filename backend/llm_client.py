@@ -19,11 +19,12 @@ class LLMClientError(Exception):
 class LLMClient:
     """Client for interacting with Ollama-compatible LLM endpoints."""
 
-    def __init__(self, base_url: str | None = None, model: Optional[str] = None):
+    def __init__(self, base_url: str | None = None, model: Optional[str] = None, timeout: float | None = None):
         base_url = (base_url or "http://localhost:11434").strip()
         self.base_url = base_url.rstrip("/")
         self.model = model
-        self.client = httpx.Client(timeout=_LLM_TIMEOUT)
+        self._timeout = timeout or _LLM_TIMEOUT
+        self.client = httpx.Client(timeout=self._timeout)
 
     # ------------------------------------------------------------------
     # Cleanup

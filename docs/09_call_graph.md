@@ -2,7 +2,7 @@
 
 This document is a **"where does this code run from?"** map:
 
-- The main entry points (UI, API, CLI, ingestion)
+- The main entry points (web UI, API, CLI, ingestion)
 - The end-to-end **turn execution** path
 - A node-by-node reference for the **LangGraph** pipeline
 
@@ -12,10 +12,10 @@ It intentionally avoids line numbers (they go stale quickly). Use file paths + f
 
 ## 1) Entry Points
 
-### Streamlit UI
+### Web UI (SvelteKit)
 
-- **Entry:** `streamlit_app.py` (repo root)
-- **Backend client:** `ui/api_client.py` (HTTP calls into FastAPI)
+- **Entry:** `frontend/`
+- **Backend client:** `frontend/src/lib/api/*` (HTTP + SSE calls into FastAPI)
 
 ### FastAPI Backend
 
@@ -34,9 +34,6 @@ It intentionally avoids line numbers (they go stale quickly). Use file paths + f
 - **Entry:** `python -m ingestion <command>` (see `ingestion/__main__.py`)
   - `ingest` (flat TXT/EPUB)
   - `query`
-  - ~~`build_character_facets`~~ (not functional)
-- **Lore ingestion:** `python -m ingestion.ingest_lore ...` (PDF/EPUB/TXT hierarchical pipeline)
-- **KG extraction:** `python -m storyteller extract-knowledge ...` (fills SQLite `kg_*` tables from ingested lore chunks)
 
 ---
 
@@ -44,9 +41,10 @@ It intentionally avoids line numbers (they go stale quickly). Use file paths + f
 
 Primary execution path for gameplay is the V2 turn endpoint:
 
-```
-Streamlit UI
+```text
+SvelteKit frontend
   -> POST /v2/campaigns/{campaign_id}/turn?player_id=...
+
       backend/app/api/v2_campaigns.py:post_turn()
         -> _get_conn() (apply_schema + open sqlite connection)
         -> backend/app/core/state_loader.py:build_initial_gamestate()
@@ -75,9 +73,9 @@ The graph is built once (lazy singleton via `_get_compiled_graph()`) and invoked
 
 ```mermaid
 flowchart LR
-  router[router] -->|META| meta[meta] --> commit[commit] --> end((END))
-  router -->|TALK| encounter[encounter]
-  router -->|ACTION| mechanic[mechanic] --> encounter
+  router[router] --> | META| meta[meta] --> commit[commit] --> end((END))
+  router --> | TALK| encounter[encounter]
+  router --> | ACTION| mechanic[mechanic] --> encounter
   encounter --> world_sim[world_sim] --> companion[companion_reaction]
   companion --> arc[arc_planner] --> director[director] --> narrator[narrator]
   narrator --> validator[narrative_validator] --> commit
@@ -198,7 +196,7 @@ All nodes live under `backend/app/core/nodes/`. The LangGraph state is a `dict` 
 
 ### Manual Campaign Creation
 
-```
+```text
 POST /v2/campaigns
   -> inserts campaigns row (world_state_json seeded with companion state and (optionally) Era Pack factions)
   -> inserts player character row
@@ -208,7 +206,7 @@ POST /v2/campaigns
 
 ### Auto Setup (Architect + Biographer)
 
-```
+```text
 POST /v2/setup/auto
   -> CampaignArchitect.build()  (LLM optional; deterministic fallback)
   -> BiographerAgent.build()    (LLM optional; deterministic fallback)

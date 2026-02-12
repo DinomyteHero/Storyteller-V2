@@ -53,6 +53,7 @@ Avoid eloquence and formal speech — frontier dialogue is rough and functional.
 ## Sensory Lexicon
 
 ### Sound
+
 - the thrum of an overworked ship engine, strained and loud, maintenance deferred
 - boot heels on durasteel decking, heavy deliberate steps in a tense bar
 - the hiss of an airlock cycling, transitioning between pressurized environments
@@ -62,6 +63,7 @@ Avoid eloquence and formal speech — frontier dialogue is rough and functional.
 - the creak of an old swivel chair in a port authority office, bureaucracy barely functioning
 
 ### Sight
+
 - a dusty street between prefab structures, everything coated in regolith or grit
 - harsh daylight from a too-bright sun, glare that makes everything stark and washed out
 - a ship parked at a crooked angle, landing gear damaged and awaiting repair
@@ -71,6 +73,7 @@ Avoid eloquence and formal speech — frontier dialogue is rough and functional.
 - the distant glow of refinery fires or reactor cores, industry visible for kilometers
 
 ### Smell
+
 - dust and dry air, frontier outposts are short on water and long on particulate matter
 - machine oil and coolant, ships and equipment maintained in the open where everyone can see
 - cheap alcohol and fried protein, bar food that sustains but does not delight
@@ -79,6 +82,7 @@ Avoid eloquence and formal speech — frontier dialogue is rough and functional.
 - ionized air after a ship lands hot, engines radiating heat into the environment
 
 ### Touch
+
 - the grip of a well-worn blaster, weapon that has been drawn often enough to show use
 - grit between teeth, dust pervasive enough to be tasted and felt
 - vibration through deck plates as a ship strains under acceleration, mechanical stress felt physically

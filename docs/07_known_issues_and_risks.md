@@ -29,20 +29,7 @@ The API helper that opens a connection runs schema application checks (`apply_sc
 
 ---
 
-### 3) Streamlit UI Redundant State Fetches
-
-**Severity:** Medium (UX/perf)
-**File:** `streamlit_app.py`
-
-Multiple `get_state()` calls can occur per render cycle.
-
-**Impact:** Extra HTTP + SQLite round-trips; noticeable latency on slower machines.
-
-**Recommendation:** Cache the current state once per render in `st.session_state` and invalidate on new turns.
-
----
-
-### 4) Mechanic "Choice Impact" Deltas Partially Populated
+### 3) Mechanic "Choice Impact" Deltas Partially Populated
 
 **Severity:** Low (functionality gap / tuning)
 **File:** `backend/app/core/agents/mechanic.py`
@@ -53,7 +40,7 @@ Multiple `get_state()` calls can occur per render cycle.
 
 ---
 
-### 5) Duplicate Static NPC Cast Definitions (Legacy Path)
+### 4) Duplicate Static NPC Cast Definitions (Legacy Path)
 
 **Severity:** Low (maintainability)
 **Files:** `backend/app/api/v2_campaigns.py`, `backend/app/core/agents/architect.py`
@@ -64,7 +51,7 @@ Both files embed a "12 NPC cast" template for non-Era Pack setups.
 
 ---
 
-### 6) Single-Writer Assumption (No Optimistic Locking)
+### 5) Single-Writer Assumption (No Optimistic Locking)
 
 **Severity:** Low (fine for local-only)
 **File:** `backend/app/core/nodes/commit.py`
@@ -75,18 +62,7 @@ Commit assumes it is the only writer for a campaign (no version checks).
 
 ---
 
-### 7) Character Facets Not Implemented
-
-**Severity:** Low (feature gap)
-**File:** `ingestion/build_character_facets.py`, `backend/app/config.py`
-
-Character facets generation is disabled by default (`ENABLE_CHARACTER_FACETS=0`). The `build_character_facets.py` script produces unusable output and the feature is not wired into the pipeline.
-
-**Impact:** Character voice retrieval works but lacks facet-based personality enrichment. Voice snippets fall back to era-scoped retrieval without facet filtering.
-
----
-
-### 8) Suggestion Cache Is Basic
+### 6) Suggestion Cache Is Basic
 
 **Severity:** Low (optimization opportunity)
 **File:** `backend/app/core/suggestion_cache.py`
@@ -121,5 +97,4 @@ The suggestion cache uses a one-turn TTL with a simple `(location, arc_stage)` c
 - Add optimistic locking/versioning if concurrent writers are ever supported.
 - Add reranking (cross-encoder / hybrid search) if retrieval relevance becomes a bottleneck.
 - Replace token estimation heuristics with a tokenizer-based estimate if needed.
-- Implement character facets pipeline for personality-enriched voice retrieval.
 - Upgrade suggestion cache with scene-hash keys and multi-turn TTL.

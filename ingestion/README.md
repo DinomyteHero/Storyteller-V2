@@ -8,7 +8,7 @@ Ingest TXT, EPUB, and PDF documents into a LanceDB vector store. Two pipelines a
 ## Supported Formats
 
 | Format | Flat (`ingest.py`) | Hierarchical (`ingest_lore.py`) | Notes |
-|--------|------|---------------|-------|
+| ------ | ------------------ | -------------------------------- | ----- |
 | **TXT** | ✅ | ✅ | Book title from filename |
 | **EPUB** | ✅ | ✅ | Title from metadata; chapters from spine/nav |
 | **PDF** | ❌ (skipped with warning) | ✅ | Uses `pymupdf4llm` for layout-preserving extraction |
@@ -42,7 +42,7 @@ python -m ingestion.ingest --input_dir <directory> --era LOTF --source_type nove
 - `--book_title`: Override book title for EPUB only; TXT always uses filename
 - `--recursive`: Recurse into subfolders
 - `--era-aliases`: JSON file mapping folder names to eras (e.g., `{"Legacy Era":"LOTF"}`)
-- `--era-mode`: `legacy` (default), `ui` (canonicalize to Streamlit era keys), or `folder` (use top-level folder names as eras)
+- `--era-mode`: `legacy` (default), `ui` (canonicalize to standard era keys), or `folder` (use top-level folder names as eras)
 - `--era auto`: Infer era from folder names (uses aliases + path segments)
 - `--era-pack`: Era pack id for deterministic NPC tagging (defaults to `--era`)
 - `--tag-npcs` / `--no-tag-npcs`: Enable or disable NPC tagging
@@ -64,7 +64,7 @@ python -m ingestion.ingest_lore --input ./data/lore --db ./data/lancedb
 - `--book-title`: Override book title
 - `--recursive`: Recurse into subfolders
 - `--era-aliases`: JSON file mapping folder names to eras
-- `--era-mode`: `legacy` (default), `ui` (canonicalize to Streamlit era keys), or `folder` (use top-level folder names as eras)
+- `--era-mode`: `legacy` (default), `ui` (canonicalize to standard era keys), or `folder` (use top-level folder names as eras)
 - `--era-pack`: Era pack id for deterministic NPC tagging (defaults to `--time-period`)
 - `--tag-npcs` / `--no-tag-npcs`: Enable or disable NPC tagging
 - `--npc-tagging-mode`: `strict` (default) or `lenient`
@@ -75,16 +75,18 @@ You can also set `STORYTELLER_ERA_MODE=ui` (or `folder`) to make that mode the d
 ### Rebellion MVP (starter pack)
 
 This repo includes a ready-to-ingest Rebellion starter pack under:
+
 - `data/lore/rebellion/sourcebooks/` (Narrator grounding)
 - `data/lore/rebellion/adventures/` (Director hook grounding)
 
-Recommended ingestion command (UI-era keys so runtime filters match Streamlit):
+Recommended ingestion command (UI-era keys so runtime filters match the frontend):
 
 ```powershell
 python -m ingestion.ingest_lore --input ./data/lore/rebellion --db ./data/lancedb --time-period REBELLION --era-mode ui --recursive
 ```
 
 Notes:
+
 - Director retrieval expects `doc_type=adventure` + `section_kind=hook` (use filenames containing `adventure` and start the text with `Adventure Summary:` / `Act I` / `Encounter:`).
 - Narrator retrieval expects `doc_type in {novel, sourcebook}` + `section_kind in {lore, location, faction}` (use filenames containing `sourcebook` and start the text with `Chapter` / `Faction:` / `Planet:` / `Location:`).
 
@@ -92,33 +94,35 @@ Notes:
 
 ```powershell
 # DO NOT RUN - produces unusable output
-python -m ingestion build_character_facets --db ./data/lancedb --out ./data/character_facets.json
-```
-
-**Status:** This command produces generic text statistics instead of character-specific voice profiles. The feature is disabled by default (`ENABLE_CHARACTER_FACETS=0`) and not recommended for use.
 
 The implementation is incomplete - it uses deterministic heuristics (modal verb counts, sentence length) instead of LLM-based character voice analysis. The system works fine without character facets.
 
 ### Query
 
 ```powershell
+
 python -m ingestion.query --query "..." --k 5 --era LOTF --source_type novel --db ./data/lancedb
-```
+
+```text
 
 Example (Rebellion):
 
 ```powershell
+
 python -m ingestion.query --query "ISB tactics" --k 5 --era REBELLION --db ./data/lancedb
-```
+
+```text
 
 ## Chunking and Metadata
 
 ### Flat Pipeline
+
 - ~600-token chunks with ~10% overlap; chunks do not cross chapter boundaries
 - Per-chunk metadata: `era`, `source_type`, `book_title`, `chapter_title`, `chapter_index`, `chunk_id`, `chunk_index`
 - Optional: `related_npcs` (from Era Pack tagging)
 
 ### Hierarchical Pipeline
+
 - Parent chunks: ~1024 tokens; child chunks: ~256 tokens
 - Child text prefixed: `[Source: {filename}, Section: {parent_header}] {child_text}`
 - Parent-child relationship via `parent_id` UUID and `level` field (`"parent"` or `"child"`)
@@ -126,6 +130,7 @@ python -m ingestion.query --query "ISB tactics" --k 5 --era REBELLION --db ./dat
 - Optional: `related_npcs` (from Era Pack tagging)
 
 ### Embeddings
+
 - Default: `sentence-transformers/all-MiniLM-L6-v2` (384-dim)
 - Override via `EMBEDDING_MODEL` and `EMBEDDING_DIMENSION` env vars
 - If you change embedding model, rebuild LanceDB: `python scripts/rebuild_lancedb.py --db ./data/lancedb`
@@ -139,6 +144,7 @@ On failure, the tagger logs a warning and falls back to empty/default values. Se
 ## Tests
 
 ```powershell
+
 # Run all ingestion tests
 python -m pytest ingestion/ -q
 
@@ -150,10 +156,6 @@ python -m pytest ingestion/test_classify_document.py
 python -m pytest ingestion/test_manifest.py
 python -m pytest ingestion/test_tagger.py
 python -m pytest ingestion/test_tagger_pipeline.py
-python -m pytest ingestion/test_build_character_facets.py  # Note: Tests incomplete implementation
-```
-
-## See Also
 
 - `docs/lore_pipeline_guide.md` — recommended folder structure, classification, multi-era characters
 - `docs/05_rag_and_ingestion.md` — full RAG architecture and retrieval details

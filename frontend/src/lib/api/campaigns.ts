@@ -21,9 +21,10 @@ export async function runTurn(
   campaignId: string,
   playerId: string,
   userInput: string,
-  debug: boolean = false
+  debug: boolean = false,
+  intent?: import("./types").Intent
 ): Promise<TurnResponse> {
-  const req: TurnRequest = { user_input: userInput, debug };
+  const req: TurnRequest = intent ? { intent, user_input: userInput, debug } : { user_input: userInput, debug };
   return apiFetch<TurnResponse>(
     `/v2/campaigns/${campaignId}/turn?player_id=${encodeURIComponent(playerId)}`,
     { method: 'POST', body: JSON.stringify(req) },
@@ -62,6 +63,32 @@ export async function getRumors(
   limit: number = 5
 ): Promise<{ campaign_id: string; rumors: string[] }> {
   return apiFetch(`/v2/campaigns/${campaignId}/rumors?limit=${limit}`);
+}
+
+export interface CompleteCampaignResponse {
+  status: string;
+  legacy_id: string;
+  campaign_id: string;
+  recommended_next_scale: string;
+  next_campaign_pitch: string;
+}
+
+export async function completeCampaign(
+  campaignId: string,
+  outcomeSummary: string = '',
+  characterFate: string = ''
+): Promise<CompleteCampaignResponse> {
+  return apiFetch<CompleteCampaignResponse>(
+    `/v2/campaigns/${campaignId}/complete`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        outcome_summary: outcomeSummary,
+        character_fate: characterFate,
+      }),
+    },
+    60_000
+  );
 }
 
 export interface CompanionPreview {

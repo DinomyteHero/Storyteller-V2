@@ -5,6 +5,7 @@
 **Model:** `backend/app/models/state.py` (`class GameState`)
 
 The LangGraph pipeline operates on a JSON-serializable `GameState`. At graph entry, it is converted to a dict via:
+
 - `backend/app/core/nodes/__init__.py:state_to_dict()`
 - `backend/app/core/nodes/__init__.py:dict_to_state()`
 
@@ -13,6 +14,7 @@ The LangGraph pipeline operates on a JSON-serializable `GameState`. At graph ent
 `GameState` mixes three kinds of data:
 
 1. **Persistent snapshots** (loaded from SQLite at the start of a turn):
+
    - `campaign_id`, `player_id`, `turn_number`, `current_location`
    - `campaign` (dict: `title`, `time_period`, `world_time_minutes`, `world_state_json`, ...)
    - `player` (serialized `CharacterSheet`: stats/HP/location/inventory/psych_profile)
@@ -22,10 +24,12 @@ The LangGraph pipeline operates on a JSON-serializable `GameState`. At graph ent
    - `recent_narrative` (str): recent narration text for continuity
 
 2. **Cross-turn memory** (kept in the state packet for prompt continuity):
+
    - `history`: list of compact event summaries (strings), derived from `turn_events` (hidden excluded)
    - `last_user_inputs`: list of raw inputs (currently optional/spotty depending on caller)
 
 3. **Per-turn transient fields** (produced by nodes and usually reset each turn):
+
    - Routing: `intent`, `route`, `action_class`, `router_output`
    - Mechanics: `mechanic_result`
    - Encounter: `present_npcs`, spawn/throttle event staging
@@ -47,6 +51,7 @@ The LangGraph pipeline operates on a JSON-serializable `GameState`. At graph ent
 **File:** `backend/app/models/state.py`
 
 Key fields:
+
 - `name`, `species`, `role`, `location_id`
 - `stats_json`, `hp_current`, `credits`
 - `psych_profile` (current_mood, stress_level, active_trauma)
@@ -60,6 +65,7 @@ Key fields:
 **File:** `backend/app/models/state.py`
 
 Key fields:
+
 - `intent_text` (str): verb-first 4-8 word label
 - `tone` (str): `PARAGON` | `INVESTIGATE` | `RENEGADE` | `NEUTRAL`
 - `risk_level` (str): `SAFE` | `RISKY` | `DANGEROUS` (3-tier, V2.9)
@@ -72,6 +78,7 @@ Key fields:
 **File:** `backend/app/models/state.py`
 
 Key fields:
+
 - `action_type`, `events`, `narrative_facts`, `time_cost_minutes`
 - `success` (bool): whether the action succeeded
 - `outcome_summary` (str): human-readable outcome
@@ -91,7 +98,7 @@ Migrations: `0001` through `0018` (see `backend/app/db/migrations/`).
 ### `campaigns`
 
 | Column | Type | Notes |
-|--------|------|------|
+| -------- | ------ | ------ |
 | `id` | TEXT (PK) | Campaign UUID |
 | `title` | TEXT | Campaign title |
 | `time_period` | TEXT | Era/setting |
@@ -103,7 +110,7 @@ Migrations: `0001` through `0018` (see `backend/app/db/migrations/`).
 ### `characters`
 
 | Column | Type | Notes |
-|--------|------|------|
+| -------- | ------ | ------ |
 | `id` | TEXT (PK) | Character UUID |
 | `campaign_id` | TEXT (FK) | Parent campaign |
 | `name` | TEXT | Display name |
@@ -124,7 +131,7 @@ Migrations: `0001` through `0018` (see `backend/app/db/migrations/`).
 ### `inventory`
 
 | Column | Type | Notes |
-|--------|------|------|
+| -------- | ------ | ------ |
 | `id` | TEXT (PK) | `{owner_id}:{item_name}` |
 | `owner_id` | TEXT | Character id |
 | `item_name` | TEXT | Item name |
@@ -134,7 +141,7 @@ Migrations: `0001` through `0018` (see `backend/app/db/migrations/`).
 ### `turn_events` (Event Store)
 
 | Column | Type | Notes |
-|--------|------|------|
+| -------- | ------ | ------ |
 | `id` | INTEGER (PK) | Auto-increment |
 | `campaign_id` | TEXT | Parent campaign |
 | `turn_number` | INTEGER | Turn index |
@@ -150,7 +157,7 @@ Migrations: `0001` through `0018` (see `backend/app/db/migrations/`).
 Stores the player-facing narration and UI suggestions per turn.
 
 | Column | Type | Notes |
-|--------|------|------|
+| -------- | ------ | ------ |
 | `campaign_id` | TEXT | Parent campaign |
 | `turn_number` | INTEGER | Turn index |
 | `text` | TEXT | Narration prose |
@@ -163,7 +170,7 @@ Stores the player-facing narration and UI suggestions per turn.
 Migration `0014_episodic_memories.sql`.
 
 | Column | Type | Notes |
-|--------|------|------|
+| -------- | ------ | ------ |
 | `id` | INTEGER (PK) | Auto-increment |
 | `campaign_id` | TEXT | Parent campaign |
 | `turn_number` | INTEGER | Turn when memory was created |
@@ -176,7 +183,7 @@ Migration `0014_episodic_memories.sql`.
 Migration `0016_suggestion_cache.sql`.
 
 | Column | Type | Notes |
-|--------|------|------|
+| -------- | ------ | ------ |
 | `id` | INTEGER (PK) | Auto-increment |
 | `campaign_id` | TEXT | Parent campaign |
 | `turn_number` | INTEGER | Turn number |
@@ -188,7 +195,7 @@ Migration `0016_suggestion_cache.sql`.
 Migration `0017_starships.sql`.
 
 | Column | Type | Notes |
-|--------|------|------|
+| -------- | ------ | ------ |
 | `id` | TEXT (PK) | Starship UUID |
 | `campaign_id` | TEXT | Parent campaign |
 | `player_id` | TEXT | Owner character |
@@ -203,7 +210,7 @@ Migration `0017_starships.sql`.
 Migration `0018_player_profiles.sql`.
 
 | Column | Type | Notes |
-|--------|------|------|
+| -------- | ------ | ------ |
 | `id` | TEXT (PK) | Profile UUID |
 | `campaign_id` | TEXT | Parent campaign |
 | `player_id` | TEXT | Character |
@@ -215,7 +222,7 @@ Migration `0018_player_profiles.sql`.
 Migration `0013_add_cyoa_answers.sql`.
 
 | Column | Type | Notes |
-|--------|------|------|
+| -------- | ------ | ------ |
 | `id` | INTEGER (PK) | Auto-increment |
 | `campaign_id` | TEXT | Parent campaign |
 | `player_id` | TEXT | Character |
@@ -241,6 +248,7 @@ These are populated by `python -m storyteller extract-knowledge` and are used at
 Commit-only writes are implemented in `backend/app/core/nodes/commit.py`.
 
 Within one SQLite transaction, Commit:
+
 1. Advances `campaigns.world_time_minutes`
 2. Updates `campaigns.world_state_json` (factions + party + news + ledger + **arc_state** + throttling state + **known_npcs** + **companion_memories** + **era_summaries** + **opening_beats** + **act_outline** + **faction_memory** + **npc_states**)
 3. Appends events (`turn_events`)
@@ -262,6 +270,7 @@ If anything fails: rollback and return a structured API error (FastAPI global ex
 The ledger is a structured summary built from events each turn and stored in `world_state_json.ledger`. It is used to ground LLM prompts without replaying raw event history.
 
 It tracks capped lists such as:
+
 - `established_facts`
 - `open_threads`
 - `active_goals`
@@ -280,6 +289,7 @@ Commit updates the ledger every turn (`update_ledger(...)`) using the staged eve
 `campaigns.world_state_json` is a JSON object. Common keys:
 
 ### Living World
+
 - `active_factions`: list of faction dicts (seeded from Era Packs when `ENABLE_BIBLE_CASTING=1`)
 - `news_feed`: list of ME-style briefing items
 - `new_rumors_raw`: list of raw rumor strings from the most recent WorldSim run
@@ -287,6 +297,7 @@ Commit updates the ledger every turn (`update_ledger(...)`) using the staged eve
 - `npc_states`: dict of npc_id -> autonomous NPC state (location, goals, 20% movement per tick)
 
 ### Party / Alignment
+
 - `party`: list of companion IDs (strings)
 - `party_traits`: dict of companion_id -> trait dict
 - `party_affinity`: dict of companion_id -> int
@@ -297,19 +308,23 @@ Commit updates the ledger every turn (`update_ledger(...)`) using the staged eve
 - `companion_memories`: dict of companion_id -> list of memory strings
 
 ### Encounter Throttling (NPC pacing)
+
 Persisted via events staged in Encounter and applied inside Commit:
+
 - `introduced_npcs`: list of NPC ids already introduced
 - `introduction_log`: list of `{npc_id, introduced_at_minutes, trigger}`
 - `last_location_id`: last effective location (for "location changed" gating)
 - `npc_introduction_triggers`: optional list (single-use; cleared after location update)
 
 ### Prompt Grounding & Arc Tracking
+
 - `ledger`: structured ledger object (see above)
 - `arc_state`: arc stage tracking (`current_stage`, `stage_start_turn`)
 - `known_npcs`: list of NPC IDs the player has encountered (names shown; unknowns get descriptive roles)
 - `era_summaries`: dict of era -> compressed narrative summary
 
 ### Campaign Opening (V2.12)
+
 - `opening_beats`: 3-beat structure (ARRIVAL, ENCOUNTER, INCITING_INCIDENT) for turns 1-3
 - `act_outline`: lightweight 3-act story arc with key NPCs (villain/rival/informant)
 

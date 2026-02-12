@@ -50,6 +50,47 @@ _LOCATION_NARRATIVE_NAMES: dict[str, str] = {
     "loc-jedi-temple": "the Jedi Temple",
 }
 
+# Era-specific atmosphere fragments for deterministic fallback prose.
+# Each era provides opening, ambient, tension, calm, and hook lines
+# so fallback text still feels era-appropriate rather than generic.
+_ERA_FALLBACK_ATMOSPHERE: dict[str, dict[str, str]] = {
+    "REBELLION": {
+        "opening": "The air{planet_str} carried the weight of a galaxy at war — ozone, engine grease, and the faint charge of a rebellion burning slow.",
+        "ambient": "The hum of distant engines blended with the static crackle of a comm relay cycling through encrypted channels.",
+        "tension": "Stormtrooper boot-steps echoed somewhere close, and the air tightened like a drawn bowstring.",
+        "calm": "For a fleeting moment the war felt distant — just the hiss of recycled air and the amber glow of a status panel.",
+        "hook": "Somewhere in the static between stars, the next chapter waited. The Rebellion never truly rested.",
+    },
+    "LEGACY": {
+        "opening": "The air{planet_str} tasted of old wars and new ambitions — duracrete dust and the metallic tang of a fractured galaxy rebuilding itself.",
+        "ambient": "Holoscreens flickered between propaganda feeds and market prices, a galaxy still deciding what shape it wanted to take.",
+        "tension": "Old allegiances stirred beneath the surface, and the silence felt like the breath before a detonator's click.",
+        "calm": "The corridor was quiet. Somewhere beyond the viewport, stars turned slowly, indifferent to the politics below.",
+        "hook": "The galaxy's wounds were still fresh, and every handshake concealed a knife. The legacy era demanded vigilance.",
+    },
+    "NEW_REPUBLIC": {
+        "opening": "The air{planet_str} hummed with the cautious optimism of a galaxy learning to breathe without an Emperor's boot on its throat.",
+        "ambient": "Senate broadcasts competed with cantina music, and the New Republic's banners hung alongside scorch marks that no one had bothered to scrub away.",
+        "tension": "Freedom was fragile. The remnants of Empire lurked in the Outer Rim, and not every ally had clean hands.",
+        "calm": "Sunlight streamed through a viewport, catching dust motes that drifted like possibilities in the new order's early days.",
+        "hook": "Peace was a promise, not a guarantee. The New Republic needed people willing to hold the line while the galaxy rebuilt.",
+    },
+    "NEW_JEDI_ORDER": {
+        "opening": "The air{planet_str} pulsed with something older than politics — the Force, stirring like a tide that had waited a generation to return.",
+        "ambient": "Training sabers hummed in distant courtyards, and the scent of ancient texts mingled with the green of newly planted gardens around the academy.",
+        "tension": "A tremor rippled through the Force — not danger, exactly, but a warning. The dark side never slept for long.",
+        "calm": "The Force settled like still water, and for a breath the galaxy's noise faded to a single clear note of balance.",
+        "hook": "The Jedi were returning, but the galaxy's memory was long. Trust would be earned one lightsaber at a time.",
+    },
+    "_DEFAULT": {
+        "opening": "The air{planet_str} carried the weight of a galaxy in motion.",
+        "ambient": "The hum of life-support systems provided a steady undertone to the scene.",
+        "tension": "The air felt tense, charged with unspoken urgency.",
+        "calm": "The moment was calm, expectant.",
+        "hook": "Something stirred at the edge of awareness. The story began here.",
+    },
+}
+
 
 def _humanize_location(loc_id: str | None) -> str:
     """Convert a raw location ID into a narrative-friendly Star Wars name.
@@ -153,35 +194,53 @@ def _quote_excerpt(text: str, max_words: int = 20) -> str:
 
 
 
+_PATTERN_FIRE_COUNTS: dict[str, int] = {}
+"""Track how often each cleanup pattern fires. Inspect via get_pattern_fire_counts()
+to identify patterns that can be retired as prompts improve."""
+
+
+def _track_sub(name: str, text: str, pattern: str, repl: str = "", flags: int = 0) -> str:
+    """Apply regex substitution and track if the pattern matched."""
+    result = re.sub(pattern, repl, text, flags=flags)
+    if result != text:
+        _PATTERN_FIRE_COUNTS[name] = _PATTERN_FIRE_COUNTS.get(name, 0) + 1
+    return result
+
+
+def get_pattern_fire_counts() -> dict[str, int]:
+    """Return current pattern fire counts for monitoring prompt quality improvement."""
+    return dict(_PATTERN_FIRE_COUNTS)
+
+
 def _strip_structural_artifacts(text: str) -> str:
     """Strip structural markdown artifacts that LLMs inject into narrative prose.
 
     Local models (especially qwen/llama) often add section headers, JSON code
     blocks, and metadata sections instead of clean prose. This aggressively
     removes all of those patterns so only narrative prose remains.
+
+    Pattern fire counts are tracked in _PATTERN_FIRE_COUNTS for monitoring.
     """
     result = text
 
     # Strip fenced code blocks (```json ... ```, ```text ... ```, etc.)
-    result = re.sub(r"```[\w]*\s*\n?.*?```", "", result, flags=re.DOTALL)
+    result = _track_sub("fenced_code_blocks", result, r"```[\w]*\s*\n?.*?```", flags=re.DOTALL)
 
     # Strip inline JSON objects that span multiple lines: { "key": ... }
     # Only if they look like LLM structured output (contain "text", "event", "description", etc.)
-    result = re.sub(
+    result = _track_sub(
+        "inline_json_objects", result,
         r'\{\s*"(?:text|event|description|dialogue|narrative|scene|next_turn|actions?|suggestions?)"'
         r"\s*:.*?\}",
-        "",
-        result,
         flags=re.DOTALL,
     )
 
     # Strip markdown bold headers: **Scene:**, **Narrative:**, **Next Turn:**, **Opening:**, etc.
-    result = re.sub(
+    result = _track_sub(
+        "markdown_bold_headers", result,
         r"\*{1,2}(?:Scene|Narrative|Next Turn|Opening|Opening Scene|Summary|"
         r"Description|Dialogue|Action|Actions|Response|Output|Result|"
         r"Turn \d+|Current Scene|Setting|Atmosphere|Continue|Continuation):?\*{1,2}\s*:?\s*",
-        "",
-        result,
         flags=re.IGNORECASE,
     )
 
@@ -218,7 +277,7 @@ def _strip_structural_artifacts(text: str) -> str:
     )
 
     # Strip <think>...</think> tags from reasoning models (qwen3, deepseek, etc.)
-    result = re.sub(r"<think>.*?</think>", "", result, flags=re.DOTALL)
+    result = _track_sub("think_tags", result, r"<think>.*?</think>", flags=re.DOTALL)
 
     # V2.15: Strip "Option N (Tone):" inline choice blocks that LLMs inject
     result = re.sub(
@@ -250,12 +309,11 @@ def _strip_structural_artifacts(text: str) -> str:
     )
 
     # V2.16b: Strip leaked LLM self-instructions (model echoing system prompt)
-    result = re.sub(
+    result = _track_sub(
+        "leaked_self_instructions", result,
         r"^\s*(?:Begin\s+with|Start\s+with|Open\s+with|Write\s+about|"
         r"Describe\s+the|Focus\s+on|Include|Make\s+sure|Remember\s+to|"
         r"Note\s+that|Keep\s+in\s+mind)\s+.*$",
-        "",
-        result,
         flags=re.IGNORECASE | re.MULTILINE,
     )
 
@@ -799,6 +857,11 @@ def _build_prompt(
     opening_tag = "[OPENING_SCENE]" in (state.user_input or "")
     is_opening_scene = is_opening or opening_tag
 
+    # V3.2: Extract setting_rules for universe-aware faction examples
+    from backend.app.core.setting_context import get_setting_rules
+    _sr = get_setting_rules(state.model_dump(mode="json") if hasattr(state, "model_dump") else (state if isinstance(state, dict) else {}))
+    _faction_examples = ", ".join(_sr.example_factions) if _sr.example_factions else "various factions"
+
     # V2.15: Narrator writes ONLY prose. Suggestions are generated deterministically
     # by the Director node using generate_suggestions() — no LLM involvement.
     _prose_stop_rule = (
@@ -874,7 +937,7 @@ def _build_prompt(
             "If you need an unnamed background character, describe them by appearance or role "
             "(e.g., 'a dock worker', 'the bartender', 'a passing spacer').\n"
             "- FACTION NEUTRALITY: Do NOT assume the player's allegiance. The player may choose to side "
-            "with ANY faction (Rebellion, Empire, criminal syndicates, independent). Narrate the world "
+            f"with ANY faction ({_faction_examples}, independent). Narrate the world "
             "as presenting opportunities from multiple sides. Do not frame one faction as 'the good guys'.\n"
             "  * BAD: 'Ozzel, from wanted posters' (assumes anti-Empire stance)\n"
             "  * GOOD: 'an Imperial officer — Ozzel, by the rank insignia'\n"
@@ -946,7 +1009,7 @@ def _build_prompt(
             "If you need an unnamed background character, describe them by appearance or role "
             "(e.g., 'a dock worker', 'the bartender', 'a passing spacer').\n"
             "- FACTION NEUTRALITY: Do NOT assume the player's allegiance. The player may choose to side "
-            "with ANY faction (Rebellion, Empire, criminal syndicates, independent). Narrate the world "
+            f"with ANY faction ({_faction_examples}, independent). Narrate the world "
             "as presenting opportunities from multiple sides. Do not frame one faction as 'the good guys'.\n"
             "  * BAD: 'Ozzel, from wanted posters' (assumes anti-Empire stance)\n"
             "  * GOOD: 'an Imperial officer — Ozzel, by the rank insignia'\n"
@@ -1220,16 +1283,23 @@ class NarratorAgent:
         if state.player and getattr(state.player, "name", None):
             pov_name = state.player.name
 
+        # Era-specific atmosphere lines for richer fallback prose
+        era_id = ""
+        campaign = state.campaign or {}
+        ws = campaign.get("world_state_json") if isinstance(campaign, dict) else {}
+        if isinstance(ws, dict):
+            era_id = (ws.get("era") or ws.get("era_id") or "").upper()
+
+        era_atmosphere = _ERA_FALLBACK_ATMOSPHERE.get(era_id, _ERA_FALLBACK_ATMOSPHERE["_DEFAULT"])
+
         if is_opening_fb or opening_tag_fb:
             # Opening scene fallback: more atmospheric
             planet = ""
-            campaign = state.campaign or {}
-            ws = campaign.get("world_state_json") if isinstance(campaign, dict) else {}
             if isinstance(ws, dict):
                 planet = ws.get("starting_planet") or ""
             planet_str = f" on {planet}" if planet else ""
 
-            parts = [f"The air{planet_str} carried the weight of a galaxy in motion."]
+            parts = [era_atmosphere["opening"].format(planet_str=planet_str)]
             parts.append(f"{pov_name} stepped into {loc}, taking in the scene.")
 
             # Mention present NPCs atmospherically
@@ -1240,12 +1310,12 @@ class NarratorAgent:
                 else:
                     parts.append(f"Several figures populated the space: {', '.join(npc_names[:-1])} and {npc_names[-1]}.")
 
-            parts.append("Something stirred at the edge of awareness. The story began here.")
+            parts.append(era_atmosphere["hook"])
             paragraph = " ".join(parts)
             text = paragraph
         else:
             # Normal fallback
-            parts = [f"{pov_name} surveyed {loc}."]
+            parts = [f"{pov_name} surveyed {loc}. {era_atmosphere['ambient']}"]
 
             # Add mechanic outcomes as narrative (not raw labels)
             if mechanic_summary and mechanic_summary != "(No mechanical events this turn.)":
@@ -1265,9 +1335,9 @@ class NarratorAgent:
                 psych = state.player.psych_profile or {}
             stress_level = int(psych.get("stress_level", 0) or 0)
             if stress_level > 7:
-                parts.append("The air feels tense.")
+                parts.append(era_atmosphere["tension"])
             elif stress_level < 3:
-                parts.append("The moment is calm, expectant.")
+                parts.append(era_atmosphere["calm"])
 
             paragraph = " ".join(parts)
             text = paragraph

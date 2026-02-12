@@ -15,8 +15,14 @@ export const charName = writable('');
 /** Character gender. */
 export const charGender = writable<'male' | 'female'>('male');
 
-/** Selected era ID. */
+/** Selected era ID (legacy compatibility). */
 export const charEra = writable('REBELLION');
+
+/** Selected setting ID (dynamic catalog). */
+export const charSettingId = writable<string | null>(null);
+
+/** Selected period ID (dynamic catalog). */
+export const charPeriodId = writable<string | null>(null);
 
 /** Selected background (from era pack). */
 export const selectedBackground = writable<EraBackground | null>(null);
@@ -48,6 +54,8 @@ export function resetCreation(): void {
   charName.set('');
   charGender.set('male');
   charEra.set('REBELLION');
+  charSettingId.set(null);
+  charPeriodId.set(null);
   selectedBackground.set(null);
   backgroundAnswers.set({});
   cyoaAnswers.set({});

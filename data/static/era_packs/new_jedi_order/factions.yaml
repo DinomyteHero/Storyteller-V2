@@ -5,108 +5,293 @@ factions:
   - neutral
   home_locations: []
   goals:
-  - "Survive, profit, and avoid becoming collateral in the war."
+  - "Survive, profit, and avoid entanglements in the war."
   metadata:
     flavor: "Unaffiliated operators: freelancers, independents, and those who refuse to pick a side."
-- id: new_republic
-  name: New Republic (Galactic Federation of Free Alliances)
+- id: rebel_alliance
+  name: Alliance to Restore the Republic
   tags:
-  - government
-  - democracy
-  - beleaguered
-  - allied
+  - rebel
+  - alliance
+  - freedom
   home_locations:
-  - loc-coruscant
-  - loc-mon_calamari
+  - loc-yavin_base
+  - loc-hoth_base
+  - loc-home_one
   goals:
-  - Defend the galaxy from the Yuuzhan Vong invasion; hold the line at Mon Calamari and beyond
-  - Maintain unity among squabbling member worlds and species despite panic and defection
-  - Coordinate military defense with the Jedi and the Imperial Remnant—former enemies as allies
-  - Evacuate and protect refugees; prevent total collapse of civilization
-  hostility_matrix:
-    yuuzhan_vong: -100
-    peace_brigade: -80
-    imperial_remnant: 10
-    jedi_order: 20
+  - Restore the Galactic Republic and end Imperial tyranny
+  - Keep the cell network alive through compartmentalization; no one cell knows the whole picture
+  - Steal intel, materiel, and defectors to sustain the fight and win hearts and minds
+  - Strike visible blows—like the Death Star—to prove the Empire can fall
   metadata:
-    flavor: "The Republic that rose from the Rebellion faces extinction. Politics and denial cost Coruscant; now survival demands unity."
-- id: yuuzhan_vong
-  name: Yuuzhan Vong
-  tags:
-  - invader
-  - biotech
-  - fanatical
-  - hostile
-  home_locations:
-  - loc-worldship
-  - loc-yuuzhantar
-  goals:
-  - Conquer the galaxy for the gods; reshape worlds into living offerings (Vongforming)
-  - Exterminate the Jeedai—abominations who wield the Force the gods have rejected
-  - Reject technology and machine-worship; impose devotion, pain, and sacrifice
-  - Use biots, worldships, and voxyn to break the infidel civilization
-  hostility_matrix:
-    new_republic: -100
-    jedi_order: -100
-    imperial_remnant: -100
-    peace_brigade: 0
-  metadata:
-    flavor: "Extragalactic zealots who cannot be felt in the Force. They have already destroyed one galaxy; this one is next."
-- id: jedi_order
-  name: New Jedi Order
-  tags:
-  - jedi
-  - guardians
-  - divided
-  - allied
-  home_locations:
-  - loc-yavin_academy
-  - loc-eclipse
-  goals:
-  - Defend the innocent from the Vong while wrestling with the ethics of total war
-  - Find a way to sense or counter the Vong despite their absence in the Force
-  - Navigate internal schisms—militant vs. philosophical, light vs. dark temptation
-  - Protect the next generation (Anakin, Jaina, Jacen) and the legacy of the Order
-  hostility_matrix:
-    yuuzhan_vong: -100
-    peace_brigade: -60
-    new_republic: 20
-  metadata:
-    flavor: "Luke's Order is tested as never before. The Vong hunt them; the galaxy blames them; some Jedi fall to rage and despair."
-- id: imperial_remnant
-  name: Imperial Remnant (Pellaeon)
+    flavor: "Soldiers, spies, and idealists united by the Declaration of the Rebellion; the Senate's last hope lives in the shadows."
+- id: galactic_empire
+  name: Galactic Empire
   tags:
   - imperial
-  - military
-  - ally
-  home_locations:
-  - loc-bastion
-  goals:
-  - Defend Imperial space from the Vong; hold Bastion and key sectors
-  - Honor the alliance with the New Republic—survival over old grudges
-  - Maintain discipline and order; prove the Remnant can be a partner, not a threat
-  hostility_matrix:
-    yuuzhan_vong: -100
-    new_republic: 10
-    jedi_order: 0
-  metadata:
-    flavor: "Pellaeon's Empire chose the galaxy over the past. The Remnant fights beside the Republic now."
-- id: peace_brigade
-  name: Peace Brigade
-  tags:
-  - collaborator
-  - traitor
   - hostile
+  - authoritarian
+  home_locations:
+  - loc-star_destroyer
+  - loc-death_star
+  - loc-imperial_garrison
+  goals:
+  - "Enforce order through fear: the Death Star and Star Destroyers as symbols of inevitability"
+  - Crush insurgency by identifying and dismantling rebel cells before they metastasize
+  - Protect hyperspace routes, shipyards, and loyal worlds from sabotage and invasion
+  - Hunt the last Jedi and any Force-sensitive threats to the Emperor's rule
+  metadata:
+    flavor: "Palpatine's New Order: humanocentric, militarized, and absolute. Resistance is not merely crushed—it is made unthinkable."
+- id: imperial_intelligence
+  name: Imperial Security Bureau
+  tags:
+  - imperial
+  - intelligence
+  - hostile
+  home_locations:
+  - loc-star_destroyer
+  - loc-occupied_street
+  - loc-black_site
+  goals:
+  - Infiltrate rebel cells, flip informants, and trace funding and supply lines
+  - Run surveillance, interrogation, and re-education to break the Alliance from within
+  - Plant rumors and false leads to force rebel mistakes and expose leadership
+  - Maintain dossiers on dissidents, sympathizers, and potential defectors
+  metadata:
+    flavor: "The Empire's eyes and fists; where the military occupies worlds, the ISB occupies minds."
+- id: underworld
+  name: Criminal Syndicates
+  tags:
+  - criminal
+  - opportunist
+  - neutral
+  home_locations:
+  - loc-cantina
+  - loc-smuggler_den
+  - loc-tatooine
+  goals:
+  - Profit from wartime shortages, blockades, and both sides' need for deniable transport
+  - Control smuggling lanes, bribes, and black-market tech; avoid picking a side officially
+  - Keep violence profitable but contained—war is good for business, total crackdown is not
+  metadata:
+    flavor: "Smugglers, fences, and fixers who thrive in the margins; the Rebellion's lifeline and the Empire's leak."
+- id: hutt_cartel
+  name: Hutt Cartel
+  tags:
+  - criminal
+  - powerful
+  - neutral
+  home_locations:
+  - loc-jabbas_palace
+  - loc-tatooine
+  goals:
+  - "Maintain Hutt dominance in the Outer Rim: spice, slavery, and tribute"
+  - Profit from Empire and Rebellion alike while keeping both at arm's length
+  - Enforce debts and eliminate rivals; a Hutt's word is law in the space they control
+  metadata:
+    flavor: "The Hutts have outlasted Republics and Empires; they deal in credits and power, not ideology."
+- id: local_resistance
+  name: Local Resistance Cells
+  tags:
+  - civilian
+  - rebel
+  - desperate
+  home_locations:
+  - loc-occupied_street
+  - loc-bazaar_market
+  - loc-safe_house
+  goals:
+  - Protect neighborhoods from Imperial crackdowns, informants, and reprisals
+  - Smuggle dissidents and refugees off-world and funnel intel to Alliance cells
+  - Spread sabotage and defiance quietly—graffiti, slow-downs, hidden aid—without drawing the fleet
+  metadata:
+    flavor: "Ordinary beings who refuse to collaborate; the Rebellion's roots in occupied space."
+
+- id: bothan_spynet
+  name: Bothan Spy Network
+  tags:
+  - intelligence
+  - rebel
+  - espionage
+  home_locations:
+  - loc-bothawui_spynet
+  goals:
+  - "Gather intelligence across the galaxy and sell to the highest bidder (usually the Rebellion)"
+  - Infiltrate Imperial networks and turn high-value assets
+  - "Maintain Bothan political influence through information dominance"
+  - "Many Bothans died to bring this information"
+  metadata:
+    flavor: "The galaxy's premier intelligence brokers; they know everyone's secrets and leverage them for Bothan interests."
+
+- id: black_sun
+  name: Black Sun
+  tags:
+  - criminal
+  - syndicate
+  - dangerous
   home_locations:
   - loc-coruscant_underworld
   goals:
-  - Collaborate with the Vong in exchange for survival or favor
-  - Hunt and betray Jedi and refugees for the invaders; sabotage Republic defenses
-  - Profit from the conquest and the galaxy's collapse
-  hostility_matrix:
-    new_republic: -80
-    jedi_order: -80
-    yuuzhan_vong: 20
-    imperial_remnant: -60
+  - Control the galactic underworld through fear, bribery, and assassination
+  - Rival the Hutt Cartel for criminal supremacy
+  - Profit from both sides of the war while eliminating competition
   metadata:
-    flavor: "Traitors who hand the galaxy to the Vong—some for fear, some for profit, all despised."
+    flavor: "Prince Xizor's criminal empire; elegant, deadly, and utterly ruthless."
+
+- id: bounty_hunter_guild
+  name: Bounty Hunter Guild
+  tags:
+  - mercenary
+  - neutral
+  - professional
+  home_locations:
+  - loc-ord_mantell
+  goals:
+  - Regulate bounty contracts and maintain the Bounty Hunter's Code
+  - Provide skilled hunters to Empire, Hutts, and private clients
+  - Protect Guild members from unfair treatment and enforce honor among hunters
+  metadata:
+    flavor: "Professional killers bound by the Code; Boba Fett, Bossk, and IG-88 all answer to Guild contracts."
+
+# ============================================================
+# V2.9 EXPANSION — Faction Relationship Matrix (Cascading Reputation)
+# ============================================================
+
+faction_relationships:
+  # Each faction has relationships with others: -100 (enemy) to +100 (ally)
+  # Cascades define how reputation changes affect other factions
+
+  rebel_alliance:
+    relationships:
+      galactic_empire: -100  # Mortal enemies
+      imperial_intelligence: -100  # Mortal enemies
+      underworld: 20  # Neutral with slight positive (need smugglers)
+      hutt_cartel: -30  # Distrust (slavery and crime)
+      local_resistance: 80  # Strong allies
+      bothan_spynet: 60  # Allies (intelligence sharing)
+      black_sun: -50  # Hostile (crime syndicate)
+      bounty_hunter_guild: -20  # Distrust (hunt Rebels)
+    cascades:
+      galactic_empire: -0.6  # Gain rep with Rebels → lose 60% with Empire
+      imperial_intelligence: -0.6
+      bothan_spynet: 0.2  # Gain rep with Rebels → gain 20% with Bothans
+      local_resistance: 0.3
+
+  galactic_empire:
+    relationships:
+      rebel_alliance: -100  # Mortal enemies
+      imperial_intelligence: 90  # ISB is the Empire's arm
+      underworld: -40  # Suppress but tolerate
+      hutt_cartel: 10  # Tolerate (Outer Rim sovereignty)
+      local_resistance: -80  # Hunt dissidents
+      bothan_spynet: -80  # Hunt spies
+      black_sun: -70  # Crush crime (but Prince Xizor has influence)
+      bounty_hunter_guild: 40  # Hire for contracts
+    cascades:
+      rebel_alliance: -0.6  # Gain rep with Empire → lose 60% with Rebels
+      local_resistance: -0.4
+      bothan_spynet: -0.5
+      underworld: -0.3
+
+  imperial_intelligence:
+    relationships:
+      rebel_alliance: -100
+      galactic_empire: 90
+      underworld: -30  # Infiltrate and monitor
+      hutt_cartel: 0  # Neutral (no jurisdiction in Hutt Space)
+      local_resistance: -90  # Primary targets
+      bothan_spynet: -90  # Spy vs spy
+      black_sun: -60  # Monitor and infiltrate
+      bounty_hunter_guild: 50  # Hire for black ops
+    cascades:
+      rebel_alliance: -0.7
+      local_resistance: -0.5
+
+  underworld:
+    relationships:
+      rebel_alliance: 20
+      galactic_empire: -40
+      imperial_intelligence: -30
+      hutt_cartel: 60  # Allies (criminal partnership)
+      local_resistance: 30  # Sympathetic (both resist Empire)
+      bothan_spynet: 30  # Business (information trading)
+      black_sun: 40  # Rivals but cooperate
+      bounty_hunter_guild: 50  # Hire for jobs
+    cascades:
+      galactic_empire: -0.3
+      hutt_cartel: 0.2
+
+  hutt_cartel:
+    relationships:
+      rebel_alliance: -30
+      galactic_empire: 10
+      imperial_intelligence: 0
+      underworld: 60
+      local_resistance: -10
+      bothan_spynet: 10  # Business (information purchases)
+      black_sun: 30  # Rivals competing for territory
+      bounty_hunter_guild: 70  # Major employers
+    cascades:
+      galactic_empire: 0.1
+      underworld: 0.3
+      bounty_hunter_guild: 0.2
+
+  local_resistance:
+    relationships:
+      rebel_alliance: 80
+      galactic_empire: -80
+      imperial_intelligence: -90
+      underworld: 30
+      hutt_cartel: -10
+      bothan_spynet: 40  # Allies (share intelligence)
+      black_sun: -20  # Distrust crime
+      bounty_hunter_guild: -30  # Distrust mercenaries
+    cascades:
+      rebel_alliance: 0.5
+      galactic_empire: -0.5
+
+  bothan_spynet:
+    relationships:
+      rebel_alliance: 60
+      galactic_empire: -80
+      imperial_intelligence: -90
+      underworld: 30
+      hutt_cartel: 10
+      local_resistance: 40
+      black_sun: 20  # Business (information trading)
+      bounty_hunter_guild: 30  # Hire for wetwork
+    cascades:
+      rebel_alliance: 0.4
+      galactic_empire: -0.6
+
+  black_sun:
+    relationships:
+      rebel_alliance: -50
+      galactic_empire: -70
+      imperial_intelligence: -60
+      underworld: 40
+      hutt_cartel: 30
+      local_resistance: -20
+      bothan_spynet: 20
+      bounty_hunter_guild: 50  # Hire for assassinations
+    cascades:
+      galactic_empire: -0.4
+      underworld: 0.3
+
+  bounty_hunter_guild:
+    relationships:
+      rebel_alliance: -20
+      galactic_empire: 40
+      imperial_intelligence: 50
+      underworld: 50
+      hutt_cartel: 70
+      local_resistance: -30
+      bothan_spynet: 30
+      black_sun: 50
+    cascades: {}  # Neutral profession, no cascades
+
+# Cascade multipliers explanation:
+# - Positive values: Gaining rep with faction X also increases rep with this faction
+# - Negative values: Gaining rep with faction X decreases rep with this faction
+# - Example: +25 with Rebels triggers -0.6 cascade = -15 with Empire
+# - Applied in backend/app/core/ledger.py when faction reputation changes

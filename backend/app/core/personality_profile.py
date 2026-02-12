@@ -369,6 +369,7 @@ def build_scene_personality_context(
     present_npcs: list[dict[str, Any]],
     era_npc_lookup: dict[str, dict[str, Any]] | None = None,
     companion_lookup: dict[str, dict[str, Any]] | None = None,
+    companion_state_lookup: dict[str, dict[str, Any]] | None = None,
     max_npcs: int = 4,
 ) -> str:
     """Build combined personality context for all NPCs in a scene.
@@ -408,6 +409,32 @@ def build_scene_personality_context(
             block = build_personality_block(npc)
 
         if block:
+            state_data = {}
+            if companion_state_lookup:
+                state_data = (
+                    companion_state_lookup.get(npc_id)
+                    or companion_state_lookup.get(npc_name)
+                    or {}
+                )
+            if state_data:
+                try:
+                    influence = int(state_data.get("influence", 0) or 0)
+                    trust = int(state_data.get("trust", 0) or 0)
+                    fear = int(state_data.get("fear", 0) or 0)
+                    respect = int(state_data.get("respect", 0) or 0)
+                except (TypeError, ValueError):
+                    influence = trust = fear = respect = 0
+
+                if influence >= 50 or trust >= 60:
+                    block += "\nCurrent stance: Warm and trusting toward the player."
+                elif influence <= -40 or fear >= 60:
+                    block += "\nCurrent stance: Cold, guarded, and openly hostile toward the player."
+                elif respect >= 60:
+                    block += "\nCurrent stance: Respectful but measured; expects competence."
+
+                if fear >= 70:
+                    block += "\nTension: Speaks cautiously, watching for betrayal or sudden violence."
+
             blocks.append(block)
 
     return "\n\n".join(blocks)

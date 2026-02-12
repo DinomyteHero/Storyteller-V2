@@ -1,0 +1,68 @@
+# Storyteller-V2 Full Stack
+# Usage: docker compose up --build
+#
+# Services:
+#   ollama      - Local LLM inference engine
+#   api         - FastAPI backend (Python)
+#   ui          - SvelteKit frontend
+#
+# Volumes:
+#   ollama_data - Persists downloaded models
+#   app_data    - Persists SQLite DB, LanceDB vectors, era packs
+version: "3.8"
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - STORYTELLER_DB_PATH=/app/data/storyteller.db
+    volumes:
+      - app_data:/app/data
+      - ./data/static:/app/data/static:ro
+    depends_on:
+      - ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health').raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  ui:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+  app_data:

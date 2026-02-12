@@ -15,10 +15,5 @@ meters:
     default: 0
     decay_per_tick: 2
   control_shift:
-    enabled: true
-    cadence_ticks: 6
-    max_delta_per_resolution: 12
-    gate:
-      heat_global_min: 20
-      heat_by_location_min: 10
-    notes: "Control changes are possible but should be the result of sustained pressure (raids, reforms, sabotage), not random churn."
+    enabled: false
+

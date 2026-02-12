@@ -4,7 +4,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from backend.app.config import ENABLE_CHARACTER_FACETS
 from backend.app.core.agents import NarratorAgent
 from backend.app.core.agents.base import AgentLLM
 from backend.app.core.agents.narrator import _extract_npc_utterance
@@ -32,9 +31,25 @@ def _is_high_stakes_combat(state: dict[str, Any]) -> bool:
     return False
 
 
+def _inject_companion_interjection(prose: str, speaker: str, line: str) -> str:
+    """Weave companion banter into prose flow instead of appending a divider block."""
+    text = (prose or "").strip()
+    interjection = f'{speaker} cut in, "{line}"' if speaker else f'"{line}"'
+    if not text:
+        return interjection
+    if "\n\n" in text:
+        head, tail = text.split("\n\n", 1)
+        return f"{head} {interjection}.\n\n{tail}".strip()
+    return f"{text} {interjection}.".strip()
+
+
 def make_narrator_node():
     """Build the Narrator node."""
+    retrieval_guardrails: dict[str, Any] = {}
+
     def lore_retriever(query: str, top_k: int = 6, era: str | None = None, related_npcs: list[str] | None = None):
+        chapter_max = retrieval_guardrails.get("max_chapter_index")
+        source_titles = retrieval_guardrails.get("allowed_sources")
         return retrieve_lore(
             query,
             top_k=top_k,
@@ -42,11 +57,11 @@ def make_narrator_node():
             doc_types=NARRATOR_DOC_TYPES,
             section_kinds=NARRATOR_SECTION_KINDS,
             related_npcs=related_npcs,
+            source_titles=source_titles if isinstance(source_titles, list) and source_titles else None,
+            chapter_index_max=int(chapter_max) if chapter_max is not None else None,
         )
 
     voice_retriever = None
-    if ENABLE_CHARACTER_FACETS:
-        voice_retriever = lambda cids, era, k=6: get_voice_snippets(cids, era, k=k)
 
     def style_retriever_fn(query: str, top_k: int = 3, era_id=None, genre=None, archetype=None):
         return retrieve_style_layered(query, top_k=top_k, era_id=era_id, genre=genre, archetype=archetype)
@@ -73,6 +88,14 @@ def make_narrator_node():
         import logging as _logging
         _narrator_logger = _logging.getLogger(__name__)
         gs = dict_to_state(state)
+        nonlocal retrieval_guardrails
+        campaign_dict_for_guardrails = getattr(gs, "campaign", None) or {}
+        ws_for_guardrails = campaign_dict_for_guardrails.get("world_state_json") if isinstance(campaign_dict_for_guardrails, dict) else {}
+        if not isinstance(ws_for_guardrails, dict):
+            ws_for_guardrails = {}
+        story_position = ws_for_guardrails.get("story_position") if isinstance(ws_for_guardrails, dict) else None
+        guardrails = story_position.get("retrieval_guardrails") if isinstance(story_position, dict) else None
+        retrieval_guardrails = guardrails if isinstance(guardrails, dict) else {}
 
         # --- V2.8: Use shared RAG data from Director if available ---
         shared_char_ctx = state.get("shared_kg_character_context", "")
@@ -99,10 +122,37 @@ def make_narrator_node():
             kg_context = (kg_context + "\n\n## NPC Personalities\n" + shared_personality_ctx) if kg_context else ("## NPC Personalities\n" + shared_personality_ctx)
             _narrator_logger.debug("Narrator using shared NPC personality context from Director")
 
+        # V2.21: Genre flavor injection — adapt prose style to detected genre
+        campaign_dict = getattr(gs, "campaign", None) or {}
+        campaign_ws = campaign_dict.get("world_state_json") if isinstance(campaign_dict, dict) else {}
+        if not isinstance(campaign_ws, dict):
+            campaign_ws = {}
+        active_genre = (campaign_ws.get("genre") or "").strip().lower()
+        if active_genre:
+            from backend.app.constants import GENRE_FLAVOR_DIRECTIVES
+            flavor = GENRE_FLAVOR_DIRECTIVES.get(active_genre)
+            if flavor:
+                genre_block = f"## Genre Guidance ({active_genre})\n{flavor}"
+                kg_context = (kg_context + "\n\n" + genre_block) if kg_context else genre_block
+                _narrator_logger.debug("Narrator using genre flavor: %s", active_genre)
+
+        # V2.21: Narrative guardrails — inject established facts to prevent contradictions
+        narrative_ledger = campaign_ws.get("narrative_ledger") if isinstance(campaign_ws, dict) else None
+        if isinstance(narrative_ledger, dict):
+            facts = (narrative_ledger.get("established_facts") or [])[:5]
+            constraints = (narrative_ledger.get("constraints") or [])[:3]
+            if facts or constraints:
+                guardrail_lines = ["## Narrative Guardrails (DO NOT CONTRADICT)"]
+                for f in facts:
+                    guardrail_lines.append(f"- FACT: {f}")
+                for c in constraints:
+                    guardrail_lines.append(f"- CONSTRAINT: {c}")
+                guardrail_block = "\n".join(guardrail_lines)
+                kg_context = (kg_context + "\n\n" + guardrail_block) if kg_context else guardrail_block
+
         # Episodic memory: use shared from Director if available
         if shared_mem_block:
-            if shared_mem_block:
-                kg_context = (kg_context + "\n\n" + shared_mem_block) if kg_context else shared_mem_block
+            kg_context = (kg_context + "\n\n" + shared_mem_block) if kg_context else shared_mem_block
             _narrator_logger.debug("Narrator using shared episodic memory from Director")
         else:
             # Fallback: run own episodic memory retrieval
@@ -124,7 +174,7 @@ def make_narrator_node():
                     if mem_block:
                         kg_context = (kg_context + "\n\n" + mem_block) if kg_context else mem_block
             except Exception as _epi_err:
-                _narrator_logger.debug("Episodic memory recall failed for Narrator (non-fatal): %s", _epi_err)
+                _narrator_logger.warning("Episodic memory recall failed for Narrator (non-fatal): %s", _epi_err)
         output = narrator.generate(gs, kg_context=kg_context)
         final_text = output.text
 
@@ -156,8 +206,7 @@ def make_narrator_node():
                 # Strip wrapping quotes if present (banter is stored pre-quoted)
                 clean_line = line.strip().strip('"').strip("'").strip()
                 if clean_line:
-                    # Integrate companion banter as a narrative beat, not floating text
-                    final_text = f"{final_text}\n\n---\n\n*{clean_line}*"
+                    final_text = _inject_companion_interjection(final_text, speaker, clean_line)
             campaign = {**campaign, "banter_queue": banter_queue[1:]}
         # V2.15: Narrator produces prose only. Suggestions come from Director node
         # via generate_suggestions(). embedded_suggestions is always None.

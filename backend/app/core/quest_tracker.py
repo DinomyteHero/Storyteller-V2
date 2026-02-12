@@ -129,6 +129,9 @@ def _check_stage_conditions(
     - event_type: an event with this type must exist
     - stage_completed: a previous stage must be completed
     - item_acquired: player must have this item in inventory
+    - flag_equals: world_state["flags"][key] == value
+    - reputation_min/reputation_max: world_state["faction_reputation"][faction] threshold
+    - alignment_min/alignment_max: world_state["alignment"][axis] threshold
     """
     if not conditions:
         return False  # No conditions = can't auto-complete
@@ -168,6 +171,44 @@ def _check_stage_conditions(
     if stage_cond:
         if str(stage_cond) not in completed_stages:
             return False
+
+    # World flag checks
+    flag_cond = conditions.get("flag_equals")
+    if isinstance(flag_cond, dict):
+        flags = world_state.get("flags") if isinstance(world_state.get("flags"), dict) else {}
+        for key, expected in flag_cond.items():
+            if flags.get(key) != expected:
+                return False
+
+    # Reputation gate
+    rep_min = conditions.get("reputation_min")
+    if isinstance(rep_min, dict):
+        faction_rep = world_state.get("faction_reputation") if isinstance(world_state.get("faction_reputation"), dict) else {}
+        for faction, threshold in rep_min.items():
+            if int(faction_rep.get(faction, 0) or 0) < int(threshold):
+                return False
+
+    rep_max = conditions.get("reputation_max")
+    if isinstance(rep_max, dict):
+        faction_rep = world_state.get("faction_reputation") if isinstance(world_state.get("faction_reputation"), dict) else {}
+        for faction, threshold in rep_max.items():
+            if int(faction_rep.get(faction, 0) or 0) > int(threshold):
+                return False
+
+    # Alignment gate
+    align_min = conditions.get("alignment_min")
+    if isinstance(align_min, dict):
+        alignment = world_state.get("alignment") if isinstance(world_state.get("alignment"), dict) else {}
+        for axis, threshold in align_min.items():
+            if int(alignment.get(axis, 0) or 0) < int(threshold):
+                return False
+
+    align_max = conditions.get("alignment_max")
+    if isinstance(align_max, dict):
+        alignment = world_state.get("alignment") if isinstance(world_state.get("alignment"), dict) else {}
+        for axis, threshold in align_max.items():
+            if int(alignment.get(axis, 0) or 0) > int(threshold):
+                return False
 
     # Item acquired
     item_cond = conditions.get("item_acquired")
@@ -273,6 +314,40 @@ class QuestTracker:
             stage_id = current_stage.get("stage_id", f"stage_{qs.current_stage_idx}")
             success_conds = current_stage.get("success_conditions")
 
+            resolution_paths = current_stage.get("resolution_paths") or []
+            if isinstance(resolution_paths, list) and resolution_paths:
+                resolved = False
+                for path in resolution_paths:
+                    if not isinstance(path, dict):
+                        continue
+                    path_success = path.get("success_conditions")
+                    if not _check_stage_conditions(path_success, events, world_state, qs.stages_completed):
+                        continue
+                    path_id = path.get("path_id", "path")
+                    path_label = path.get("label") or path_id
+                    qs.stages_completed.append(f"{stage_id}:{path_id}")
+                    next_idx = path.get("next_stage_idx")
+                    try:
+                        qs.current_stage_idx = int(next_idx) if next_idx is not None else qs.current_stage_idx + 1
+                    except (TypeError, ValueError):
+                        qs.current_stage_idx += 1
+                    notifications.append(f"Objective complete ({path_label}): {current_stage.get('objective', stage_id)}")
+                    logger.info(
+                        "Quest %s stage %s resolved via path %s (turn %d), advancing to stage %d",
+                        quest_id, stage_id, path_id, turn_number, qs.current_stage_idx,
+                    )
+                    resolved = True
+                    break
+
+                if resolved:
+                    if qs.current_stage_idx >= len(stages):
+                        qs.status = QUEST_STATUS_COMPLETED
+                        title = quest_def.get("title", quest_id)
+                        notifications.append(f"Quest completed: {title}")
+                        logger.info("Quest completed: %s (turn %d)", quest_id, turn_number)
+                    updated[quest_id] = qs.to_dict()
+                    continue
+
             if _check_stage_conditions(success_conds, events, world_state, qs.stages_completed):
                 # Stage completed — advance
                 qs.stages_completed.append(stage_id)
@@ -311,8 +386,8 @@ def get_quest_tracker(era: str) -> QuestTracker | None:
     Returns None if no era pack or no quests found.
     """
     try:
-        from backend.app.world.era_pack_loader import get_era_pack
-        pack = get_era_pack(era)
+        from backend.app.content.repository import CONTENT_REPOSITORY
+        pack = CONTENT_REPOSITORY.get_pack(era) if era else None
         if not pack or not pack.quests:
             return None
         quest_dicts = [q.model_dump(mode="json") for q in pack.quests]

@@ -53,6 +53,7 @@ Avoid modern forensic jargon unless appropriate — if the setting supports adva
 ## Sensory Lexicon
 
 ### Sound
+
 - the careful neutrality in a suspect's voice, emotion controlled too tightly
 - the scratch of pen on paper as the detective takes notes, documentation in progress
 - footsteps approaching down a hallway, witness arriving for interview
@@ -62,6 +63,7 @@ Avoid modern forensic jargon unless appropriate — if the setting supports adva
 - muffled conversation behind closed doors, characters talking when they think they are unobserved
 
 ### Sight
+
 - the position and posture of a body, information encoded in death
 - a room disturbed or unnaturally tidy, scene that reveals or conceals
 - a document with a name underlined or crossed out, emphasis as evidence
@@ -71,6 +73,7 @@ Avoid modern forensic jargon unless appropriate — if the setting supports adva
 - bloodstains, distribution pattern suggesting angle and force of attack
 
 ### Smell
+
 - the medicinal or chemical smell of poison, if relevant to method
 - tobacco or perfume lingering in a space, evidence of recent presence
 - the mustiness of old paper, archives and correspondence
@@ -79,6 +82,7 @@ Avoid modern forensic jargon unless appropriate — if the setting supports adva
 - smoke or ash, evidence of something burned and possibly destroyed
 
 ### Touch
+
 - the temperature of a body or cooling object, timeline evidence
 - the texture of a weapon or tool, handling to understand use
 - paper quality of a document, authenticity or forgery assessment

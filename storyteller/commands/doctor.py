@@ -9,9 +9,10 @@ from __future__ import annotations
 import importlib.util
 import os
 import shutil
-import subprocess
 import sys
 from pathlib import Path
+
+from shared.ingest_paths import ingest_root, lancedb_dir, lore_dir, manifests_dir, style_dir, static_dirs
 
 # ANSI helpers (no-op on dumb terminals)
 _COLOR = hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
@@ -57,7 +58,6 @@ def _check_deps() -> list[str]:
         "fastapi", "uvicorn", "pydantic", "yaml", "lancedb",
         "sentence_transformers", "httpx", "pymupdf4llm", "pyarrow",
         "ebooklib", "bs4", "tiktoken", "langchain_core", "langgraph",
-        "streamlit",
     ]
     missing = []
     for mod in required:
@@ -90,15 +90,13 @@ def _check_env_file() -> bool:
 
 
 def _check_data_dirs() -> bool:
-    root = Path.cwd()
-    dirs = ["data", "data/lancedb", "data/lore", "data/style", "data/manifests"]
+    dirs = [ingest_root(), lancedb_dir(), lore_dir(), style_dir(), manifests_dir(), *static_dirs()]
     all_ok = True
-    for d in dirs:
-        p = root / d
+    for p in dirs:
         if p.is_dir():
-            print(_ok(f"Directory: {d}/"))
+            print(_ok(f"Directory: {p}"))
         else:
-            print(_warn(f"Missing directory: {d}/ — will be created by setup"))
+            print(_warn(f"Missing directory: {p} — will be created by setup"))
             all_ok = False
     return all_ok
 
@@ -171,19 +169,19 @@ def _check_models(base_url: str) -> bool:
 
 
 def _check_lancedb_writable() -> bool:
-    db_path = Path.cwd() / "data" / "lancedb"
+    db_path = lancedb_dir()
     if not db_path.exists():
-        print(_warn("data/lancedb/ does not exist yet (created on first ingest)"))
+        print(_warn(f"{db_path} does not exist yet (created on first ingest)"))
         return True
     # Test write
     test_file = db_path / ".doctor_test"
     try:
         test_file.write_text("ok")
         test_file.unlink()
-        print(_ok("data/lancedb/ is writable"))
+        print(_ok(f"{db_path} is writable"))
         return True
     except OSError as e:
-        print(_fail(f"data/lancedb/ not writable: {e}"))
+        print(_fail(f"{db_path} not writable: {e}"))
         return False
 
 

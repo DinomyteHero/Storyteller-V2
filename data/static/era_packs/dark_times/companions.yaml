@@ -1,465 +1,279 @@
-# The Dark Times — Companions (10)
-# Hunted Jedi, clone defector, rebel cell leader, smuggler, spy, padawan, etc.
-
 companions:
-  - id: comp-dt-jedi-survivor
-    name: Kira Voss
-    species: Human
-    gender: female
-    archetype: Hunted Jedi survivor
-    faction_id: jedi_survivors
-    role_in_party: specialist
-    voice_tags: [weary, determined, quiet]
-    motivation: To survive the purge and protect the last caches of Jedi knowledge until a new generation can rise.
-    speech_quirk: Speaks in short sentences; avoids talking about the Temple or Order 66.
-    voice:
-      belief: The light side is not gone—only hidden.
-      wound: She watched her master die on Order 66 and could not save him.
-      taboo: discussing the fall of the Order
-      rhetorical_style: measured
-      tell: Keeps her hand near her concealed weapon.
-    traits:
-      idealist_pragmatic: 20
-      merciful_ruthless: -30
-      lawful_rebellious: 40
-    default_affinity: 5
-    recruitment:
-      unlock_conditions: Encounter her at a Jedi safe house or meditation sanctuary; she joins after the player helps protect a refugee convoy.
-      first_meeting_location: loc-jedi_safe_house
-    tags: [jedi, survivor, force]
-    enables_affordances: [force_sense, heal]
-    blocks_affordances: []
-    influence:
-      starts_at: 5
-      min: -100
-      max: 100
-      triggers:
-        - intent: threaten
-          delta: -3
-        - intent: help
-          delta: 2
-        - meaning_tag: reveal_values
-          delta: 2
-    banter:
-      frequency: normal
-      style: quiet
-      triggers: [jedi, purge, force, sanctuary]
-    personal_quest_id: null
-    metadata:
-      loyalty_hook: Carries survivor's guilt; finds purpose in protecting others.
-      recruitment_context: Found in a safe house, copying holocrons onto data chips.
-      banter_style: quiet
 
-  - id: comp-dt-clone-defector
-    name: Ox
-    species: Human
-    gender: male
-    archetype: Clone commander who refused
-    faction_id: early_resistance
-    role_in_party: soldier
-    voice_tags: [flat, military, earnest]
-    motivation: To atone for Order 66 by helping Jedi and refugees escape the Empire.
-    speech_quirk: Uses clone military jargon; avoids discussing the chip or his former unit.
-    voice:
-      belief: We can choose not to obey.
-      wound: He executed his general; he will never forget.
-      taboo: the inhibitor chip
-      rhetorical_style: blunt
-      tell: Stands at attention when nervous.
-    traits:
-      idealist_pragmatic: 40
-      merciful_ruthless: -20
-      lawful_rebellious: 60
-    default_affinity: 5
-    recruitment:
-      unlock_conditions: Help him escape an Imperial patrol or assist a clone defector network; he offers to join.
-      first_meeting_location: loc-rebel_cell_safe_house
-    tags: [clone, defector, soldier]
-    enables_affordances: [tactics, demolitions]
-    blocks_affordances: []
-    influence:
-      starts_at: 5
-      min: -100
-      max: 100
-      triggers:
-        - intent: threaten
-          delta: -2
-        - intent: help
-          delta: 2
-    banter:
-      frequency: normal
-      style: terse
-      triggers: [clone, Order 66, empire, tactics]
-    personal_quest_id: null
-    metadata:
-      loyalty_hook: Needs to believe his defection matters.
-      recruitment_context: Met at a resistance safe house, helping move refugees.
-      banter_style: terse
+# ── Companion 1: KESSA VANE (Scout / Navigator) ───────────────────
+- id: comp-reb-kessa
+  name: Kessa Vane
+  species: Zabrak
+  gender: female
+  archetype: Alliance scout
+  faction_id: rebel_alliance
+  role_in_party: specialist
+  voice_tags: [earnest, analytical, warm]
+  motivation: To map safe hyperspace routes for Rebel convoys before the Empire shuts them down.
+  speech_quirk: Lists tactical options under her breath before committing to a plan.
+  voice:
+    belief: Every route saved is a hundred lives saved.
+    wound: Lost her entire scouting cell to an Imperial ambush she failed to predict.
+    taboo: Never fly blind into a system without at least two escape vectors.
+    rhetorical_style: analytical
+    tell: Traces invisible star charts on any flat surface while thinking.
+  traits:
+    idealist_pragmatic: 40
+    merciful_ruthless: -20
+    lawful_rebellious: 30
+  default_affinity: 5
+  recruitment:
+    unlock_conditions: Encounter Kessa at a Rebel safe house or spaceport; she offers her services after the player assists with a supply run.
+    first_meeting_location: loc-safe_house
+  tags: [scout, navigator, rebellion]
+  enables_affordances: [astrogation, sensor_sweep]
+  blocks_affordances: []
+  influence:
+    starts_at: 5
+    min: -100
+    max: 100
+    triggers:
+    - intent: threaten
+      delta: -3
+    - intent: help
+      delta: 2
+    - meaning_tag: reveal_values
+      delta: 2
+    - meaning_tag: set_boundary
+      delta: -2
+  banter:
+    frequency: normal
+    style: warm
+    triggers: [hyperspace, navigation, empire, convoy]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Lost her entire scouting cell to an Imperial ambush; hides her guilt behind relentless planning.
+    recruitment_context: Found at a Rebel safe house, plotting hyperspace routes on a cracked datapad.
+    banter_style: warm
+    faction_interest: [Rebel Alliance, Smuggler Network]
 
-  - id: comp-dt-jedi-family
-    name: Maren Cole
-    species: Human
-    gender: female
-    archetype: Jedi family member (untrained Force user)
-    faction_id: jedi_survivors
-    role_in_party: support
-    voice_tags: [young, scared, hopeful]
-    motivation: To find other survivors and learn to use the Force without drawing the Empire's attention.
-    speech_quirk: Mentions her late parent (a Jedi) only when safe; asks about the Force.
-    voice:
-      belief: My parent died for something that still matters.
-      wound: She never got proper training; she doesn't know what she is.
-      taboo: saying her parent's name in the open
-      rhetorical_style: hesitant
-      tell: Clutches a small keepsake when stressed.
-    traits:
-      idealist_pragmatic: 60
-      merciful_ruthless: -40
-      lawful_rebellious: 30
-    default_affinity: 5
-    recruitment:
-      unlock_conditions: Rescue her from Imperial capture or help her reach a safe house; she asks to stay with the party.
-      first_meeting_location: loc-refugee_camp
-    tags: [force_sensitive, refugee, jedi_legacy]
-    enables_affordances: [empathy, lore]
-    blocks_affordances: []
-    influence:
-      starts_at: 5
-      min: -100
-      max: 100
-      triggers:
-        - intent: help
-          delta: 3
-        - meaning_tag: reveal_values
-          delta: 2
-    banter:
-      frequency: high
-      style: young
-      triggers: [force, jedi, family, training]
-    personal_quest_id: null
-    metadata:
-      loyalty_hook: Needs a new family after losing her parent.
-      recruitment_context: Found in a refugee camp, hiding her abilities.
-      banter_style: young
+# ── Companion 2: TORRIN MALK (Soldier / Muscle) ───────────────────
+- id: comp-reb-torrin
+  name: Torrin Malk
+  species: Human
+  gender: male
+  archetype: Rebel shock trooper
+  faction_id: rebel_alliance
+  role_in_party: companion
+  voice_tags: [gruff, loyal, dry_humor]
+  motivation: To make the Empire pay for the village they burned on Lothal when he was twelve.
+  speech_quirk: Ends tense silences with a deadpan observation about the odds of survival.
+  voice:
+    belief: You fight for the people next to you, not the speeches on the holo.
+    wound: Watched Imperial troops raze his village on Lothal; carried his sister out of the fire and swore he would never run again.
+    taboo: Will not leave wounded behind — ever.
+    rhetorical_style: blunt
+    tell: Unconsciously checks his blaster's power cell when he's nervous.
+  traits:
+    idealist_pragmatic: -20
+    merciful_ruthless: 10
+    lawful_rebellious: 20
+  default_affinity: 0
+  recruitment:
+    unlock_conditions: Meet Torrin during a firefight or Imperial encounter; he joins after the player holds the line instead of retreating.
+    first_meeting_location: loc-occupied_street
+  tags: [soldier, combat, rebellion, lothal]
+  enables_affordances: [suppressive_fire, breach_door]
+  blocks_affordances: []
+  influence:
+    starts_at: 0
+    min: -100
+    max: 100
+    triggers:
+    - intent: threaten
+      delta: -1
+    - intent: help
+      delta: 3
+    - meaning_tag: show_courage
+      delta: 3
+    - meaning_tag: abandon_ally
+      delta: -5
+    - meaning_tag: surrender
+      delta: -4
+    - meaning_tag: reveal_values
+      delta: 1
+  banter:
+    frequency: normal
+    style: snarky
+    triggers: [empire, combat, lothal, soldier, blaster]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Carries survivor's guilt from Lothal; covers it with gallows humor and an unshakeable refusal to leave anyone behind.
+    recruitment_context: Found pinned down by stormtroopers in an occupied street, firing back with a grin that says he's been waiting for backup.
+    banter_style: snarky
+    faction_interest: [Rebel Alliance, Local Resistance]
 
-  - id: comp-dt-rebel-leader
-    name: Jax Torin
-    species: Human
-    gender: male
-    archetype: Early resistance cell leader
-    faction_id: early_resistance
-    role_in_party: leader
-    voice_tags: [calm, strategic, tired]
-    motivation: To build a sustainable resistance network that can one day challenge the Empire.
-    speech_quirk: Frames everything in terms of cells, compartments, and long-term survival.
-    voice:
-      belief: We don't have to win today—we have to survive until we can win.
-      wound: He has burned cells to save the network; the guilt never leaves.
-      taboo: naming names or locations in the open
-      rhetorical_style: strategic
-      tell: Always has an exit plan.
-    traits:
-      idealist_pragmatic: 50
-      merciful_ruthless: 10
-      lawful_rebellious: 70
-    default_affinity: 5
-    recruitment:
-      unlock_conditions: Prove yourself to the resistance in a supply run or extraction; he offers a permanent place in the cell.
-      first_meeting_location: loc-rebel_cell_safe_house
-    tags: [rebel, leader, strategist]
-    enables_affordances: [briefing_room, contacts]
-    blocks_affordances: []
-    influence:
-      starts_at: 5
-      min: -100
-      max: 100
-      triggers:
-        - intent: help
-          delta: 2
-        - meaning_tag: set_boundary
-          delta: -2
-    banter:
-      frequency: normal
-      style: calm
-      triggers: [resistance, empire, cell, strategy]
-    personal_quest_id: null
-    metadata:
-      loyalty_hook: Needs people he can trust without compartmentalization.
-      recruitment_context: Cell leader at a safe house, evaluating new contacts.
-      banter_style: calm
+# ── Companion 3: SABLE NOOR (Scoundrel / Slicer) ──────────────────
+- id: comp-reb-sable
+  name: Sable Noor
+  species: Twi'lek
+  gender: female
+  archetype: Underworld slicer
+  faction_id: underworld
+  role_in_party: specialist
+  voice_tags: [sardonic, clever, guarded]
+  motivation: To buy passage off this side of the galaxy and start over somewhere the Empire hasn't touched — but she keeps finding reasons to stay.
+  speech_quirk: Narrates her own actions as though recounting them to an audience, e.g., 'And then Sable did the smart thing for once.'
+  voice:
+    belief: Information is the only currency that never devalues.
+    wound: Sold out by her former crew to the ISB; spent eight months in an Imperial labor camp before slicing her way out.
+    taboo: Refuses to trust anyone who says 'trust me.'
+    rhetorical_style: sardonic
+    tell: Fidgets with a data spike she keeps on a cord around her neck — the one she used to escape the labor camp.
+  traits:
+    idealist_pragmatic: -40
+    merciful_ruthless: -10
+    lawful_rebellious: -30
+  default_affinity: -5
+  recruitment:
+    unlock_conditions: Encounter Sable while she's running a con or slicing a terminal; she joins when the player proves useful enough to keep around — or desperate enough to need her.
+    first_meeting_location: loc-cantina
+  tags: [slicer, hacker, underworld, con_artist]
+  enables_affordances: [slice_terminal, forge_credentials, decrypt]
+  blocks_affordances: [imperial_salute]
+  influence:
+    starts_at: -5
+    min: -100
+    max: 100
+    triggers:
+    - intent: threaten
+      delta: -4
+    - intent: help
+      delta: 1
+    - meaning_tag: clever_solution
+      delta: 3
+    - meaning_tag: naive_trust
+      delta: -2
+    - meaning_tag: reveal_values
+      delta: 2
+    - meaning_tag: betray
+      delta: -6
+  banter:
+    frequency: high
+    style: snarky
+    triggers: [empire, credits, slicing, con, prison, isb, data]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Pretends loyalty is a business transaction; secretly terrified of caring about people who could sell her out again.
+    recruitment_context: Found at a cantina, three steps ahead of an ISB informant and two steps behind on her bar tab.
+    banter_style: snarky
+    faction_interest: [Criminal Syndicates, Smuggler Network]
 
-  - id: comp-dt-imperial-defector
-    name: Lira Vane
-    species: Human
-    gender: female
-    archetype: Imperial officer questioning the regime
-    faction_id: early_resistance
-    role_in_party: specialist
-    voice_tags: [precise, conflicted, quiet]
-    motivation: To undo some of the harm she did as an Imperial and feed intel to the resistance.
-    speech_quirk: Slips into Imperial terminology; corrects herself when she realizes.
-    voice:
-      belief: The Empire is wrong; I have to act on that.
-      wound: She signed orders that sent people to detention or death.
-      taboo: talking about her old unit
-      rhetorical_style: precise
-      tell: Flinches at Imperial uniforms.
-    traits:
-      idealist_pragmatic: 30
-      merciful_ruthless: -30
-      lawful_rebellious: 50
-    default_affinity: 5
-    recruitment:
-      unlock_conditions: Extract her from an Imperial facility or receive her as a defector contact; she joins to atone.
-      first_meeting_location: loc-rebel_cell_safe_house
-    tags: [defector, imperial, intelligence]
-    enables_affordances: [intel, credentials]
-    blocks_affordances: []
-    influence:
-      starts_at: 5
-      min: -100
-      max: 100
-      triggers:
-        - intent: threaten
-          delta: -3
-        - intent: help
-          delta: 2
-    banter:
-      frequency: normal
-      style: reserved
-      triggers: [empire, ISB, defection, intel]
-    personal_quest_id: null
-    metadata:
-      loyalty_hook: Needs to believe her defection saves lives.
-      recruitment_context: Defector who made contact through a secure channel.
-      banter_style: reserved
+# ── Companion 4: VOSS ANDARI (Diplomat / Face) ────────────────────
+- id: comp-reb-voss
+  name: Voss Andari
+  species: Bothan
+  gender: male
+  archetype: Alliance intelligence liaison
+  faction_id: bothan_spynet
+  role_in_party: specialist
+  voice_tags: [measured, perceptive, morally_ambiguous]
+  motivation: To ensure the Bothan Spy Network's sacrifices are not wasted — and that the Alliance remembers who paid the price for every piece of intelligence.
+  speech_quirk: Phrases observations as questions, letting others draw the conclusions he's already reached.
+  voice:
+    belief: The truth is a weapon; the trick is knowing when to fire and when to reload.
+    wound: Ordered an operative into a mission he knew was a trap — necessary for the greater intelligence gain, but her death still visits him at 0300.
+    taboo: Never wastes a life for information he could get another way.
+    rhetorical_style: socratic
+    tell: Smooths his fur when processing new information — the more vigorously, the worse the news.
+  traits:
+    idealist_pragmatic: -30
+    merciful_ruthless: 20
+    lawful_rebellious: -10
+  default_affinity: 0
+  recruitment:
+    unlock_conditions: Encounter Voss during an intelligence operation or at the Bothan spynet; he joins when the player demonstrates they can keep a secret.
+    first_meeting_location: loc-bothawui_spynet
+  tags: [spy, diplomat, intelligence, bothan]
+  enables_affordances: [interrogate, read_deception, encrypt_comms]
+  blocks_affordances: []
+  influence:
+    starts_at: 0
+    min: -100
+    max: 100
+    triggers:
+    - intent: threaten
+      delta: -2
+    - intent: help
+      delta: 1
+    - meaning_tag: strategic_thinking
+      delta: 3
+    - meaning_tag: reckless_action
+      delta: -3
+    - meaning_tag: reveal_values
+      delta: 2
+    - meaning_tag: waste_intelligence
+      delta: -4
+  banter:
+    frequency: low
+    style: stoic
+    triggers: [intelligence, bothan, spy, empire, secrets, sacrifice]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Carries the weight of every operative he's sent to die; justifies it as necessary calculus, but his fur ripples when their names come up.
+    recruitment_context: Found at the Bothan Spy Network hub, reviewing intercepts with the quiet intensity of someone who knows exactly how many lives each data point costs.
+    banter_style: stoic
+    faction_interest: [Bothan Spy Network, Rebel Alliance]
 
-  - id: comp-dt-smuggler-guide
-    name: Verena Cho
-    species: Human
-    gender: female
-    archetype: Smuggler and underground railroad operator
-    faction_id: underworld
-    role_in_party: specialist
-    voice_tags: [wry, fast, streetwise]
-    motivation: To get paid and stay free—and sometimes that means moving refugees and Jedi to safety.
-    speech_quirk: Talks in credits and risk; hides her sympathy behind cynicism.
-    voice:
-      belief: Everyone has a price—including me. Sometimes the price is doing the right thing.
-      wound: She has lost crew to Imperial patrols; she still runs the route.
-      taboo: trusting Imperials
-      rhetorical_style: blunt
-      tell: Always knows the nearest port and the best bribes.
-    traits:
-      idealist_pragmatic: 50
-      merciful_ruthless: 0
-      lawful_rebellious: 60
-    default_affinity: 5
-    recruitment:
-      unlock_conditions: Hire her for a run or help her complete a dangerous delivery; she offers a standing arrangement.
-      first_meeting_location: loc-smuggler_den
-    tags: [smuggler, pilot, underworld]
-    enables_affordances: [transport, astrogation]
-    blocks_affordances: []
-    influence:
-      starts_at: 5
-      min: -100
-      max: 100
-      triggers:
-        - intent: help
-          delta: 2
-        - meaning_tag: reveal_values
-          delta: 1
-    banter:
-      frequency: normal
-      style: wry
-      triggers: [smuggling, empire, refugees, credits]
-    personal_quest_id: null
-    metadata:
-      loyalty_hook: Credits and loyalty both matter; she tests which you value.
-      recruitment_context: Smuggler captain at a den, weighing a new contract.
-      banter_style: wry
-
-  - id: comp-dt-spy-broker
-    name: Kael Vorr
-    species: Bothan
-    gender: male
-    archetype: Spy and information broker
-    faction_id: early_resistance
-    role_in_party: specialist
-    voice_tags: [smooth, knowing, quiet]
-    motivation: To gather and sell intelligence that hurts the Empire and helps the resistance—without getting caught.
-    speech_quirk: Never reveals a source; speaks in implications and half-truths.
-    voice:
-      belief: Information is the only weapon we have that the Empire can't outspend.
-      wound: He has sold information that got people killed—sometimes the right people, sometimes not.
-      taboo: naming sources or methods
-      rhetorical_style: indirect
-      tell: Always checks for listeners.
-    traits:
-      idealist_pragmatic: 40
-      merciful_ruthless: 10
-      lawful_rebellious: 50
-    default_affinity: 5
-    recruitment:
-      unlock_conditions: Complete an intelligence handoff or protect him during a meet; he offers ongoing collaboration.
-      first_meeting_location: loc-underground_cantina
-    tags: [spy, intelligence, bothan]
-    enables_affordances: [slicer, intel]
-    blocks_affordances: []
-    influence:
-      starts_at: 5
-      min: -100
-      max: 100
-      triggers:
-        - intent: threaten
-          delta: -3
-        - meaning_tag: reveal_values
-          delta: 2
-    banter:
-      frequency: normal
-      style: smooth
-      triggers: [intel, ISB, resistance, secrets]
-    personal_quest_id: null
-    metadata:
-      loyalty_hook: Trust is his currency; he needs to know you won't burn him.
-      recruitment_context: Information broker in a cantina back room.
-      banter_style: smooth
-
-  - id: comp-dt-lost-force-user
-    name: Zara
-    species: Twi'lek
-    gender: female
-    archetype: Lost Force user (unaware of heritage)
-    faction_id: jedi_survivors
-    role_in_party: specialist
-    voice_tags: [raw, confused, powerful]
-    motivation: To understand the strange abilities she has always had and find others like her.
-    speech_quirk: Describes Force events in non-Jedi terms—luck, gut feeling, dreams.
-    voice:
-      belief: There is something wrong with me—or something the Empire wants to hide.
-      wound: Her family was killed for hiding her; she doesn't know why.
-      taboo: using her abilities in the open
-      rhetorical_style: raw
-      tell: Sometimes objects move when she's upset.
-    traits:
-      idealist_pragmatic: 50
-      merciful_ruthless: -20
-      lawful_rebellious: 40
-    default_affinity: 5
-    recruitment:
-      unlock_conditions: Rescue her from Inquisitor pursuit or help her control an outburst; she clings to the party.
-      first_meeting_location: loc-refugee_camp
-    tags: [force_sensitive, hunted, untrained]
-    enables_affordances: [force_sense, instinct]
-    blocks_affordances: []
-    influence:
-      starts_at: 5
-      min: -100
-      max: 100
-      triggers:
-        - intent: help
-          delta: 3
-        - meaning_tag: reveal_values
-          delta: 2
-    banter:
-      frequency: high
-      style: raw
-      triggers: [force, jedi, dreams, family]
-    personal_quest_id: null
-    metadata:
-      loyalty_hook: She has never had someone who understood her.
-      recruitment_context: Fugitive in a refugee camp, terrified of her own power.
-      banter_style: raw
-
-  - id: comp-dt-clone-survivor
-    name: Stak
-    species: Human
-    gender: male
-    archetype: Clone trooper survivor (grappling with chip)
-    faction_id: early_resistance
-    role_in_party: soldier
-    voice_tags: [flat, haunted, loyal]
-    motivation: To understand what was done to him and help other clones break free.
-    speech_quirk: Has gaps in his memory around Order 66; avoids discussing it.
-    voice:
-      belief: We were used. We can choose what we do now.
-      wound: He doesn't remember killing his general—only waking up after.
-      taboo: the chip and the blank spots
-      rhetorical_style: blunt
-      tell: Sometimes freezes when he hears a certain order tone.
-    traits:
-      idealist_pragmatic: 30
-      merciful_ruthless: -10
-      lawful_rebellious: 50
-    default_affinity: 5
-    recruitment:
-      unlock_conditions: Help him remove his chip or escape an Imperial reconditioning unit; he joins to protect others.
-      first_meeting_location: loc-survival_bunker
-    tags: [clone, survivor, soldier]
-    enables_affordances: [tactics, endurance]
-    blocks_affordances: []
-    influence:
-      starts_at: 5
-      min: -100
-      max: 100
-      triggers:
-        - intent: help
-          delta: 2
-        - meaning_tag: set_boundary
-          delta: -2
-    banter:
-      frequency: normal
-      style: terse
-      triggers: [clone, chip, Order 66, empire]
-    personal_quest_id: null
-    metadata:
-      loyalty_hook: He needs to believe he is more than his programming.
-      recruitment_context: Clone in a survival bunker, still recovering from chip removal.
-      banter_style: terse
-
-  - id: comp-dt-jedi-padawan
-    name: Ren
-    species: Human
-    gender: male
-    archetype: Jedi Padawan (survived Order 66)
-    faction_id: jedi_survivors
-    role_in_party: specialist
-    voice_tags: [young, earnest, traumatized]
-    motivation: To complete his training in hiding and one day help restore the Order.
-    speech_quirk: Still uses Jedi forms of address; catches himself and goes quiet.
-    voice:
-      belief: My master died so I could live. I have to be worthy of that.
-      wound: He saw his master cut down by clone troopers; he ran.
-      taboo: his master's name and the moment he fled
-      rhetorical_style: earnest
-      tell: Practices forms in private when he thinks no one is watching.
-    traits:
-      idealist_pragmatic: 60
-      merciful_ruthless: -40
-      lawful_rebellious: 30
-    default_affinity: 5
-    recruitment:
-      unlock_conditions: Find him in a safe house or help him recover a holocron; he asks to travel with someone who can protect him.
-      first_meeting_location: loc-jedi_safe_house
-    tags: [jedi, padawan, survivor]
-    enables_affordances: [force_sense, lore]
-    blocks_affordances: []
-    influence:
-      starts_at: 5
-      min: -100
-      max: 100
-      triggers:
-        - intent: help
-          delta: 2
-        - meaning_tag: reveal_values
-          delta: 2
-    banter:
-      frequency: high
-      style: earnest
-      triggers: [jedi, training, master, force]
-    personal_quest_id: null
-    metadata:
-      loyalty_hook: He needs a new master figure—or at least a protector.
-      recruitment_context: Young padawan in a safe house, copying holocrons.
-      banter_style: earnest
+# ── Companion 5: REN CADERA (Medic / Moral Compass) ───────────────
+- id: comp-reb-ren
+  name: Ren Cadera
+  species: Human
+  gender: nonbinary
+  archetype: Field medic and former Imperial physician
+  faction_id: rebel_alliance
+  role_in_party: companion
+  voice_tags: [compassionate, principled, haunted]
+  motivation: To heal the damage the Empire inflicts — starting with the damage they did through Ren's own hands when they served as an Imperial military physician.
+  speech_quirk: Uses medical metaphors for non-medical situations, e.g., 'This plan has a sepsis problem.'
+  voice:
+    belief: Every life matters, even the ones wearing the wrong uniform.
+    wound: Served as an Imperial military physician and discovered the Empire was testing biological weapons on prisoners; defected and carries the guilt of every subject they couldn't save.
+    taboo: Will not allow torture or harm to prisoners, regardless of what intelligence they might hold.
+    rhetorical_style: empathetic
+    tell: Adjusts their medpack straps compulsively when entering a dangerous situation — a ritual from their Imperial service days.
+  traits:
+    idealist_pragmatic: 50
+    merciful_ruthless: -50
+    lawful_rebellious: 10
+  default_affinity: 5
+  recruitment:
+    unlock_conditions: Encounter Ren at a Rebel medbay or field hospital; they join after the player shows respect for an injured enemy or makes a merciful choice.
+    first_meeting_location: loc-yavin_medbay
+  tags: [medic, healer, defector, imperial_past, compassion]
+  enables_affordances: [field_medicine, diagnose, stabilize]
+  blocks_affordances: []
+  influence:
+    starts_at: 5
+    min: -100
+    max: 100
+    triggers:
+    - intent: threaten
+      delta: -3
+    - intent: help
+      delta: 3
+    - meaning_tag: show_mercy
+      delta: 4
+    - meaning_tag: cruelty
+      delta: -5
+    - meaning_tag: torture
+      delta: -8
+    - meaning_tag: reveal_values
+      delta: 2
+    - meaning_tag: protect_innocent
+      delta: 3
+  banter:
+    frequency: normal
+    style: warm
+    triggers: [medicine, healing, empire, defector, prisoner, biological, ethics]
+  personal_quest_id: null
+  metadata:
+    loyalty_hook: Defected from the Empire after discovering biological weapons research on prisoners; carries dual guilt — for what they did and what they failed to stop.
+    recruitment_context: Found in the Rebel medbay, treating a wounded stormtrooper with the same care as an Alliance pilot, and daring anyone to challenge them on it.
+    banter_style: warm
+    faction_interest: [Rebel Alliance, Local Resistance]

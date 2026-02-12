@@ -22,7 +22,6 @@ dependencies = [
     "tiktoken>=0.5.1",
     "langchain-core>=0.2.0,<0.4",
     "langgraph>=0.2.0",
-    "streamlit>=1.28.0",
 ]
 
 [project.optional-dependencies]

@@ -2,7 +2,7 @@
 
 ## Directory Structure (High-Level)
 
-```
+```text
 Storyteller AI/
   backend/                       # FastAPI backend + engine runtime
     main.py                      # FastAPI app wiring (V2)
@@ -40,22 +40,23 @@ Storyteller AI/
         json_reliability.py      # JSON parse + retry + repair utilities
         json_repair.py           # JSON repair heuristics
       db/                        # SQLite schema + migration runner
-        schema.sql               # Base schema
-        migrations/              # Migrations 0001-0018
+        schema.sql               # Reference schema
+        migrations/              # Migrations 0001-0021
+          0001_init.sql          # Core tables (campaigns, characters, inventory, turn_events)
+          0002_add_rendered_turns.sql
+          0003_add_credits.sql
+          0004_living_world.sql  # Objectives table
           0005_knowledge_graph.sql
-          0006_add_campaign_created_at.sql
-          0007_add_campaign_updated_at.sql
-          0008_add_planet.sql
-          0009_add_background.sql
-          0010_add_character_created_at.sql
-          0011_add_character_updated_at.sql
-          0012_add_turn_events_created_at.sql
+          0006-0012_timestamps.sql  # Various created_at/updated_at additions
           0013_add_cyoa_answers.sql
           0014_episodic_memories.sql
           0015_add_gender.sql
           0016_suggestion_cache.sql
           0017_starships.sql
-          0018_player_profiles.sql
+          0018_player_profiles.sql  # Cross-campaign legacy
+          0019_turn_contract_passages.sql  # Passage mode support
+          0020_campaign_turn_versioning.sql  # Turn versioning + world time
+          0021_episodic_memory_embedding.sql  # Memory embeddings
       models/                    # Pydantic models
         state.py                 # GameState, CharacterSheet, ActionSuggestion
         narration.py             # TurnResponse, narration models
@@ -71,9 +72,9 @@ Storyteller AI/
         utils.py                 # RAG utility functions
         style_ingest.py          # Style document ingestion
         _cache.py                # RAG retrieval caching
-      world/                     # Era Packs + deterministic world generation
-        era_pack_loader.py       # Load era pack YAML files
-        era_pack_models.py       # Era pack Pydantic models
+      world/                     # Setting Packs + deterministic world generation
+        setting_pack_loader.py   # Setting pack loader (thin wrapper)
+        era_pack_models.py       # Pack Pydantic models (EraPack for backward compat)
         faction_engine.py        # Deterministic faction engine (no LLM)
         npc_generator.py         # Procedural NPC generation
         npc_renderer.py          # NPC rendering for prompts
@@ -99,23 +100,41 @@ Storyteller AI/
     commands/                    # doctor, setup, dev, ingest, query, extract-knowledge
       extract_knowledge.py       # KG extraction command
 
-  ui/                            # Streamlit UI helpers (API client, components, themes)
   shared/                        # Shared config/cache/schemas for backend + ingestion
     schemas.py                   # Shared Pydantic schemas (WorldSimOutput, etc.)
     config.py                    # Shared configuration
     cache.py                     # Shared caching utilities
     lore_metadata.py             # Lore metadata definitions
-  scripts/                       # Dev/verification helpers (dev.ps1, validate_era_pack.py, verify_lore_store.py, rebuild_lancedb.py)
+
+  scripts/                       # Dev/verification helpers
+    validate_era_pack.py         # Validate single era pack
+    validate_era_packs.py        # Validate all era packs
+    validate_setting_packs.py    # Validate setting packs (future)
+    audit_era_packs.py           # Audit era pack completeness
+    smoke_test.py                # Smoke test for backend
+    smoke_hybrid.py              # Hybrid mode smoke test
+    run_deterministic_tests.py   # Run deterministic tests
+    preflight.py                 # Preflight checks
     extract_sw5e_data.py         # SW5e stat extraction
     ingest_style.py              # Style ingestion script
     split_era_pack.py            # Era pack splitting utility
-    validate_era_pack.py         # Era pack YAML validation
+    rebuild_lancedb.py           # Rebuild vector DB
+    verify_lore_store.py         # Verify lore storage
+
   data/                          # Default runtime data
     companions.yaml              # 108 companion definitions (species/voice_tags/motivation/speech_quirk)
     character_aliases.yml        # Character alias mappings
-    ui_prefs.json                # UI preference defaults
+    era_assignment.csv           # Era to campaign assignments
     static/
-      era_packs/                 # Era pack YAML files (per-era NPCs, factions, locations)
+      era_packs/                 # Era pack YAML files (deterministic world content)
+        _template/               # Reference structure for authoring new packs
+        rebellion/               # Canonical example (Galactic Civil War 0 BBY - 4 ABY)
+          era.yaml, companions.yaml, quests.yaml, meters.yaml, npcs.yaml,
+          namebanks.yaml, factions.yaml, events.yaml, locations.yaml,
+          rumors.yaml, facts.yaml, backgrounds.yaml
+      starships.yaml             # Starship database
+      SETTING_PACK_PROMPT_TEMPLATE.md
+      STYLE_PROMPT_TEMPLATE.md
     style/
       base/                      # Base Star Wars style (always-on Lane 0)
       era/                       # Era-specific style docs
@@ -123,12 +142,8 @@ Storyteller AI/
     lore/                        # Lore source files (EPUB/PDF/TXT)
     manifests/                   # Ingestion manifest files
 
-  streamlit_app.py               # Main Streamlit UI (player HUD)
-  ingestion_app.py               # Streamlit ingestion studio
-  start_dev.bat                  # Windows: start backend + UI (wraps scripts/dev.ps1)
-  start_backend.bat              # Windows: start backend only
-  start_ui.bat                   # Windows: start Streamlit UI only
-  start_ingestion_ui.bat         # Windows: start ingestion studio
+  start_app.bat                  # Windows: unified launcher wrapper (backend + UI)
+  run_app.py                     # Cross-platform launcher with preflight/check modes
 
   README.md                      # Main overview + setup + usage
   QUICKSTART.md                  # Quick setup path
@@ -139,26 +154,36 @@ Storyteller AI/
     architecture.md              # Living World architecture write-up
     user_guide.md                # Player/host guide (time, psychology, tone)
     lore_pipeline_guide.md       # Lore folder structure + ingestion workflow
-    00_overview.md – 09_call_graph.md  # Internal design docs (learning path)
-    archive/                     # Historical references
-      review_2025.md
-      refactor_notes.md
+    00_overview.md – 09_call_graph.md  # Internal design docs (sequential learning path)
+    era_pack_template.md         # Comprehensive era pack template
+    era_pack_schema_reference.md # Era pack schema validation rules
+    era_pack_generation_prompt.md# LLM prompt for automated era pack generation
+    SETTING_PACK_QUICK_REFERENCE.md  # Quick reference for setting packs
+    PACK_AUTHORING.md            # Pack creation guide
+    MIGRATION_FROM_ERA_PACKS.md  # Migration guide (future setting packs)
+    CONTENT_SYSTEM.md            # Content loading system
+    IMPLEMENTATION_PLAN.md       # Implementation roadmap
+    RUNBOOK.md                   # Operations runbook
+    archive/                     # Archived historical documentation (V1, V2.9, V2.20)
+    templates/                   # Template documentation
+      CAMPAIGN_INIT_TEMPLATE.md  # Campaign creation guide
+      DB_SEED_TEMPLATE.md        # Database seeding guide
 ```
 
 ## Entry Points
 
 | Entry Point | File / Command | Purpose |
-|------------|------------------|---------|
-| **Dev stack (recommended)** | `python -m storyteller dev` | Start backend + UI (and try to start Ollama) |
+| ------------ | ------------------ | --------- |
+| **Dev stack (recommended)** | `python run_app.py --dev` | Start backend + UI with preflight checks |
+| **Alternative dev launcher** | `python -m storyteller dev` | Start backend + UI from CLI command |
 | **First-time setup** | `python -m storyteller setup` | Create data dirs + copy `.env` + run health check |
 | **Health check** | `python -m storyteller doctor` | Verify Python/venv/deps/.env/data dirs/Ollama/LanceDB |
 | **API server** | `uvicorn backend.main:app` | Start FastAPI backend |
-| **Streamlit UI** | `streamlit run streamlit_app.py` | Player-facing UI |
-| **Ingestion Studio** | `streamlit run ingestion_app.py` | Local ingestion dashboard |
+| **SvelteKit UI** | `npm run dev` (in `frontend/`) | Player-facing UI |
 | **Flat ingestion** | `python -m ingestion.ingest ...` | TXT/EPUB ingestion (no PDF) |
 | **Hierarchical ingestion** | `python -m ingestion.ingest_lore ...` | PDF/EPUB/TXT parent/child ingestion |
 | **KG extraction** | `python -m storyteller extract-knowledge ...` | Build SQLite KG tables from ingested lore |
-| **Style ingestion** | `python -m backend.app.scripts.ingest_style ...` | Ingest `data/style/` docs |
+| **Style ingestion** | `python scripts/ingest_style.py ...` | Ingest `data/style/` docs |
 
 ## Key Dependency Map (Conceptual)
 

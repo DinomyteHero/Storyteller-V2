@@ -53,6 +53,7 @@ Silence is a strategic move — a character who does not speak when expected to 
 ## Sensory Lexicon
 
 ### Sound
+
 - the rustle of expensive fabric as nobles shift position, wealth audible in textile quality
 - the formal announcement of titles as someone enters court, social positioning through ritual
 - low conversation behind raised fans or hands, secrets exchanged in semi-public
@@ -62,6 +63,7 @@ Silence is a strategic move — a character who does not speak when expected to 
 - the silence after a shocking statement, collective held breath before reaction
 
 ### Sight
+
 - clothing in house colors, political allegiance worn openly through fashion
 - a glance exchanged across the room, entire conversations in a look
 - the order of entrance into a hall, hierarchy made visible through ceremony
@@ -71,6 +73,7 @@ Silence is a strategic move — a character who does not speak when expected to 
 - candlelight reflecting off polished surfaces, wealth displayed through material splendor
 
 ### Smell
+
 - expensive perfumes and oils, scent as marker of wealth and fashion
 - incense in a royal chapel or throne room, atmosphere sacralized through scent
 - wine and elaborate cuisine, feasts as political theater and status display
@@ -78,6 +81,7 @@ Silence is a strategic move — a character who does not speak when expected to 
 - the faint smell of horses and travel on someone just arrived from distant holdings
 
 ### Touch
+
 - the weight of formal clothing, fabric heavy with embroidery and jewels, status as physical burden
 - a hand on the arm that could be reassurance, guidance, or restraint, touch as political act
 - the texture of a document bearing an official seal, power encoded in paper and wax

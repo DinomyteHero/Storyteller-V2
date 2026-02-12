@@ -189,6 +189,11 @@ _MEANING_VERBS: dict[str, list[str]] = {
     "set_boundary": ["threaten", "intimidate", "warn", "reject", "forbid", "block"],
     "pragmatic": ["search", "check", "scan", "wait", "observe", "focus", "plan", "prepare", "move"],
     "deflect": ["slip", "leave", "escape", "joke", "ignore", "shrug", "deflect", "avoid", "retreat"],
+    "offer_alliance": ["join", "alliance", "together", "unite", "side"],
+    "express_doubt": ["doubt", "unsure", "trust", "certain", "sure"],
+    "invoke_authority": ["order", "authority", "command", "rank", "senate"],
+    "show_vulnerability": ["afraid", "scared", "help", "need", "please"],
+    "make_demand": ["demand", "insist", "must", "now", "require"],
 }
 
 

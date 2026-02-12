@@ -1,8 +1,5 @@
-# The Dark Times — Post–Clone Wars (19–0 BBY)
-# Era pack: Jedi Purge, Order 66 aftermath, rise of the Empire.
-
 era_id: DARK_TIMES
-style_ref: data/style/dark_times_style.md
+style_ref: data/style/era/dark_times_style.md
 schema_version: 2
 file_index:
   era: era.yaml
@@ -18,26 +15,53 @@ file_index:
   facts: facts.yaml
   companions: companions.yaml
 start_location_pool:
-  - loc-abandoned_district
-  - loc-refugee_camp
-  - loc-underground_cantina
-  - loc-jedi_safe_house
-  - loc-spaceport_neutral
+- loc-cantina
+- loc-bazaar_market
+- loc-safe_house
+- loc-yavin_base
 global_event_templates: []
 travel_graph: []
 default_scene_pacing: {}
 metadata:
   display_name: The Dark Times
-  time_period: 19–0 BBY (Post–Clone Wars to Rise of Empire)
-  calendar_note: From the fall of the Jedi at Utapau and Order 66 through the early Galactic Empire; the Jedi Purge and the darkest years before the Rebellion.
-  summary: |
-    The Clone Wars have ended in betrayal. Order 66 has turned the Republic's clone armies against the Jedi. The Chancellor has declared himself Emperor, and the Galactic Empire rises on Coruscant. Across the galaxy, surviving Jedi hide in ruins and safe houses, hunted by Inquisitors and the new Imperial machine. Clone troopers become stormtroopers; friends become informants; hope fades into fear. In the shadows, the first resistance cells form—smugglers run refugees to safety, and a few souls dare to preserve what remains of the Jedi legacy. It is an age of trauma, survival, and the slow germination of defiance.
-  tone: Darkness rising; betrayal and trauma; survival and hiding; moral collapse; seeds of resistance.
+  time_period: 19-0 BBY (Legends)
+  calendar_note: From Order 66 to the opening spark of Rebellion.
+  summary: The Republic is dead and the Empire rules by fear. Surviving Jedi are hunted,
+    clone veterans are discarded, and systems submit under garrisons and surveillance.
+    Criminal syndicates and desperate resistance networks thrive in the cracks between
+    Imperial crackdowns. Every act of compassion is dangerous, and every witness might
+    be an informant.
+  tone: Paranoid oppression; clandestine resistance; survival noir.
   key_conflicts:
-    - "Empire vs. Jedi survivors: purge, Inquisitors, and the hunt for Force-sensitives."
-    - "Clone troopers vs. conscience: inhibitor chips, defection, and becoming the new storm."
-    - "Early resistance vs. Imperial control: safe houses, smugglers, and preserved knowledge."
+  - Imperial security state vs. hidden survivors and dissidents.
+  - Jedi fugitives vs. Inquisitors and propaganda machinery.
+  - Local survival economies vs. extractive military occupation.
   themes:
-    - Betrayal and the aftermath of Order 66.
-    - Survival at any cost—Jedi in hiding, refugees, and moral compromise.
-    - Hope fading and tyranny rising; the birth of future rebellion.
+  - Identity under persecution.
+  - Moral courage in small, deniable acts.
+  - Memory of the Republic versus normalization of tyranny.
+setting_rules:
+  setting_name: Star Wars Legends
+  setting_genre: science fantasy
+  biographer_role: a biographer for a Star Wars narrative RPG
+  architect_role: the World Architect for a Star Wars narrative RPG
+  director_role: the Director for an interactive Star Wars story engine
+  suggestion_style: a Star Wars KOTOR-style game
+  common_species:
+  - Human
+  - Twi'lek
+  - Rodian
+  - Wookiee
+  - Zabrak
+  - Bothan
+  - Chiss
+  example_factions:
+  - Rebellion
+  - Empire
+  - Hutt Cartel
+  historical_lore_label: established Star Wars Legends lore
+  bypass_methods:
+  - force
+  - force_dark
+  - sith_amulet
+  fallback_background: A traveler in a vast galaxy.

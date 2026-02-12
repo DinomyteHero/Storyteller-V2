@@ -134,6 +134,8 @@ def _chunk_to_row(chunk: dict, embedding: List[float]) -> dict:
     m = chunk.get("metadata") or {}
     era = m.get("era", "")
     time_period = m.get("time_period", era)  # canonical: store both for backward compat
+    setting_id = m.get("setting_id", "")
+    period_id = m.get("period_id", "") or time_period
     chars = m.get("characters", default_characters())
     related_npcs = m.get("related_npcs") or []
 
@@ -155,6 +157,8 @@ def _chunk_to_row(chunk: dict, embedding: List[float]) -> dict:
         "text": chunk["text"],
         "era": era,
         "time_period": time_period,
+        "setting_id": setting_id,
+        "period_id": period_id,
         "source_type": m.get("source_type", ""),
         "book_title": m.get("book_title", ""),
         "chapter_title": m.get("chapter_title") or "",
@@ -179,6 +183,7 @@ def _chunk_to_row(chunk: dict, embedding: List[float]) -> dict:
         "timeline_start": m.get("timeline_start", ""),
         "timeline_end": m.get("timeline_end", ""),
         "timeline_confidence": m.get("timeline_confidence"),
+        "universe": m.get("universe", ""),
     }
 
 
@@ -199,6 +204,8 @@ class LanceStore:
             pa.field("text", pa.string()),
             pa.field("era", pa.string()),
             pa.field("time_period", pa.string()),
+            pa.field("setting_id", pa.string()),
+            pa.field("period_id", pa.string()),
             pa.field("source_type", pa.string()),
             pa.field("book_title", pa.string()),
             pa.field("chapter_title", pa.string()),
@@ -222,6 +229,7 @@ class LanceStore:
             pa.field("timeline_start", pa.string()),
             pa.field("timeline_end", pa.string()),
             pa.field("timeline_confidence", pa.float32()),
+            pa.field("universe", pa.string()),
         ])
 
     def _ensure_table(self) -> None:
@@ -365,6 +373,9 @@ class LanceStore:
             score = 1.0 - getattr(row, "_distance", 0.0)
             metadata = {
                 "era": getattr(row, "era", ""),
+                "time_period": getattr(row, "time_period", ""),
+                "setting_id": getattr(row, "setting_id", ""),
+                "period_id": getattr(row, "period_id", ""),
                 "source_type": getattr(row, "source_type", ""),
                 "book_title": getattr(row, "book_title", ""),
                 "chapter_title": getattr(row, "chapter_title", ""),
@@ -386,6 +397,9 @@ class LanceStore:
         source: Optional[str] = None,
         doc_type: Optional[str] = None,
         collection: Optional[str] = None,
+        setting_id: Optional[str] = None,
+        period_id: Optional[str] = None,
+        dry_run: bool = False,
     ) -> int:
         """Delete rows matching filter criteria. Returns count of deleted rows.
 
@@ -404,8 +418,14 @@ class LanceStore:
         if collection:
             safe_col = collection.replace("'", "''")
             conditions.append(f"collection = '{safe_col}'")
+        if setting_id:
+            safe_setting = setting_id.replace("'", "''")
+            conditions.append(f"setting_id = '{safe_setting}'")
+        if period_id:
+            safe_period = period_id.replace("'", "''")
+            conditions.append(f"period_id = '{safe_period}'")
         if not conditions:
-            raise ValueError("At least one filter (era, source, doc_type, collection) must be specified")
+            raise ValueError("At least one filter (era, source, doc_type, collection, setting_id, period_id) must be specified")
         where_clause = " AND ".join(conditions)
         # Count before delete
         try:
@@ -413,6 +433,9 @@ class LanceStore:
             count_before = len(df_before)
         except Exception:
             count_before = 0
+        if dry_run:
+            logger.info("Dry-run delete matched filter: %s", where_clause)
+            return count_before
         self.table.delete(where_clause)
         # Count after delete
         try:

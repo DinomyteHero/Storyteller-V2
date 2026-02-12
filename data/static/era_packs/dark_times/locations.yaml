@@ -1,1705 +1,2796 @@
-# The Dark Times — Locations (19–0 BBY)
-# Jedi hideouts, Imperial control, betrayal sites, resistance, corporate. 65 base + 35 sub.
-
 locations:
-  # --- A. Jedi Hideouts & Refugee Sanctuaries ---
-  - id: loc-jedi_safe_house
-    name: Jedi Safe House (Upper Levels)
-    tags:
-      - jedi
-      - safehouse
-      - urban
-      - hidden
-    region: Core Worlds
-    controlling_factions:
-      - jedi_survivors
-    planet: Coruscant
-    description: |
-      A forgotten apartment in the upper levels, behind false walls and a droid-run laundry front. The air is stale; the only light comes from emergency strips. Survivors pass through in silence—no names, no questions. Holocrons and data chips are cached in the walls. Everyone knows it could be burned tomorrow. Trust is the only currency.
-    threat_level: high
-    parent_id: null
-    scene_types:
-      - dialogue
-      - stealth
-      - investigation
-    security:
-      controlling_faction: jedi_survivors
-      security_level: 60
-      patrol_intensity: low
-      inspection_chance: low
-    services:
-      - safehouse
-      - medbay
-    access_points:
-      - id: laundry_entrance
-        type: door
-        visibility: public
-        bypass_methods: []
-      - id: back_vent
-        type: hatch
-        visibility: hidden
-        bypass_methods:
-          - stealth
-          - climb
-    encounter_table:
-      - template_id: jedi_survivor_template
-        weight: 2
-      - template_id: refugee_template
-        weight: 1
-    keywords:
-      - jedi
-      - safehouse
-      - Coruscant
-      - hidden
-    travel_links:
-      - to_location_id: loc-abandoned_district
-      - to_location_id: loc-underground_cantina
-    metadata: {}
+- id: loc-yavin_base
+  name: Yavin 4 Rebel Base
+  tags:
+  - rebel
+  - base
+  - jungle
+  - secure
+  region: Mid Rim
+  controlling_factions:
+  - rebel_alliance
+  planet: Yavin 4
+  description: |
+    The Alliance's secret headquarters hidden deep within the Great Temple—a Massassi ruin rising from the Yavin 4 jungle like a colossal stone fist. The temple's labyrinthine chambers have become the Rebellion's nerve center: a sprawling network of briefing rooms, fighter bays, communications relays, and barracks carved from ancient stone. The air is heavy with humidity and the constant hum of life support systems struggling against the jungle heat. Pilots conduct pre-flight briefings in the war room where holographic star charts glow like dying stars. The base is ruthlessly compartmentalized—pilots rarely know the intelligence officers, strategists avoid contact with demolition squads—a security measure born from the certainty that the Empire will eventually find them. Evacuation protocols hang over every decision: which assets to save, which to destroy, which fighters have been pre-positioned for escape. The jungle itself serves as shield and sentinel—thick vines strangle sensor nets, monsoon rains scramble probe droid trajectories, and the deafening chorus of Yavin's fauna masks the sound of Y-wing engines firing up. Yet for all its defenses, everyone in Yavin Base knows they're living on borrowed time. The Empire learns faster with each passing day.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - briefing_room
+  - medbay
+  - safehouse
+  - market
+  access_points: &id001
+  - id: main_entrance
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+  - id: comms_hatch
+    type: hatch
+    visibility: hidden
+    bypass_methods:
+    - hack
+    - stealth
+  - id: drainage_tunnel
+    type: underground
+    visibility: secret
+    bypass_methods:
+    - climb
+    - sneak
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 3
+  - template_id: imperial_officer
+    weight: 1
+  keywords:
+  - rebel
+  - base
+  - jungle
+  - secure
+  - Mid Rim
+  - Yavin 4
+  - high
+  travel_links:
+  - loc-hoth_base
+  - loc-home_one
+  metadata: {}
 
-  - id: loc-abandoned_district
-    name: Abandoned Industrial District
-    tags:
-      - urban
-      - ruined
-      - hiding
-    region: Core Worlds
-    controlling_factions: []
-    planet: Coruscant
-    description: |
-      Once a Republic factory zone; now power is sporadic and the streets are patrolled by Imperial sweep teams. Refugees and fugitives hide in the shells of old warehouses. The district is a maze of collapsed walkways and sealed tunnels—perfect for those who know the routes and deadly for those who don't.
-    threat_level: high
-    parent_id: null
-    scene_types:
-      - stealth
-      - investigation
-      - combat
-    security:
-      controlling_faction: galactic_empire
-      security_level: 40
-      patrol_intensity: medium
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: main_street
-        type: door
-        visibility: public
-        bypass_methods: []
-      - id: maintenance_tunnel
-        type: underground
-        visibility: hidden
-        bypass_methods:
-          - sneak
-          - climb
-    encounter_table:
-      - template_id: imperial_officer_template
-        weight: 1
-      - template_id: refugee_template
-        weight: 2
-    keywords:
-      - Coruscant
-      - abandoned
-      - industrial
-    travel_links:
-      - to_location_id: loc-jedi_safe_house
-      - to_location_id: loc-imperial_garrison_coruscant
-    metadata: {}
+- id: loc-yavin_throne_room
+  parent_id: loc-yavin_base
+  name: Yavin Throne Room (War Room)
+  tags:
+  - rebel
+  - command
+  - planning
+  region: Mid Rim
+  planet: Yavin 4
+  controlling_factions:
+  - rebel_alliance
+  description: |
+    The Rebellion's beating heart—a cavernous chamber buried within the temple's upper tiers. Ancient Massassi carvings line the walls, depicting ritualistic scenes now overshadowed by flickering holo-displays and tactical maps. Mon Mothma and other Alliance High Command gather here to orchestrate the war: glowing star charts show Imperial positions, rebel supply routes twist across light-years, and red blinking icons mark the locations of fleet elements. The war room's silence is oppressive—only whispered coordination, the click of datapads, and the occasional sharp intake of breath as news arrives of another destroyed cell or captured operative. A hologram projector dominates the center of the chamber, casting shadows that make everyone look older, harder, haunted.
+  threat_level: extreme
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: low
+  services:
+  - briefing_room
+  access_points:
+  - id: main_entrance
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+    - intimidate
+  - id: back_passage
+    type: door
+    visibility: hidden
+    bypass_methods:
+    - hack
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 2
+  keywords:
+  - war_room
+  - command
+  - planning
+  - rebel_leadership
+  metadata: {}
 
-  - id: loc-meditation_sanctuary
-    name: Hidden Meditation Sanctuary
-    tags:
-      - jedi
-      - force
-      - rural
-      - temple
-    region: Outer Rim
-    controlling_factions:
-      - jedi_survivors
-    planet: Unknown
-    description: |
-      An ancient Force nexus concealed in a mountain grove. No technology; only stone, water, and the echo of the Force. Jedi Masters in exile come here to heal and to teach the last padawans in secret. The place is warded by tradition and obscurity—the Empire has not yet found it, but every visitor knows they might be the last.
-    threat_level: moderate
-    parent_id: null
-    scene_types:
-      - dialogue
-      - investigation
-    security:
-      controlling_faction: jedi_survivors
-      security_level: 80
-      patrol_intensity: low
-      inspection_chance: low
-    services:
-      - medbay
-      - safehouse
-    access_points:
-      - id: mountain_path
-        type: door
-        visibility: hidden
-        bypass_methods:
-          - stealth
-    encounter_table:
-      - template_id: jedi_survivor_template
-        weight: 3
-    keywords:
-      - jedi
-      - force
-      - sanctuary
-    travel_links:
-      - to_location_id: loc-ossus_archives_ruin
-      - to_location_id: loc-survival_bunker
-    metadata: {}
+- id: loc-yavin_hangar
+  parent_id: loc-yavin_base
+  name: Yavin Starfighter Hangar
+  tags:
+  - rebel
+  - hangar
+  - flight_ops
+  region: Mid Rim
+  planet: Yavin 4
+  controlling_factions:
+  - rebel_alliance
+  description: |
+    The roar of dying starfighter engines echoes off stone walls that have stood for millennia—now repurposed as a launch bay for X-wings and Y-wings. Maintenance crews swarm over sleek fighters, welding hull breaches, replacing scored canopies, loading torpedo magazines with the precision of a ritual. The air reeks of ozone, burnt metal, and the acrid stench of hyperdrive coolant. Red-painted technicians move with surgical precision, knowing that a misaligned wing strut or a faulty connector could kill a pilot tomorrow. Pilots loiter near their starfighters like anxious parents—some running through pre-flight checklists obsessively, others trying to catch sleep between sorties. The oldest ships bear the scars of three campaigns: blaster scoring, microfractures in the transparisteel, landing gear that no longer fully retracts. Yet they fly. And when they fly, they hurt the Empire.
+  threat_level: high
+  scene_types:
+  - dialogue
+  - investigation
+  - combat
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 80
+    patrol_intensity: medium
+    inspection_chance: low
+  services:
+  - transport
+  - market
+  access_points:
+  - id: main_bay_doors
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+  - id: maintenance_crawlspace
+    type: ventilation
+    visibility: hidden
+    bypass_methods:
+    - stealth
+    - sneak
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 2
+  keywords:
+  - hangar
+  - starfighters
+  - x_wing
+  - y_wing
+  - flight_ops
+  metadata: {}
 
-  - id: loc-ossus_archives_ruin
-    name: Ossus Archives (Relocated Cache)
-    tags:
-      - jedi
-      - archive
-      - ruins
-    region: Outer Rim
-    controlling_factions:
-      - jedi_survivors
-    planet: Ossus
-    description: |
-      What remains of the great Jedi library is scattered—hidden caches in caves and sealed vaults. Loyalists risk their lives to move holocrons and scrolls before Imperial demolition teams arrive. The air is thick with dust and the weight of lost knowledge. Every volume saved is a act of defiance.
-    threat_level: extreme
-    parent_id: null
-    scene_types:
-      - investigation
-      - dialogue
-      - stealth
-    security:
-      controlling_faction: jedi_survivors
-      security_level: 50
-      patrol_intensity: medium
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: cave_mouth
-        type: door
-        visibility: hidden
-        bypass_methods:
-          - stealth
-          - climb
-    encounter_table:
-      - template_id: jedi_survivor_template
-        weight: 1
-      - template_id: imperial_officer_template
-        weight: 2
-    keywords:
-      - Ossus
-      - archive
-      - jedi
-    travel_links:
-      - to_location_id: loc-meditation_sanctuary
-    metadata: {}
+- id: loc-yavin_medbay
+  parent_id: loc-yavin_base
+  name: Yavin Medical Facility
+  tags:
+  - rebel
+  - medical
+  - triage
+  region: Mid Rim
+  planet: Yavin 4
+  controlling_factions:
+  - rebel_alliance
+  description: |
+    Bacta tanks glow with eerie blue light in the humid temple chamber, suspended in the darkness like alien wombs. The Rebellion's medical teams work in organized chaos—triage beds line the walls, emergency surgery kits stand ready, and the smell of bacta and antiseptic mingles with the wet jungle air leaking through cracks in the ancient stone. Medics patch up burned pilots, remove shrapnel from guerrilla fighters, and argue in hushed tones about which wounded to prioritize when bacta supplies run low. The bacta itself is precious beyond measure—every tank represents credits the Rebellion can't spare, smuggled past Imperial inspection. Some wounded recover; others are sent to safe houses to convalesce in hiding. The facility's unofficial motto: "Patch them fast and get them back in the fight—we can't afford to lose anyone."
+  threat_level: moderate
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 70
+    patrol_intensity: medium
+    inspection_chance: low
+  services:
+  - medbay
+  access_points:
+  - id: main_entrance
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+  - id: emergency_exit
+    type: door
+    visibility: hidden
+    bypass_methods:
+    - stealth
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 1
+  keywords:
+  - medical
+  - bacta
+  - triage
+  - wounded
+  metadata: {}
 
-  - id: loc-survival_bunker
-    name: Underground Survival Bunker
-    tags:
-      - jedi
-      - bunker
-      - military
-    region: Mid Rim
-    controlling_factions:
-      - jedi_survivors
-    planet: Unknown
-    description: |
-      A Republic-era emergency bunker, repurposed by survivors. Reinforced doors, recycled air, and a single long-range comm that nobody dares use. Supplies are rationed; trust is rationed harder. When the Empire runs a sweep, everyone goes dark and waits.
-    threat_level: high
-    parent_id: null
-    scene_types:
-      - dialogue
-      - stealth
-    security:
-      controlling_faction: jedi_survivors
-      security_level: 70
-      patrol_intensity: low
-      inspection_chance: low
-    services:
-      - safehouse
-      - medbay
-    access_points:
-      - id: blast_door
-        type: door
-        visibility: hidden
-        bypass_methods:
-          - credential
-          - hack
-    encounter_table:
-      - template_id: jedi_survivor_template
-        weight: 2
-      - template_id: clone_defector_template
-        weight: 1
-    keywords:
-      - bunker
-      - survival
-      - jedi
-    travel_links:
-      - to_location_id: loc-meditation_sanctuary
-      - to_location_id: loc-refugee_camp
-    metadata: {}
+- id: loc-hoth_base
+  name: Echo Base, Hoth
+  tags:
+  - rebel
+  - base
+  - ice
+  - hidden
+  region: Outer Rim
+  controlling_factions:
+  - rebel_alliance
+  planet: Hoth
+  description: |
+    A frozen fortress carved into the ice cliffs of Hoth—Echo Base is the Rebellion's last stand on the edge of oblivion. The installation tunnels deep beneath the planet's surface, protected by layer upon layer of shielded corridors and blast doors. Above ground, the landscape is a white hell: howling winds that strip the flesh from unprotected faces, ice storms that blind probe droids' sensors, and the grinding silence of a world that has never known warmth. The shield generator crouches on the tundra like a predator, its energy dome flickering against the constant battering of Hoth's atmosphere. Inside, the base is a maze of ice-caves and durasteel corridors packed with fighters, transports, armor crews, and the walking ghosts of soldiers who know the Empire has found them. Ion cannons sit ready to claw at Star Destroyers. Snowspeeders are being fueled for dogfights they'll likely lose. General Rieekan coordinates the evacuation—which assets leave first, which troops hold the perimeter, which people die to buy time for the rest. The cold seeps through every wall. Everyone shivers.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  - combat
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - briefing_room
+  - medbay
+  - safehouse
+  access_points: &id008
+  - id: main_entrance
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+  - id: ice_cave_tunnel
+    type: underground
+    visibility: hidden
+    bypass_methods:
+    - climb
+    - sneak
+  - id: emergency_exhaust_port
+    type: ventilation
+    visibility: secret
+    bypass_methods:
+    - stealth
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 3
+  - template_id: stormtrooper_patrol
+    weight: 1
+  keywords:
+  - rebel
+  - base
+  - ice
+  - hidden
+  - Outer Rim
+  - Hoth
+  - high
+  travel_links:
+  - loc-yavin_base
+  - loc-home_one
+  metadata: {}
 
-  - id: loc-refugee_camp
-    name: Refugee Camp (Displaced)
-    tags:
-      - refugee
-      - desperate
-      - civilian
-    region: Mid Rim
-    controlling_factions:
-      - early_resistance
-    planet: Unknown
-    description: |
-      A sprawling camp of makeshift shelters and donated supplies. Families who fled Imperial occupation or Jedi purges cluster here, waiting for passage to safer systems. Smugglers and resistance liaisons move through the crowd; so do informants. Hope and fear exist in equal measure.
-    threat_level: moderate
-    parent_id: null
-    scene_types:
-      - dialogue
-      - investigation
-    security:
-      controlling_faction: early_resistance
-      security_level: 30
-      patrol_intensity: low
-      inspection_chance: medium
-    services:
-      - medbay
-      - briefing_room
-    access_points:
-      - id: main_gate
-        type: door
-        visibility: public
-        bypass_methods: []
-    encounter_table:
-      - template_id: refugee_template
-        weight: 3
-      - template_id: rebel_cell_member_template
-        weight: 1
-    keywords:
-      - refugee
-      - camp
-      - resistance
-    travel_links:
-      - to_location_id: loc-survival_bunker
-      - to_location_id: loc-underground_cantina
-      - to_location_id: loc-smuggler_den
-    metadata: {}
+- id: loc-hoth_throne_room
+  parent_id: loc-hoth_base
+  name: Echo Base Command Center
+  tags:
+  - rebel
+  - command
+  - bunker
+  region: Outer Rim
+  planet: Hoth
+  controlling_factions:
+  - rebel_alliance
+  description: |
+    The frozen nerve center of Echo Base, buried three levels beneath the ice. Holographic displays cast a cold glow over tacticians and officers coordinating the base's defense against the Imperial assault. The ice-carved walls are reinforced with durasteel plating, and blast shields hang ready to seal the chamber if the outer defenses fail. A wall of screens shows sensor data—Star Destroyer positions slowly converging on the base, snowspeeder locations, shield generator status. The air is still and cold, preserved by advanced climate control struggling against Hoth's relentless freeze. Everyone knows this is a holding action. The question isn't whether the Imperials will break through—it's how many will survive evacuation.
+  threat_level: extreme
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: low
+  services:
+  - briefing_room
+  access_points:
+  - id: main_corridor
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+  - id: maintenance_tunnel
+    type: ventilation
+    visibility: hidden
+    bypass_methods:
+    - hack
+    - stealth
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 2
+  keywords:
+  - command_center
+  - echo_base
+  - defense
+  - evacuation
+  metadata: {}
 
-  # --- B. Imperial Rise & Control ---
-  - id: loc-imperial_palace
-    name: Imperial Palace, Coruscant
-    tags:
-      - imperial
-      - palace
-      - command
-    region: Core Worlds
-    controlling_factions:
-      - galactic_empire
-    planet: Coruscant
-    description: |
-      The former Jedi Temple and Republic center, now the heart of the Empire. The Emperor rules from the highest spires; below, the military and the ISB coordinate the purge. The halls are cold, grey, and crawling with stormtroopers and officers. No one here speaks of the Jedi except as targets.
-    threat_level: extreme
-    parent_id: null
-    scene_types:
-      - dialogue
-      - stealth
-      - investigation
-    security:
-      controlling_faction: galactic_empire
-      security_level: 95
-      patrol_intensity: high
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: main_entrance
-        type: door
-        visibility: public
-        bypass_methods:
-          - credential
-      - id: service_corridor
-        type: door
-        visibility: restricted
-        bypass_methods:
-          - stealth
-          - deception
-    encounter_table:
-      - template_id: imperial_officer_template
-        weight: 2
-      - template_id: isb_agent_template
-        weight: 1
-    keywords:
-      - Coruscant
-      - Imperial
-      - Palace
-    travel_links:
-      - to_location_id: loc-isb_headquarters
-      - to_location_id: loc-imperial_academy
-    metadata: {}
+- id: loc-hoth_hangar
+  parent_id: loc-hoth_base
+  name: Echo Base Vehicle Hangar
+  tags:
+  - rebel
+  - hangar
+  - snowspeeders
+  region: Outer Rim
+  planet: Hoth
+  controlling_factions:
+  - rebel_alliance
+  description: |
+    Rowdy engines and the metallic scrape of snowspeeder wings echo off the ice chamber walls. Pilots in heavily insulated flight suits perform pre-flight checks on their speedy, vulnerable craft—fast enough to toy with AT-ATs but fragile as starship glass. The hangar is a study in controlled desperation: fuel lines freeze mid-drip, harpoon cables are coiled carefully to prevent brittleness, targeting computers struggle against electromagnetic interference from Hoth's magnetic fields. Luke Skywalker and other elite pilots gather here before each patrol, knowing that today might be the day they don't come back.
+  threat_level: high
+  scene_types:
+  - dialogue
+  - investigation
+  - combat
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 75
+    patrol_intensity: high
+    inspection_chance: low
+  services:
+  - transport
+  access_points:
+  - id: main_bay
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 2
+  keywords:
+  - hangar
+  - snowspeeder
+  - patrol
+  - vehicle
+  metadata: {}
 
-  - id: loc-imperial_palace_sanctum
-    parent_id: loc-imperial_palace
-    name: Emperor's Private Sanctum
-    tags:
-      - imperial
-      - sith
-      - forbidden
-    region: Core Worlds
-    planet: Coruscant
-    controlling_factions:
-      - galactic_empire
-    description: |
-      The innermost chamber where the Emperor conducts his darkest councils. The dark side hangs in the air like smoke. Few leave this room unchanged; fewer leave at all.
-    threat_level: extreme
-    scene_types:
-      - dialogue
-    security:
-      controlling_faction: galactic_empire
-      security_level: 100
-      patrol_intensity: high
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: inner_door
-        type: door
-        visibility: restricted
-        bypass_methods:
-          - credential
-    encounter_table: []
-    keywords:
-      - Emperor
-      - sanctum
-    travel_links:
-      - to_location_id: loc-imperial_palace
-    metadata: {}
+- id: loc-home_one
+  name: Home One (Mon Calamari Flagship)
+  tags:
+  - rebel
+  - flagship
+  - command
+  - mobile
+  region: Mobile
+  controlling_factions:
+  - rebel_alliance
+  planet: null
+  description: |
+    Admiral Ackbar's Mon Calamari cruiser rises from the void like a living thing—all organic curves and hardened coral-durasteel, the flagship of the Rebel Alliance. At over 1,200 meters long, Home One serves as the mobile capital of the Rebellion, carrying the Supreme Commander and the fleet's strategic leadership. The bridge hums with constant activity as tactical officers coordinate starfighter wings and strike groups across entire sectors. Corridors branch into officer quarters, tactical briefing rooms, and communications relays that reach across the galaxy—each message encrypted, each transmission risking discovery. The ship itself is a statement of defiance: built not as a weapon of conquest but as a platform for hope, its medical bays packed with bacta tanks, its cargo holds stuffed with supplies for desperate resistance cells. The crew are hand-picked volunteers who know they ride the most hunted vessel in the galaxy—if the Empire finds Home One, they all die. Ackbar's quarters overlook the void of space, and his tactical maps show the slow contraction of the Rebellion's territory, the Empire's methodical choking of rebel supply lines, the clock counting down. Yet the Admiral remains composed, planning for tomorrow because the Rebellion cannot afford despair.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - briefing_room
+  - transport
+  - safehouse
+  - medbay
+  access_points: &id007
+  - id: docking_bay
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+  - id: maintenance_hatch
+    type: hatch
+    visibility: restricted
+    bypass_methods:
+    - hack
+    - stealth
+  - id: emergency_airlock
+    type: door
+    visibility: secret
+    bypass_methods:
+    - disable
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 3
+  keywords:
+  - rebel
+  - flagship
+  - command
+  - mobile
+  - home_one
+  - mon_calamari
+  - high
+  travel_links:
+  - loc-yavin_base
+  - loc-hoth_base
+  metadata: {}
 
-  - id: loc-imperial_academy
-    name: Imperial Academy (Officer Training)
-    tags:
-      - imperial
-      - military
-      - training
-    region: Core Worlds
-    controlling_factions:
-      - galactic_empire
-    planet: Coruscant
-    description: |
-      The new officer corps is forged here—loyalty drills, tactics, and ideological indoctrination. Cadets learn that the Jedi were traitors and that the Empire is order. The curriculum leaves no room for doubt.
-    threat_level: high
-    parent_id: null
-    scene_types:
-      - dialogue
-      - investigation
-    security:
-      controlling_faction: galactic_empire
-      security_level: 80
-      patrol_intensity: high
-      inspection_chance: medium
-    services: []
-    access_points:
-      - id: main_gate
-        type: gate
-        visibility: public
-        bypass_methods:
-          - credential
-          - deception
-    encounter_table:
-      - template_id: imperial_officer_template
-        weight: 2
-    keywords:
-      - academy
-      - imperial
-      - training
-    travel_links:
-      - to_location_id: loc-imperial_palace
-      - to_location_id: loc-stormtrooper_barracks
-    metadata: {}
+- id: loc-home_one_bridge
+  parent_id: loc-home_one
+  name: Home One Bridge
+  tags:
+  - rebel
+  - command
+  - flagship
+  region: Mobile
+  controlling_factions:
+  - rebel_alliance
+  description: |
+    The bridge of Home One is a cathedral of command—a vast, curved chamber where Admiral Ackbar orchestrates the entire Rebel fleet from a single command throne. Holographic displays fill the space with tactical data: Imperial positions, rebel assets, hyperspace routes, and the slow dance of fleet movements. Officers work in synchronized precision, each one responsible for a slice of the Alliance's military apparatus. The viewscreens show nothing but the black void of space, yet the weight of responsibility fills the air more densely than any atmosphere. Ackbar's montrals twitch constantly, processing information, calculating odds that shift minute by minute.
+  threat_level: extreme
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 95
+    patrol_intensity: high
+    inspection_chance: low
+  services:
+  - briefing_room
+  access_points:
+  - id: main_entrance
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+    - intimidate
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 1
+  keywords:
+  - bridge
+  - flagship
+  - command
+  - ackbar
+  metadata: {}
 
-  - id: loc-stormtrooper_barracks
-    name: Stormtrooper Barracks
-    tags:
-      - imperial
-      - military
-      - clone
-    region: Core Worlds
-    controlling_factions:
-      - galactic_empire
-    planet: Coruscant
-    description: |
-      Where clone troopers are retrained as stormtroopers—new armor, new loyalty, same faces. Some units still carry the designation of the legions that executed Order 66. The halls smell of polish and repressed memory.
-    threat_level: high
-    parent_id: null
-    scene_types:
-      - dialogue
-      - combat
-    security:
-      controlling_faction: galactic_empire
-      security_level: 85
-      patrol_intensity: high
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: checkpoint
-        type: gate
-        visibility: public
-        bypass_methods:
-          - credential
-    encounter_table:
-      - template_id: clone_trooper_template
-        weight: 3
-    keywords:
-      - stormtrooper
-      - clone
-      - imperial
-    travel_links:
-      - to_location_id: loc-imperial_academy
-      - to_location_id: loc-imperial_garrison_coruscant
-    metadata: {}
+- id: loc-star_destroyer
+  name: Imperial Star Destroyer
+  tags:
+  - imperial
+  - warship
+  - command
+  - hostile
+  region: Mobile
+  controlling_factions:
+  - galactic_empire
+  - imperial_intelligence
+  planet: null
+  description: |
+    A mile of durasteel and terror cuts through space—the Imperial-class Star Destroyer is the Empire's instrument of absolute authority. From its wedge-shaped bridge, Imperial commanders coordinate the suppression of rebellion across entire sectors. The hangar bays contain dozens of TIE fighters, sleek and deadly. The tractor beam arrays snare fleeing starships like insects in a web. The detention blocks house political prisoners, rebel captives, and dissidents marked for "re-education." The interrogation chambers run day and night, staffed by ISB specialists and torture droids designed to extract secrets from minds before extracting life. Stormtrooper garrisons fill the barracks—anonymous soldiers of the New Order, each one identical, each one deadly. To be captured and brought aboard a Star Destroyer is to disappear into the machine of the Empire. Escape is nearly impossible. Survival itself becomes an act of rebellion.
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - combat
+  - stealth
+  security:
+    controlling_faction: imperial_intelligence
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services:
+  - briefing_room
+  access_points:
+  - id: main_docking_port
+    type: door
+    visibility: public
+    bypass_methods: []
+  - id: cargo_bay_airlock
+    type: door
+    visibility: restricted
+    bypass_methods:
+    - credential
+    - bribe
+  - id: ventilation_mainline
+    type: ventilation
+    visibility: hidden
+    bypass_methods:
+    - stealth
+    - disable
+  encounter_table:
+  - template_id: imperial_officer
+    weight: 2
+  - template_id: isb_agent
+    weight: 2
+  - template_id: stormtrooper_patrol
+    weight: 3
+  keywords:
+  - imperial
+  - warship
+  - command
+  - hostile
+  - Mobile
+  - extreme
+  - star_destroyer
+  travel_links: []
+  metadata: {}
 
-  - id: loc-isb_headquarters
-    name: ISB Headquarters
-    tags:
-      - imperial
-      - intelligence
-      - hostile
-    region: Core Worlds
-    controlling_factions:
-      - imperial_intelligence
-    planet: Coruscant
-    description: |
-      The nerve center of the Emperor's secret police. Dossiers on Jedi survivors, sympathizers, and potential defectors fill the archives. Interrogation cells run day and night. No one enters without clearance; no one leaves without being noted.
-    threat_level: extreme
-    parent_id: null
-    scene_types:
-      - dialogue
-      - stealth
-      - investigation
-    security:
-      controlling_faction: imperial_intelligence
-      security_level: 95
-      patrol_intensity: high
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: main_entrance
-        type: door
-        visibility: public
-        bypass_methods:
-          - credential
-      - id: records_wing
-        type: door
-        visibility: restricted
-        bypass_methods:
-          - hack
-          - stealth
-    encounter_table:
-      - template_id: isb_agent_template
-        weight: 2
-      - template_id: imperial_officer_template
-        weight: 1
-    keywords:
-      - ISB
-      - intelligence
-      - Coruscant
-    travel_links:
-      - to_location_id: loc-imperial_palace
-    metadata: {}
+- id: loc-star_destroyer_detention
+  parent_id: loc-star_destroyer
+  name: Star Destroyer Detention Block
+  tags:
+  - imperial
+  - prison
+  - interrogation
+  region: Mobile
+  controlling_factions:
+  - imperial_intelligence
+  description: |
+    Deep in the Star Destroyer's bowels, the detention block awaits political prisoners, Rebel captives, and other subjects of Imperial interest. Carbon-reinforced walls contain energy-shielded cells the size of coffins. Interrogation rooms are soundproofed and equipped with every device the Empire's sadism could engineer. Prisoners are kept deliberately disoriented—no day/night cycle, meals at random intervals, isolation broken by sudden interrogation sessions. The walls echo with screams that no one else can hear. An ISB agent named Bravis oversees the block, a clinical specialist in "information extraction." He views prisoners as puzzles to be solved, information to be mined. The moment a prisoner has given everything they know, they're executed and replaced with the next asset requiring ISB attention.
+  threat_level: extreme
+  scene_types:
+  - dialogue
+  - investigation
+  - combat
+  security:
+    controlling_faction: imperial_intelligence
+    security_level: 95
+    patrol_intensity: constant
+    inspection_chance: constant
+  services: []
+  access_points:
+  - id: cell_block_entrance
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+    - hack
+  - id: emergency_pressure_relief
+    type: ventilation
+    visibility: secret
+    bypass_methods:
+    - disable
+  encounter_table:
+  - template_id: imperial_officer
+    weight: 1
+  - template_id: isb_agent
+    weight: 2
+  - template_id: stormtrooper_patrol
+    weight: 2
+  keywords:
+  - prison
+  - interrogation
+  - detention
+  - torture
+  metadata: {}
 
-  - id: loc-imperial_garrison_coruscant
-    name: Imperial Garrison (Coruscant Sector)
-    tags:
-      - imperial
-      - military
-      - checkpoint
-    region: Core Worlds
-    controlling_factions:
-      - galactic_empire
-    planet: Coruscant
-    description: |
-      A sector garrison enforcing curfews and running sweeps. Checkpoints at every major thoroughfare; stormtroopers and officers process detainees and track movement. The occupation is methodical and brutal.
-    threat_level: high
-    parent_id: null
-    scene_types:
-      - combat
-      - stealth
-      - dialogue
-    security:
-      controlling_faction: galactic_empire
-      security_level: 70
-      patrol_intensity: high
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: checkpoint
-        type: gate
-        visibility: public
-        bypass_methods:
-          - credential
-          - bribe
-          - deception
-    encounter_table:
-      - template_id: imperial_officer_template
-        weight: 1
-      - template_id: clone_trooper_template
-        weight: 2
-    keywords:
-      - garrison
-      - Coruscant
-      - imperial
-    travel_links:
-      - to_location_id: loc-abandoned_district
-      - to_location_id: loc-stormtrooper_barracks
-    metadata: {}
+- id: loc-death_star
+  name: Death Star Battle Station
+  tags:
+  - imperial
+  - superweapon
+  - fortress
+  - extreme
+  region: Mobile
+  controlling_factions:
+  - galactic_empire
+  planet: null
+  description: |
+    The Emperor's ultimate symbol of order—a moon-sized battle station whose surface is a patchwork of weapon turrets, shield generators, and tractor beam arrays. The Death Star's superlaser is capable of destroying entire worlds in a single shot, turning populated planets into cosmic dust. Grand Moff Tarkin commands the station with absolute authority, enforcing discipline through fear and executing officers who disappoint him. The station's interior is a nightmare of scale—detention levels, thermal tractor controls, targeting computers managing a firepower that surpasses entire rebel fleets. The first Death Star fell at Yavin, a catastrophic failure of Imperial engineering that nearly broke the Emperor's iron grip. But the second takes shape in secret, a monument to the Empire's boundless resources and the Rebellion's impossible task. To be assigned to the Death Star is to live in the shadow of potential execution—one mistake, one moment of insufficient loyalty, and a single blaster bolt erases you from the galaxy's memory. The station itself is a fortress that can't be conquered conventionally. It can only be destroyed from within.
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - combat
+  - stealth
+  security:
+    controlling_faction: galactic_empire
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points: []
+  encounter_table:
+  - template_id: imperial_officer
+    weight: 2
+  - template_id: isb_agent
+    weight: 1
+  - template_id: stormtrooper_patrol
+    weight: 2
+  keywords:
+  - imperial
+  - superweapon
+  - fortress
+  - extreme
+  - Mobile
+  - death_star
+  travel_links: []
+  metadata: {}
 
-  - id: loc-501st_barracks
-    parent_id: loc-stormtrooper_barracks
-    name: 501st Legion Barracks
-    tags:
-      - imperial
-      - clone
-      - vader
-    region: Core Worlds
-    planet: Coruscant
-    controlling_factions:
-      - galactic_empire
-    description: |
-      The legion that marched on the Temple. Bunks are neat, gear is perfect, and no one talks about what they did. Lord Vader's fist—loyal to the end.
-    threat_level: extreme
-    scene_types:
-      - dialogue
-      - combat
-    security:
-      controlling_faction: galactic_empire
-      security_level: 90
-      patrol_intensity: high
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: door
-        type: door
-        visibility: restricted
-        bypass_methods:
-          - credential
-    encounter_table:
-      - template_id: clone_trooper_template
-        weight: 3
-    keywords:
-      - 501st
-      - Vader
-    travel_links:
-      - to_location_id: loc-stormtrooper_barracks
-    metadata: {}
+- id: loc-imperial_garrison
+  name: Imperial Garrison
+  tags:
+  - imperial
+  - military
+  - checkpoint
+  region: Outer Rim
+  controlling_factions:
+  - galactic_empire
+  planet: Lothal
+  description: |
+    Occupied worlds live under the garrison: checkpoints at every spaceport, curfews enforced by automated systems, and the constant presence of stormtroopers and AT-ATs stalking the streets. Garrison commanders run their territory with iron-fisted bureaucracy—every citizen registered, every movement tracked, every whispered rumor reported to ISB liaisons. The garrison itself is a fortress of prefabricated Imperial architecture: shield generators, patrol flyers, detention cells, and armory bunkers. Local resistance simmers in the streets of occupied cities, expressed through small acts of defiance—graffiti, sabotage, harboring fugitives. The garrison commander knows the resistance exists but can't crush it without destroying the world's economic productivity. It's a slow, brutal occupation that grinds down both occupiers and occupied until only compliance remains.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - combat
+  - stealth
+  - investigation
+  security:
+    controlling_faction: galactic_empire
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services: []
+  access_points: &id003
+  - id: main_checkpoint
+    type: gate
+    visibility: public
+    bypass_methods:
+    - credential
+    - deception
+    - bribe
+  - id: service_entrance
+    type: door
+    visibility: restricted
+    bypass_methods:
+    - stealth
+    - sneak
+  - id: water_treatment_tunnel
+    type: underground
+    visibility: hidden
+    bypass_methods:
+    - climb
+    - disable
+  encounter_table:
+  - template_id: imperial_officer
+    weight: 1
+  - template_id: isb_agent
+    weight: 1
+  - template_id: stormtrooper_patrol
+    weight: 2
+  keywords:
+  - imperial
+  - military
+  - checkpoint
+  - Outer Rim
+  - Lothal
+  - moderate
+  - occupation
+  travel_links:
+  - loc-occupied_street
+  metadata: {}
 
-  # --- C. Betrayal & Conflict Sites ---
-  - id: loc-utapau_sinkhole
-    name: Utapau Sinkhole (Battle Aftermath)
-    tags:
-      - battlefield
-      - betrayal
-      - clone_wars
-    region: Outer Rim
-    controlling_factions:
-      - galactic_empire
-    planet: Utapau
-    description: |
-      The sinkhole where the Clone Wars effectively ended. Wreckage and abandoned equipment still litter the depths. Order 66 was executed here; the clones who did it have long since been reassigned. The locals avoid the site. The Empire uses it as a reminder.
-    threat_level: high
-    parent_id: null
-    scene_types:
-      - investigation
-      - dialogue
-    security:
-      controlling_faction: galactic_empire
-      security_level: 50
-      patrol_intensity: medium
-      inspection_chance: medium
-    services: []
-    access_points:
-      - id: descent
-        type: door
-        visibility: public
-        bypass_methods: []
-    encounter_table:
-      - template_id: imperial_officer_template
-        weight: 1
-      - template_id: refugee_template
-        weight: 1
-    keywords:
-      - Utapau
-      - Order 66
-      - betrayal
-    travel_links:
-      - to_location_id: loc-order66_temple_ruin
-    metadata: {}
+- id: loc-cantina
+  name: Mos Eisley Cantina
+  tags:
+  - cantina
+  - underworld
+  - social
+  - dangerous
+  region: Outer Rim
+  controlling_factions:
+  - underworld
+  planet: Tatooine
+  description: |
+    A wretched hive of scum and villainy—the Mos Eisley Cantina is where the galaxy's dregs congregate to drink, deal, and forget. Pilots, smugglers, bounty hunters, refugees, and fugitives pack the smoke-filled common room, barely acknowledging each other through mutual agreement not to ask questions. The music is discordant and loud, drowning out conversations that could get people killed if overheard. The Empire rarely bothers with the Outer Rim's cantinas, which makes them the Rebellion's unofficial recruiting grounds and the ISB's unofficial hunting grounds. The bartender knows everyone's business and tells no one—an arrangement that has kept him alive longer than most in a business measured in graveyards. Duels are fought in the dust outside when deals go bad. No droids, no questions, no guarantees.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  - stealth
+  security:
+    controlling_faction: underworld
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - arms_dealer
+  - bounty_board
+  - slicer
+  - cantina
+  access_points:
+  - id: front_entrance
+    type: door
+    visibility: public
+    bypass_methods: []
+  - id: back_room
+    type: door
+    visibility: restricted
+    bypass_methods:
+    - bribe
+    - charm
+  - id: service_exit
+    type: door
+    visibility: hidden
+    bypass_methods:
+    - stealth
+  encounter_table:
+  - template_id: bounty_hunter
+    weight: 2
+  - template_id: smuggler
+    weight: 1
+  keywords:
+  - cantina
+  - underworld
+  - social
+  - dangerous
+  - Outer Rim
+  - Tatooine
+  - moderate
+  travel_links:
+  - loc-bazaar_market
+  - loc-cargo_docks
+  metadata: {}
 
-  - id: loc-order66_temple_ruin
-    name: Ruined Jedi Temple (Order 66 Site)
-    tags:
-      - jedi
-      - ruins
-      - massacre
-    region: Mid Rim
-    controlling_factions: []
-    planet: Unknown
-    description: |
-      A regional Jedi outpost that fell during Order 66. The walls are scorched; the bodies were removed long ago. Survivors sometimes come to leave offerings or to search for holocrons. The Empire has declared the site off-limits and occasionally sweeps it for stragglers.
-    threat_level: extreme
-    parent_id: null
-    scene_types:
-      - investigation
-      - stealth
-    security:
-      controlling_faction: galactic_empire
-      security_level: 60
-      patrol_intensity: medium
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: main_entrance
-        type: door
-        visibility: public
-        bypass_methods:
-          - stealth
-    encounter_table:
-      - template_id: jedi_survivor_template
-        weight: 1
-      - template_id: imperial_officer_template
-        weight: 2
-    keywords:
-      - Order 66
-      - temple
-      - ruins
-    travel_links:
-      - to_location_id: loc-utapau_sinkhole
-      - to_location_id: loc-meditation_sanctuary
-    metadata: {}
+- id: loc-smuggler_den
+  name: Smuggler's Haven
+  tags:
+  - underworld
+  - hideout
+  - trade
+  region: Outer Rim
+  controlling_factions:
+  - underworld
+  planet: Tatooine
+  description: |
+    Hidden bays carved into sandstone bluffs, false manifests filed with bribed spaceport officials, and captains who ask no names and accept payment in untraceable credits. Smugglers run Imperial blockades and Rebel supply lines with equal indifference—to them, the war is just another profit opportunity. The right contact in a smuggler's den can move anything: weapons, spice, refugees, stolen Imperial tech, or classified intelligence. The wrong word or betrayed trust gets you sold to the ISB, left to die in the desert, or worse—turned loose with a price on your head. Trust is a commodity more valuable than credits, and it's earned in blood and silence.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - stealth
+  security:
+    controlling_faction: underworld
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - arms_dealer
+  - bounty_board
+  - slicer
+  - transport
+  access_points: []
+  encounter_table:
+  - template_id: smuggler
+    weight: 3
+  - template_id: bounty_hunter
+    weight: 1
+  keywords:
+  - underworld
+  - hideout
+  - trade
+  - Outer Rim
+  - Tatooine
+  - moderate
+  - smuggling
+  travel_links:
+  - loc-cantina
+  metadata: {}
 
-  # --- D. Military & War-Torn ---
-  - id: loc-republic_base_converted
-    name: Former Republic Base (Imperial Use)
-    tags:
-      - imperial
-      - military
-      - converted
-    region: Mid Rim
-    controlling_factions:
-      - galactic_empire
-    planet: Unknown
-    description: |
-      A Republic military installation hastily repurposed for Imperial operations. Republic insignia have been painted over; the same hangars now service TIE fighters and transport. Old hands remember when Jedi generals walked these halls.
-    threat_level: high
-    parent_id: null
-    scene_types:
-      - dialogue
-      - combat
-      - stealth
-    security:
-      controlling_faction: galactic_empire
-      security_level: 75
-      patrol_intensity: high
-      inspection_chance: medium
-    services:
-      - transport
-    access_points:
-      - id: main_gate
-        type: gate
-        visibility: public
-        bypass_methods:
-          - credential
-          - deception
-    encounter_table:
-      - template_id: imperial_officer_template
-        weight: 1
-      - template_id: clone_trooper_template
-        weight: 2
-    keywords:
-      - republic
-      - imperial
-      - military
-    travel_links:
-      - to_location_id: loc-munitions_factory
-      - to_location_id: loc-blockade_station
-    metadata: {}
+- id: loc-tatooine
+  name: Tatooine Wasteland
+  tags:
+  - desert
+  - remote
+  - lawless
+  region: Outer Rim
+  controlling_factions:
+  - hutt_cartel
+  - underworld
+  planet: Tatooine
+  description: |
+    Twin suns glare down on endless dunes of sand that stretch to the horizon in every direction—Tatooine is the galaxy's back door, forgotten by the Senate, ignored by the Fleet. The rule of law has never reached here; instead, Jabba the Hutt commands through absolute power, trade guilds, and the certainty that crossing a Hutt means death in the slowest way possible. Moisture farmers scrape survival from the harsh soil. Jawas scavenge the junk heaps of dead technology. Tusken Raiders claim the deep desert as their territory. Spaceport cities like Mos Eisley and Mos Tatooine serve as gathering points for smugglers, refugees, and anyone the Core Worlds has forgotten. The Empire maintains a garrison but rarely ventures into the deep desert—Tatooine's hostility to outsiders applies equally to stormtroopers. It's a place where the Rebellion can hide, recruit, and forge temporary alliances with crime bosses and nomads.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  - combat
+  security:
+    controlling_faction: hutt_cartel
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - arms_dealer
+  - market
+  - transport
+  access_points: []
+  encounter_table:
+  - template_id: smuggler
+    weight: 2
+  - template_id: bounty_hunter
+    weight: 1
+  keywords:
+  - desert
+  - remote
+  - lawless
+  - Outer Rim
+  - Tatooine
+  - moderate
+  - wasteland
+  travel_links:
+  - loc-cantina
+  - loc-jabbas_palace
+  - loc-moisture_farm_settlement
+  metadata: {}
 
-  - id: loc-munitions_factory
-    name: Imperial Munitions Factory
-    tags:
-      - imperial
-      - industrial
-      - military
-    region: Mid Rim
-    controlling_factions:
-      - galactic_empire
-    planet: Unknown
-    description: |
-      War production never stopped—it simply changed masters. The factory churns out blasters, armor, and ordnance for the new army. Workers are a mix of conscripts and convicts; oversight is brutal. Sabotage is punishable by death.
-    threat_level: high
-    parent_id: null
-    scene_types:
-      - stealth
-      - investigation
-      - combat
-    security:
-      controlling_faction: galactic_empire
-      security_level: 70
-      patrol_intensity: high
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: worker_gate
-        type: gate
-        visibility: public
-        bypass_methods:
-          - credential
-          - deception
-      - id: loading_bay
-        type: door
-        visibility: restricted
-        bypass_methods:
-          - stealth
-          - bribe
-    encounter_table:
-      - template_id: imperial_officer_template
-        weight: 1
-      - template_id: corporate_operative_template
-        weight: 1
-    keywords:
-      - factory
-      - munitions
-      - imperial
-    travel_links:
-      - to_location_id: loc-republic_base_converted
-    metadata: {}
+- id: loc-moisture_farm_settlement
+  parent_id: loc-tatooine
+  name: Moisture Farm Settlement
+  tags:
+  - desert
+  - settlement
+  - farming
+  region: Outer Rim
+  planet: Tatooine
+  controlling_factions:
+  - hutt_cartel
+  - underworld
+  description: |
+    Scattered homesteads and communal cisterns dot the desert, where moisture farmers extract water from the air to trade for supplies. The settlements are isolated and self-reliant, connected to the greater economy only through the occasional spice merchant or moisture broker. Luke Skywalker grew up in a place like this—watching binary sunsets while dreaming of a larger galaxy. The settlements are havens for those escaping civilization, but also vulnerable to Imperial pressure and Hutt exploitation. A Rebel cell hiding here would find sympathetic locals but limited resources.
+  threat_level: low
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: underworld
+    security_level: 30
+    patrol_intensity: low
+    inspection_chance: low
+  services:
+  - safehouse
+  - market
+  access_points:
+  - id: main_road
+    type: door
+    visibility: public
+    bypass_methods: []
+  encounter_table:
+  - template_id: local_citizen
+    weight: 2
+  keywords:
+  - farming
+  - moisture_farm
+  - settlement
+  - isolated
+  metadata: {}
 
-  - id: loc-blockade_station
-    name: Imperial Blockade Station
-    tags:
-      - imperial
-      - naval
-      - checkpoint
-    region: Mid Rim
-    controlling_factions:
-      - galactic_empire
-    planet: Unknown
-    description: |
-      A naval picket controlling a key hyperlane. Every ship is stopped, searched, and logged. Contraband and fugitives are seized; cooperation is mandatory. Smugglers know the patrol patterns and sometimes slip through—for a price.
-    threat_level: high
-    parent_id: null
-    scene_types:
-      - dialogue
-      - stealth
-      - combat
-    security:
-      controlling_faction: galactic_empire
-      security_level: 80
-      patrol_intensity: high
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: docking_port
-        type: door
-        visibility: public
-        bypass_methods:
-          - credential
-          - bribe
-    encounter_table:
-      - template_id: imperial_officer_template
-        weight: 2
-      - template_id: smuggler_template
-        weight: 1
-    keywords:
-      - blockade
-      - naval
-      - imperial
-    travel_links:
-      - to_location_id: loc-republic_base_converted
-      - to_location_id: loc-spaceport_neutral
-    metadata: {}
+- id: loc-jabbas_palace
+  name: Jabba's Palace
+  tags:
+  - criminal
+  - fortress
+  - palace
+  region: Outer Rim
+  controlling_factions:
+  - hutt_cartel
+  planet: Tatooine
+  description: |
+    Jabba the Hutt's fortress rises from the rocky wastes like a malevolent slug—a sprawling palace of chambers, guard rooms, and throne halls where the Hutt king dispenses law, collects debts, and commits atrocities. The air is thick with incense and the stench of decadence. Jabba's main chamber is dominated by his throne, a sunken platform where the massive Hutt presides over his court like a bloated deity. Slave dancers and musicians provide constant entertainment. The Rancor pit lurks beneath the palace floor—a feeding ground where Jabba disposes of those who fail him. Debts are collected here; favors are traded; the Empire itself bows to Jabba's authority in the Outer Rim. Crossing the Hutt means a one-way trip to the Great Pit of Carkoon or something worse—death by Hutt imagination. The palace is a fortress defended by Gamorrean guards, elite bounty hunters on contract, and the absolute certainty that Jabba has suffered no assassination attempts in decades because he's too deadly to risk. To enter Jabba's Palace is to walk into the mouth of a predator. Many have entered. Few have left.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - stealth
+  - combat
+  security:
+    controlling_faction: hutt_cartel
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - arms_dealer
+  - bounty_board
+  - slicer
+  access_points: &id005
+  - id: main_gate
+    type: gate
+    visibility: public
+    bypass_methods:
+    - credential
+  - id: servant_entrance
+    type: door
+    visibility: restricted
+    bypass_methods:
+    - deception
+    - sneak
+  - id: water_channel
+    type: underground
+    visibility: hidden
+    bypass_methods:
+    - climb
+    - sneak
+  encounter_table:
+  - template_id: smuggler
+    weight: 2
+  - template_id: bounty_hunter
+    weight: 1
+  keywords:
+  - criminal
+  - fortress
+  - palace
+  - Outer Rim
+  - Tatooine
+  - high
+  - hutt
+  travel_links:
+  - loc-great_pit_carkoon
+  metadata: {}
 
-  # --- E. Resistance & Underground ---
-  - id: loc-rebel_cell_safe_house
-    name: Early Resistance Safe House
-    tags:
-      - rebel
-      - safehouse
-      - underground
-    region: Mid Rim
-    controlling_factions:
-      - early_resistance
-    planet: Unknown
-    description: |
-      Not yet the Rebellion—just a cell. Safe houses like this one move refugees, hide Jedi, and pass intelligence. Compartmentalization is strict; no one knows the full network. One betrayal could burn the whole chain.
-    threat_level: high
-    parent_id: null
-    scene_types:
-      - dialogue
-      - investigation
-      - stealth
-    security:
-      controlling_faction: early_resistance
-      security_level: 65
-      patrol_intensity: low
-      inspection_chance: low
-    services:
-      - safehouse
-      - briefing_room
-      - arms_dealer
-    access_points:
-      - id: front
-        type: door
-        visibility: public
-        bypass_methods: []
-      - id: bolt_hole
-        type: hatch
-        visibility: hidden
-        bypass_methods:
-          - stealth
-    encounter_table:
-      - template_id: rebel_cell_member_template
-        weight: 2
-      - template_id: jedi_survivor_template
-        weight: 1
-    keywords:
-      - resistance
-      - safehouse
-      - rebel
-    travel_links:
-      - to_location_id: loc-refugee_camp
-      - to_location_id: loc-underground_cantina
-      - to_location_id: loc-black_market_hub
-    metadata: {}
+- id: loc-great_pit_carkoon
+  parent_id: loc-jabbas_palace
+  name: Great Pit of Carkoon
+  tags:
+  - criminal
+  - execution
+  - wasteland
+  region: Outer Rim
+  planet: Tatooine
+  controlling_factions:
+  - hutt_cartel
+  description: |
+    A gaping chasm in the desert where the Sarlacc dwells—a creature of legend and nightmare. Jabba uses the pit as his ultimate tool of justice, a spectacle designed to humiliate and eliminate his enemies. Victims are pushed into the pit and slowly digested over a thousand years—a death so prolonged that pain becomes existence. The pit's edge is where Jabba conducts public executions, gathering his court to watch victims scream and disappear into the maw of a creature so vast it makes Hutts look small. To be sentenced to the Pit is worse than any other death imaginable.
+  threat_level: extreme
+  scene_types:
+  - dialogue
+  - combat
+  security:
+    controlling_faction: hutt_cartel
+    security_level: 80
+    patrol_intensity: high
+    inspection_chance: low
+  services: []
+  access_points:
+  - id: main_platform
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+  encounter_table:
+  - template_id: bounty_hunter
+    weight: 2
+  keywords:
+  - pit
+  - execution
+  - sarlacc
+  - death
+  metadata: {}
 
-  - id: loc-underground_cantina
-    name: Underground Cantina (Safe Meeting Place)
-    tags:
-      - cantina
-      - underworld
-      - rebel
-    region: Mid Rim
-    controlling_factions:
-      - underworld
-    planet: Unknown
-    description: |
-      A cantina in the lower levels where no one asks for papers. Smugglers, resistance contacts, and fugitives meet here to deal and plan. The Empire has tried to shut it down before; it always reopens under another name. The bartender has a long memory and a short list of rules.
-    threat_level: moderate
-    parent_id: null
-    scene_types:
-      - dialogue
-      - investigation
-    security:
-      controlling_faction: underworld
-      security_level: 45
-      patrol_intensity: low
-      inspection_chance: medium
-    services:
-      - arms_dealer
-      - bounty_board
-      - slicer
-    access_points:
-      - id: front
-        type: door
-        visibility: public
-        bypass_methods: []
-      - id: back_room
-        type: door
-        visibility: restricted
-        bypass_methods:
-          - bribe
-          - charm
-    encounter_table:
-      - template_id: smuggler_template
-        weight: 2
-      - template_id: rebel_cell_member_template
-        weight: 1
-      - template_id: imperial_spy_template
-        weight: 1
-    keywords:
-      - cantina
-      - underground
-      - smugglers
-    travel_links:
-      - to_location_id: loc-jedi_safe_house
-      - to_location_id: loc-refugee_camp
-      - to_location_id: loc-rebel_cell_safe_house
-      - to_location_id: loc-black_market_hub
-    metadata: {}
+- id: loc-occupied_street
+  name: Occupied City Street
+  tags:
+  - urban
+  - patrol
+  - tense
+  - hostile
+  region: Outer Rim
+  controlling_factions:
+  - galactic_empire
+  planet: Lothal
+  description: |
+    Imperial patrols stomp down cracked streets in perfect formation, stormtrooper boots echoing off tenement walls. Checkpoints are posted every few blocks, staffed by bored Imperial officers who check credentials and search for contraband with brutal efficiency. Surveillance cameras track movement from rooftops. Informants lurk in shadows, paid in credits to report suspicious activity. Citizens keep their heads down, avoid eye contact with stormtroopers, and speak only in whispers about the resistance that operates in the streets after curfew. One wrong glance, one whispered rumor, and the stormtroopers kick in the door at midnight, dragging out the guilty and sometimes the innocent. The occupation is total and suffocating—there is no privacy, no freedom, only compliance or disappearance.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - combat
+  - stealth
+  - investigation
+  security:
+    controlling_faction: galactic_empire
+    security_level: 75
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points: []
+  encounter_table:
+  - template_id: stormtrooper_patrol
+    weight: 3
+  - template_id: isb_agent
+    weight: 1
+  keywords:
+  - urban
+  - patrol
+  - tense
+  - hostile
+  - Outer Rim
+  - Lothal
+  - high
+  - occupation
+  travel_links:
+  - loc-imperial_garrison
+  metadata: {}
 
-  - id: loc-black_market_hub
-    name: Black Market Hub
-    tags:
-      - criminal
-      - black_market
-      - underworld
-    region: Outer Rim
-    controlling_factions:
-      - underworld
-    planet: Unknown
-    description: |
-      Gray-market weapons, forged papers, and passage to neutral space. Everyone here is selling something—or someone. The Empire tolerates it in backwaters where direct control is expensive; the resistance depends on it for supply.
-    threat_level: moderate
-    parent_id: null
-    scene_types:
-      - dialogue
-      - investigation
-    security:
-      controlling_faction: underworld
-      security_level: 50
-      patrol_intensity: medium
-      inspection_chance: medium
-    services:
-      - arms_dealer
-      - slicer
-    access_points:
-      - id: main
-        type: door
-        visibility: public
-        bypass_methods: []
-      - id: vault_room
-        type: door
-        visibility: restricted
-        bypass_methods:
-          - bribe
-          - intimidate
-    encounter_table:
-      - template_id: smuggler_template
-        weight: 2
-      - template_id: rebel_cell_member_template
-        weight: 1
-    keywords:
-      - black_market
-      - weapons
-      - underworld
-    travel_links:
-      - to_location_id: loc-rebel_cell_safe_house
-      - to_location_id: loc-underground_cantina
-      - to_location_id: loc-smuggler_den
-    metadata: {}
+- id: loc-bazaar_market
+  name: Bazaar Market
+  tags:
+  - market
+  - crowded
+  - trade
+  - neutral
+  region: Outer Rim
+  controlling_factions:
+  - underworld
+  - local_resistance
+  planet: Tatooine
+  description: |
+    Crowded stalls overflow with goods legal and contraband—spices, weapons, stolen tech, and a hundred species brushing shoulders in the press of bodies. Haggling is a way of life, and the stench of roasted meat, incense, and unwashed alien hide mingles in the thick desert air. Markets are where intelligence changes hands, where rebels recruit sympathizers, where the ISB plants false information to catch spies. The biggest markets attract offworld buyers and sellers, creating temporary safe havens where Imperial authority holds less sway. A trained operative can vanish into a market's chaos; a novice gets caught within minutes. The markets are neutral ground only as long as no one brings their war into the open—the moment blood spills, the ISB appears and everyone disappears.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: underworld
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - arms_dealer
+  - bounty_board
+  - market
+  access_points: &id004
+  - id: main_entrance
+    type: gate
+    visibility: public
+    bypass_methods: []
+  - id: side_alley
+    type: door
+    visibility: restricted
+    bypass_methods:
+    - stealth
+  - id: rooftop_route
+    type: door
+    visibility: hidden
+    bypass_methods:
+    - climb
+  encounter_table:
+  - template_id: local_citizen
+    weight: 2
+  - template_id: smuggler
+    weight: 1
+  keywords:
+  - market
+  - crowded
+  - trade
+  - neutral
+  - Outer Rim
+  - Tatooine
+  - moderate
+  - bazaar
+  travel_links:
+  - loc-cantina
+  - loc-cargo_docks
+  metadata: {}
 
-  - id: loc-smuggler_den
-    name: Smuggler Den (Escape Route)
-    tags:
-      - smuggler
-      - criminal
-      - transport
-    region: Outer Rim
-    controlling_factions:
-      - underworld
-    planet: Unknown
-    description: |
-      A hidden hangar and waystation for runners who move refugees and contraband. Ships come and go on tight schedules; questions are discouraged. This is one node of the underground railroad that keeps Jedi and dissidents one step ahead of the Empire.
-    threat_level: moderate
-    parent_id: null
-    scene_types:
-      - dialogue
-      - travel
-      - stealth
-    security:
-      controlling_faction: underworld
-      security_level: 55
-      patrol_intensity: low
-      inspection_chance: low
-    services:
-      - transport
-      - arms_dealer
-    access_points:
-      - id: hangar
-        type: door
-        visibility: hidden
-        bypass_methods:
-          - credential
-          - bribe
-    encounter_table:
-      - template_id: smuggler_template
-        weight: 3
-    keywords:
-      - smuggler
-      - escape
-      - transport
-    travel_links:
-      - to_location_id: loc-refugee_camp
-      - to_location_id: loc-black_market_hub
-      - to_location_id: loc-spaceport_neutral
-    metadata: {}
+- id: loc-safe_house
+  name: Rebel Safe House
+  tags:
+  - rebel
+  - hidden
+  - civilian
+  region: Outer Rim
+  controlling_factions:
+  - local_resistance
+  - rebel_alliance
+  planet: Jedha
+  description: |
+    A safe house is never safe for long. These compartmentalized safe houses operate in apartments, warehouses, and holy cities like Jedha—where the Empire's grip is cruel but divided attention allows resistance cells to breathe. The safe house is furnished with basic supplies: a radio, false credentials, weapons caches, and emergency escape routes. Rebel operatives sleep here in shifts, always alert for Imperial raids. Local sympathizers—dockworkers, merchants, religious figures—provide cover and supplies. The Alliance maintains dozens of these houses across the galaxy, each one a potential way station for fugitives and rebels on the run. But they're also honey pots: the ISB knows most of them exist and uses them to catch rebel networks. Operatives are trained to burn a safe house—destroy evidence, kill witnesses, ensure their side survives—if Imperial forces approach. The Rebellion can rebuild safe houses. Dead agents stay dead.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - safehouse
+  - medbay
+  access_points: []
+  encounter_table:
+  - template_id: dockworker
+    weight: 1
+  - template_id: local_citizen
+    weight: 1
+  - template_id: rebel_operative
+    weight: 2
+  keywords:
+  - rebel
+  - hidden
+  - civilian
+  - Outer Rim
+  - Jedha
+  - high
+  - safe_house
+  travel_links: []
+  metadata: {}
 
-  # --- F. Neutral & Corporate ---
-  - id: loc-spaceport_neutral
-    name: Neutral Spaceport
-    tags:
-      - spaceport
-      - neutral
-      - trade
-    region: Mid Rim
-    controlling_factions:
-      - corporate_remnant
-    planet: Unknown
-    description: |
-      A busy port that stays deliberately neutral—the Empire has a token presence, but the real power is the port authority and the guilds. Refugees and fugitives pass through mixed with legitimate traffic; everyone keeps their head down and their papers ready.
-    threat_level: moderate
-    parent_id: null
-    scene_types:
-      - dialogue
-      - investigation
-      - travel
-    security:
-      controlling_faction: corporate_remnant
-      security_level: 50
-      patrol_intensity: medium
-      inspection_chance: medium
-    services:
-      - transport
-      - slicer
-    access_points:
-      - id: concourse
-        type: door
-        visibility: public
-        bypass_methods: []
-      - id: customs
-        type: gate
-        visibility: public
-        bypass_methods:
-          - credential
-          - bribe
-          - deception
-    encounter_table:
-      - template_id: corporate_operative_template
-        weight: 1
-      - template_id: refugee_template
-        weight: 1
-      - template_id: imperial_officer_template
-        weight: 1
-    keywords:
-      - spaceport
-      - neutral
-      - trade
-    travel_links:
-      - to_location_id: loc-blockade_station
-      - to_location_id: loc-smuggler_den
-      - to_location_id: loc-corporate_hq
-      - to_location_id: loc-mining_colony
-    metadata: {}
+- id: loc-black_site
+  name: ISB Detention Facility
+  tags:
+  - imperial
+  - prison
+  - interrogation
+  - hostile
+  region: Core
+  controlling_factions:
+  - imperial_intelligence
+  planet: Coruscant
+  description: |
+    Where rebels and dissidents are broken. The Imperial Security Bureau runs detention centers across the Core—hidden facilities where interrogation, re-education, and disappearance are the only certainties. No trial, no record, only the absolute fact that someone talked. The facility is disguised as an ordinary government building, its interrogation rooms soundproofed beyond detection. The ISB uses psychological torture perfected across decades: isolation, randomized rewards and punishments, false hope of release, threats to families. The agents are professionals, cold and methodical. They understand that information has a shelf life—eventually, you know everything your prisoner knows, and then they become waste to be disposed of. Escape from a black site is nearly impossible. The few who have escaped usually don't survive long after—the ISB doesn't allow loose ends.
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - combat
+  - stealth
+  security:
+    controlling_faction: imperial_intelligence
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points: &id006
+  - id: main_entrance
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+    - intimidate
+  - id: ventilation_shaft
+    type: vent
+    visibility: hidden
+    bypass_methods:
+    - sneak
+    - disable
+  - id: underground_tunnel
+    type: underground
+    visibility: secret
+    bypass_methods:
+    - hack
+    - stealth
+  encounter_table:
+  - template_id: imperial_officer
+    weight: 1
+  - template_id: isb_agent
+    weight: 3
+  - template_id: stormtrooper_patrol
+    weight: 2
+  keywords:
+  - imperial
+  - prison
+  - interrogation
+  - hostile
+  - Core
+  - Coruscant
+  - extreme
+  - black_site
+  travel_links: []
+  metadata: {}
 
-  - id: loc-corporate_hq
-    name: Corporate Headquarters (Neutral)
-    tags:
-      - corporate
-      - neutral
-      - business
-    region: Core Worlds
-    controlling_factions:
-      - corporate_remnant
-    planet: Coruscant
-    description: |
-      A major corporation's tower—trade, banking, or manufacturing. The Empire is a client and a threat; the board walks a fine line. No one here wants to be seen harboring Jedi or funding resistance, but credits still flow where they're needed.
-    threat_level: low
-    parent_id: null
-    scene_types:
-      - dialogue
-      - investigation
-    security:
-      controlling_faction: corporate_remnant
-      security_level: 60
-      patrol_intensity: medium
-      inspection_chance: medium
-    services:
-      - bounty_board
-    access_points:
-      - id: lobby
-        type: door
-        visibility: public
-        bypass_methods:
-          - credential
-          - charm
-    encounter_table:
-      - template_id: corporate_operative_template
-        weight: 2
-    keywords:
-      - corporate
-      - Coruscant
-      - neutral
-    travel_links:
-      - to_location_id: loc-spaceport_neutral
-    metadata: {}
+- id: loc-cargo_docks
+  name: Spaceport Cargo Docks
+  tags:
+  - docks
+  - trade
+  - checkpoint
+  - busy
+  region: Outer Rim
+  controlling_factions:
+  - galactic_empire
+  - underworld
+  planet: Tatooine
+  description: |
+    Loading bays overflow with cargo containers, customs inspectors shuffle through manifests, and the grey zone where legitimate cargo meets contraband plays host to profit and corruption. Imperial patrols and Hutt enforcers both want a cut of what moves through the docks. Dockworkers and pilots know exactly who to bribe and who to avoid. The docks are a place of hard deals: a cargo container of spice can be sold three times over before it arrives at its destination, refugees hidden in cargo hold compartments, weapons smuggled past customs officials, intelligence traded for passage off-world. The ISB watches the docks constantly, but there's too much commerce to control everything. A skilled operator can move goods and people through the docks if they know the right contacts and understand when to disappear.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - combat
+  - stealth
+  - investigation
+  - dialogue
+  security:
+    controlling_faction: underworld
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - arms_dealer
+  - bounty_board
+  - transport
+  - market
+  access_points: *id003
+  encounter_table:
+  - template_id: dockworker
+    weight: 2
+  - template_id: smuggler
+    weight: 1
+  keywords:
+  - docks
+  - trade
+  - checkpoint
+  - busy
+  - Outer Rim
+  - Tatooine
+  - moderate
+  - spaceport
+  travel_links:
+  - loc-cantina
+  - loc-bazaar_market
+  metadata: {}
 
-  - id: loc-mining_colony
-    name: Mining Colony (Imperial Contract)
-    tags:
-      - mining
-      - corporate
-      - industrial
-    region: Outer Rim
-    controlling_factions:
-      - corporate_remnant
-    planet: Unknown
-    description: |
-      A resource colony under Imperial contract. Labor is cheap—convicts, debtors, and the desperate. The Empire gets its ore; the corporation gets its cut. Dissent is crushed; escape is nearly impossible. Resistance cells sometimes recruit here.
-    threat_level: high
-    parent_id: null
-    scene_types:
-      - dialogue
-      - stealth
-      - investigation
-    security:
-      controlling_faction: galactic_empire
-      security_level: 65
-      patrol_intensity: high
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: main_gate
-        type: gate
-        visibility: public
-        bypass_methods:
-          - credential
-          - bribe
-    encounter_table:
-      - template_id: corporate_operative_template
-        weight: 1
-      - template_id: imperial_officer_template
-        weight: 1
-      - template_id: refugee_template
-        weight: 1
-    keywords:
-      - mining
-      - colony
-      - imperial
-    travel_links:
-      - to_location_id: loc-spaceport_neutral
-    metadata: {}
+- id: loc-coruscant_underworld
+  name: Coruscant Underworld
+  tags:
+  - criminal
+  - urban
+  - underground
+  - dangerous
+  region: Core
+  controlling_factions:
+  - underworld
+  - black_sun
+  planet: Coruscant
+  description: |
+    Miles below Coruscant's gleaming spires, the Underworld seethes with criminal syndicates and forgotten species living in perpetual twilight. Black Sun controls trade and runs protection rackets with deadly efficiency. Hutt enforcers collect debts through violence and intimidation. Refugees from a hundred worlds scrape survival from the shadows. Imperial surveillance overlooks these depths—patrol droids rarely venture this far below, and cops and officials have been paid to look the other way. The Underworld is where smugglers, fugitives, and Rebels find temporary sanctuary in the maze of duracrete and despair. But the safety is illusory—Xizor's Black Sun has eyes everywhere, and the ISB maintains informant networks even here. The Underworld is dangerous because it's lawless—no one can protect you if you fall, and trust is purchased in blood.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - stealth
+  - combat
+  security:
+    controlling_faction: black_sun
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - arms_dealer
+  - bounty_board
+  - slicer
+  - market
+  access_points: []
+  encounter_table:
+  - template_id: bounty_hunter
+    weight: 1
+  - template_id: smuggler
+    weight: 2
+  keywords:
+  - criminal
+  - urban
+  - underground
+  - dangerous
+  - Core
+  - Coruscant
+  - high
+  - black_sun
+  travel_links:
+  - loc-imperial_palace
+  metadata: {}
 
-  # --- Additional base locations to approach 65 total (summary set; expand as needed) ---
-  - id: loc-inquisitorius_fortress
-    name: Inquisitorius Fortress
-    tags:
-      - imperial
-      - inquisitor
-      - force
-    region: Core Worlds
-    controlling_factions:
-      - galactic_empire
-    planet: Coruscant
-    description: |
-      The stronghold of the Emperor's Jedi hunters. Inquisitors are trained here—fallen Jedi and dark side adepts who hunt their former kin. The dungeons hold Force-sensitives for interrogation and conversion. Few who enter leave unchanged.
-    threat_level: extreme
-    parent_id: null
-    scene_types:
-      - dialogue
-      - stealth
-      - combat
-    security:
-      controlling_faction: galactic_empire
-      security_level: 95
-      patrol_intensity: high
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: main
-        type: door
-        visibility: restricted
-        bypass_methods:
-          - credential
-    encounter_table:
-      - template_id: imperial_officer_template
-        weight: 1
-      - template_id: hunted_force_sensitive_template
-        weight: 1
-    keywords:
-      - Inquisitor
-      - Jedi hunt
-      - Coruscant
-    travel_links:
-      - to_location_id: loc-imperial_palace
-    metadata: {}
+- id: loc-cloud_city
+  name: Cloud City, Bespin
+  tags:
+  - neutral
+  - mining
+  - industrial
+  - occupied
+  region: Outer Rim
+  controlling_factions:
+  - galactic_empire
+  planet: Bespin
+  description: |
+    A tibanna gas mining colony floating in Bespin's clouds—a city that exists in a perpetual state between neutrality and occupation. Lando Calrissian administers the colony with style and ruthlessness, maintaining the fiction of autonomy while serving Imperial interests under duress. By day, Cloud City's luxury casinos and floating gardens are the envy of the galaxy, attracting spice merchants, refugees, and criminals with credits to spend. By night, Imperial stormtroopers patrol the lower levels, and interrogation chambers hidden below the luxury suites run their dark business. Vader arrived and turned the city inside out—now it's a base of operations for Death Squadron. Calrissian walks a razor's edge: his people have been betrayed, his reputation ruined, but he survives by proving his utility to the Empire. The city remains beautiful and terrible, a monument to what happens when someone's home is conquered without their consent.
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  - stealth
+  security:
+    controlling_faction: galactic_empire
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services:
+  - arms_dealer
+  - cantina
+  - market
+  access_points: *id004
+  encounter_table:
+  - template_id: local_citizen
+    weight: 1
+  - template_id: imperial_officer
+    weight: 1
+  keywords:
+  - neutral
+  - mining
+  - industrial
+  - occupied
+  - Outer Rim
+  - Bespin
+  - extreme
+  - cloud_city
+  travel_links: []
+  metadata: {}
 
-  - id: loc-tatooine_desert
-    name: Tatooine Wasteland
-    tags:
-      - desert
-      - outer_rim
-      - hiding
-    region: Outer Rim
-    controlling_factions: []
-    planet: Tatooine
-    description: |
-      The desert world where the Empire's grip is loose. Moisture farmers, Jawas, and the occasional hermit survive in the wastes. A good place to disappear—or to be forgotten.
-    threat_level: moderate
-    parent_id: null
-    scene_types:
-      - dialogue
-      - travel
-      - investigation
-    security:
-      controlling_faction: null
-      security_level: 30
-      patrol_intensity: low
-      inspection_chance: low
-    services: []
-    access_points:
-      - id: open
-        type: door
-        visibility: public
-        bypass_methods: []
-    encounter_table:
-      - template_id: refugee_template
-        weight: 1
-      - template_id: jedi_survivor_template
-        weight: 1
-    keywords:
-      - Tatooine
-      - desert
-      - outer_rim
-    travel_links:
-      - to_location_id: loc-spaceport_neutral
-    metadata: {}
+- id: loc-dagobah
+  name: Dagobah Swamp
+  tags:
+  - swamp
+  - remote
+  - force_vergence
+  - hidden
+  region: Outer Rim
+  controlling_factions: []
+  planet: Dagobah
+  description: |
+    A forgotten world of mist, bogs, and living Force—Dagobah is a place where the laws of the wider galaxy hold no sway. A Jedi Master lies in hiding here, waiting for one student who might restore the Order. The swamp tests resolve: serpents with lengths measured in starship sizes, illusions born of the Force, and a Dark Side cave where fear confronts itself. No Empire patrols these wastes. No traders visit. No one comes to Dagobah by accident—only those who have been guided arrive. The swamp is itself alive, conscious in ways the galaxy has forgotten, and it destroys the weak while teaching the strong. It is the antithesis of the Empire's order—pure chaos and mystery, beyond comprehension and control.
+  threat_level: low
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: null
+    security_level: 20
+    patrol_intensity: low
+    inspection_chance: low
+  services:
+  - safehouse
+  access_points: []
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 1
+  keywords:
+  - swamp
+  - remote
+  - force_vergence
+  - hidden
+  - Outer Rim
+  - Dagobah
+  - low
+  - jedi
+  travel_links: []
+  metadata: {}
 
-  - id: loc-dagobah_swamp
-    name: Dagobah Swamp
-    tags:
-      - force
-      - hiding
-      - wilderness
-    region: Outer Rim
-    controlling_factions: []
-    planet: Dagobah
-    description: |
-      A forgotten world strong in the Force, shrouded in mist and life. The Empire has no interest in it. Those who seek the deepest hiding place sometimes find their way here—and sometimes find more than they expected.
-    threat_level: low
-    parent_id: null
-    scene_types:
-      - dialogue
-      - investigation
-    security:
-      controlling_faction: null
-      security_level: 20
-      patrol_intensity: low
-      inspection_chance: low
-    services: []
-    access_points:
-      - id: landing
-        type: door
-        visibility: public
-        bypass_methods: []
-    encounter_table:
-      - template_id: jedi_survivor_template
-        weight: 1
-    keywords:
-      - Dagobah
-      - force
-      - wilderness
-    travel_links: []
-    metadata: {}
+- id: loc-imperial_palace
+  name: Imperial Palace, Coruscant
+  tags:
+  - imperial
+  - palace
+  - fortress
+  - extreme
+  region: Core
+  controlling_factions:
+  - galactic_empire
+  planet: Coruscant
+  description: |
+    The throne of the Emperor rises from Coruscant's surface—a towering monument to Sith power and Imperial authority. Once this was the Jedi Temple, a place of light and hope. Now it is transformed utterly: meditation chambers echo with the Dark Side, throne rooms radiate malevolent power, the Royal Guard stands eternal vigil. Palpatine rules from these halls, his will enforced by Vader and the entire apparatus of Imperial might. The palace is a fortress beyond fortresses—tractor beams, shield generators, legions of soldiers, and the Emperor's own power. To penetrate the palace is to attempt the impossible, and those who try typically die in the attempt. Only the most desperate or the most powerful dare to challenge the Emperor in his own seat of power.
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - combat
+  - stealth
+  security:
+    controlling_faction: galactic_empire
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points: *id005
+  encounter_table:
+  - template_id: imperial_officer
+    weight: 1
+  - template_id: isb_agent
+    weight: 1
+  - template_id: stormtrooper_patrol
+    weight: 1
+  keywords:
+  - imperial
+  - palace
+  - fortress
+  - extreme
+  - Core
+  - Coruscant
+  - emperor
+  travel_links: []
+  metadata: {}
 
-  - id: loc-politis_massacre_site
-    name: Jedi Temple Ruins (Massacre Site)
-    tags:
-      - jedi
-      - ruins
-      - massacre
-    region: Mid Rim
-    controlling_factions: []
-    planet: Unknown
-    description: |
-      Another temple that fell on Order 66. The dead are gone; the walls remember. Survivors and scavengers pick through the rubble. The Empire still runs occasional sweeps.
-    threat_level: high
-    parent_id: null
-    scene_types:
-      - investigation
-      - stealth
-    security:
-      controlling_faction: galactic_empire
-      security_level: 55
-      patrol_intensity: medium
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: entrance
-        type: door
-        visibility: public
-        bypass_methods:
-          - stealth
-    encounter_table:
-      - template_id: jedi_survivor_template
-        weight: 1
-      - template_id: imperial_officer_template
-        weight: 1
-    keywords:
-      - temple
-      - Order 66
-      - ruins
-    travel_links:
-      - to_location_id: loc-order66_temple_ruin
-    metadata: {}
+- id: loc-ord_mantell
+  name: Ord Mantell Bounty Hunter Haven
+  tags:
+  - bounty_hunter
+  - criminal
+  - dangerous
+  - trade
+  region: Mid Rim
+  controlling_factions:
+  - bounty_hunter_guild
+  - underworld
+  planet: Ord Mantell
+  description: |
+    A war-torn world where bounty hunters trade contracts like currency and duels settle disputes over contracts and honor. Guild postings plaster cantina walls—bounties on rebels, Imperial defectors, fugitive nobles, and criminals running from their crimes. Boba Fett, Bossk, and IG-88 are fixtures in Ord Mantell's underworld, their reputations preceding them like predators announcing their presence. The Imperial government maintains official neutrality, allowing the Guild to operate, because it's profitable and bounty hunters serve Imperial interests. Mercenaries of every species walk the streets armed to the teeth, assessing each other for threats and opportunities. To survive Ord Mantell, you must be fast, deadly, and willing to kill for credits. The Guild maintains order through reputation and the certainty that broken codes result in guild execution—swift, public, and absolute.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - stealth
+  - combat
+  security:
+    controlling_faction: underworld
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - arms_dealer
+  - bounty_board
+  - slicer
+  - cantina
+  access_points: []
+  encounter_table:
+  - template_id: bounty_hunter
+    weight: 3
+  - template_id: smuggler
+    weight: 1
+  keywords:
+  - bounty_hunter
+  - criminal
+  - dangerous
+  - trade
+  - Mid Rim
+  - Ord Mantell
+  - high
+  - guild
+  travel_links: []
+  metadata: {}
 
-  - id: loc-agricultural_compound
-    name: Agricultural Compound (Imperial Supply)
-    tags:
-      - agricultural
-      - corporate
-      - neutral
-    region: Mid Rim
-    controlling_factions:
-      - corporate_remnant
-    planet: Unknown
-    description: |
-      Food production for the Empire and for the open market. Workers live under strict quotas; surplus is rare. Resistance cells sometimes use these worlds to move people and supplies under the guise of crop shipments.
-    threat_level: moderate
-    parent_id: null
-    scene_types:
-      - dialogue
-      - investigation
-    security:
-      controlling_faction: corporate_remnant
-      security_level: 45
-      patrol_intensity: medium
-      inspection_chance: medium
-    services:
-      - bounty_board
-    access_points:
-      - id: main
-        type: door
-        visibility: public
-        bypass_methods: []
-    encounter_table:
-      - template_id: corporate_operative_template
-        weight: 1
-      - template_id: refugee_template
-        weight: 1
-    keywords:
-      - agricultural
-      - supply
-    travel_links:
-      - to_location_id: loc-spaceport_neutral
-    metadata: {}
+- id: loc-bothawui_spynet
+  name: Bothawui Spy Network HQ
+  tags:
+  - rebel
+  - intelligence
+  - espionage
+  - hidden
+  region: Mid Rim
+  controlling_factions:
+  - bothan_spynet
+  - rebel_alliance
+  planet: Bothawui
+  description: |
+    The Bothan Spynet headquarters is hidden beneath the surface of their homeworld—intelligence brokers, slicers, and agents embedded in every corner of the galaxy. Bothawui's underground vaults hold secrets that topple governments: Imperial fleet dispositions, rebel supply locations, the private communications of planetary governors, the hidden accounts of crime bosses. The Bothans don't take sides officially—they sell information to anyone with credits—but they've developed a long-term partnership with the Rebellion because the Alliance pays better and the ISB is too dangerous to cross repeatedly. "Many Bothans died" is more than a phrase; it's the price of every Death Star plan, every Imperial convoy schedule, every assassination that changes the course of the war. The Spynet is run by Borsk Fey'lya, a cunning politician who balances Bothan interests with Alliance needs.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - safehouse
+  - slicer
+  access_points: []
+  encounter_table:
+  - template_id: isb_agent
+    weight: 1
+  - template_id: rebel_operative
+    weight: 1
+  keywords:
+  - rebel
+  - intelligence
+  - espionage
+  - hidden
+  - Mid Rim
+  - Bothawui
+  - moderate
+  - spynet
+  travel_links: []
+  metadata: {}
 
-  - id: loc-scientific_complex
-    name: Scientific Research Complex
-    tags:
-      - corporate
-      - research
-      - neutral
-    region: Core Worlds
-    controlling_factions:
-      - corporate_remnant
-    planet: Unknown
-    description: |
-      Imperial and corporate research continues—weapons, medicine, and technology. Some scientists collaborate willingly; others are coerced. A few secretly preserve data or sabotage projects. The Empire values results, not conscience.
-    threat_level: high
-    parent_id: null
-    scene_types:
-      - dialogue
-      - investigation
-      - stealth
-    security:
-      controlling_faction: galactic_empire
-      security_level: 75
-      patrol_intensity: high
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: main
-        type: door
-        visibility: restricted
-        bypass_methods:
-          - credential
-          - deception
-    encounter_table:
-      - template_id: corporate_operative_template
-        weight: 2
-    keywords:
-      - research
-      - science
-      - imperial
-    travel_links:
-      - to_location_id: loc-corporate_hq
-    metadata: {}
+- id: loc-kessel_mines
+  name: Kessel Spice Mines
+  tags:
+  - prison
+  - mining
+  - slaves
+  - hostile
+  region: Outer Rim
+  controlling_factions:
+  - hutt_cartel
+  - galactic_empire
+  planet: Kessel
+  description: |
+    The galaxy's most notorious prison labor camp—spice miners work until they die under the lash, buried in tunnels where starlight is a memory. Criminals, political prisoners, and Wookiee slaves sweat and break rocks and collapse from exhaustion. The Empire tolerates the Hutt Cartel's control because Kessel's spice production is profitable and rebels disappear into those tunnels never to surface. Imperial convicts and Rebel captives are sent to Kessel when the Empire wants them to die slowly, remembered by no one. The Kessel Run—a hyperspace route that cuts through asteroid fields and other hazards—is the only escape route, requiring a ship fast enough to complete the run in less than 15 parsecs. Thousands have tried to escape through the Run. Most died in the attempt.
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - combat
+  - stealth
+  security:
+    controlling_faction: hutt_cartel
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points: *id006
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 1
+  - template_id: stormtrooper_patrol
+    weight: 1
+  keywords:
+  - prison
+  - mining
+  - slaves
+  - hostile
+  - Outer Rim
+  - Kessel
+  - extreme
+  - mines
+  travel_links: []
+  metadata: {}
 
-  - id: loc-refugee_camp_medical
-    parent_id: loc-refugee_camp
-    name: Refugee Camp Medical Tent
-    tags:
-      - refugee
-      - medbay
-    region: Mid Rim
-    planet: Unknown
-    controlling_factions:
-      - early_resistance
-    description: |
-      Overworked medics treat malnutrition, exposure, and the occasional blaster wound. Supplies are donated or stolen. No one asks where the Jedi-friendly doctor learned his skills.
-    threat_level: moderate
-    scene_types:
-      - dialogue
-    security:
-      controlling_faction: early_resistance
-      security_level: 30
-      patrol_intensity: low
-      inspection_chance: low
-    services:
-      - medbay
-    access_points:
-      - id: flap
-        type: door
-        visibility: public
-        bypass_methods: []
-    encounter_table:
-      - template_id: refugee_template
-        weight: 2
-    keywords:
-      - medical
-      - refugee
-    travel_links:
-      - to_location_id: loc-refugee_camp
-    metadata: {}
+- id: loc-dathomir_clans
+  name: Dathomir Nightsister Enclaves
+  tags:
+  - force_tradition
+  - tribal
+  - isolated
+  - dangerous
+  region: Outer Rim
+  controlling_factions: []
+  planet: Dathomir
+  description: |
+    A world of witches and warriors—Dathomir is isolated and hostile to outsiders. The Nightsisters wield the Dark Side through blood magic that predates the Sith by millennia. Nightbrothers serve as champions and slaves. The clans are matriarchal, ruthless, and entirely independent of the Empire's authority. Palpatine himself respects Dathomir's autonomy—the dangers of its forests and its people are too great to warrant conquest. The clans remain mysterious and dangerous, steeped in Force traditions older than the Jedi Order. A Rebel making contact with Dathomir might secure allies, but the price would be steep and the bargain binding.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: null
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services: []
+  access_points: []
+  encounter_table:
+  - template_id: bounty_hunter
+    weight: 1
+  keywords:
+  - force_tradition
+  - tribal
+  - isolated
+  - dangerous
+  - Outer Rim
+  - Dathomir
+  - high
+  - nightsister
+  travel_links: []
+  metadata: {}
 
-  - id: loc-safe_house_archive
-    parent_id: loc-jedi_safe_house
-    name: Safe House Archive Room
-    tags:
-      - jedi
-      - archive
-      - hidden
-    region: Core Worlds
-    planet: Coruscant
-    controlling_factions:
-      - jedi_survivors
-    description: |
-      Hidden behind a false wall. Holocrons and data chips are catalogued and copied when possible. Every piece preserved is a piece the Empire doesn't get to burn.
-    threat_level: high
-    scene_types:
-      - investigation
-      - dialogue
-    security:
-      controlling_faction: jedi_survivors
-      security_level: 70
-      patrol_intensity: low
-      inspection_chance: low
-    services: []
-    access_points:
-      - id: hidden_door
-        type: door
-        visibility: secret
-        bypass_methods:
-          - credential
-    encounter_table:
-      - template_id: jedi_survivor_template
-        weight: 1
-    keywords:
-      - archive
-      - holocron
-    travel_links:
-      - to_location_id: loc-jedi_safe_house
-    metadata: {}
+- id: loc-bakura
+  name: Bakura
+  tags:
+  - neutral
+  - frontier
+  - occupied
+  - diplomatic
+  region: Outer Rim
+  controlling_factions:
+  - galactic_empire
+  planet: Bakura
+  description: |
+    A frontier world caught between the Empire and the unknown—Bakura's government maintains nominal independence but is occupied by Imperial forces. The Ssi-ruuk Imperium lurks just beyond the Outer Rim, creating a three-way power struggle: Imperial occupation, alien invasion threats, and the Bakurans themselves seeking Alliance support. The planet is diplomatically sensitive because it could swing the balance of power in the Outer Rim if the Alliance secures it, yet it could also fall to the Ssi-ruuk if the Empire withdraws. The Bakuran Senate is divided between Imperial loyalists, resistance fighters, and neutrals hoping to play all sides. The Truce at Bakura tests whether Rebels and Imperials can cooperate against external threats—a moment of history that could change the war's trajectory.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: galactic_empire
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - arms_dealer
+  - market
+  access_points: *id004
+  encounter_table:
+  - template_id: local_citizen
+    weight: 1
+  keywords:
+  - neutral
+  - frontier
+  - occupied
+  - diplomatic
+  - Outer Rim
+  - Bakura
+  - moderate
+  - ssi_ruuk
+  travel_links: []
+  metadata: {}
 
-  # --- Additional locations (expandable to full 65+35) ---
-  - id: loc-upper_level_tenement
-    name: Upper Level Tenement (Hideout)
-    tags: [jedi, urban, hidden]
-    region: Core Worlds
-    controlling_factions: [jedi_survivors]
-    planet: Coruscant
-    description: |
-      A cramped apartment in a tower that has seen better days. Used as a waystation for survivors moving through Coruscant. No holocrons—just a place to sleep and change identities.
-    threat_level: high
-    parent_id: null
-    scene_types: [dialogue, stealth]
-    security:
-      controlling_faction: jedi_survivors
-      security_level: 55
-      patrol_intensity: low
-      inspection_chance: low
-    services: [safehouse]
-    access_points:
-      - id: door
-        type: door
-        visibility: public
-        bypass_methods: []
-    encounter_table:
-      - template_id: jedi_survivor_template
-        weight: 2
-    keywords: [Coruscant, tenement, hideout]
-    travel_links:
-      - to_location_id: loc-jedi_safe_house
-      - to_location_id: loc-abandoned_district
-    metadata: {}
+- id: loc-slave_one
+  name: Slave I (Boba Fett's Ship)
+  tags:
+  - bounty_hunter
+  - mobile
+  - starship
+  - dangerous
+  region: Mobile
+  controlling_factions:
+  - bounty_hunter_guild
+  planet: null
+  description: |
+    Boba Fett's Firespray-31 patrol craft is the most feared starship in the underworld—a weapons platform and mobile prison combined. The ship's carbonite freezing chamber can preserve bounties for transport across the galaxy. Seismic charges rattle enemy coordinates out of the sky. Tracking systems ensure no target escapes once marked. When Slave I appears on a target's sensors, the hunt is over. Fett has never lost a bounty, and his reputation keeps him employed by the Empire, the Hutts, and private interests willing to pay astronomical fees. The ship itself is a machine of death and profit.
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  - combat
+  security:
+    controlling_faction: bounty_hunter_guild
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services:
+  - transport
+  access_points: []
+  encounter_table:
+  - template_id: bounty_hunter
+    weight: 2
+  keywords:
+  - bounty_hunter
+  - mobile
+  - starship
+  - dangerous
+  - extreme
+  - firespray
+  travel_links: []
+  metadata: {}
 
-  - id: loc-rural_monastery_ruin
-    name: Rural Monastery Ruin
-    tags: [jedi, ruins, rural]
-    region: Outer Rim
-    controlling_factions: [jedi_survivors]
-    planet: Unknown
-    description: |
-      An old retreat, now abandoned and camouflaged. Jedi in deep hiding use it for meditation and brief gatherings. The Empire has not yet mapped every such place.
-    threat_level: moderate
-    parent_id: null
-    scene_types: [dialogue, investigation]
-    security:
-      controlling_faction: jedi_survivors
-      security_level: 65
-      patrol_intensity: low
-      inspection_chance: low
-    services: [safehouse]
-    access_points:
-      - id: path
-        type: door
-        visibility: hidden
-        bypass_methods: [stealth]
-    encounter_table:
-      - template_id: jedi_survivor_template
-        weight: 2
-    keywords: [monastery, ruin, jedi]
-    travel_links:
-      - to_location_id: loc-meditation_sanctuary
-    metadata: {}
+- id: loc-rebel_medfrig
+  name: Rebel Medical Frigate
+  tags:
+  - rebel
+  - medical
+  - mobile
+  - vulnerable
+  region: Mobile
+  controlling_factions:
+  - rebel_alliance
+  planet: null
+  description: |
+    The Rebellion's field hospital—a converted EF76 Nebulon-B frigate crammed with bacta tanks, surgical bays, and medics working eighteen-hour shifts to save lives. Wounded pilots recovering from combat trauma rest in cramped quarters. Soldiers with burns and blaster wounds receive treatment. Interrogated prisoners occasionally receive medical care before being transferred elsewhere. The frigate is technically a non-combatant vessel by galactic treaty, but the Empire rarely honors treaties. A medical frigate is vulnerable, slow, and packed with supplies the Empire would love to capture. The crew knows they're mobile targets, and every jump to hyperspace might be their last.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - medbay
+  - safehouse
+  access_points: []
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 1
+  keywords:
+  - rebel
+  - medical
+  - mobile
+  - vulnerable
+  - moderate
+  - frigate
+  travel_links: []
+  metadata: {}
 
-  - id: loc-force_nexus_grove
-    name: Force Nexus Grove
-    tags: [jedi, force, nature]
-    region: Outer Rim
-    controlling_factions: []
-    planet: Unknown
-    description: |
-      A natural Force nexus—ancient trees and clear water. Jedi come here to heal and to feel the light side again. No technology; the place is found only by intuition.
-    threat_level: low
-    parent_id: null
-    scene_types: [dialogue, investigation]
-    security:
-      controlling_faction: null
-      security_level: 25
-      patrol_intensity: low
-      inspection_chance: low
-    services: []
-    access_points:
-      - id: trail
-        type: door
-        visibility: hidden
-        bypass_methods: []
-    encounter_table:
-      - template_id: jedi_survivor_template
-        weight: 1
-    keywords: [force, nexus, grove]
-    travel_links:
-      - to_location_id: loc-meditation_sanctuary
-    metadata: {}
+- id: loc-nal_hutta_palace
+  name: Nal Hutta Hutt Palace
+  tags:
+  - criminal
+  - fortress
+  - palace
+  - hutt
+  region: Outer Rim
+  controlling_factions:
+  - hutt_cartel
+  planet: Nal Hutta
+  description: |
+    The polluted throne world of the Hutts rises from toxic swamps where industrial poison leaks into the water and air. Massive palaces loom from the muck, each one a fortress of a different Hutt Kajidic (clan). The largest palace houses the informal Hutt Council, where clans negotiate spice routes, slavery contracts, and territorial wars. Nal Hutta is absolutely sovereign—the Empire tolerates it, the Rebellion courts it carefully, and smugglers worship at its feet because commerce flows through Hutt territory. To cross a Hutt here is to commit suicide in the slowest, most creative way possible. The Cartel's power is derived from economic control, not military might—the Hutts understand that credits are more powerful than blasters.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - stealth
+  - combat
+  security:
+    controlling_faction: hutt_cartel
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - arms_dealer
+  - bounty_board
+  - slicer
+  access_points: *id005
+  encounter_table:
+  - template_id: smuggler
+    weight: 2
+  keywords:
+  - criminal
+  - fortress
+  - palace
+  - hutt
+  - Outer Rim
+  - Nal Hutta
+  - high
+  - kajidic
+  travel_links: []
+  metadata: {}
 
-  - id: loc-imperial_detention_block
-    name: Imperial Detention Block
-    tags: [imperial, detention, hostile]
-    region: Core Worlds
-    controlling_factions: [galactic_empire]
-    planet: Coruscant
-    description: |
-      Where the Empire holds Jedi sympathizers and captured Force-sensitives. Interrogation is standard; release is rare. Rescue missions are attempted; most fail.
-    threat_level: extreme
-    parent_id: null
-    scene_types: [stealth, combat, dialogue]
-    security:
-      controlling_faction: galactic_empire
-      security_level: 90
-      patrol_intensity: high
-      inspection_chance: high
-    services: []
-    access_points:
-      - id: cell_block
-        type: door
-        visibility: restricted
-        bypass_methods: [credential, hack, stealth]
-    encounter_table:
-      - template_id: imperial_officer_template
-        weight: 1
-      - template_id: clone_trooper_template
-        weight: 2
-    keywords: [detention, imperial, Coruscant]
-    travel_links:
-      - to_location_id: loc-isb_headquarters
-    metadata: {}
+- id: loc-endor_moon
+  name: Endor Forest Moon
+  tags:
+  - forest
+  - primitive
+  - hidden
+  - imperial
+  region: Outer Rim
+  controlling_factions:
+  - galactic_empire
+  planet: Endor
+  description: |
+    A lush moon of redwood forests and primitive Ewok tribes—Endor is beautiful and deadly. The Empire's shield generator bunker hides here, protected by deflector shields and stormtrooper garrisons. The second Death Star orbits above, invulnerable as long as the shield remains active. Patrols of AT-STs stomp through the forest on mechanical legs, unaware that primitive warriors sharpening spears and stones are the Empire's ultimate doom. The Ewoks are first contact races never conquered by the Empire because their world was deemed unimportant. That assessment will prove catastrophic. The forest itself is an obstacle—thick vegetation obscures sensor systems, primitive traps work as well as blaster technology against unprepared troops, and the sheer weight of organic life makes military operations difficult. Endor will become the moment when the Rebellion finally wins.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  - combat
+  security:
+    controlling_faction: galactic_empire
+    security_level: 75
+    patrol_intensity: medium
+    inspection_chance: medium
+  services:
+  - safehouse
+  access_points: []
+  encounter_table:
+  - template_id: imperial_officer
+    weight: 1
+  - template_id: stormtrooper_patrol
+    weight: 2
+  keywords:
+  - forest
+  - primitive
+  - hidden
+  - imperial
+  - Outer Rim
+  - Endor
+  - high
+  - ewok
+  travel_links: []
+  metadata: {}
 
-  - id: loc-clone_trooper_memorial
-    name: Clone Trooper Memorial (Abandoned)
-    tags: [clone, military, ruins]
-    region: Mid Rim
-    controlling_factions: []
-    planet: Unknown
-    description: |
-      A Republic memorial to the clone armies, now neglected. Some clones still come here in secret to remember who they were before Order 66. The Empire discourages visits.
-    threat_level: moderate
-    parent_id: null
-    scene_types: [dialogue, investigation]
-    security:
-      controlling_faction: galactic_empire
-      security_level: 40
-      patrol_intensity: medium
-      inspection_chance: medium
-    services: []
-    access_points:
-      - id: entrance
-        type: door
-        visibility: public
-        bypass_methods: []
-    encounter_table:
-      - template_id: clone_trooper_template
-        weight: 1
-      - template_id: clone_defector_template
-        weight: 1
-    keywords: [clone, memorial, Order 66]
-    travel_links:
-      - to_location_id: loc-republic_base_converted
-    metadata: {}
+- id: loc-executor
+  name: Executor Super Star Destroyer
+  tags:
+  - imperial
+  - flagship
+  - warship
+  - extreme
+  region: Mobile
+  controlling_factions:
+  - galactic_empire
+  planet: null
+  description: |
+    Darth Vader's personal flagship—11 miles of durasteel terror. The Executor dwarfs Star Destroyers, its bridge commanding Death Squadron and the Emperor's fleet. Meditation chambers for the Dark Lord, torture chambers for prisoners, war rooms for strategic planning. When the Executor emerges from hyperspace, star systems tremble. Vader rules through fear—officers execute themselves to avoid his displeasure, crew members work knowing a single error means death. The ship is the physical manifestation of the Empire's power and the symbol of Vader's dominion over the military apparatus. No ship in the galaxy can match the Executor in firepower or sheer menace.
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - combat
+  - stealth
+  security:
+    controlling_faction: galactic_empire
+    security_level: 90
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points: *id007
+  encounter_table:
+  - template_id: imperial_officer
+    weight: 2
+  - template_id: stormtrooper_patrol
+    weight: 2
+  keywords:
+  - imperial
+  - flagship
+  - warship
+  - extreme
+  - Mobile
+  - executor
+  - vader
+  travel_links: []
+  metadata: {}
 
-  - id: loc-spy_network_bolt
-    name: Spy Network Bolt-Hole
-    tags: [rebel, intelligence, hidden]
-    region: Mid Rim
-    controlling_factions: [early_resistance]
-    planet: Unknown
-    description: |
-      A secure drop for intelligence—encrypted comms, dead drops, and face-to-face handoffs. Only trusted couriers know the location. Compartmentalization is absolute.
-    threat_level: high
-    parent_id: null
-    scene_types: [dialogue, stealth, investigation]
-    security:
-      controlling_faction: early_resistance
-      security_level: 70
-      patrol_intensity: low
-      inspection_chance: low
-    services: [slicer]
-    access_points:
-      - id: hidden
-        type: hatch
-        visibility: secret
-        bypass_methods: [credential, stealth]
-    encounter_table:
-      - template_id: rebel_cell_member_template
-        weight: 2
-      - template_id: imperial_spy_template
-        weight: 1
-    keywords: [spy, intelligence, resistance]
-    travel_links:
-      - to_location_id: loc-rebel_cell_safe_house
-    metadata: {}
+- id: loc-dantooine_ruins
+  name: Dantooine Rebel Ruins
+  tags:
+  - rebel
+  - abandoned
+  - ruins
+  - archaeological
+  region: Outer Rim
+  controlling_factions:
+  - rebel_alliance
+  planet: Dantooine
+  description: |
+    The Rebellion's first base—abandoned and left to grass and silence. Ancient Jedi ruins dot the plains, monuments to an order destroyed by the Sith. The Rebellion's old command centers now house kath hounds and memories of operations past. The Empire knows about Dantooine ("too remote for an effective base," Tarkin dismissed it), so it isn't heavily monitored. Scavengers and archaeologists still pick through the ruins. The Rebellion occasionally uses Dantooine as a waypoint, knowing the Empire won't invest resources to occupy the Rim too aggressively. But the planet is haunted—every rebel who walks those ruins wonders about the Jedi who died there, and whether the current war might end the same way.
+  threat_level: low
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 20
+    patrol_intensity: low
+    inspection_chance: low
+  services:
+  - safehouse
+  access_points: []
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 1
+  keywords:
+  - rebel
+  - abandoned
+  - ruins
+  - archaeological
+  - Outer Rim
+  - Dantooine
+  - low
+  - jedi
+  travel_links: []
+  metadata: {}
 
-  - id: loc-trade_federation_remnant
-    name: Trade Federation Remnant Office
-    tags: [corporate, neutral, trade]
-    region: Core Worlds
-    controlling_factions: [corporate_remnant]
-    planet: Coruscant
-    description: |
-      What remains of the Trade Federation operates under Imperial oversight. They move cargo and avoid politics. Some personnel quietly help refugees for the right price.
-    threat_level: moderate
-    parent_id: null
-    scene_types: [dialogue, investigation]
-    security:
-      controlling_faction: corporate_remnant
-      security_level: 55
-      patrol_intensity: medium
-      inspection_chance: medium
-    services: [transport]
-    access_points:
-      - id: lobby
-        type: door
-        visibility: public
-        bypass_methods: [credential, bribe]
-    encounter_table:
-      - template_id: corporate_operative_template
-        weight: 2
-    keywords: [Trade Federation, corporate, Coruscant]
-    travel_links:
-      - to_location_id: loc-corporate_hq
-      - to_location_id: loc-spaceport_neutral
-    metadata: {}
+# NEW LOCATIONS — CONTINUED EXPANSION
+
+- id: loc-scarif_citadel
+  name: Scarif Shield Citadel
+  tags:
+  - imperial
+  - fortress
+  - data_vault
+  - target
+  region: Outer Rim
+  controlling_factions:
+  - galactic_empire
+  planet: Scarif
+  description: |
+    A tropical paradise hiding the Empire's most secure data center—the Shield Citadel on Scarif holds the architectural plans to the Death Star and a million other Imperial secrets. The facility is protected by orbital shields that can only be lowered from within, making it impregnable from space. The planet itself is beautiful: white-sand beaches, crystal waters, and lush jungle. Yet Imperial troops patrol the beaches in full armor, and the facility is disguised as a resort to prevent detection. The Rebellion's desperate assault on Scarif will cost them dearly but will deliver them the Death Star plans they need to strike back. The Citadel represents everything about Imperial arrogance—they believe their technological advantage and security measures make them untouchable.
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - combat
+  - stealth
+  - investigation
+  security:
+    controlling_faction: galactic_empire
+    security_level: 95
+    patrol_intensity: high
+    inspection_chance: high
+  services: []
+  access_points:
+  - id: main_garrison_entrance
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+  - id: beach_landing_zone
+    type: door
+    visibility: restricted
+    bypass_methods:
+    - stealth
+  - id: underwater_tunnel
+    type: underground
+    visibility: secret
+    bypass_methods:
+    - climb
+    - sneak
+  encounter_table:
+  - template_id: stormtrooper_patrol
+    weight: 3
+  - template_id: imperial_officer
+    weight: 1
+  keywords:
+  - imperial
+  - fortress
+  - data_vault
+  - target
+  - Outer Rim
+  - Scarif
+  - extreme
+  - death_star_plans
+  travel_links: []
+  metadata: {}
+
+- id: loc-wooshed_spaceport
+  name: Wooshed Spaceport (Mos Tatooine District)
+  tags:
+  - spaceport
+  - trade
+  - merchant
+  region: Outer Rim
+  controlling_factions:
+  - underworld
+  planet: Tatooine
+  description: |
+    A secondary spaceport serving Tatooine's interior trade routes—less prestigious than Mos Eisley but less heavily patrolled. Merchant vessels dock here to trade with moisture farmers and desert settlements. The spaceport is a hub for independent traders, a place where people with legitimate business avoid the scrutiny of the main port. Rebel cells use Wooshed to move supplies and personnel quietly. The spaceport's neutral stance makes it a meeting ground for all factions, as long as credits flow and no blood spills publicly.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: underworld
+    security_level: 50
+    patrol_intensity: low
+    inspection_chance: low
+  services:
+  - transport
+  - market
+  - arms_dealer
+  access_points:
+  - id: main_landing_platform
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+  encounter_table:
+  - template_id: dockworker
+    weight: 2
+  - template_id: smuggler
+    weight: 1
+  keywords:
+  - spaceport
+  - trade
+  - merchant
+  - Outer Rim
+  - Tatooine
+  - moderate
+  metadata: {}
+
+- id: loc-mon_mothma_quarters
+  name: Mon Mothma's Command Quarters
+  tags:
+  - rebel
+  - mobile
+  - command
+  region: Mobile
+  controlling_factions:
+  - rebel_alliance
+  planet: null
+  description: |
+    The Supreme Commander's private chambers and war room aboard a converted Rebel frigate. Mon Mothma coordinates the Rebellion from here—holographic displays show fleet movements, agents report in encrypted channels, and the weight of millions of lives rests on her decisions. The quarters are spartan by design, every feature chosen for function over comfort. Maps cover every wall. Secure comm systems allow real-time coordination with rebel cells across the galaxy. This is where the heart of the Rebellion truly beats, where the long game is played and sacrifices are calculated.
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 95
+    patrol_intensity: constant
+    inspection_chance: low
+  services:
+  - briefing_room
+  access_points:
+  - id: main_entrance
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+  - id: emergency_escape_pod
+    type: door
+    visibility: hidden
+    bypass_methods:
+    - disable
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 2
+  keywords:
+  - rebel
+  - command
+  - supreme_commander
+  - mobile
+  - quarters
+  metadata: {}
+
+- id: loc-force_temple
+  name: Force Temple Ruins (Uncharted Outer Rim)
+  tags:
+  - force_site
+  - ancient
+  - mysterious
+  - dangerous
+  region: Outer Rim
+  controlling_factions: []
+  planet: Uncharted
+  description: |
+    A temple predating the Sith and Jedi, hidden in the Outer Rim on a world few star charts record. The Force is strong here—so strong that untrained minds experience hallucinations and fear. Ancient murals depict conflicts older than the Old Republic. The temple itself is largely intact but sealed by security systems that still function after millennia. The location is valuable to both the Jedi survivors and the Sith—a repository of knowledge that could shift the balance of the Force itself. Few know of the temple's existence. Those who find it rarely leave unchanged.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  - combat
+  security:
+    controlling_faction: null
+    security_level: 70
+    patrol_intensity: none
+    inspection_chance: none
+  services: []
+  access_points:
+  - id: main_ceremonial_entrance
+    type: door
+    visibility: public
+    bypass_methods:
+    - deception
+    - force
+  - id: ancient_tunnel_network
+    type: underground
+    visibility: hidden
+    bypass_methods:
+    - stealth
+    - climb
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 1
+  keywords:
+  - force_site
+  - ancient
+  - mysterious
+  - dangerous
+  - outer_rim
+  - temple
+  - jedi
+  - sith
+  metadata: {}
+
+- id: loc-tatooine_spaceport_cantina
+  name: Spaceport Cantina (Mos Tatooine)
+  tags:
+  - cantina
+  - spaceport
+  - criminal
+  - trade
+  region: Outer Rim
+  controlling_factions:
+  - underworld
+  planet: Tatooine
+  description: |
+    A rougher cantina than Mos Eisley's, frequented by independent traders and second-tier criminals. The spaceport's cantina is where cargo contracts are brokered, debts are collected, and refugees are smuggled off-world. The clientele is hardened and suspicious, always watching for ISB informants or Hutt enforcers. This is where the real deals go down—far from Imperial scrutiny but still within reach of the underworld power structure.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - stealth
+  - combat
+  security:
+    controlling_faction: underworld
+    security_level: 50
+    patrol_intensity: low
+    inspection_chance: low
+  services:
+  - arms_dealer
+  - bounty_board
+  - slicer
+  - cantina
+  access_points: &id009
+  - id: main_entrance
+    type: door
+    visibility: public
+    bypass_methods: []
+  - id: back_exit
+    type: door
+    visibility: restricted
+    bypass_methods:
+    - stealth
+  encounter_table:
+  - template_id: smuggler
+    weight: 2
+  - template_id: bounty_hunter
+    weight: 1
+  keywords:
+  - cantina
+  - spaceport
+  - criminal
+  - trade
+  - moderate
+  metadata: {}
+
+- id: loc-crait_base
+  name: Crait Rebel Base (Red Planet Outpost)
+  tags:
+  - rebel
+  - base
+  - salt_plains
+  - hidden
+  region: Outer Rim
+  controlling_factions:
+  - rebel_alliance
+  planet: Crait
+  description: |
+    A hidden rebel base buried beneath the salt plains of Crait—red soil that bleeds crimson when disturbed. The base is small but defensible, protected by ion cannons and anti-air turrets. The salt flats provide natural camouflage, making the base difficult to detect from orbit. However, the base is remote and supply runs are dangerous. The Crait base serves as a fallback position if primary bases are compromised. It's equipped to house a few hundred fighters and support personnel, but it's not designed as a long-term stronghold.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  - combat
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 70
+    patrol_intensity: medium
+    inspection_chance: low
+  services:
+  - briefing_room
+  - medbay
+  - safehouse
+  access_points:
+  - id: salt_plain_entrance
+    type: underground
+    visibility: secret
+    bypass_methods:
+    - stealth
+    - sneak
+  - id: main_hanger
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 2
+  keywords:
+  - rebel
+  - base
+  - salt_plains
+  - hidden
+  - outer_rim
+  - crait
+  travel_links:
+  - loc-yavin_base
+  metadata: {}
+
+- id: loc-wobani_prison
+  name: Wobani Labor Camp
+  tags:
+  - imperial
+  - prison
+  - labor
+  - industrial
+  region: Outer Rim
+  controlling_factions:
+  - galactic_empire
+  planet: Wobani
+  description: |
+    An Imperial labor camp on an industrial world—political prisoners and rebels work under guard, mining and refining raw materials for the Imperial military-industrial complex. The camp is brutal but not as lethal as Kessel; the Empire views Wobani as a profit center, not an execution ground. Escape attempts are frequent but rarely successful. The camp's commandant runs it with cold efficiency: just enough food to keep workers productive, just enough violence to maintain order, just enough hope that new arrivals cooperate. A successful breakout from Wobani would be a psychological victory for the Rebellion.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - combat
+  - stealth
+  - investigation
+  security:
+    controlling_faction: galactic_empire
+    security_level: 80
+    patrol_intensity: high
+    inspection_chance: medium
+  services: []
+  access_points:
+  - id: main_gate
+    type: gate
+    visibility: public
+    bypass_methods:
+    - credential
+    - hack
+  - id: exhaust_vent
+    type: ventilation
+    visibility: hidden
+    bypass_methods:
+    - stealth
+    - disable
+  encounter_table:
+  - template_id: stormtrooper_patrol
+    weight: 2
+  - template_id: imperial_officer
+    weight: 1
+  keywords:
+  - imperial
+  - prison
+  - labor
+  - industrial
+  - outer_rim
+  - wobani
+  - high
+  metadata: {}
+
+- id: loc-felucia_jungle
+  name: Felucia Fungal Jungle
+  tags:
+  - jungle
+  - remote
+  - dangerous
+  - fungal
+  region: Outer Rim
+  controlling_factions:
+  - local_resistance
+  planet: Felucia
+  description: |
+    A bioluminescent jungle of fungal growths and carnivorous plants—Felucia is hostile to conventional warfare. The Empire maintains a garrison on the planet, but the jungle itself is the real enemy. Giant mushrooms tower overhead, releasing spores that cause hallucinations. Predatory plants snap at anything that moves. The local population has adapted and thrives in the fungal ecosystem. The Rebellion uses Felucia to hide rebel cells—the Empire's armor and technology are nearly useless in the jungle, and local guides can navigate routes that Imperial troops cannot follow.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  - combat
+  security:
+    controlling_faction: local_resistance
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: low
+  services:
+  - safehouse
+  access_points:
+  - id: jungle_path
+    type: door
+    visibility: hidden
+    bypass_methods:
+    - stealth
+    - sneak
+  - id: river_crossing
+    type: underground
+    visibility: secret
+    bypass_methods:
+    - climb
+    - sneak
+  encounter_table:
+  - template_id: local_citizen
+    weight: 2
+  - template_id: rebel_operative
+    weight: 1
+  keywords:
+  - jungle
+  - remote
+  - dangerous
+  - fungal
+  - outer_rim
+  - felucia
+  metadata: {}
+
+- id: loc-mykapo_station
+  name: Mykapo Station (Neutral Trade Hub)
+  tags:
+  - neutral
+  - station
+  - trade
+  - spacefaring
+  region: Mid Rim
+  controlling_factions:
+  - neutral
+  planet: null
+  description: |
+    A neutral trading station in deep space—a place where Empire, Rebellion, and underworld make deals in careful peace. The station is maintained by independent contractors who profit from hosting all factions. Smuggling operations, bounty contracts, and legitimate trade all pass through Mykapo Station. The station has strict rules: no weapons firing, no overt hostility, no Imperial patrols. Violations result in immediate expulsion and permanent blacklisting. For the Rebellion, Mykapo is a source of supplies and information, though dealings there are always risky.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  - stealth
+  security:
+    controlling_faction: neutral
+    security_level: 60
+    patrol_intensity: medium
+    inspection_chance: high
+  services:
+  - arms_dealer
+  - market
+  - slicer
+  - bounty_board
+  access_points:
+  - id: docking_bay
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+  - id: maintenance_access
+    type: ventilation
+    visibility: hidden
+    bypass_methods:
+    - stealth
+    - hack
+  encounter_table:
+  - template_id: smuggler
+    weight: 1
+  - template_id: bounty_hunter
+    weight: 1
+  keywords:
+  - neutral
+  - station
+  - trade
+  - spacefaring
+  - mid_rim
+  - mykapo
+  metadata: {}
+
+- id: loc-kashyyyk
+  name: Kashyyyk (Wookiee Homeworld)
+  tags:
+  - wookiee
+  - forest
+  - enslaved
+  - stronghold
+  region: Mid Rim
+  controlling_factions:
+  - galactic_empire
+  planet: Kashyyyk
+  description: |
+    The homeworld of the Wookiees—a massive forest of giant wroshyr trees and sophisticated civilizations living in the canopy. The Empire has enslaved much of the Wookiee population, forcing them into labor camps and military service. Kashyyyk remains a stronghold of resistance, but Imperial forces are entrenched. Chewbacca and other free Wookiees are hunted as fugitives. The forest itself is a fortress—the Wookiees understand the terrain in ways Imperial troops never will, and the thick vegetation makes conventional warfare nearly impossible. A Rebel alliance with the Wookiees could provide powerful warriors and resources, but the cost would be high.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  - combat
+  security:
+    controlling_faction: galactic_empire
+    security_level: 75
+    patrol_intensity: high
+    inspection_chance: medium
+  services:
+  - safehouse
+  access_points:
+  - id: forest_path
+    type: door
+    visibility: hidden
+    bypass_methods:
+    - stealth
+    - sneak
+  - id: treetop_walkway
+    type: door
+    visibility: public
+    bypass_methods:
+    - climb
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 1
+  - template_id: stormtrooper_patrol
+    weight: 2
+  keywords:
+  - wookiee
+  - forest
+  - enslaved
+  - stronghold
+  - mid_rim
+  - kashyyyk
+  travel_links: []
+  metadata: {}
+
+- id: loc-geonosis_ruins
+  name: Geonosis (Separatist Ruins)
+  tags:
+  - ruins
+  - industrial
+  - abandoned
+  - factory
+  region: Outer Rim
+  controlling_factions: []
+  planet: Geonosis
+  description: |
+    The factory planet of the Separatists, now abandoned after the Clone Wars. The surface is scarred by battle, the factories silent, the skies empty of droids. The Jedi fought their first battles here, and the echoes of that war still haunt the planet. The Empire maintains a presence but the planet holds little value. Rebel cells sometimes use Geonosis to study clone trooper technology and search for salvage. The ruins are dangerous—unstable structures, automated defense systems still active, and the psychological weight of so much death.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - investigation
+  - stealth
+  - combat
+  security:
+    controlling_faction: galactic_empire
+    security_level: 40
+    patrol_intensity: low
+    inspection_chance: low
+  services: []
+  access_points:
+  - id: main_factory_entrance
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+    - hack
+  - id: underground_tunnel
+    type: underground
+    visibility: hidden
+    bypass_methods:
+    - stealth
+  encounter_table:
+  - template_id: stormtrooper_patrol
+    weight: 1
+  keywords:
+  - ruins
+  - industrial
+  - abandoned
+  - factory
+  - outer_rim
+  - geonosis
+  metadata: {}
+
+- id: loc-siccanat_spice_port
+  name: Siccanat Spice Port (Smuggler Route Hub)
+  tags:
+  - spaceport
+  - smuggling
+  - trade
+  - spice
+  region: Outer Rim
+  controlling_factions:
+  - underworld
+  planet: Tatooine
+  description: |
+    A port facility specializing in spice distribution and smuggling operations—less well-known than Mos Eisley but more actively used for contraband. Siccanat is where spice shipments are broken into smaller lots for distribution across the Outer Rim. The port is controlled by underworld interests, with minimal Imperial presence by mutual agreement. The Rebellion uses Siccanat for smuggling weapons and supplies into occupied territories.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - stealth
+  - investigation
+  security:
+    controlling_faction: underworld
+    security_level: 50
+    patrol_intensity: medium
+    inspection_chance: low
+  services:
+  - transport
+  - arms_dealer
+  - slicer
+  access_points:
+  - id: main_dock
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+  - id: service_tunnel
+    type: underground
+    visibility: hidden
+    bypass_methods:
+    - hack
+  encounter_table:
+  - template_id: smuggler
+    weight: 2
+  keywords:
+  - spaceport
+  - smuggling
+  - trade
+  - spice
+  - outer_rim
+  - tatooine
+  metadata: {}
+
+- id: loc-mustafar_fortress
+  name: Mustafar Sith Fortress
+  tags:
+  - sith
+  - fortress
+  - dark_side
+  - volcanic
+  region: Outer Rim
+  controlling_factions: []
+  planet: Mustafar
+  description: |
+    A volcanic fortress constructed on a planet of fire and lava—a stronghold of the Sith hidden from the galaxy. Vader maintains a castle here, a place of meditation and absolute power. The fortress is ancient, predating the current Sith dynasty, and filled with artifacts of the Dark Side. To approach Mustafar is to invite destruction—Vader has made it clear that the planet is his domain and intruders will be obliterated. The Rebellion would never dare assault Mustafar, but rumors of Sith artifacts and knowledge drive some toward foolish attempts at reconnaissance.
+  threat_level: extreme
+  parent_id: null
+  scene_types:
+  - stealth
+  - combat
+  security:
+    controlling_faction: galactic_empire
+    security_level: 95
+    patrol_intensity: constant
+    inspection_chance: constant
+  services: []
+  access_points:
+  - id: fortress_gate
+    type: door
+    visibility: public
+    bypass_methods: []
+  - id: lava_tunnel
+    type: underground
+    visibility: secret
+    bypass_methods:
+    - stealth
+    - climb
+  encounter_table:
+  - template_id: stormtrooper_patrol
+    weight: 2
+  keywords:
+  - sith
+  - fortress
+  - dark_side
+  - volcanic
+  - outer_rim
+  - mustafar
+  - vader
+  metadata: {}
+
+- id: loc-bothawui_resistance_cell
+  name: Bothawui Underground Network
+  tags:
+  - rebel
+  - intelligence
+  - hidden
+  - underground
+  region: Mid Rim
+  controlling_factions:
+  - bothan_spynet
+  - rebel_alliance
+  planet: Bothawui
+  description: |
+    Hidden beneath Bothawui's cities, the Bothan Spy Network maintains an underground network of safe houses, intelligence centers, and communication relays. The network is self-sustaining and compartmentalized—no single cell knows the full scope of operations. Bothans are master infiltrators and intelligence operatives, making the network nearly impossible for ISB to compromise. The Rebellion relies on the Bothan network for real-time intelligence, asset placement, and the movement of high-value fugitives. The Bothans, in turn, profit from the arrangement and use rebel resources to advance their own agendas.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  - stealth
+  security:
+    controlling_faction: rebel_alliance
+    security_level: 80
+    patrol_intensity: low
+    inspection_chance: low
+  services:
+  - safehouse
+  - slicer
+  access_points:
+  - id: main_entry_point
+    type: door
+    visibility: hidden
+    bypass_methods:
+    - credential
+  - id: maintenance_tunnel
+    type: underground
+    visibility: secret
+    bypass_methods:
+    - hack
+    - stealth
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 2
+  keywords:
+  - rebel
+  - intelligence
+  - hidden
+  - underground
+  - mid_rim
+  - bothawui
+  metadata: {}
+
+- id: loc-imperial_academy
+  name: Imperial Academy (Carida)
+  tags:
+  - imperial
+  - military
+  - training
+  region: Core
+  controlling_factions:
+  - galactic_empire
+  planet: Carida
+  description: |
+    The Imperial Academy on Carida trains the Empire's elite—officers destined for command positions across the galaxy. The academy is a fortress itself, protected by orbital shields and garrison troops. Cadets are brutalized and indoctrinated, transformed from idealistic youths into cold Imperial servants. The academy is a symbol of the Empire's industrial military complex. Rebels occasionally attempt to extract sympathetic cadets, but security is tight. An inside agent at the Academy would be invaluable—an asset the Rebellion pursues with quiet intensity.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  - stealth
+  security:
+    controlling_faction: galactic_empire
+    security_level: 85
+    patrol_intensity: high
+    inspection_chance: high
+  services:
+  - briefing_room
+  access_points:
+  - id: main_gate
+    type: gate
+    visibility: public
+    bypass_methods:
+    - credential
+  - id: servant_entrance
+    type: door
+    visibility: restricted
+    bypass_methods:
+    - deception
+  encounter_table:
+  - template_id: imperial_officer
+    weight: 2
+  - template_id: stormtrooper_patrol
+    weight: 1
+  keywords:
+  - imperial
+  - military
+  - training
+  - core
+  - carida
+  - academy
+  metadata: {}
+
+- id: loc-spira_monastery
+  name: Spira Monastery (Neutral Spiritual Center)
+  tags:
+  - neutral
+  - spiritual
+  - monastery
+  - peaceful
+  region: Outer Rim
+  controlling_factions: []
+  planet: Spira
+  description: |
+    A monastery dedicated to peaceful spiritual practice, removed from the politics of the war. The monks maintain strict neutrality, offering sanctuary to refugees and wounded regardless of faction. The Empire respects the monastery's neutrality because it serves their interests to have a neutral ground where different factions can negotiate without direct conflict. Rebels sometimes use the monastery as a meeting ground, knowing the Empire won't openly violate the sanctuary. The monks are respected across all sides, making them valuable intermediaries.
+  threat_level: low
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: null
+    security_level: 30
+    patrol_intensity: low
+    inspection_chance: low
+  services:
+  - safehouse
+  - medbay
+  access_points:
+  - id: main_gate
+    type: gate
+    visibility: public
+    bypass_methods: []
+  encounter_table:
+  - template_id: local_citizen
+    weight: 1
+  keywords:
+  - neutral
+  - spiritual
+  - monastery
+  - peaceful
+  - outer_rim
+  - spira
+  metadata: {}
+
+- id: loc-nkllon_mining_station
+  name: Nkllon Mining Station (Ice-Mining Colony)
+  tags:
+  - mining
+  - industrial
+  - isolated
+  - station
+  region: Outer Rim
+  controlling_factions:
+  - neutral
+  planet: Nkllon
+  description: |
+    An ice-mining colony on a sunside world where perpetual day faces a searing sun. The mining operations are automated and dangerous, extracting valuable metals from the ice. The station is lightly staffed and rarely visited by Imperial forces. The Rebellion uses Nkllon as a waypoint for supply shipments and repair operations. The isolation makes it valuable, but the harsh environment is deadly to the unprepared.
+  threat_level: moderate
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  security:
+    controlling_faction: neutral
+    security_level: 30
+    patrol_intensity: low
+    inspection_chance: low
+  services:
+  - transport
+  - market
+  access_points:
+  - id: main_entrance
+    type: door
+    visibility: public
+    bypass_methods:
+    - credential
+  encounter_table:
+  - template_id: dockworker
+    weight: 2
+  keywords:
+  - mining
+  - industrial
+  - isolated
+  - station
+  - outer_rim
+  - nkllon
+  metadata: {}
+
+- id: loc-ryloth_resistance
+  name: Ryloth (Twi'lek Liberation Front)
+  tags:
+  - resistance
+  - twi_lek
+  - enslaved
+  - stronghold
+  region: Outer Rim
+  controlling_factions:
+  - local_resistance
+  - galactic_empire
+  planet: Ryloth
+  description: |
+    The Twi'lek homeworld, conquered and enslaved by the Empire. Twi'leks are forced into labor, military service, and worse. A strong liberation movement operates in the mountains and caves of Ryloth, conducting guerrilla warfare against Imperial occupation. The Rebellion supports the Twi'lek resistance with weapons and training, making Ryloth a contested zone where insurgency and Imperial suppression play out daily. The Twi'leks are natural warriors, and their connection to the land gives them advantages the Empire struggles to overcome.
+  threat_level: high
+  parent_id: null
+  scene_types:
+  - dialogue
+  - investigation
+  - combat
+  security:
+    controlling_faction: galactic_empire
+    security_level: 70
+    patrol_intensity: high
+    inspection_chance: medium
+  services:
+  - safehouse
+  - arms_dealer
+  access_points:
+  - id: mountain_pass
+    type: door
+    visibility: hidden
+    bypass_methods:
+    - stealth
+    - climb
+  - id: cave_network
+    type: underground
+    visibility: secret
+    bypass_methods:
+    - sneak
+    - navigate
+  encounter_table:
+  - template_id: rebel_operative
+    weight: 2
+  - template_id: stormtrooper_patrol
+    weight: 1
+  keywords:
+  - resistance
+  - twi_lek
+  - enslaved
+  - stronghold
+  - outer_rim
+  - ryloth
+  metadata: {}
+
+travel_links:
+- loc-yavin_base
+- loc-hoth_base
+- loc-home_one
+metadata: {}

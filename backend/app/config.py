@@ -17,9 +17,10 @@ from shared.config import (
     LORE_DATA_DIR,
     MANIFESTS_DIR,
     STYLE_DATA_DIR,
-    ENABLE_CHARACTER_FACETS,
     _env_flag,
 )
+
+from shared.ingest_paths import lancedb_dir
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,9 @@ def _model_config() -> dict[str, dict[str, str]]:
         "kg_extractor": {"provider": "ollama", "model": "qwen3:4b"},
         "suggestion_refiner": {"provider": "ollama", "model": "qwen3:8b"},
         "embedding": {"provider": "ollama", "model": "nomic-embed-text"},
+        # V3.1: Dedicated campaign init role — defaults to architect config.
+        # In production, override to cloud: STORYTELLER_CAMPAIGN_INIT_PROVIDER=anthropic
+        "campaign_init": {"provider": "ollama", "model": "qwen3:4b"},
     }
     out = {}
     for role, cfg in base.items():
@@ -65,6 +69,17 @@ def _model_config() -> dict[str, dict[str, str]]:
         override_url = _role_env("BASE_URL", role)
         if override_url:
             c["base_url"] = override_url
+        # V3.0: Per-role API key for cloud providers
+        override_api_key = _role_env("API_KEY", role)
+        if override_api_key:
+            c["api_key"] = override_api_key
+        # V3.0: Fallback provider chain (try primary, fall back to this)
+        fallback_provider = _role_env("FALLBACK_PROVIDER", role)
+        if fallback_provider:
+            c["fallback_provider"] = fallback_provider
+        fallback_model = _role_env("FALLBACK_MODEL", role)
+        if fallback_model:
+            c["fallback_model"] = fallback_model
         out[role] = c
     return out
 
@@ -141,14 +156,15 @@ def resolve_vectordb_path(db_path: str | Path | None = None) -> Path:
     Precedence:
     1) explicit db_path argument
     2) VECTORDB_PATH env var
-    3) prefer ./data/lancedb unless only legacy ./lancedb exists
+    3) default to STORYTELLER_INGEST_ROOT/lancedb (or ./data/lancedb)
+       unless only legacy ./lancedb exists
     """
     if db_path:
         return Path(db_path)
     env_val = os.environ.get("VECTORDB_PATH", "").strip()
     if env_val:
         return Path(env_val)
-    preferred = Path("./data/lancedb")
+    preferred = lancedb_dir()
     legacy = Path("lancedb")
     if preferred.exists() or not legacy.exists():
         return preferred
@@ -159,6 +175,8 @@ ENABLE_BIBLE_CASTING = _env_flag("ENABLE_BIBLE_CASTING", default=True)
 ENABLE_PROCEDURAL_NPCS = _env_flag("ENABLE_PROCEDURAL_NPCS", default=True)
 NPC_RENDER_ENABLED = _env_flag("NPC_RENDER_ENABLED", default=False)
 ENABLE_SUGGESTION_REFINER = _env_flag("ENABLE_SUGGESTION_REFINER", default=True)
+ENABLE_CLOUD_BLUEPRINT = _env_flag("ENABLE_CLOUD_BLUEPRINT", default=False)
+ENABLE_SCALE_ADVISOR = _env_flag("ENABLE_SCALE_ADVISOR", default=False)
 
 # World simulation (V2.5): tick interval in hours (default 4 = 240 min)
 # Override via WORLD_TICK_INTERVAL_HOURS env. See backend.app.time_economy for action costs.
@@ -171,29 +189,11 @@ PSYCH_PROFILE_DEFAULTS: dict[str, str | int | None] = {
     "active_trauma": None,
 }
 
-# Token budgeting: per-role max context tokens and reserved output tokens
-# Aligned to model sizes: 14b roles (architect/director/narrator) get larger budgets;
-# 7b roles (casting/biographer/mechanic) get smaller. Override via env:
-# STORYTELLER_{ROLE}_MAX_CONTEXT_TOKENS, STORYTELLER_{ROLE}_RESERVED_OUTPUT_TOKENS
-# (fallback: {ROLE}_MAX_CONTEXT_TOKENS, {ROLE}_RESERVED_OUTPUT_TOKENS)
-# Optional direct input override: STORYTELLER_{ROLE}_MAX_INPUT_TOKENS or {ROLE}_MAX_INPUT_TOKENS
-_ROLE_TOKEN_BUDGETS: dict[str, dict[str, int]] = {
-    # 14b models: larger context for narrative/director/architect work
-    "architect": {"max_context_tokens": 8192, "reserved_output_tokens": 2048},
-    "director": {"max_context_tokens": 8192, "reserved_output_tokens": 2048},
-    "narrator": {"max_context_tokens": 8192, "reserved_output_tokens": 2048},
-    # 7b models: lighter context for casting/biographer/mechanic
-    "casting": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
-    "biographer": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
-    "mechanic": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
-    "npc_render": {"max_context_tokens": 2048, "reserved_output_tokens": 512},
-    # Ingestion tagger: moderate context, low output
-    "ingestion_tagger": {"max_context_tokens": 4096, "reserved_output_tokens": 512},
-    # Knowledge graph extractor: moderate context, moderate output
-    "kg_extractor": {"max_context_tokens": 6144, "reserved_output_tokens": 2048},
-    # Suggestion refiner: small context (prose + scene), small output (JSON array)
-    "suggestion_refiner": {"max_context_tokens": 2048, "reserved_output_tokens": 512},
-}
+# Token budgeting: per-role defaults imported from constants.py.
+# Env overrides: STORYTELLER_{ROLE}_MAX_CONTEXT_TOKENS,
+#                STORYTELLER_{ROLE}_RESERVED_OUTPUT_TOKENS,
+#                STORYTELLER_{ROLE}_MAX_INPUT_TOKENS
+from backend.app.constants import ROLE_TOKEN_BUDGETS as _ROLE_TOKEN_BUDGETS
 
 
 def _role_env_int(key: str, role: str) -> int | None:
@@ -235,6 +235,26 @@ def get_role_max_input_tokens(role: str) -> int:
     max_context = get_role_max_context_tokens(role)
     reserved = get_role_reserved_output_tokens(role)
     return max(0, max_context - reserved)
+
+
+def get_role_timeout(role: str) -> float:
+    """Get LLM timeout in seconds for a role (env override or default).
+
+    Override via STORYTELLER_{ROLE}_TIMEOUT or {ROLE}_TIMEOUT env vars.
+    Defaults: suggestion_refiner=60, narrator=120, director=120, others=300.
+    """
+    env_val = _role_env("TIMEOUT", role)
+    if env_val:
+        try:
+            return float(env_val)
+        except ValueError:
+            pass
+    _ROLE_TIMEOUT_DEFAULTS = {
+        "suggestion_refiner": 60.0,
+        "narrator": 120.0,
+        "director": 120.0,
+    }
+    return _ROLE_TIMEOUT_DEFAULTS.get(role, 300.0)
 
 
 # Dev-only flag to include context stats in TurnResponse

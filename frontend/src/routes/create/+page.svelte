@@ -1,12 +1,14 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
   import { setupAuto, getEraCompanions } from '$lib/api/campaigns';
   import type { CompanionPreview } from '$lib/api/campaigns';
   import { getEraBackgrounds } from '$lib/api/eras';
+  import { getContentCatalog, getContentDefault, type ContentCatalogEntry } from '$lib/api/content';
   import { streamTurn } from '$lib/api/sse';
   import { runTurn } from '$lib/api/campaigns';
   import {
-    creationStep, charName, charGender, charEra,
+    creationStep, charName, charGender, charEra, charSettingId, charPeriodId,
     selectedBackground, eraBackgrounds, loadingBackgrounds,
     backgroundAnswers, resetCreation
   } from '$lib/stores/creation';
@@ -20,18 +22,55 @@
   import { saveCampaign } from '$lib/stores/campaigns';
   import type { EraBackground, SetupAutoRequest, BackgroundQuestion } from '$lib/api/types';
 
-  const ERA_OPTIONS = Object.entries(ERA_LABELS).filter(([k]) => k !== 'CUSTOM');
+  let contentCatalog = $state<ContentCatalogEntry[]>([]);
+
+  let ERA_OPTIONS = $derived.by(() => {
+    if (contentCatalog.length > 0) {
+      return contentCatalog.map((c) => ({
+        value: c.period_id.toUpperCase(),
+        label: c.period_display_name,
+        settingId: c.setting_id,
+      }));
+    }
+    return Object.entries(ERA_LABELS)
+      .filter(([k]) => k !== 'CUSTOM')
+      .map(([value, label]) => ({ value, label, settingId: null }));
+  });
 
   let isSubmitting = $state(false);
   let errorMessage = $state('');
   let cyoaAnswerIndices = $state<Record<number, number>>({});
   let eraCompanions = $state<CompanionPreview[]>([]);
   let loadingCompanions = $state(false);
+  let selectedDifficulty = $state<'easy' | 'normal' | 'hard'>('normal');
+
+  const DIFFICULTY_OPTIONS: { value: 'easy' | 'normal' | 'hard'; label: string; desc: string }[] = [
+    { value: 'easy', label: 'Easy', desc: 'Forgiving checks, reduced damage. Focus on story.' },
+    { value: 'normal', label: 'Normal', desc: 'Balanced challenge. The intended experience.' },
+    { value: 'hard', label: 'Hard', desc: 'Punishing checks, increased damage. Every choice matters.' },
+  ];
+
+  onMount(async () => {
+    try {
+      const [catalogResp, defaultResp] = await Promise.all([
+        getContentCatalog(),
+        getContentDefault(),
+      ]);
+      contentCatalog = catalogResp.items ?? [];
+      if (defaultResp?.setting_id) charSettingId.set(defaultResp.setting_id);
+      if (defaultResp?.period_id) charPeriodId.set(defaultResp.period_id);
+      if (defaultResp?.legacy_era_id) charEra.set(defaultResp.legacy_era_id.toUpperCase());
+    } catch {
+      // Fallback to legacy hardcoded eras
+    }
+  });
 
   // Load backgrounds when era changes
   $effect(() => {
     const era = $charEra;
     if (era && era !== 'ERA_AGNOSTIC') {
+      const period = era.toLowerCase();
+      charPeriodId.set(period);
       loadingBackgrounds.set(true);
       getEraBackgrounds(era)
         .then((result) => {
@@ -156,6 +195,8 @@
       }
 
       const request: SetupAutoRequest = {
+        setting_id: $charSettingId,
+        period_id: $charPeriodId ?? $charEra.toLowerCase(),
         time_period: $charEra,
         genre: null,
         themes: [],
@@ -165,6 +206,7 @@
         background_id: $selectedBackground?.id ?? null,
         background_answers: bgAnswersForApi,
         player_gender: $charGender,
+        difficulty: selectedDifficulty,
       };
 
       const result = await setupAuto(request);
@@ -176,7 +218,7 @@
         campaignId: result.campaign_id,
         playerId: result.player_id,
         playerName: $charName.trim(),
-        era: $charEra,
+        era: ($charPeriodId ?? $charEra).toUpperCase(),
         background: $selectedBackground?.name ?? null,
         createdAt: new Date().toISOString(),
         lastPlayedAt: new Date().toISOString(),
@@ -267,7 +309,7 @@
         </div>
 
         <div class="form-field">
-          <label id="gender-label">Gender</label>
+          <p class="field-label" id="gender-label">Gender</p>
           <div class="gender-row" role="group" aria-labelledby="gender-label">
             <button
               class="btn gender-btn"
@@ -283,21 +325,23 @@
         </div>
 
         <div class="form-field">
-          <label id="era-label">Choose Your Era</label>
+          <p class="field-label" id="era-label">Choose Your Era</p>
           <div class="era-cards" role="group" aria-labelledby="era-label">
-            {#each ERA_OPTIONS as [value, label]}
+            {#each ERA_OPTIONS as option}
               <button
                 class="card era-card"
-                class:selected={$charEra === value}
+                class:selected={$charEra === option.value}
                 onclick={() => {
-                  charEra.set(value);
+                  charEra.set(option.value);
+                  charPeriodId.set(option.value.toLowerCase());
+                  charSettingId.set(option.settingId);
                   selectedBackground.set(null);
                   backgroundAnswers.set({});
                 }}
               >
-                <div class="era-name">{label}</div>
-                {#if ERA_DESCRIPTIONS[value]}
-                  <div class="era-desc">{ERA_DESCRIPTIONS[value]}</div>
+                <div class="era-name">{option.label}</div>
+                {#if ERA_DESCRIPTIONS[option.value]}
+                  <div class="era-desc">{ERA_DESCRIPTIONS[option.value]}</div>
                 {/if}
               </button>
             {/each}
@@ -446,7 +490,7 @@
           </div>
           <div class="review-row">
             <span class="review-label">Era</span>
-            <span class="review-value">{ERA_LABELS[$charEra] ?? $charEra}</span>
+            <span class="review-value">{(contentCatalog.find((c) => c.period_id.toUpperCase() === $charEra)?.period_display_name) ?? ERA_LABELS[$charEra] ?? $charEra}</span>
           </div>
 
           {#if $selectedBackground}
@@ -503,6 +547,23 @@
             </div>
           </div>
         {/if}
+
+        <!-- Difficulty Selection -->
+        <div class="difficulty-section">
+          <h3 class="difficulty-heading">Difficulty</h3>
+          <div class="difficulty-cards">
+            {#each DIFFICULTY_OPTIONS as opt}
+              <button
+                class="card difficulty-card"
+                class:selected={selectedDifficulty === opt.value}
+                onclick={() => selectedDifficulty = opt.value}
+              >
+                <div class="difficulty-name">{opt.label}</div>
+                <div class="difficulty-desc">{opt.desc}</div>
+              </button>
+            {/each}
+          </div>
+        </div>
 
         {#if errorMessage}
           <div class="error-banner">{errorMessage}</div>
@@ -598,7 +659,8 @@
     text-align: left;
     margin-bottom: 1.25rem;
   }
-  .form-field > label {
+  .form-field > label,
+  .form-field > .field-label {
     display: block;
     font-size: var(--font-caption);
     color: var(--text-secondary);
@@ -879,5 +941,50 @@
     color: var(--text-muted);
     font-style: italic;
     margin-top: 6px;
+  }
+
+  /* Difficulty section */
+  .difficulty-section {
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+  .difficulty-heading {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+  }
+  .difficulty-cards {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+  .difficulty-card {
+    flex: 1;
+    max-width: 180px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+  .difficulty-card:hover {
+    border-color: var(--choice-hover-border);
+    transform: translateY(-1px);
+  }
+  .difficulty-card.selected {
+    border-color: var(--accent);
+    background: var(--choice-selected-bg, rgba(74, 158, 255, 0.1));
+  }
+  .difficulty-name {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+  .difficulty-desc {
+    font-size: var(--font-small);
+    color: var(--text-secondary);
+    line-height: 1.3;
   }
 </style>

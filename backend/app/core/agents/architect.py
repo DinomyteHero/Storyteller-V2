@@ -45,6 +45,7 @@ class CampaignArchitect:
         self,
         time_period: str | None = None,
         themes: list[str] | None = None,
+        setting_rules: Any | None = None,
     ) -> dict[str, Any]:
         """
         Return skeleton dict (SetupOutput shape): title, time_period, locations, npc_cast, active_factions.
@@ -88,11 +89,16 @@ class CampaignArchitect:
                 },
             }
 
+        # V3.2: Use setting_rules for universe-aware prompts
+        from backend.app.world.era_pack_models import SettingRules
+        sr: SettingRules = setting_rules if isinstance(setting_rules, SettingRules) else SettingRules()
+        species_list = ", ".join(sr.common_species)
+        factions_list = ", ".join(sr.example_factions)
         system = (
-            "You are the World Architect for a Star Wars narrative RPG. "
-            "All factions, NPCs, and locations must be Star Wars-appropriate "
-            "(e.g., use species like Twi'lek, Rodian, Wookiee, Zabrak, Bothan, Chiss; "
-            "factions like syndicates, cartels, Imperial remnants, rebel cells, Hutt clans; "
+            f"You are {sr.architect_role}. "
+            f"All factions, NPCs, and locations must be {sr.setting_name}-appropriate "
+            f"(e.g., use species like {species_list}; "
+            f"factions like {factions_list}; "
             "locations like cantinas, docking bays, spaceports, hangars). "
             "When creating the campaign skeleton, you MUST create 3-5 active factions with conflicting goals. "
             "Assign them specific starting locations within the world. "
@@ -102,7 +108,16 @@ class CampaignArchitect:
             "active_factions (array of 3-5 faction objects). "
             "Each faction in active_factions must have: name (str), location (str, starting location within the world), "
             "current_goal (str), resources (int, 1-10), is_hostile (bool). "
-            "Roles in npc_cast must include exactly: Villain, Rival, 2x Merchant, 2x Informant, 6x generic (Guard, Local, Pilot, Barkeep, Mechanic, Stranger)."
+            "Roles in npc_cast must include exactly: Villain, Rival, 2x Merchant, 2x Informant, 6x generic (Guard, Local, Pilot, Barkeep, Mechanic, Stranger).\n\n"
+            "Example (abbreviated — your output must have all 12 npc_cast entries):\n"
+            '{"title":"Shadows of Nar Shaddaa","time_period":"REBELLION",'
+            '"locations":["loc-cantina","loc-docking-bay","loc-marketplace","loc-lower-streets","loc-hangar","loc-spaceport"],'
+            '"npc_cast":[{"name":"Draven Koss","role":"Villain","secret_agenda":"Dominate the sector through ruthless control"},'
+            '{"name":"Vekk Tano","role":"Rival","secret_agenda":"Beat you to the prize"}],'
+            '"active_factions":[{"name":"Crimson Claw Syndicate","location":"loc-docking-bay",'
+            '"current_goal":"Control smuggling routes","resources":6,"is_hostile":true},'
+            '{"name":"Merchant Coalition","location":"loc-marketplace",'
+            '"current_goal":"Protect trade interests","resources":7,"is_hostile":false}]}'
         )
         user = (
             f"time_period: {time_period or 'any'}. themes: {themes or []}. "
@@ -177,7 +192,14 @@ class CampaignArchitect:
             "faction_moves (array of strings), new_rumors (array of strings, public events), "
             "hidden_events (array of strings, GM-only), "
             "updated_factions (array of faction objects: name, location, current_goal, resources (1-10), is_hostile). "
-            "updated_factions must reflect each faction's new resources and/or location after their off-screen moves."
+            "updated_factions must reflect each faction's new resources and/or location after their off-screen moves.\n\n"
+            "Example output:\n"
+            '{"elapsed_time_summary":"Four hours passed. Night fell over the spaceport.",'
+            '"faction_moves":["Crimson Claw moved a shipment through the lower docks"],'
+            '"new_rumors":["A bounty hunter was seen asking about a Corellian freighter"],'
+            '"hidden_events":["Shadow Wing planted a mole in the Merchant Coalition"],'
+            '"updated_factions":[{"name":"Crimson Claw Syndicate","location":"loc-docking-bay",'
+            '"current_goal":"Secure the spice shipment","resources":5,"is_hostile":true}]}'
         )
         factions_blob = json.dumps(factions) if factions else "[]"
         user = (

@@ -21,8 +21,6 @@ from backend.app.core.director_validation import (
     validate_suggestions,
     fallback_suggestions,
     generate_suggestions,
-    check_entities,
-    fix_social_npc_targets,
     sanitize_instructions_for_narrator,
     _jaccard_similarity,
 )
@@ -188,19 +186,18 @@ class TestDirectorSuggestions(unittest.TestCase):
 
     # --- LLM-driven tests ---
 
-    def test_plan_no_llm_returns_deterministic_fallback(self):
-        """When llm is None, plan() returns fallback_suggestions that pass validation."""
+    def test_plan_no_llm_returns_empty_suggestions(self):
+        """V2.21: Director returns empty suggestions; SuggestionRefiner is the sole source."""
         agent = DirectorAgent(llm=None)
         state = _make_state()
         state.present_npcs = [{"name": "Guard", "role": "NPC"}]
         instructions, actions = agent.plan(state)
         self.assertIsInstance(instructions, str)
-        self.assertEqual(len(actions), SUGGESTED_ACTIONS_TARGET)
-        valid, reason = validate_suggestions(actions)
-        self.assertTrue(valid, reason)
+        # V2.21: Director no longer generates suggestions (SuggestionRefiner does)
+        self.assertEqual(len(actions), 0)
 
-    def test_plan_llm_returns_instructions_and_fallback(self):
-        """V2.12: LLM output is merged into instructions; suggestions are always deterministic fallback."""
+    def test_plan_llm_returns_instructions_and_empty_suggestions(self):
+        """V2.21: LLM output is merged into instructions; suggestions always empty (from Director)."""
         llm = _FakeLLM(["Set the scene in a tense cantina. Emphasize the smuggler's nervousness."])
         agent = DirectorAgent(llm=llm)
         state = _make_state()
@@ -209,10 +206,8 @@ class TestDirectorSuggestions(unittest.TestCase):
         self.assertEqual(llm.call_count, 1)
         # LLM text is merged into instructions
         self.assertIn("cantina", instructions)
-        # Suggestions are always fallback (deterministic)
-        self.assertEqual(len(actions), SUGGESTED_ACTIONS_TARGET)
-        valid, reason = validate_suggestions(actions)
-        self.assertTrue(valid, reason)
+        # V2.21: Director no longer generates suggestions
+        self.assertEqual(len(actions), 0)
 
     def test_plan_llm_any_text_is_accepted(self):
         """V2.12: Director accepts any text as instructions (no JSON parsing, no retries)."""
@@ -225,10 +220,8 @@ class TestDirectorSuggestions(unittest.TestCase):
         self.assertEqual(llm.call_count, 1)
         # LLM text is merged into instructions
         self.assertIn("arbitrary scene direction", instructions)
-        # Fallback suggestions always valid
-        self.assertEqual(len(actions), SUGGESTED_ACTIONS_TARGET)
-        valid, reason = validate_suggestions(actions)
-        self.assertTrue(valid, reason)
+        # V2.21: Director no longer generates suggestions
+        self.assertEqual(len(actions), 0)
 
     def test_plan_llm_empty_response_uses_built_instructions(self):
         """V2.12: When LLM returns empty text, built instructions are used alone."""
@@ -240,10 +233,8 @@ class TestDirectorSuggestions(unittest.TestCase):
         self.assertEqual(llm.call_count, 1)
         # Built instructions still present (opening scene text)
         self.assertIn("cinematic", instructions.lower())
-        # Fallback suggestions always valid
-        self.assertEqual(len(actions), SUGGESTED_ACTIONS_TARGET)
-        valid, reason = validate_suggestions(actions)
-        self.assertTrue(valid, reason)
+        # V2.21: Director no longer generates suggestions
+        self.assertEqual(len(actions), 0)
 
     def test_plan_llm_exception_falls_back(self):
         """When LLM raises an exception, plan() falls back gracefully."""
@@ -256,12 +247,11 @@ class TestDirectorSuggestions(unittest.TestCase):
         state = _make_state()
         state.present_npcs = [{"name": "Guard", "role": "NPC"}]
         instructions, actions = agent.plan(state)
-        self.assertEqual(len(actions), SUGGESTED_ACTIONS_TARGET)
-        valid, reason = validate_suggestions(actions)
-        self.assertTrue(valid, reason)
+        # V2.21: Director no longer generates suggestions
+        self.assertEqual(len(actions), 0)
 
     def test_plan_with_fix_instruction(self):
-        """V2.12: fix_instruction param is accepted but Director always returns fallback."""
+        """V2.12: fix_instruction param is accepted but Director always returns empty suggestions."""
         llm = _FakeLLM(["Adjust the pacing to be more tense."])
         agent = DirectorAgent(llm=llm)
         state = _make_state()
@@ -269,42 +259,9 @@ class TestDirectorSuggestions(unittest.TestCase):
         instructions, actions = agent.plan(state, fix_instruction="fix something")
         # LLM should be called
         self.assertEqual(llm.call_count, 1)
-        # Suggestions are always deterministic fallback
-        self.assertEqual(len(actions), SUGGESTED_ACTIONS_TARGET)
-        valid, reason = validate_suggestions(actions)
-        self.assertTrue(valid, reason)
+        # V2.21: Director no longer generates suggestions
+        self.assertEqual(len(actions), 0)
 
-    def test_check_entities_always_passes(self):
-        """V3.0: check_entities is disabled — always returns True."""
-        allowed = {"barkeep", "loc-tavern"}
-        actions = [{"label": "Talk to Xandar", "intent_text": "Ask Xandar for help"}]
-        ok, reason = check_entities(actions, allowed)
-        self.assertTrue(ok)
-        self.assertEqual(reason, "")
-
-    def test_check_entities_passes_with_known_names(self):
-        """V3.0: check_entities still passes (now a no-op)."""
-        allowed = {"barkeep", "loc-tavern"}
-        actions = [{"label": "Talk to Barkeep", "intent_text": "Ask Barkeep for help"}]
-        ok, reason = check_entities(actions, allowed)
-        self.assertTrue(ok, reason)
-
-    # --- fix_social_npc_targets: now a no-op (V3.0) ---
-
-    def test_fix_social_npc_targets_is_noop(self):
-        """V3.0: fix_social_npc_targets is disabled — does not modify actions."""
-        actions = [
-            {
-                "label": "Talk to Xandar",
-                "intent_text": "Say: 'I've heard Xandar knows about the shipments. Tell me more.'",
-                "category": "SOCIAL",
-            }
-        ]
-        present_npcs = [{"name": "Vorru"}]
-        fix_social_npc_targets(actions, present_npcs)
-        # No modification expected — guard is disabled
-        self.assertIn("Xandar", actions[0]["label"])
-        self.assertIn("Xandar", actions[0]["intent_text"])
 
     # --- sanitize_instructions_for_narrator ---
 

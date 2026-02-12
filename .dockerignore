@@ -1,0 +1,31 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+*.egg-info
+.venv
+venv
+
+# Node
+frontend/node_modules
+frontend/.svelte-kit
+
+# Data (mounted as volumes)
+data/storyteller.db
+data/lancedb
+*.db
+
+# IDE
+.vscode
+.idea
+*.swp
+
+# Docs (not needed in container)
+docs/
+*.md
+!README.md

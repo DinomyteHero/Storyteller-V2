@@ -54,3 +54,18 @@ metadata:
   - Restoration of the Republic and freedom versus order through fear.
   - 'Sacrifice and compartmentalization: rebels who never know the full picture.'
   - 'Technology and myth: the Death Star as symbol of terror; the Force as forbidden hope.'
+
+# V3.2: Universe rules — setting-specific text for agent prompts.
+# These defaults match Star Wars Legends. Override per-setting to prevent cross-universe contamination.
+setting_rules:
+  setting_name: "Star Wars Legends"
+  setting_genre: "science fantasy"
+  biographer_role: "a biographer for a Star Wars narrative RPG"
+  architect_role: "the World Architect for a Star Wars narrative RPG"
+  director_role: "the Director for an interactive Star Wars story engine"
+  suggestion_style: "a Star Wars KOTOR-style game"
+  common_species: ["Human", "Twi'lek", "Rodian", "Wookiee", "Zabrak", "Bothan", "Chiss"]
+  example_factions: ["Rebellion", "Empire", "Hutt Cartel"]
+  historical_lore_label: "established Star Wars Legends lore"
+  bypass_methods: ["force", "force_dark", "sith_amulet"]
+  fallback_background: "A traveler in a vast galaxy."

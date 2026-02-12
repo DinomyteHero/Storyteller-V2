@@ -5,7 +5,9 @@ from unittest.mock import MagicMock, patch
 
 from backend.app.constants import SUGGESTED_ACTIONS_TARGET
 from backend.app.core.nodes.suggestion_refiner import (
+    _apply_stat_gating,
     _build_user_prompt,
+    _build_stat_gated_options,
     _parse_and_validate,
     _to_action_suggestions,
     make_suggestion_refiner_node,
@@ -13,8 +15,8 @@ from backend.app.core.nodes.suggestion_refiner import (
 from backend.app.models.state import ActionSuggestion, GameState
 
 
-# Emergency fallback labels (must match the node's _emergency_fallback)
-_EMERGENCY_LABELS = {
+# Emergency fallback labels (generic tier — must match the node's _emergency_fallback)
+_GENERIC_EMERGENCY_LABELS = {
     "Tell me more about what's going on.",
     "What aren't you telling me?",
     "Enough talk. Let's get this done.",
@@ -53,9 +55,9 @@ def _valid_llm_json() -> str:
 
 
 def _is_emergency_fallback(result: dict) -> bool:
-    """Check if the result contains emergency fallback suggestions."""
+    """Check if the result contains emergency fallback suggestions (generic Tier 2)."""
     labels = {a["label"] for a in result.get("suggested_actions", [])}
-    return labels == _EMERGENCY_LABELS
+    return labels == _GENERIC_EMERGENCY_LABELS
 
 
 class TestBuildUserPrompt(unittest.TestCase):
@@ -80,6 +82,48 @@ class TestBuildUserPrompt(unittest.TestCase):
     def test_no_mechanic(self):
         prompt = _build_user_prompt("Quiet.", "here", [], None)
         self.assertNotIn("AFTER:", prompt)
+
+    def test_includes_director_intent(self):
+        prompt = _build_user_prompt(
+            "Quiet.", "here", [], None, director_intent="Escalate primary conflict this turn"
+        )
+        self.assertIn("DIRECTOR INTENT: Escalate primary conflict this turn", prompt)
+
+
+class TestStatGating(unittest.TestCase):
+    def test_builds_stat_gated_options(self):
+        gs = GameState.model_validate(
+            {
+                "campaign_id": "c1",
+                "player_id": "p1",
+                "campaign": {"world_state_json": {"alignment": {"paragon_renegade": -12}}},
+                "player": {"character_id": "p1", "name": "PC", "stats": {"Charisma": 7, "Tech": 2, "Combat": 8}},
+            }
+        )
+        opts = _build_stat_gated_options(gs)
+        labels = [o.label for o in opts]
+        self.assertTrue(any("[PERSUADE]" in s for s in labels))
+        self.assertTrue(any("[COMBAT]" in s for s in labels))
+        self.assertTrue(any("[RENEGADE]" in s for s in labels))
+
+    def test_apply_stat_gating_replaces_first_option(self):
+        gs = GameState.model_validate(
+            {
+                "campaign_id": "c1",
+                "player_id": "p1",
+                "campaign": {"world_state_json": {"alignment": {"paragon_renegade": 10}}},
+                "player": {"character_id": "p1", "name": "PC", "stats": {"Charisma": 9}},
+            }
+        )
+        baseline = [
+            ActionSuggestion(label="A", intent_text="A"),
+            ActionSuggestion(label="B", intent_text="B"),
+            ActionSuggestion(label="C", intent_text="C"),
+            ActionSuggestion(label="D", intent_text="D"),
+        ]
+        result = _apply_stat_gating(gs, baseline)
+        self.assertEqual(len(result), 4)
+        self.assertNotEqual(result[0].label, "A")
 
 
 class TestParseAndValidate(unittest.TestCase):
@@ -294,6 +338,18 @@ class TestToActionSuggestions(unittest.TestCase):
 
 class TestSuggestionRefinerNode(unittest.TestCase):
     """Integration tests for the full node."""
+
+    def setUp(self):
+        # Patch generate_suggestions to return [] so emergency fallback Tier 1
+        # (deterministic context-aware) always falls through to Tier 2 (generic)
+        self._gen_sugg_patcher = patch(
+            "backend.app.core.director_validation.generate_suggestions",
+            return_value=[],
+        )
+        self._gen_sugg_patcher.start()
+
+    def tearDown(self):
+        self._gen_sugg_patcher.stop()
 
     @patch("backend.app.core.nodes.suggestion_refiner.ENABLE_SUGGESTION_REFINER", False)
     def test_disabled_feature_flag(self):

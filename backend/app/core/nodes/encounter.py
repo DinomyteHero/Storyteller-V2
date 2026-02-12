@@ -126,7 +126,25 @@ def make_encounter_node():
         elif npcs:
             present = list(npcs)
         else:
+            # V3.0: Check generated NPCs from campaign world generation
             present = []
+            try:
+                ws = throttle_load_world_state(conn, campaign_id)
+                gen_npcs = ws.get("generated_npcs") or []
+                for gnpc in gen_npcs:
+                    if isinstance(gnpc, dict) and gnpc.get("default_location_id") == effective_loc:
+                        present.append({
+                            "id": gnpc.get("id", ""),
+                            "name": gnpc.get("name", "Wanderer"),
+                            "role": gnpc.get("role", "NPC"),
+                            "relationship_score": 0,
+                            "location_id": effective_loc,
+                            "has_secret_agenda": bool(gnpc.get("secret")),
+                        })
+                if present:
+                    logger.info("Encounter: found %d generated NPCs at %s", len(present), effective_loc)
+            except Exception as e:
+                logger.debug("Failed to check generated NPCs: %s", e)
         throttle_events.append(
             Event(
                 event_type="LAST_LOCATION_UPDATED",

@@ -186,26 +186,6 @@ def _jaccard_similarity(a: str, b: str) -> float:
     return inter / union if union else 0.0
 
 
-def check_entities(actions: list[dict], allowed_entities: set[str]) -> tuple[bool, str]:
-    """Disabled (V3.0): too many false positives in Star Wars context.
-
-    Previously rejected suggestions referencing proper nouns not in allowed_entities.
-    In a Star Wars game, every proper noun sounds hallucinated — this guard produced
-    constant false positives. Kept as no-op for API compatibility.
-    """
-    return True, ""
-
-
-def fix_social_npc_targets(actions: list[dict], present_npcs: list[dict]) -> None:
-    """Disabled (V3.0): too aggressive for Star Wars context.
-
-    Previously replaced NPC names in SOCIAL actions when not in present_npcs.
-    This overwrote legitimate LLM-generated dialogue options with generic fallbacks.
-    Kept as no-op for API compatibility.
-    """
-    return
-
-
 def sanitize_instructions_for_narrator(instructions: str) -> str:
     """Strip Director-internal suggestion guidance before passing to the Narrator.
 
@@ -619,8 +599,8 @@ def _get_location_affordances(
     Returns (services, access_points, travel_links) — all as lists.
     """
     try:
-        from backend.app.world.era_pack_loader import get_era_pack
-        pack = get_era_pack(era)
+        from backend.app.content.repository import CONTENT_REPOSITORY
+        pack = CONTENT_REPOSITORY.get_pack(era) if era else None
         if not pack:
             return [], [], []
         loc = pack.location_by_id(location_id or "")

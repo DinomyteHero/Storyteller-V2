@@ -1,5 +1,5 @@
 /**
- * UI constants — ported from streamlit_app.py.
+ * UI constants — ported from the legacy Python UI.
  */
 
 /** Display names for raw location IDs. */
@@ -21,13 +21,8 @@ export const LOCATION_DISPLAY_NAMES: Record<string, string> = {
 
 /** Human-friendly era names (synced with backend era packs). */
 export const ERA_LABELS: Record<string, string> = {
+  // Fallback only: the creation flow now prefers dynamic values from /v2/content/catalog.
   REBELLION: 'Age of Rebellion',
-  NEW_REPUBLIC: 'New Republic',
-  NEW_JEDI_ORDER: 'New Jedi Order',
-  LEGACY: 'Legacy',
-  DARK_TIMES: 'The Dark Times',
-  KOTOR: 'Knights of the Old Republic',
-  // Removed: ERA_AGNOSTIC, OLD_REPUBLIC, HIGH_REPUBLIC, CLONE_WARS, CUSTOM (not implemented in backend)
 };
 
 /** Default era for new campaigns. */

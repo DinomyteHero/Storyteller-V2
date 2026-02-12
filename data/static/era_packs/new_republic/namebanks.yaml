@@ -1,503 +1,604 @@
 namebanks:
-  republic_names:
-  - Wedge
-  - Tycho
-  - Kre'fey
-  - Drayson
-  - Cracken
-  - Madine
-  - Rieekan
-  - Nrin
-  - Sovv
-  - A'baht
-  - Antilles
-  - Janson
+  rebel_names:
+  - Kessa
+  - Nia
+  - Taro
+  - Mira
+  - Joren
+  - Syla
+  - Venn
+  - Caro
+  - Lysa
+  - Daven
+  - Rianna
+  - Pel
+  - Toryn
+  - Kess
   - Hobbie
+  - Dak
+  - Zev
   - Wes
-  - Gavin
-  - Ooryl
-  - Nawara
-  - Rhysati
-  - Inyri
-  - Asyr
-  - Iella
-  - Dllr
-  - Plourr
+  - Porkins
+  - Garven
+  - Biggs
+  - Narra
   imperial_names:
-  - Makati
-  - Dorja
-  - Teren
-  - Kalenda
-  - Sutt
-  - Vermel
-  - Kosk
-  - Dreyf
-  - Todr
-  - Zeemol
-  - Brandei
-  - Tschel
-  - Ardax
-  - Covell
-  - Nalgol
-  - Rejlii
-  - Flim
-  - Tierce
-  - Disra
-  - Parck
-  - Rostek
-  - Breil'ya
-  smuggler_names:
-  - Dankin
-  - Mazzie
-  - Chin
-  - Aves
-  - Sena
-  - Sturm
-  - Faughn
-  - Shirlee
-  - Fynn
-  - Torve
-  - Ghent
-  - Lachton
-  - Quelev
-  - Wadewarn
-  - Ellor
-  - Dravis
-  - Billey
-  - Par'tah
-  - Gillespee
-  - Mazzic
-  - Clyngunn
-  jedi_names:
-  - Tionne
-  - Kirana
-  - Cilghal
-  - Streen
-  - Dorsk
-  - Gantoris
-  - Kirana Ti
-  - Daye
-  - Steen
-  - Kam
-  - Ikrit
-  - Wurth
-  - Brakiss
-  - Dal
-  - Miko
-  - Nichos
-  - Raynar
-  - Valin
-  - Tahiri
-  - Tekli
+  - Korr
+  - Damar
+  - Sarne
+  - Kall
+  - Roth
+  - Marek
+  - Kress
+  - Varis
+  - Vesk
+  - Tenn
+  - Jerrod
+  - Pryce
+  - Yularen
+  - Piett
+  - Veers
+  - Ozzel
+  - Needa
+  - Tagge
+  - Motti
+  - Romodi
+  - Konstantine
+  - Titus
   underworld_names:
-  - Gryph
-  - Xizor
-  - Vekker
-  - Durga
-  - Zekka
-  - Rancid
-  - Pyke
-  - Fenn
-  - Jodo
-  - Krrsantan
-  - Zann
-  - Tyber
-  - Crev
-  - Moruth
-  - Fenig
-  - Ghitsa
-  - Niles
-  - Czethros
-  - Bortis
-  - Drend
-  chiss_names:
-  - Mitth'raw'nuruodo
-  - Thrawn
-  - Kres'ten'tarthi
-  - Stent
-  - Brast'alia'nuruodo
-  - Tal'ia
-  - Chaf'orm'bintrano
-  - Formbi
-  - Ar'alani
-  - Thrass
-  - Ba'kif
-  - Vah'nya
-  - Sev'rance Tann
-  - Ina'ganet'nuruodo
-  - Hess'irol'ia
-  - Jer'jo
-  - Ufsa'mak'ro
-  - Samakro
-  - Vur'awn
-  - Thurfian
-  corporate_names:
-  - Riekan
-  - Marrab
-  - D'ulin
-  - Shiarr
-  - Okeefe
-  - Torbin
-  - Pryl
-  - Vynder
-  - Kersh
-  - Trinn
-  - Sarreti
-  - Quille
-  - Calrissian
-  - Bimmisaari
-  - Organa
-  - Delvardus
-  - Harrsk
-  - Teradoc
-  - Kaine
-  - Zsinj
+  - Rake
+  - Jax
+  - Sel
+  - Kira
+  - Davo
+  - Nox
+  - Vela
+  - Kest
+  - Rinn
+  - Orr
+  - Greedo
+  - Zuckuss
+  - IG-88
+  - Bossk
+  - Dengar
+  - 4-LOM
+  - Embo
+  - Cad
+  - Aurra
+  - Hondo
+  - Vizago
+  - Azmorigan
+  civilian_names:
+  - Bren
+  - Mara
+  - Tala
+  - Orin
+  - Lyda
+  - Nesta
+  - Fim
+  - Galen
+  - Bix
+  - Nemik
+  - Vel
+  - Cinta
+  - Brasso
+  - Jezzi
+  - Karn
+  - Meero
+  - Syril
+  - Kleya
+  - Xanwan
+  - Pegla
+  droid_names:
+  - R2-D2
+  - C-3PO
+  - R5-D4
+  - K-2SO
+  - Chopper
+  - AP-5
+  - R7-A7
+  - BB-8
+  - R2-KT
+  - R4-P17
+  - 2-1B
+  - FX-7
+  - IG-11
+  - BD-1
+  - EV-9D9
+  - 8D8
+  - BT-1
+  - 0-0-0
+  - Todo 360
+  - WAC-47
 
   # ============================================================
-  # NEW_REPUBLIC ERA EXPANSION (V2.9) — Species-Specific Names
+  # V2.9 EXPANSION — Species-specific names, surnames, titles
   # ============================================================
 
   human_first_names_male:
+  - Dax
+  - Kael
+  - Rynn
+  - Vex
+  - Torin
+  - Javik
+  - Theron
   - Corran
-  - Kam
-  - Kyp
-  - Gavin
-  - Soontir
-  - Tycho
-  - Booster
-  - Talon
-  - Pash
   - Jax
-  - Kell
-  - Face
-  - Ton
-  - Janson
-  - Hobbie
-  - Nrin
-  - Wes
-  - Derek
-  - Airen
-  - Garm
-  - Crix
-  - Davits
-  - Turr
-  - Syal
-  - Teren
-  - Dorja
-  - Makati
-  - Vermel
-  - Kosk
-  - Dreyf
-  - Brandei
-  - Ardax
-  - Covell
-  - Nalgol
-  - Flim
-  - Tierce
-  - Disra
-  - Parck
+  - Bren
+  - Rial
+  - Tyrin
+  - Garren
+  - Volken
+  - Shen
+  - Rael
+  - Doran
+  - Kelric
+  - Varik
+  - Thane
+  - Kyren
+  - Jorran
+  - Havoc
+  - Striker
+  - Blaze
+  - Axel
+  - Drake
+  - Fenix
+  - Ryker
+  - Thaddeus
+  - Varden
+  - Wren
+  - Yorvik
+  - Zander
+  - Ash
+  - Cade
+  - Dash
+  - Finn
+  - Gage
+  - Hunt
+  - Kane
+  - Lance
+  - Nash
+  - Quinn
+  - Reeve
+  - Slade
+  - Talon
+  - Valor
+  - Wolf
+  - Zeke
 
   human_first_names_female:
-  - Iella
-  - Mirax
-  - Winter
-  - Inyri
-  - Rhysati
-  - Asyr
-  - Erisi
-  - Plourr
-  - Jysella
-  - Valin
-  - Syal
-  - Tenel Ka
-  - Tahiri
-  - Jaina
-  - Lusa
-  - Raynar
-  - Callista
-  - Gaeriel
-  - Roganda
-  - Ysanne
-  - Leonia
-  - Shada
-  - Mara
-  - Tionne
-  - Kirana
-  - Cilghal
-  - Daye
-  - Tekli
+  - Lyssa
+  - Senna
+  - Zara
+  - Mirella
+  - Cerra
+  - Kira
+  - Thara
+  - Seris
+  - Nyla
+  - Vara
+  - Elara
+  - Rianna
+  - Jessa
+  - Mira
+  - Nara
+  - Tessa
+  - Vela
+  - Alena
+  - Brynn
+  - Cassia
+  - Dara
+  - Ember
+  - Faye
+  - Gwen
+  - Haven
+  - Iris
+  - Jade
+  - Kenna
+  - Lira
+  - Maya
+  - Nova
+  - Oryn
+  - Piper
+  - Raven
+  - Sage
+  - Thalia
+  - Unity
+  - Vera
+  - Willa
+  - Xena
+  - Yara
+  - Zenna
+  - Aria
+  - Celeste
+  - Dawn
+  - Echo
+  - Frost
+  - Grace
+  - Hope
+  - Ivy
 
   human_surnames:
-  - Horn
-  - Solusar
-  - Durron
-  - Darklighter
+  - Korin
+  - Raal
+  - Thross
+  - Venn
+  - Vrynn
+  - Tarn
+  - Kess
+  - Sarn
+  - Voss
   - Antilles
   - Celchu
-  - Terrik
-  - Retrac
-  - Forge
-  - Dlarit
-  - Janson
-  - Klivian
-  - Vakil
-  - Ven
-  - Ynr
-  - Cracken
-  - Bel Iblis
-  - Madine
+  - Darklighter
+  - Katarn
+  - Rendar
+  - Dodonna
   - Rieekan
-  - Karrde
-  - Fel
-  - Phennir
-  - Wessiri
+  - Veers
+  - Piett
+  - Ozzel
+  - Needa
+  - Syndulla
+  - Bridger
+  - Wren
+  - Jarrus
+  - Orrelios
+  - Kallus
+  - Pryce
+  - Thrawn
+  - Pellaeon
+  - Mothma
+  - Organa
+  - Skywalker
+  - Solo
   - Calrissian
-  - Zend
-  - Ninx
-  - Ming
-  - Captison
-  - D'ukal
-  - Vorru
+  - Fett
+  - Kenobi
+  - Klivian
+  - Janson
+  - Senesca
+  - Porkins
+  - Tycho
+  - Hobbie
+  - Wes
+  - Zev
+  - Jek
+  - Biggs
+  - Wedge
+  - Dak
+  - Narra
 
   twilek_names:
-  - Nawara
-  - Sixtus
-  - Dia
-  - Alema
-  - Numa
-  - Ayy
-  - Koyi
-  - Orn
-  - Oola
-  - Talas
-  - Lynx
   - Hera
+  - Numa
   - Aayla
+  - Oola
   - Bib
-  - Pampy
-  - Yendor
-  - Firith
+  - Tann
+  - Ryssa
+  - Voss
+  - Kaasha
+  - Koyi
+  - Aola
+  - Suvar
   - Cazne
+  - Yendor
+  - Ryloth
+  - Secura
+  - Fortuna
+  - Syndulla
+  - Bly
+  - Rotta
 
   bothan_names:
-  - Borsk Fey'lya
-  - Asyr Sei'lar
+  - Borsk
+  - Fey'lya
+  - Koth
+  - Melan
+  - Tav
+  - Asyr
+  - Sei'lar
+  - Ral
   - Kre'fey
-  - Traest Kre'fey
-  - Laryn Kre'fey
-  - Tav Breil'lya
-  - Girov Dza'tey
-  - Nashiak Lal'dinl
-  - Daye Azur-Jamin
-  - Councilor Fey'lya
-  - Rayl Kosk
-  - Tyr Taskeen
-  - Koyi Komad
-  - Koth Melan
-  - Karka Kre'fey
+  - Traest
+  - Nrin
+  - Baljos
+  - Grov
+  - Yar
+  - Poel
+
+  rodian_names:
+  - Greedo
+  - Navik
+  - Beedo
+  - Wald
+  - Doda
+  - Boushh
+  - Onaconda
+  - Farr
+  - Clegg
+  - Holdout
+  - Sheckil
+  - Teeko
+  - Greeata
+  - Avaro
+  - Thuku
 
   mon_calamari_names:
   - Ackbar
   - Cilghal
-  - Terpfen
-  - Ibtisam
-  - Jesmin
-  - Zel
-  - Doman
   - Merai
+  - Ibtisam
+  - Tager
+  - Doman
+  - Caluan
   - Nrin
-  - Rekkon
-  - Toka
-  - Doman Beruss
-
-  quarren_names:
-  - Nrin Vakil
-  - Kardue'sai'Malloc
-  - Tessek
-  - Seggor Tels
-  - Dannik Jerriko
-  - Kreeg
-  - Puggles Trodd
+  - Bok
+  - Kardue
+  - Jesmin
+  - Toklar
+  - Rekara
+  - Meena
+  - Sien
 
   duros_names:
-  - Kaythree
+  - Vex
+  - Korin
+  - Cad
+  - Bane
+  - Shriv
+  - Suurgav
+  - Ketsu
+  - Onyo
+  - Banai
+  - Udin
+  - Pao
+  - Sila
   - Ellor
-  - Ssk Kahorr
-  - Lai Nootka
-  - Ohwun De Maal
-  - Baniss Keeg
+  - Brun
+  - Nozzo
 
   zabrak_names:
-  - Eeth Koth
-  - Bao-Dur
-  - Agen Kolar
-  - Kao Cen Darach
-  - Javin
+  - Javik
+  - Sarn
+  - Eeth
+  - Koth
   - Sugi
-  - Savage Opress
-
-  rodian_names:
-  - Dllr Nep
-  - Ooryl Qrygg
-  - Thuku
-  - Tzizvvt
-  - Navik
-  - Tetran Cowall
-  - Andoorni Hui
-
-  wookiee_names:
-  - Chewbacca
-  - Ralrracheen
-  - Tarkazza
-  - Dryanta
-  - Shoran
-  - Kirlocca
-  - Lowbacca
-  - Jowdrrl
-  - Sirrakuk
-
-  noghri_names:
-  - Rukh
-  - Kohvrekhar
-  - Ekhrikhor
-  - Cakhmaim
-  - Meewalh
-  - Sakhisakh
-  - Barkhimkh
-  - Mobvekhar
-  - Khabarakh
-
-  gand_names:
-  - Ooryl Qrygg
-  - Zuckuss
-  - Ob Khaddor
-  - Yrssk
-  - Ket Maliss
-  - Ithes'ssk
+  - Agen
+  - Kolar
+  - Bao-Dur
+  - Maris
+  - Brood
+  - Savage
+  - Opress
+  - Maul
+  - Kao
+  - Ceel
 
   trandoshan_names:
   - Bossk
-  - Cradossk
-  - Qorl
-  - Tshyrrng
-  - Ssskarrn
-  - Dar'jetii
-  - Ssoh
+  - Qymaen
+  - Skahtul
+  - Garnac
+  - Ratter
+  - Krix
+  - Sochek
+  - Feresk
+  - Gha
+  - Nachkt
+  - Pekt
+  - Drell
+  - Smug
+  - Varrsk
+  - Skakoans
 
-  # ============================================================
-  # Titles & Ranks (Military, Political, Criminal, Jedi)
-  # ============================================================
+  kel_dor_names:
+  - Kael
+  - Thross
+  - Plo
+  - Koon
+  - Bo
+  - Ropal
+  - Sha
+  - Koon
+  - Gnost
+  - Dural
+  - J'oopi
+  - Shaman
+  - Tiin
+  - Lun
+  - Garen
+
+  nautolan_names:
+  - Senna
+  - Raal
+  - Kit
+  - Fisto
+  - Dossa
+  - Medon
+  - Ru
+  - Murgoob
+  - Zinn
+  - Taurril
+  - Elad
+  - Gargaz
+  - Koyi
+  - Meena
+  - Tikkes
+
+  togruta_names:
+  - Zara
+  - Venn
+  - Ahsoka
+  - Tano
+  - Shaak
+  - Ti
+  - Raana
+  - Tey
+  - Ashla
+  - Marr
+  - Torin
+  - Kiros
+  - Shili
+  - Kaasha
+  - Roshti
+
+  gand_names:
+  - Orynn
+  - Zuckuss
+  - Ooryl
+  - Qrygg
+  - Ruusan
+  - Ob
+  - Khurgee
+  - Zix
+  - Thuku
+  - Xux
+  - Ooryl
+  - Ruul
+  - Gand
+  - Ob
+  - Zix
 
   military_ranks:
   - General
   - Admiral
   - Commander
   - Captain
+  - Major
   - Lieutenant
   - Colonel
-  - Major
   - Commodore
+  - Sergeant
+  - Corporal
   - Wing Commander
   - Squadron Leader
-  - Flight Leader
-  - Rogue Leader
-  - Rogue Two
-  - Red Leader
-  - Gold Leader
-  - Blue Leader
-  - Green Leader
-  - Fleet Admiral
-  - Supreme Commander
-  - Commander-in-Chief
+  - Flight Officer
+  - Ensign
+  - Chief
+  - Marshal
   - Grand Admiral
-  - Moff
-  - Grand Moff
-  - Imperial Governor
-  - Sector Admiral
-
-  political_titles:
-  - Chief of State
-  - Councilor
-  - Senator
-  - Minister
-  - Ambassador
-  - Viceroy
-  - Representative
-  - Chairman
-  - Vice Chair
-  - Speaker
-  - Consul
-  - Delegate
-  - Envoy
-  - Chancellor
-  - Director
-  - Chief Administrator
-  - Sector Representative
-  - Planetary Governor
+  - Grand General
+  - Supreme Commander
+  - Fleet Admiral
+  - Rear Admiral
+  - Vice Admiral
+  - Brigadier
+  - Field Marshal
+  - Wing Marshal
+  - Air Marshal
+  - Group Captain
+  - Wing Leader
+  - Flight Lieutenant
+  - Pilot Officer
 
   criminal_titles:
-  - Crime Lord
-  - Kingpin
   - Boss
-  - Syndicate Leader
-  - Smuggler Baron
-  - Pirate Captain
-  - Black Sun Vigo
-  - Cartel Lieutenant
+  - Kingpin
+  - Underlord
+  - Lieutenant
   - Enforcer
   - Fixer
-  - Dealer
   - Runner
-  - Information Broker
+  - Broker
   - Fence
-  - Slaver
-  - Spice Merchant
-
-  jedi_titles:
-  - Jedi Grand Master
-  - Jedi Master
-  - Jedi Knight
-  - Jedi Padawan
-  - Jedi Apprentice
-  - Jedi Historian
-  - Jedi Healer
-  - Jedi Consular
-  - Jedi Guardian
-  - Jedi Sentinel
-  - Jedi Instructor
-  - Jedi Archivist
-  - Jedi Watchman
-  - Battlemaster
-  - Jedi Investigator
+  - Smuggler
+  - Pirate
+  - Scoundrel
+  - Slicer
+  - Saboteur
+  - Assassin
+  - Blade
+  - Shadow
+  - Ghost
+  - Phantom
+  - Wraith
 
   imperial_titles:
-  - Grand Admiral
-  - Admiral
   - Moff
   - Grand Moff
+  - Governor
+  - Prefect
+  - Administrator
+  - Director
+  - Overseer
   - Inquisitor
-  - Dark Jedi
-  - Imperial Executor
-  - Director of Intelligence
-  - ISB Agent
-  - Imperial Guard
-  - Royal Guard
-  - Stormtrooper Commander
-  - AT-AT Commander
-  - TIE Squadron Leader
-  - Star Destroyer Captain
+  - Agent
+  - Interrogator
+  - Executor
+  - Lord
+  - Dark Lord
+  - Emperor
+  - Empress
+
+  rebel_titles:
+  - Chief
+  - Leader
+  - Councilor
+  - Agent
+  - Operative
+  - Pilot
+  - Ace
+  - Commander
+  - Captain
+  - Specialist
+  - Technician
+  - Medic
+  - Scout
+  - Pathfinder
+  - Infiltrator
 
   force_tradition_titles:
+  - Jedi
+  - Padawan
+  - Knight
+  - Master
+  - Grandmaster
+  - Sith
+  - Apprentice
+  - Acolyte
+  - Inquisitor
+  - Dark Jedi
   - Nightsister
   - Nightbrother
   - Witchmother
-  - Dathomiri Witch
   - Shaman
-  - Seer
-  - Force Adept
-  - Gray Jedi
-  - Dark Acolyte
-  - Shadow Guard
-  - Mistryl Shadow Guard
-  - Prophets of the Dark Side
-  - Jensaarai Defender
+  - Sage
+
+  corellian_surnames:
+  - Antilles
+  - Solo
+  - Darklighter
+  - Dodonna
+  - Bel
+  - Iblis
+  - Horn
+  - Terrik
+  - Katarn
+  - Calrissian
+
+  alderaanian_surnames:
+  - Organa
+  - Panteer
+  - Celchu
+  - Thul
+  - Alde
+  - Fel
+  - Prestor
+  - Kether
+  - Treen
+  - Rist
+
+  outer_rim_surnames:
+  - Rendar
+  - Vrynn
+  - Tarn
+  - Kess
+  - Sarn
+  - Voss
+  - Raal
+  - Korin
+  - Thross
+  - Gan

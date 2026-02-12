@@ -53,6 +53,7 @@ Evil speaks seductively or terribly, never trivially — the Dark Lord's agents 
 ## Sensory Lexicon
 
 ### Sound
+
 - the low horn call echoing across mountain valleys, signal carried far through clear air
 - the crackle of a campfire under stars, fellowship resting between trials
 - the whisper of wind through ancient trees, nature speaking in old tongues
@@ -62,6 +63,7 @@ Evil speaks seductively or terribly, never trivially — the Dark Lord's agents 
 - the silence of a place where evil has been, absence where life should thrive
 
 ### Sight
+
 - a distant mountain range, the destination visible but impossibly far
 - ancient runes carved into stone, glowing faintly with residual magic
 - a banner bearing the symbol of the quest or fellowship, identity worn openly
@@ -71,6 +73,7 @@ Evil speaks seductively or terribly, never trivially — the Dark Lord's agents 
 - dawn light breaking over the horizon, hope made visible after darkness
 
 ### Smell
+
 - smoke from campfires and pipeweed, comfort in the wild
 - the green scent of deep forest, life thick and old
 - stone and dust in ancient ruins, time measured in decay
@@ -80,6 +83,7 @@ Evil speaks seductively or terribly, never trivially — the Dark Lord's agents 
 - flowers and growing things in blessed or sacred groves, nature unspoiled
 
 ### Touch
+
 - the hilt of a sword worn smooth by use, weapon as extension of self
 - the weight of a pack after days on the road, burden physical and symbolic
 - cold stone of ancient structures, civilizations long gone leaving only architecture

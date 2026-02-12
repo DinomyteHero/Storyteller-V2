@@ -17,7 +17,7 @@ This document defines the complete schema for Storyteller AI era pack YAML files
 5. [locations.yaml](#locationsyaml)
 6. [npcs.yaml](#npcsyaml)
 7. [backgrounds.yaml](#backgroundsyaml)
-8. [namebanks.yaml](#namebbanksyaml)
+8. [namebanks.yaml](#namebanksyaml)
 9. [quests.yaml](#questsyaml)
 10. [events.yaml](#eventsyaml)
 11. [rumors.yaml](#rumorsyaml)
@@ -35,6 +35,7 @@ This document defines the complete schema for Storyteller AI era pack YAML files
 An era pack is a collection of YAML files defining all content for a specific Star Wars time period. Era packs are loaded from `data/static/era_packs/{era_id}/`.
 
 **Supported Eras (V2.20):**
+
 - `REBELLION` - Age of Rebellion (0-4 ABY)
 - `NEW_REPUBLIC` - New Republic (5-19 ABY)
 - `NEW_JEDI_ORDER` - New Jedi Order (25-29 ABY)
@@ -48,7 +49,7 @@ An era pack is a collection of YAML files defining all content for a specific St
 
 Each era pack directory must contain:
 
-```
+```text
 data/static/era_packs/{era_id}/
 ├── era.yaml              # Required: era metadata, file index, start locations
 ├── factions.yaml         # Required: faction definitions
@@ -90,6 +91,7 @@ file_index:                          # Required: Maps section names to filenames
   companions: companions.yaml
 
 start_location_pool:                 # Required: Safe starting locations for new campaigns
+
   - loc-cantina
   - loc-bazaar_market
   - loc-safe_house
@@ -106,14 +108,18 @@ metadata:                            # Required: Human-readable era info
     The galaxy lives under the boot of the Galactic Empire...
   tone: Gritty hope; underdog resistance; imperial oppression
   key_conflicts:
+
     - Alliance vs. Empire
     - Jedi legacy vs. Imperial purge
+
   themes:
+
     - Restoration of the Republic
     - Sacrifice and compartmentalization
 ```
 
 **Required Fields:**
+
 - `era_id` (string, UPPERCASE)
 - `schema_version` (int, always 2)
 - `file_index` (dict mapping section → filename)
@@ -130,17 +136,25 @@ metadata:                            # Required: Human-readable era info
 
 ```yaml
 factions:
+
   - id: rebellion                    # Required: Unique faction ID
+
     name: Alliance to Restore the Republic  # Required
     tags:                            # Optional: Faction tags
+
       - military
       - rebellion
+
     home_locations:                  # Optional: Faction bases (must exist in locations.yaml)
+
       - loc-yavin_base
       - loc-hoth_base
+
     goals:                           # Optional: Faction objectives
+
       - Overthrow the Empire
       - Restore the Republic
+
     hostility_matrix:                # Optional: Faction relationships
       empire: -80                    # Hostile (-100 to 100)
       hutts: -20                     # Distrustful
@@ -148,10 +162,12 @@ factions:
 ```
 
 **Required Fields:**
+
 - `id` (string)
 - `name` (string)
 
 **Validation:**
+
 - `home_locations` must reference existing location IDs (warning in lenient mode)
 - `hostility_matrix` keys should reference other faction IDs
 
@@ -163,7 +179,9 @@ factions:
 
 ```yaml
 locations:
+
   - id: loc-cantina                  # Required: Unique location ID
+
     name: Mos Eisley Cantina         # Required
     planet: Tatooine                 # Optional: Planet name
     region: Outer Rim                # Optional: Region
@@ -171,19 +189,25 @@ locations:
       A crowded spaceport cantina frequented by smugglers, bounty hunters,
       and spacers of all kinds.
     parent_id: loc-mos_eisley        # Optional: Parent location ID
-    threat_level: moderate           # Optional: low|moderate|high|extreme
+    threat_level: moderate           # Optional: low | moderate | high | extreme
     tags:                            # Optional: Location tags
+
       - cantina
       - public
       - criminal
+
     controlling_factions:            # Optional: Faction IDs
+
       - hutts
+
     keywords:                        # Optional: RAG keywords
+
       - cantina
       - smugglers
       - spaceport
 
     scene_types:                     # Optional: Allowed scene types
+
       - dialogue
       - stealth
       - combat
@@ -191,45 +215,58 @@ locations:
     security:                        # Optional: Security config
       controlling_faction: hutts     # Optional: Faction ID
       security_level: 30             # 0-100 (default: 50)
-      patrol_intensity: low          # low|medium|high|constant|none
-      inspection_chance: low         # low|medium|high
+      patrol_intensity: low          # low | medium | high | constant | none
+      inspection_chance: low         # low | medium | high
 
     services:                        # Optional: Available services
+
       - cantina
       - market
       - transport
 
     access_points:                   # Optional: Entry/exit points
+
       - id: cantina_front_door
-        type: door                   # door|hatch|vent|window|etc.
-        visibility: public           # public|restricted|hidden|secret
+
+        type: door                   # door | hatch | vent | window | etc.
+        visibility: public           # public | restricted | hidden | secret
         bypass_methods:              # How to bypass if locked
+
           - violence
           - bribe
           - charm
 
     encounter_table:                 # Optional: Random NPCs
+
       - template_id: cantina_patron
+
         weight: 10
         conditions: null             # Optional: Spawn conditions
+
       - template_id: bounty_hunter
+
         weight: 2
 
     travel_links:                    # Optional: Connected locations
+
       - to_location_id: loc-spaceport
-        method: travel               # Optional: travel|fast_travel|hyperspace
-        risk: low                    # Optional: low|medium|high
+
+        method: travel               # Optional: travel | fast_travel | hyperspace
+        risk: low                    # Optional: low | medium | high
         cost: 50                     # Optional: Credit cost
+
       - loc-docking_bay              # Shorthand: just location ID
 
     metadata: {}                     # Optional: Extension point
 ```
 
 **Required Fields:**
+
 - `id` (string)
 - `name` (string)
 
 **Allowed Values:**
+
 - `scene_types`: dialogue, stealth, combat, travel, investigation, puzzle, philosophical_dialogue, meditation, tech_investigation, survival, exploration, training
 - `services`: briefing_room, medbay, arms_dealer, slicer, transport, bounty_board, safehouse, market, cantina
 - `access_points.bypass_methods`: violence, sneak, stealth, climb, navigate, bribe, charm, intimidate, deception, credential, hack, slice, disable, force, force_dark, logic_puzzle, sith_amulet
@@ -237,6 +274,7 @@ locations:
 - `security.inspection_chance`: low, medium, high
 
 **Validation:**
+
 - `parent_id` must reference an existing location ID
 - `travel_links.to_location_id` must reference existing location IDs (warning in lenient)
 - `encounter_table.template_id` must reference NPCs in templates section (warning in lenient)
@@ -249,6 +287,7 @@ locations:
 ## npcs.yaml
 
 NPCs are divided into three sections:
+
 - **anchors**: Canonical, unique NPCs (e.g., Luke Skywalker)
 - **rotating**: Recurring but non-unique NPCs (e.g., Imperial Officer Jans)
 - **templates**: Procedural NPC generators (e.g., "imperial_officer")
@@ -257,11 +296,15 @@ NPCs are divided into three sections:
 
 ```yaml
 anchors:
+
   - id: luke_skywalker               # Required: Unique NPC ID
+
     name: Luke Skywalker             # Required
     aliases:                         # Optional: Alternative names
+
       - Luke
       - Skywalker
+
     banned_aliases: []               # Optional: Names to never match
     match_rules:                     # Optional: Alias matching config
       min_tokens: 1
@@ -272,21 +315,28 @@ anchors:
     faction_id: rebellion            # Optional: Faction ID
     default_location_id: loc-yavin_base  # Optional: Default location
     home_locations:                  # Optional: Locations NPC frequents
+
       - loc-yavin_base
       - loc-dagobah
+
     role: Jedi Knight                # Optional: NPC role
     archetype: Idealistic hero       # Optional: Archetype
     traits:                          # Optional: Personality traits
+
       - hopeful
       - brave
       - idealistic
+
     motivation: Restore the Jedi Order and defeat the Empire  # Optional
     secret: His father is Darth Vader  # Optional
     voice_tags:                      # Optional: Speech patterns (must be in VOICE_TAG_SPEECH_PATTERNS)
+
       - earnest
       - hopeful
-    rarity: legendary                # common|rare|legendary
+
+    rarity: legendary                # common | rare | legendary
     tags:                            # Optional: Tags for filtering
+
       - jedi
       - hero
 
@@ -299,14 +349,16 @@ anchors:
 
     spawn:                           # Optional: Spawn rules (for rotating NPCs)
       location_tags_any:             # Spawn in locations with these tags
+
         - rebel_base
+
       location_types_any: []         # Spawn in these location types
       min_alert: 0                   # Min security level (0-100)
       max_alert: 100                 # Max security level (0-100)
       conditions: null               # Optional: Custom spawn logic
 
     levers:                          # Optional: Social manipulation
-      bribeable: "false"             # "false"|"low"|"medium"|"high" (MUST BE STRING)
+      bribeable: "false"             # "false" | "low" | "medium" | "high" (MUST BE STRING)
       intimidatable: "false"
       charmable: "low"
       triggers: null                 # Optional: Custom lever logic
@@ -314,14 +366,20 @@ anchors:
     authority:                       # Optional: Access permissions
       clearance_level: 3             # 0-5
       can_grant_access:              # Access points this NPC can unlock
+
         - rebel_hangar_door
 
     knowledge:                       # Optional: What NPC knows
       rumors:                        # Rumor IDs
+
         - rumor_death_star_weakness
+
       quest_facts:                   # Quest IDs or "quest_id:stage_id"
+
         - quest_rescue_leia:stage_1
+
       secrets:                       # Fact IDs
+
         - fact_vader_identity
 
     metadata: {}                     # Optional: Extension point
@@ -330,7 +388,9 @@ rotating:
   # Same structure as anchors
 
 templates:
+
   - id: cantina_patron               # Required: Template ID
+
     role: Patron                     # Required: Role name
     archetype: Spacer                # Optional
     traits: [gruff, secretive]       # Optional
@@ -356,14 +416,17 @@ templates:
 ```
 
 **Required Fields (anchors/rotating):**
+
 - `id` (string)
 - `name` (string)
 
 **Required Fields (templates):**
+
 - `id` (string)
 - `role` (string)
 
 **Validation:**
+
 - `faction_id` must reference existing faction
 - `default_location_id` must reference existing location (warning in lenient)
 - `home_locations` must reference existing locations (warning in lenient)
@@ -383,7 +446,9 @@ templates:
 
 ```yaml
 backgrounds:
+
   - id: bg_rebel_soldier             # Required: Background ID
+
     name: Rebel Soldier              # Required
     description: |                   # Optional
       You served in the Alliance military...
@@ -397,14 +462,18 @@ backgrounds:
       empire: -30
 
     questions:                       # Optional: Character creation questions
+
       - id: q1_motivation            # Required: Question ID
+
         title: Why did you join the Rebellion?  # Required
         subtitle: This shapes your core motivation  # Optional
         condition: null              # Optional: Conditional logic (e.g., "loyalty.tone == PARAGON")
         choices:
+
           - label: To fight tyranny  # Required
+
             concept: idealistic rebel  # Required
-            tone: PARAGON            # Optional: PARAGON|INVESTIGATE|RENEGADE|NEUTRAL
+            tone: PARAGON            # Optional: PARAGON | INVESTIGATE | RENEGADE | NEUTRAL
             effects:                 # Optional: Choice effects
               faction_hint: rebellion
               location_hint: loc-yavin_base
@@ -414,6 +483,7 @@ backgrounds:
 ```
 
 **Required Fields:**
+
 - `id` (string)
 - `name` (string)
 - `questions[].id` (string)
@@ -422,7 +492,9 @@ backgrounds:
 - `questions[].choices[].concept` (string)
 
 **Conditional Logic:**
+
 Questions can have a `condition` field (Python expression):
+
 - `"loyalty.tone == PARAGON"` - Show if player chose PARAGON tone
 - `"q1 == 0"` - Show if player chose choice 0 for question q1
 
@@ -435,14 +507,19 @@ Questions can have a `condition` field (Python expression):
 ```yaml
 namebanks:
   cantina:
+
     - Boba
     - Greedo
     - Ponda Baba
+
   imperial:
+
     - Tarkin
     - Veers
     - Piett
+
   rebel:
+
     - Dodonna
     - Draven
     - Rieek an
@@ -458,14 +535,18 @@ namebanks:
 
 ```yaml
 quests:
+
   - id: quest_rescue_leia            # Required: Quest ID
+
     title: Rescue Princess Leia      # Required: Quest title
     description: |                   # Optional: Quest description
       The Rebel Alliance has learned that Princess Leia Organa...
     entry_conditions: null           # Optional: Trigger conditions
 
     stages:
+
       - stage_id: stage_1            # Required: Stage ID (NOT "stage")
+
         objective: Find a pilot      # Optional: Stage objective
         objectives: null             # Optional: Structured objectives
         branch_points: null          # Optional: Branching logic
@@ -475,6 +556,7 @@ quests:
         on_exit_effects: null        # Optional: Effects on stage end
 
       - stage_id: stage_2
+
         objective: Infiltrate the Death Star
         # ...
 
@@ -482,6 +564,7 @@ quests:
 ```
 
 **Required Fields:**
+
 - `id` (string)
 - `title` (string)
 - `stages[].stage_id` (string) - **CRITICAL:** Must be `stage_id`, NOT `stage`
@@ -494,7 +577,9 @@ quests:
 
 ```yaml
 events:
+
   - id: event_imperial_raid          # Required: Event ID
+
     type: location_event             # Required: Event type
     triggers: null                   # Optional: Trigger conditions
     location_selector: null          # Optional: Location selection logic
@@ -503,6 +588,7 @@ events:
 ```
 
 **Required Fields:**
+
 - `id` (string)
 - `type` (string)
 
@@ -514,25 +600,32 @@ events:
 
 ```yaml
 rumors:
+
   - id: rumor_death_star             # Required: Rumor ID
+
     text: |                          # Required: Rumor text (NOT "content")
       I heard the Empire is building a weapon that can destroy planets...
     tags:                            # Optional: Rumor tags
+
       - empire
       - military
+
     scope: global                    # Optional: global|location
-    credibility: rumor               # Optional: rumor|likely|confirmed
+    credibility: rumor               # Optional: rumor | likely | confirmed
 ```
 
 **Required Fields:**
+
 - `id` (string)
 - `text` (string) - **CRITICAL:** Must be `text`, NOT `content`
 
 **Allowed Values:**
+
 - `scope`: global, location
 - `credibility`: rumor, likely, confirmed
 
 **Schema Migration:**
+
 Old schema used `content`, `reliability`, `name`, `category`. New schema uses `text`, `credibility`, `tags`, `scope`.
 
 ---
@@ -565,17 +658,20 @@ meters:
 ```
 
 **Required Fields:**
+
 - `reputation_by_faction` (EraMetersBounds)
 - `heat_global` (EraMetersBounds)
 - `heat_by_location` (EraMetersBounds)
 
 **EraMetersBounds fields:**
+
 - `min` (int, required)
 - `max` (int, required)
 - `default` (int, required)
 - `decay_per_tick` (int, optional)
 
 **Validation:**
+
 - `min` <= `max`
 - `default` must be within `[min, max]`
 
@@ -587,7 +683,9 @@ meters:
 
 ```yaml
 facts:
+
   - id: fact_vader_identity          # Required: Fact ID
+
     subject: Darth Vader             # Required: Subject entity
     predicate: is                    # Required: Relationship
     object: Anakin Skywalker         # Required: Object entity
@@ -595,6 +693,7 @@ facts:
 ```
 
 **Required Fields:**
+
 - `id` (string)
 - `subject` (string)
 - `predicate` (string)
@@ -608,17 +707,21 @@ facts:
 
 ```yaml
 companions:
+
   - id: companion_soldier            # Required: Companion ID
+
     name: Kira Thane                 # Required
     species: Human                   # Optional (default: Human)
     gender: female                   # Optional
     archetype: Loyal protector       # Optional
     faction_id: rebellion            # Optional: Faction ID
-    role_in_party: companion         # Optional: companion|specialist|mentor|rival
+    role_in_party: companion         # Optional: companion | specialist | mentor | rival
 
     voice_tags:                      # Optional: Must be in VOICE_TAG_SPEECH_PATTERNS
+
       - warm
       - protective
+
     motivation: Protect those who cannot protect themselves  # Optional
     speech_quirk: Uses military slang  # Optional
 
@@ -642,9 +745,12 @@ companions:
 
     tags: [soldier, combat]          # Optional
     enables_affordances:             # Optional: Abilities this companion enables
+
       - tactical_analysis
       - breach_door
+
     blocks_affordances:              # Optional: Actions this companion prevents
+
       - imperial_salute
 
     influence:                       # Optional: Influence mechanics
@@ -652,15 +758,20 @@ companions:
       min: -100
       max: 100
       triggers:                      # Optional: Influence modifiers
+
         - intent: threaten_innocent
+
           delta: -10
+
         - intent: protect_ally
+
           delta: 5
 
     banter:                          # Optional: Banter config
-      frequency: normal              # low|normal|high
-      style: warm                    # warm|snarky|stoic|etc.
+      frequency: normal              # low | normal | high
+      style: warm                    # warm | snarky | stoic | etc.
       triggers:                      # Optional: Banter triggers
+
         - jedi
         - empire
 
@@ -670,17 +781,21 @@ companions:
 ```
 
 **Required Fields:**
+
 - `id` (string)
 - `name` (string)
 
 **Validation:**
+
 - `faction_id` must reference existing faction (warning in lenient)
 - `recruitment.first_meeting_location` must reference existing location (warning in lenient)
 - `personal_quest_id` must reference existing quest (warning in lenient)
 - `voice_tags` must be in VOICE_TAG_SPEECH_PATTERNS (strict validation)
 
 **Schema Migration:**
+
 Old LEGACY companions have deprecated fields:
+
 - `personality_traits` (list) → Transform to `traits` dict
 - `banter_style` (string) → Move to `banter.style`
 - `recruitment_trigger` (string) → Move to `recruitment.unlock_conditions`
@@ -694,39 +809,47 @@ Old LEGACY companions have deprecated fields:
 ## Common Enums
 
 ### Scene Types (ALLOWED_SCENE_TYPES)
-```
+
+```text
 dialogue, stealth, combat, travel, investigation, puzzle,
 philosophical_dialogue, meditation, tech_investigation,
 survival, exploration, training
 ```
 
 ### Services (ALLOWED_SERVICES)
-```
+
+```text
 briefing_room, medbay, arms_dealer, slicer, transport,
 bounty_board, safehouse, market, cantina
 ```
 
 ### Bypass Methods (ALLOWED_BYPASS_METHODS)
-```
+
+```text
 violence, sneak, stealth, climb, navigate, bribe, charm,
 intimidate, deception, credential, hack, slice, disable,
 force, force_dark, logic_puzzle, sith_amulet
 ```
 
 ### Lever Ratings (LeverRating)
-```
+
+```text
 "false", "low", "medium", "high"
 ```
+
 **CRITICAL:** Must be strings in YAML, not booleans!
 
 ### Patrol Intensity (ALLOWED_PATROL_INTENSITY)
-```
+
+```text
 low, medium, high, constant, none
 ```
 
 ### Voice Tags (VOICE_TAG_SPEECH_PATTERNS)
+
 **40 valid tags:**
-```
+
+```text
 earnest, hopeful, warm, weary, nervous, defensive, apologetic,
 commanding, authoritative, regal, formal, diplomatic,
 sarcastic, wry, snarky, dry,
@@ -748,17 +871,20 @@ See `backend/app/core/personality_profile.py` lines 18-86 for full definitions.
 Controlled by `ERA_PACK_LENIENT_VALIDATION` in `shared/config.py`.
 
 **Lenient Mode (default in V2.20):**
+
 - Missing cross-references → Log warning
 - Invalid enum values → Validation error (strict)
 - Missing voice tags → Validation error (strict as of plan)
 
 **Strict Mode:**
+
 - Any validation failure → ValueError
 - Required for production-ready era packs
 
 ### Cross-Reference Validation
 
 The following references are validated:
+
 - Location `parent_id` → Must exist in locations
 - Location `travel_links.to_location_id` → Must exist (warning in lenient)
 - Location `encounter_table.template_id` → Must exist in NPC templates (warning in lenient)
@@ -780,130 +906,173 @@ The following references are validated:
 ## Common Gotchas
 
 ### 1. YAML Boolean vs String
+
 **Problem:** YAML interprets `false` as a boolean, but schema expects string `"false"`.
 
 **Wrong:**
+
 ```yaml
 levers:
   bribeable: false  # This is a boolean!
 ```
 
 **Right:**
+
 ```yaml
 levers:
   bribeable: "false"  # This is a string
 ```
 
 ### 2. Integer Aliases Need Quoting
+
 **Problem:** YAML anchor aliases with integers are interpreted as numbers.
 
 **Wrong:**
+
 ```yaml
 &ref81 some_value
 ```
 
 **Right:**
+
 ```yaml
 &ref_81 some_value  # Use underscore or quote
 ```
 
 ### 3. Em Dashes in Quoted Strings
+
 **Problem:** Em dashes in double-quoted YAML strings can break parsing.
 
 **Wrong:**
+
 ```yaml
 description: "The Empire—ruthless and vast—controls the galaxy."
 ```
 
 **Right:**
+
 ```yaml
 description: 'The Empire—ruthless and vast—controls the galaxy.'
 # OR
+
 description: The Empire—ruthless and vast—controls the galaxy.
 ```
 
 ### 4. Quest Stage ID vs Stage
+
 **Problem:** Old schema used `stage`, new schema requires `stage_id`.
 
 **Wrong:**
+
 ```yaml
 stages:
+
   - stage: stage_1  # WRONG
+
     objective: Find pilot
 ```
 
 **Right:**
+
 ```yaml
 stages:
+
   - stage_id: stage_1  # CORRECT
+
     objective: Find pilot
 ```
 
 ### 5. Rumor Text vs Content
+
 **Problem:** Old schema used `content`, new schema requires `text`.
 
 **Wrong:**
+
 ```yaml
 rumors:
+
   - id: rumor1
+
     content: I heard...  # WRONG
 ```
 
 **Right:**
+
 ```yaml
 rumors:
+
   - id: rumor1
+
     text: I heard...  # CORRECT
 ```
 
 ### 6. Voice Tags Must Be Validated
+
 **Problem:** Companions/NPCs with invalid voice tags cause validation errors.
 
 **Wrong:**
+
 ```yaml
 voice_tags:
+
   - scholarly  # NOT in VOICE_TAG_SPEECH_PATTERNS
 ```
 
 **Right:**
+
 ```yaml
 voice_tags:
+
   - academic  # Valid tag
 ```
 
 **Valid voice tags list:** See Common Enums section above or `personality_profile.py`.
 
 ### 7. Canonical NPCs Go in Anchors/Rotating, Not Templates
+
 **Problem:** Placing unique NPCs like "Luke Skywalker" in templates section.
 
 **Wrong:**
+
 ```yaml
 templates:
+
   - id: luke_skywalker  # WRONG - should be in anchors
+
     role: Jedi Knight
 ```
 
 **Right:**
+
 ```yaml
 anchors:
+
   - id: luke_skywalker  # CORRECT
+
     name: Luke Skywalker
 ```
 
 ### 8. Background Starting Ship Field Name
+
 **Problem:** Using `starship_id` instead of `starting_starship`.
 
 **Wrong:**
+
 ```yaml
 backgrounds:
+
   - id: bg_pilot
+
     starship_id: yt1300  # WRONG
 ```
 
 **Right:**
+
 ```yaml
 backgrounds:
+
   - id: bg_pilot
+
     starting_starship: yt1300  # CORRECT
 ```
 
@@ -914,6 +1083,7 @@ backgrounds:
 Current schema version: **2**
 
 Set in `era.yaml`:
+
 ```yaml
 schema_version: 2
 ```
