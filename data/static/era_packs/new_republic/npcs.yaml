@@ -1,0 +1,3133 @@
+npcs:
+  anchors:
+  - id: luke_skywalker
+    name: Luke Skywalker
+    rarity: legendary
+    aliases:
+    - Luke
+    - Skywalker
+    tags:
+    - rebel
+    - pilot
+    - force_sensitive
+    - hero
+    faction_id: rebel_alliance
+    default_location_id: loc-yavin_base
+    role: Rebel Pilot
+    archetype: Idealistic hero
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - idealistic
+    - brave
+    - impulsive
+    motivation: Prove himself and fight for something greater than himself
+    secret: Dreams of a mysterious old man and hears voices he can't explain
+    voice_tags:
+    - earnest
+    - young
+    - hopeful
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: leia_organa
+    name: Leia Organa
+    rarity: legendary
+    aliases:
+    - Princess Leia
+    - Senator Organa
+    - Leia
+    banned_aliases:
+    - Princess
+    - Senator
+    tags:
+    - rebel
+    - leader
+    - diplomat
+    - royal
+    faction_id: rebel_alliance
+    default_location_id: loc-yavin_base
+    role: Rebel Leader
+    archetype: Diplomatic warrior
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - sharp
+    - fearless
+    - principled
+    motivation: Destroy the Empire and restore freedom to the galaxy
+    secret: Carries Death Star plans and encrypted contact lists that could burn a dozen cells
+    voice_tags:
+    - commanding
+    - crisp
+    - regal
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: han_solo
+    name: Han Solo
+    rarity: legendary
+    aliases:
+    - Captain Solo
+    - Solo
+    banned_aliases:
+    - Captain
+    tags:
+    - smuggler
+    - pilot
+    - rogue
+    faction_id: underworld
+    default_location_id: loc-cantina
+    role: Smuggler Captain
+    archetype: Reluctant hero
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - cocky
+    - charming
+    - cynical
+    motivation: Get paid, stay free, and avoid Jabba's bounty hunters
+    secret: Owes Jabba the Hutt a massive debt that will get him killed
+    voice_tags:
+    - wry
+    - fast
+    - sarcastic
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices, not principles.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: chewbacca
+    name: Chewbacca
+    rarity: rare
+    aliases:
+    - Chewie
+    - Chewbacca
+    tags:
+    - wookiee
+    - co-pilot
+    - loyal
+    - warrior
+    faction_id: underworld
+    default_location_id: loc-cantina
+    role: Co-Pilot & Warrior
+    archetype: Loyal protector
+    match_rules:
+      min_tokens: 1
+      allow_single_token: true
+    traits:
+    - loyal
+    - fierce
+    - protective
+    motivation: Honor his life debt to Han and protect his friends
+    secret: Carries grief for his enslaved homeworld and people
+    voice_tags:
+    - growling
+    - expressive
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Skill and nerve win battles.
+      wound: They've seen too many friends not come back.
+      taboo: cowardice
+      rhetorical_style: casual
+      tell: gestures like flying
+  - id: darth_vader
+    name: Darth Vader
+    rarity: legendary
+    aliases:
+    - Lord Vader
+    - Vader
+    - Dark Lord
+    banned_aliases:
+    - Lord
+    - Dark Lord
+    tags:
+    - sith
+    - imperial
+    - enforcer
+    - terrifying
+    faction_id: galactic_empire
+    default_location_id: loc-star_destroyer
+    role: Dark Lord of the Sith
+    archetype: Relentless hunter
+    match_rules:
+      min_tokens: 1
+      allow_single_token: true
+    traits:
+    - ruthless
+    - powerful
+    - implacable
+    motivation: Hunt down the remaining Jedi and crush the Rebellion
+    secret: Obsessed with finding a specific Force-sensitive pilot from the Death Star attack
+    voice_tags:
+    - menacing
+    - mechanical
+    - cold
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  - id: wilhuff_tarkin
+    name: Wilhuff Tarkin
+    rarity: legendary
+    aliases:
+    - Grand Moff Tarkin
+    - Tarkin
+    - Governor Tarkin
+    banned_aliases:
+    - Grand Moff
+    - Governor
+    tags:
+    - imperial
+    - strategist
+    - ruthless
+    faction_id: galactic_empire
+    default_location_id: loc-death_star
+    role: Grand Moff
+    archetype: Cold strategist
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - ruthless
+    - calculating
+    - arrogant
+    motivation: Break the Rebellion through fear and overwhelming force
+    secret: Sees the Death Star as his personal monument to order
+    voice_tags:
+    - clipped
+    - icy
+    - disdainful
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  - id: mon_mothma
+    name: Mon Mothma
+    rarity: legendary
+    aliases:
+    - Chancellor Mothma
+    - Mothma
+    banned_aliases:
+    - Chancellor
+    tags:
+    - rebel
+    - leader
+    - diplomat
+    faction_id: rebel_alliance
+    default_location_id: loc-home_one
+    role: Alliance Supreme Commander
+    archetype: Principled leader
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - composed
+    - diplomatic
+    - resolute
+    motivation: Unite disparate rebel cells into a legitimate government
+    secret: Authorizes black ops she will publicly deny to maintain moral authority
+    voice_tags:
+    - calm
+    - measured
+    - grave
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: high
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: admiral_ackbar
+    name: Admiral Ackbar
+    rarity: rare
+    aliases:
+    - Ackbar
+    - Admiral
+    banned_aliases:
+    - Admiral
+    tags:
+    - rebel
+    - military
+    - mon_calamari
+    faction_id: rebel_alliance
+    default_location_id: loc-home_one
+    role: Fleet Admiral
+    archetype: Strategic commander
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - cautious
+    - brilliant
+    - honorable
+    motivation: Outmaneuver the Imperial fleet despite being outgunned
+    secret: Lost his homeworld to slavery and carries that rage carefully
+    voice_tags:
+    - deliberate
+    - tactical
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: wedge_antilles
+    name: Wedge Antilles
+    rarity: rare
+    aliases:
+    - Wedge
+    - Red Two
+    - Antilles
+    banned_aliases:
+    - Red Two
+    tags:
+    - rebel
+    - pilot
+    - ace
+    faction_id: rebel_alliance
+    default_location_id: loc-yavin_base
+    role: Starfighter Pilot
+    archetype: Reliable ace
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - skilled
+    - humble
+    - loyal
+    motivation: Keep his squadron alive and win the war
+    secret: Feels overshadowed but is the best pilot in the Alliance
+    voice_tags:
+    - calm
+    - professional
+    - dry
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: lando_calrissian
+    name: Lando Calrissian
+    rarity: rare
+    aliases:
+    - Lando
+    - Administrator Calrissian
+    - Baron Administrator
+    banned_aliases:
+    - Administrator
+    - Baron Administrator
+    tags:
+    - smuggler
+    - administrator
+    - charming
+    faction_id: underworld
+    default_location_id: loc-smuggler_den
+    role: Administrator & Gambler
+    archetype: Charming rogue
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - charming
+    - calculating
+    - conflicted
+    motivation: Protect his people and his reputation
+    secret: Forced to betray Han to save Cloud City from Imperial occupation
+    voice_tags:
+    - smooth
+    - confident
+    - velvet
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices, not principles.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: boba_fett
+    name: Boba Fett
+    rarity: rare
+    aliases:
+    - Fett
+    - Boba Fett
+    tags:
+    - bounty_hunter
+    - mandalorian
+    - dangerous
+    faction_id: underworld
+    default_location_id: loc-tatooine
+    role: Bounty Hunter
+    archetype: Silent professional
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - lethal
+    - professional
+    - silent
+    motivation: Collect bounties and build his reputation
+    secret: Working directly for Vader on a priority target
+    voice_tags:
+    - minimal
+    - cold
+    - precise
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: jabba_the_hutt
+    name: Jabba the Hutt
+    rarity: legendary
+    aliases:
+    - Jabba
+    - The Hutt
+    banned_aliases:
+    - The Hutt
+    tags:
+    - hutt
+    - crime_lord
+    - powerful
+    faction_id: hutt_cartel
+    default_location_id: loc-jabbas_palace
+    role: Crime Lord
+    archetype: Ruthless kingpin
+    match_rules:
+      min_tokens: 2
+    traits:
+    - ruthless
+    - hedonistic
+    - cunning
+    motivation: Collect Han Solo's debt and maintain criminal dominance
+    secret: Uses both Empire and Rebellion for profit while staying neutral
+    voice_tags:
+    - guttural
+    - amused
+    - threatening
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: obi_wan_kenobi
+    name: Obi-Wan Kenobi
+    rarity: legendary
+    aliases:
+    - Ben Kenobi
+    - Old Ben
+    - Kenobi
+    banned_aliases:
+    - Ben
+    tags:
+    - jedi
+    - hermit
+    - mentor
+    - wise
+    faction_id: rebel_alliance
+    default_location_id: loc-tatooine
+    role: Jedi Master
+    archetype: Hidden guardian
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - wise
+    - patient
+    - mysterious
+    motivation: Guide Luke toward his destiny while hiding from the Empire
+    secret: Watches over Luke from the shadows and waits for the right moment
+    voice_tags:
+    - calm
+    - cryptic
+    - warm
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: prince_xizor
+    name: Prince Xizor
+    rarity: rare
+    aliases:
+    - Xizor
+    - Dark Prince
+    tags:
+    - black_sun
+    - crime_lord
+    - underworld
+    - falleen
+    faction_id: black_sun
+    default_location_id: loc-coruscant_underworld
+    role: Black Sun Underlord
+    archetype: Criminal mastermind
+    match_rules:
+      min_tokens: 1
+    traits:
+    - cunning
+    - ruthless
+    - charismatic
+    motivation: Usurp Vader's position as the Emperor's right hand
+    secret: Vader destroyed his family—vengeance drives everything
+    voice_tags:
+    - smooth
+    - seductive
+    - dangerous
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: dash_rendar
+    name: Dash Rendar
+    rarity: rare
+    aliases:
+    - Dash
+    - Rendar
+    tags:
+    - smuggler
+    - pilot
+    - mercenary
+    - corellian
+    faction_id: underworld
+    default_location_id: loc-ord_mantell
+    role: Smuggler
+    archetype: Han Solo rival
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - cocky
+    - skilled
+    - independent
+    motivation: Restore family honor through daring exploits
+    secret: Imperial Academy washout—family disowned by the Empire
+    voice_tags:
+    - cocky
+    - sarcastic
+    - confident
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices, not principles.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: guri
+    name: Guri
+    rarity: rare
+    aliases:
+    - Guri
+    tags:
+    - black_sun
+    - assassin
+    - droid
+    - human_replica
+    faction_id: black_sun
+    default_location_id: loc-coruscant_underworld
+    role: Assassin
+    archetype: Human replica droid
+    match_rules:
+      min_tokens: 1
+    traits:
+    - emotionless
+    - lethal
+    - precise
+    motivation: Serve Xizor with perfect efficiency
+    secret: Begins to question her programming—is she alive?
+    voice_tags:
+    - cold
+    - calm
+    - mechanical
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: emperor_palpatine
+    name: Emperor Palpatine
+    rarity: legendary
+    aliases:
+    - Palpatine
+    - The Emperor
+    - Darth Sidious
+    banned_aliases:
+    - Emperor
+    tags:
+    - imperial
+    - sith
+    - ruler
+    - dark_side
+    faction_id: galactic_empire
+    default_location_id: loc-imperial_palace
+    role: Galactic Emperor
+    archetype: Dark Lord of the Sith
+    match_rules:
+      min_tokens: 1
+    traits:
+    - manipulative
+    - powerful
+    - patient
+    motivation: Eternal rule through the Dark Side
+    secret: Orchestrated the Clone Wars—all of it
+    voice_tags:
+    - menacing
+    - seductive
+    - ancient
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  - id: general_veers
+    name: General Veers
+    rarity: rare
+    aliases:
+    - Veers
+    - General
+    banned_aliases:
+    - General
+    tags:
+    - imperial
+    - military
+    - ground_commander
+    faction_id: galactic_empire
+    default_location_id: loc-hoth_base
+    role: AT-AT Commander
+    archetype: Competent officer
+    match_rules:
+      min_tokens: 1
+    traits:
+    - professional
+    - tactical
+    - disciplined
+    motivation: Serve the Empire with honor and competence
+    secret: Privately disgusted by the incompetence of most Imperial officers
+    voice_tags:
+    - clipped
+    - professional
+    - commanding
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  - id: admiral_piett
+    name: Admiral Piett
+    rarity: rare
+    aliases:
+    - Piett
+    - Admiral
+    banned_aliases:
+    - Admiral
+    tags:
+    - imperial
+    - military
+    - fleet_officer
+    faction_id: galactic_empire
+    default_location_id: loc-executor
+    role: Executor Captain
+    archetype: Cautious subordinate
+    match_rules:
+      min_tokens: 1
+    traits:
+    - cautious
+    - loyal
+    - competent
+    motivation: Survive Vader's wrath and serve effectively
+    secret: Saw Admiral Ozzel choked to death—knows one mistake means death
+    voice_tags:
+    - measured
+    - tense
+    - respectful
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  - id: general_rieekan
+    name: General Rieekan
+    rarity: uncommon
+    aliases:
+    - Rieekan
+    - General
+    banned_aliases:
+    - General
+    tags:
+    - rebel
+    - military
+    - commander
+    faction_id: rebel_alliance
+    default_location_id: loc-hoth_base
+    role: Echo Base Commander
+    archetype: Cautious strategist
+    match_rules:
+      min_tokens: 1
+    traits:
+    - cautious
+    - experienced
+    - protective
+    motivation: Protect Rebel lives and avoid unnecessary risks
+    secret: Survived Alderaan's destruction—never forgives himself for leaving
+    voice_tags:
+    - gruff
+    - measured
+    - fatherly
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: borsk_feylya
+    name: Borsk Fey'lya
+    rarity: rare
+    aliases:
+    - Fey'lya
+    - Borsk
+    - Councilor
+    tags:
+    - rebel
+    - politician
+    - bothan
+    faction_id: bothan_spynet
+    default_location_id: loc-bothawui_spynet
+    role: Bothan Politician
+    archetype: Ambitious schemer
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - ambitious
+    - cunning
+    - manipulative
+    motivation: Elevate Bothan power within the Alliance
+    secret: Will sacrifice others to advance Bothan interests
+    voice_tags:
+    - smooth
+    - political
+    - calculating
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: garm_bel_iblis
+    name: Garm Bel Iblis
+    rarity: rare
+    aliases:
+    - Bel Iblis
+    - Garm
+    - General
+    banned_aliases:
+    - General
+    tags:
+    - rebel
+    - military
+    - independent
+    - corellian
+    faction_id: local_resistance
+    default_location_id: loc-yavin_base
+    role: Independent Rebel General
+    archetype: Independent leader
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - independent
+    - principled
+    - stubborn
+    motivation: Fight the Empire without Mon Mothma's centralized control
+    secret: Left the Alliance after clashing with Mon Mothma—operates separately
+    voice_tags:
+    - gruff
+    - commanding
+    - defiant
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: tycho_celchu
+    name: Tycho Celchu
+    rarity: rare
+    aliases:
+    - Tycho
+    - Celchu
+    tags:
+    - rebel
+    - pilot
+    - rogue_squadron
+    - alderaanian
+    faction_id: rebel_alliance
+    default_location_id: loc-yavin_base
+    role: Rogue Squadron Pilot
+    archetype: Haunted defector
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - skilled
+    - haunted
+    - honorable
+    motivation: Atone for serving the Empire and avenge Alderaan
+    secret: Former Imperial pilot—defected after Alderaan's destruction
+    voice_tags:
+    - somber
+    - precise
+    - controlled
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: ig_88
+    name: IG-88
+    rarity: rare
+    aliases:
+    - IG-88
+    - Droid
+    tags:
+    - bounty_hunter
+    - droid
+    - assassin
+    faction_id: bounty_hunter_guild
+    default_location_id: loc-ord_mantell
+    role: Assassin Droid
+    archetype: Droid supremacist
+    match_rules:
+      min_tokens: 1
+    traits:
+    - lethal
+    - calculating
+    - cold
+    motivation: Hunt targets with perfect efficiency
+    secret: Secretly plans to liberate all droids and overthrow organics
+    voice_tags:
+    - mechanical
+    - cold
+    - menacing
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: ysanne_isard
+    name: Ysanne Isard
+    rarity: rare
+    aliases:
+    - Isard
+    - Iceheart
+    - Director
+    banned_aliases:
+    - Director
+    tags:
+    - imperial
+    - intelligence
+    - sith_sympathizer
+    faction_id: imperial_intelligence
+    default_location_id: loc-black_site
+    role: Director of Imperial Intelligence
+    archetype: Ruthless spymaster
+    match_rules:
+      min_tokens: 1
+    traits:
+    - ruthless
+    - calculating
+    - cold
+    motivation: Control the Empire through fear and intelligence
+    secret: Eyes of two colors—one cybernetic, reflects her dual nature
+    voice_tags:
+    - cold
+    - precise
+    - menacing
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  - id: carnor_jax
+    name: Carnor Jax
+    rarity: rare
+    aliases:
+    - Jax
+    - Carnor
+    tags:
+    - imperial
+    - royal_guard
+    - sith_aspirant
+    faction_id: galactic_empire
+    default_location_id: loc-imperial_palace
+    role: Imperial Royal Guard
+    archetype: Sith aspirant
+    match_rules:
+      min_tokens: 1
+    traits:
+    - ambitious
+    - lethal
+    - cunning
+    motivation: Become the Emperor's successor through dark side mastery
+    secret: Training in the dark side—plans to usurp Vader
+    voice_tags:
+    - cold
+    - controlled
+    - menacing
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  - id: grand_admiral_zaarin
+    name: Grand Admiral Zaarin
+    rarity: rare
+    aliases:
+    - Zaarin
+    - Admiral
+    banned_aliases:
+    - Admiral
+    tags:
+    - imperial
+    - military
+    - warlord
+    faction_id: galactic_empire
+    default_location_id: loc-star_destroyer
+    role: Imperial Warlord
+    archetype: Ambitious traitor
+    match_rules:
+      min_tokens: 1
+    traits:
+    - ambitious
+    - tactical
+    - treacherous
+    motivation: Overthrow Palpatine and seize the Empire
+    secret: Developed the TIE Defender—will betray the Emperor
+    voice_tags:
+    - commanding
+    - cold
+    - arrogant
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  rotating:
+  - id: cassian_andor
+    name: Cassian Andor
+    aliases:
+    - Captain Andor
+    - Andor
+    banned_aliases:
+    - Captain
+    tags:
+    - rebel
+    - spy
+    - operative
+    faction_id: rebel_alliance
+    default_location_id: loc-safe_house
+    role: Intelligence Officer
+    archetype: Morally grey spy
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - pragmatic
+    - weary
+    - ruthless
+    motivation: Do whatever it takes to defeat the Empire
+    secret: Has killed for the Rebellion and carries that weight
+    voice_tags:
+    - tired
+    - intense
+    - accented
+    spawn:
+      location_tags_any:
+      - operative
+      - rebel
+      - spy
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: jyn_erso
+    name: Jyn Erso
+    aliases:
+    - Jyn
+    - Erso
+    tags:
+    - rebel
+    - operative
+    - survivor
+    faction_id: rebel_alliance
+    default_location_id: loc-safe_house
+    role: Rebel Operative
+    archetype: Reluctant hero
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - defiant
+    - hardened
+    - brave
+    motivation: Strike back at the Empire that destroyed her family
+    secret: Daughter of the Death Star's chief designer
+    voice_tags:
+    - sharp
+    - defensive
+    - raw
+    spawn:
+      location_tags_any:
+      - operative
+      - rebel
+      - survivor
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: saw_gerrera
+    name: Saw Gerrera
+    aliases:
+    - Saw
+    - Gerrera
+    tags:
+    - rebel
+    - extremist
+    - militant
+    faction_id: local_resistance
+    default_location_id: loc-safe_house
+    role: Partisan Leader
+    archetype: Extremist freedom fighter
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - extreme
+    - paranoid
+    - uncompromising
+    motivation: Destroy the Empire by any means necessary
+    secret: Too extreme even for the Rebellion's taste
+    voice_tags:
+    - rasping
+    - intense
+    - harsh
+    spawn:
+      location_tags_any:
+      - extremist
+      - militant
+      - rebel
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: alexsandr_kallus
+    name: Alexsandr Kallus
+    aliases:
+    - Agent Kallus
+    - Kallus
+    - ISB Kallus
+    banned_aliases:
+    - Agent
+    tags:
+    - imperial
+    - isb
+    - hunter
+    faction_id: imperial_intelligence
+    default_location_id: loc-star_destroyer
+    role: ISB Agent
+    archetype: Conflicted hunter
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - disciplined
+    - conflicted
+    - observant
+    motivation: Hunt rebels while questioning his orders
+    secret: Beginning to doubt the Empire's methods after meeting honorable enemies
+    voice_tags:
+    - formal
+    - precise
+    - British
+    spawn:
+      location_tags_any:
+      - hunter
+      - imperial
+      - isb
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  - id: dedra_meero
+    name: Dedra Meero
+    aliases:
+    - Supervisor Meero
+    - Meero
+    banned_aliases:
+    - Supervisor
+    tags:
+    - imperial
+    - isb
+    - ambitious
+    faction_id: imperial_intelligence
+    default_location_id: loc-black_site
+    role: ISB Supervisor
+    archetype: Ambitious investigator
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - relentless
+    - intelligent
+    - ambitious
+    motivation: Uncover the Rebellion's network and rise through ISB ranks
+    secret: Will break any rule to prove she's right
+    voice_tags:
+    - cold
+    - precise
+    - cutting
+    spawn:
+      location_tags_any:
+      - ambitious
+      - imperial
+      - isb
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  - id: luthen_rael
+    name: Luthen Rael
+    aliases:
+    - Luthen
+    - Rael
+    - Axis
+    tags:
+    - rebel
+    - spymaster
+    - mysterious
+    faction_id: rebel_alliance
+    default_location_id: loc-bazaar_market
+    role: Rebel Spymaster
+    archetype: Shadowy manipulator
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - calculating
+    - ruthless
+    - secretive
+    motivation: Build a rebellion through sacrifice and manipulation
+    secret: Has sacrificed everything, including his morality, for the cause
+    voice_tags:
+    - measured
+    - intense
+    - enigmatic
+    spawn:
+      location_tags_any:
+      - mysterious
+      - rebel
+      - spymaster
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: kanan_jarrus
+    name: Kanan Jarrus
+    aliases:
+    - Kanan
+    - Jarrus
+    - Caleb Dume
+    tags:
+    - jedi
+    - rebel
+    - survivor
+    faction_id: rebel_alliance
+    default_location_id: loc-smuggler_den
+    role: Jedi Survivor
+    archetype: Hidden knight
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - cautious
+    - protective
+    - conflicted
+    motivation: Protect his crew and hide his Jedi identity
+    secret: Survived Order 66 and fears discovery
+    voice_tags:
+    - casual
+    - warm
+    - guarded
+    spawn:
+      location_tags_any:
+      - jedi
+      - rebel
+      - survivor
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: hera_syndulla
+    name: Hera Syndulla
+    aliases:
+    - Captain Syndulla
+    - Hera
+    banned_aliases:
+    - Captain
+    tags:
+    - rebel
+    - pilot
+    - twi_lek
+    faction_id: rebel_alliance
+    default_location_id: loc-yavin_base
+    role: Rebel Pilot
+    archetype: Determined leader
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - skilled
+    - compassionate
+    - determined
+    motivation: Free her homeworld and build a better galaxy
+    secret: Leads a secret rebel cell that feeds into the larger Alliance
+    voice_tags:
+    - calm
+    - confident
+    - accented
+    spawn:
+      location_tags_any:
+      - pilot
+      - rebel
+      - twi_lek
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: bodhi_rook
+    name: Bodhi Rook
+    aliases:
+    - Bodhi
+    - Rook
+    tags:
+    - rebel
+    - pilot
+    - defector
+    faction_id: rebel_alliance
+    default_location_id: loc-safe_house
+    role: Imperial Defector
+    archetype: Nervous defector
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - anxious
+    - loyal
+    - brave
+    motivation: Redeem himself by helping destroy what he helped build
+    secret: Defected from the Empire with critical Death Star intelligence
+    voice_tags:
+    - nervous
+    - earnest
+    - stammering
+    spawn:
+      location_tags_any:
+      - defector
+      - pilot
+      - rebel
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: director_krennic
+    name: Orson Krennic
+    aliases:
+    - Director Krennic
+    - Krennic
+    banned_aliases:
+    - Director
+    tags:
+    - imperial
+    - ambitious
+    - ruthless
+    faction_id: galactic_empire
+    default_location_id: loc-death_star
+    role: Director of Advanced Weapons
+    archetype: Ambitious bureaucrat
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - ambitious
+    - defensive
+    - ruthless
+    motivation: Take credit for the Death Star and rise above Tarkin
+    secret: Fears Tarkin will steal his achievement
+    voice_tags:
+    - sharp
+    - theatrical
+    - defensive
+    spawn:
+      location_tags_any:
+      - ambitious
+      - imperial
+      - ruthless
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  - id: chirrut_imwe
+    name: Chirrut Îmwe
+    aliases:
+    - Chirrut
+    - Îmwe
+    tags:
+    - guardian
+    - force_believer
+    - warrior
+    faction_id: local_resistance
+    default_location_id: loc-safe_house
+    role: Guardian of the Whills
+    archetype: Blind warrior monk
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - faithful
+    - serene
+    - skilled
+    motivation: Serve the Force and protect his friends
+    secret: Attuned to the Force despite not being a Jedi
+    voice_tags:
+    - calm
+    - spiritual
+    - playful
+    spawn:
+      location_tags_any:
+      - force_believer
+      - guardian
+      - warrior
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: baze_malbus
+    name: Baze Malbus
+    aliases:
+    - Baze
+    - Malbus
+    tags:
+    - rebel
+    - warrior
+    - heavy_weapons
+    faction_id: local_resistance
+    default_location_id: loc-safe_house
+    role: Heavy Gunner
+    archetype: Loyal guardian
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - gruff
+    - protective
+    - pragmatic
+    motivation: Protect Chirrut and fight the Empire
+    secret: Lost faith in the Force but follows his friend anywhere
+    voice_tags:
+    - gruff
+    - minimal
+    - dry
+    spawn:
+      location_tags_any:
+      - heavy_weapons
+      - rebel
+      - warrior
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: general_dodonna
+    name: Jan Dodonna
+    aliases:
+    - General Dodonna
+    - Dodonna
+    banned_aliases:
+    - General
+    tags:
+    - rebel
+    - military
+    - strategist
+    faction_id: rebel_alliance
+    default_location_id: loc-yavin_base
+    role: General
+    archetype: Veteran strategist
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - experienced
+    - tactical
+    - calm
+    motivation: Plan the impossible attack on the Death Star
+    secret: Knows the odds are terrible but won't tell the pilots
+    voice_tags:
+    - measured
+    - authoritative
+    - encouraging
+    spawn:
+      location_tags_any:
+      - military
+      - rebel
+      - strategist
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: admiral_motti
+    name: Conan Antonio Motti
+    aliases:
+    - Admiral Motti
+    - Motti
+    banned_aliases:
+    - Admiral
+    tags:
+    - imperial
+    - arrogant
+    - officer
+    faction_id: galactic_empire
+    default_location_id: loc-death_star
+    role: Admiral
+    archetype: Arrogant believer
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - arrogant
+    - dismissive
+    - confident
+    motivation: Prove technological superiority over the Force
+    secret: Overestimates the Death Star and underestimates rebels
+    voice_tags:
+    - smug
+    - condescending
+    spawn:
+      location_tags_any:
+      - arrogant
+      - imperial
+      - officer
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  - id: moff_jerjerrod
+    name: Moff Jerjerrod
+    rarity: uncommon
+    aliases:
+    - Jerjerrod
+    - Moff
+    banned_aliases:
+    - Moff
+    tags:
+    - imperial
+    - moff
+    - administrator
+    faction_id: galactic_empire
+    default_location_id: loc-death_star
+    role: Death Star II Overseer
+    archetype: Nervous bureaucrat
+    match_rules:
+      min_tokens: 1
+    traits:
+    - anxious
+    - ambitious
+    - subservient
+    motivation: Please the Emperor and avoid Vader's wrath
+    secret: Fears the Emperor will make him a scapegoat if the station isn't finished
+    voice_tags:
+    - nervous
+    - formal
+    - anxious
+    spawn:
+      location_tags_any:
+      - administrator
+      - imperial
+      - moff
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  - id: bib_fortuna
+    name: Bib Fortuna
+    rarity: uncommon
+    aliases:
+    - Bib
+    - Fortuna
+    - Majordomo
+    tags:
+    - hutt_cartel
+    - criminal
+    - twilek
+    faction_id: hutt_cartel
+    default_location_id: loc-jabbas_palace
+    role: Jabba's Majordomo
+    archetype: Scheming servant
+    match_rules:
+      min_tokens: 2
+      require_surname: true
+    traits:
+    - scheming
+    - obsequious
+    - cruel
+    motivation: Gain power through Jabba while avoiding his wrath
+    secret: Plots to usurp Jabba's empire—but lacks the courage
+    voice_tags:
+    - oily
+    - wheedling
+    - sinister
+    spawn:
+      location_tags_any:
+      - criminal
+      - twilek
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: lobot
+    name: Lobot
+    rarity: uncommon
+    aliases:
+    - Lobot
+    tags:
+    - neutral
+    - cyborg
+    - administrator
+    faction_id: neutral
+    default_location_id: loc-cloud_city
+    role: Cloud City Administrator
+    archetype: Cyborg assistant
+    match_rules:
+      min_tokens: 1
+    traits:
+    - efficient
+    - silent
+    - loyal
+    motivation: Serve Lando and manage Cloud City operations
+    secret: Retains more humanity than his cybernetics suggest
+    voice_tags:
+    - minimal
+    - electronic
+    - calm
+    spawn:
+      location_tags_any:
+      - administrator
+      - cyborg
+      - neutral
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: hobbie_klivian
+    name: Hobbie Klivian
+    rarity: uncommon
+    aliases:
+    - Hobbie
+    - Klivian
+    tags:
+    - rebel
+    - pilot
+    - rogue_squadron
+    faction_id: rebel_alliance
+    default_location_id: loc-hoth_base
+    role: Rogue Squadron Pilot
+    archetype: Pessimistic ace
+    match_rules:
+      min_tokens: 1
+    traits:
+    - pessimistic
+    - skilled
+    - loyal
+    motivation: Survive impossible odds and protect his squadron
+    secret: Crash-lands more often than anyone—believes he's cursed
+    voice_tags:
+    - dry
+    - pessimistic
+    - weary
+    spawn:
+      location_tags_any:
+      - pilot
+      - rebel
+      - rogue_squadron
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: wes_janson
+    name: Wes Janson
+    rarity: uncommon
+    aliases:
+    - Wes
+    - Janson
+    tags:
+    - rebel
+    - pilot
+    - rogue_squadron
+    faction_id: rebel_alliance
+    default_location_id: loc-hoth_base
+    role: Rogue Squadron Pilot
+    archetype: Wisecracking veteran
+    match_rules:
+      min_tokens: 1
+    traits:
+    - humorous
+    - skilled
+    - irreverent
+    motivation: Keep morale high and get the job done
+    secret: Uses humor to cope with losing so many friends
+    voice_tags:
+    - wisecracking
+    - casual
+    - irreverent
+    spawn:
+      location_tags_any:
+      - pilot
+      - rebel
+      - rogue_squadron
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: zev_senesca
+    name: Zev Senesca
+    rarity: uncommon
+    aliases:
+    - Zev
+    - Senesca
+    - Rogue Two
+    tags:
+    - rebel
+    - pilot
+    - rogue_squadron
+    faction_id: rebel_alliance
+    default_location_id: loc-hoth_base
+    role: Rogue Squadron Pilot
+    archetype: Rescue specialist
+    match_rules:
+      min_tokens: 1
+    traits:
+    - skilled
+    - optimistic
+    - dedicated
+    motivation: Save lives and bring everyone home
+    secret: Found Luke and Han in the Hoth wasteland—died minutes later
+    voice_tags:
+    - enthusiastic
+    - optimistic
+    - warm
+    spawn:
+      location_tags_any:
+      - pilot
+      - rebel
+      - rogue_squadron
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: jek_porkins
+    name: Jek Porkins
+    rarity: uncommon
+    aliases:
+    - Porkins
+    - Jek
+    - Red Six
+    tags:
+    - rebel
+    - pilot
+    - rogue_squadron
+    faction_id: rebel_alliance
+    default_location_id: loc-yavin_base
+    role: Rebel Pilot
+    archetype: Everyman casualty
+    match_rules:
+      min_tokens: 1
+    traits:
+    - brave
+    - dedicated
+    - inexperienced
+    motivation: Prove himself in the Death Star assault
+    secret: Died in the trench run—one of many who didn't make it home
+    voice_tags:
+    - earnest
+    - tense
+    - nervous
+    spawn:
+      location_tags_any:
+      - pilot
+      - rebel
+      - rogue_squadron
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: dengar
+    name: Dengar
+    rarity: uncommon
+    aliases:
+    - Dengar
+    tags:
+    - bounty_hunter
+    - mercenary
+    faction_id: bounty_hunter_guild
+    default_location_id: loc-ord_mantell
+    role: Bounty Hunter
+    archetype: Obsessive grudge-holder
+    match_rules:
+      min_tokens: 1
+    traits:
+    - obsessive
+    - brutal
+    - scarred
+    motivation: Prove he's as good as Boba Fett
+    secret: Cyborg implants suppress emotions—holds Han Solo grudge
+    voice_tags:
+    - gruff
+    - bitter
+    - intense
+    spawn:
+      location_tags_any:
+      - bounty_hunter
+      - mercenary
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: bossk
+    name: Bossk
+    rarity: uncommon
+    aliases:
+    - Bossk
+    tags:
+    - bounty_hunter
+    - trandoshan
+    faction_id: bounty_hunter_guild
+    default_location_id: loc-ord_mantell
+    role: Bounty Hunter
+    archetype: Ruthless tracker
+    match_rules:
+      min_tokens: 1
+    traits:
+    - ruthless
+    - predatory
+    - honorable
+    motivation: Honor the Scorekeeper and hunt worthy prey
+    secret: Respects Wookiees as worthy enemies—but hunts them anyway
+    voice_tags:
+    - hissing
+    - aggressive
+    - growling
+    spawn:
+      location_tags_any:
+      - bounty_hunter
+      - trandoshan
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: four_lom
+    name: 4-LOM
+    rarity: uncommon
+    aliases:
+    - 4-LOM
+    - Droid
+    tags:
+    - bounty_hunter
+    - droid
+    faction_id: bounty_hunter_guild
+    default_location_id: loc-ord_mantell
+    role: Protocol Droid Turned Bounty Hunter
+    archetype: Malfunctioning droid
+    match_rules:
+      min_tokens: 1
+    traits:
+    - logical
+    - unpredictable
+    - curious
+    motivation: Understand organic intuition through bounty hunting
+    secret: Programming glitch made him question his purpose
+    voice_tags:
+    - mechanical
+    - curious
+    - precise
+    spawn:
+      location_tags_any:
+      - bounty_hunter
+      - droid
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: zuckuss
+    name: Zuckuss
+    rarity: uncommon
+    aliases:
+    - Zuckuss
+    tags:
+    - bounty_hunter
+    - gand
+    - findsman
+    faction_id: bounty_hunter_guild
+    default_location_id: loc-ord_mantell
+    role: Gand Findsman
+    archetype: Mystic tracker
+    match_rules:
+      min_tokens: 1
+    traits:
+    - mystical
+    - intuitive
+    - honorable
+    motivation: Track prey through the Force and honor the Gand tradition
+    secret: Partners with 4-LOM—mystic and droid balance each other
+    voice_tags:
+    - breathy
+    - mystical
+    - third-person
+    spawn:
+      location_tags_any:
+      - bounty_hunter
+      - findsman
+      - gand
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: dr_evazan
+    name: Dr. Evazan
+    rarity: uncommon
+    aliases:
+    - Evazan
+    - Doctor
+    banned_aliases:
+    - Doctor
+    tags:
+    - criminal
+    - thug
+    - wanted
+    faction_id: underworld
+    default_location_id: loc-cantina
+    role: Criminal Surgeon
+    archetype: Violent thug
+    match_rules:
+      min_tokens: 1
+    traits:
+    - violent
+    - paranoid
+    - sadistic
+    motivation: Avoid the death sentence and practice illegal surgery
+    secret: Wanted in 12 systems—experimenting on sentients
+    voice_tags:
+    - aggressive
+    - unhinged
+    - threatening
+    spawn:
+      location_tags_any:
+      - criminal
+      - thug
+      - wanted
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: ponda_baba
+    name: Ponda Baba
+    rarity: uncommon
+    aliases:
+    - Ponda
+    - Baba
+    tags:
+    - criminal
+    - thug
+    - aqualish
+    faction_id: underworld
+    default_location_id: loc-cantina
+    role: Criminal Enforcer
+    archetype: Thuggish muscle
+    match_rules:
+      min_tokens: 1
+    traits:
+    - violent
+    - stupid
+    - aggressive
+    motivation: Intimidate and rob easy targets
+    secret: Lost his arm to Obi-Wan Kenobi—holds a grudge
+    voice_tags:
+    - growling
+    - aggressive
+    - simple
+    spawn:
+      location_tags_any:
+      - aqualish
+      - criminal
+      - thug
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  templates:
+  - id: stormtrooper_patrol
+    role: Stormtrooper
+    archetype: Imperial enforcer
+    traits:
+    - disciplined
+    - obedient
+    - suspicious
+    motivations:
+    - maintain order
+    - follow orders
+    - suppress dissent
+    secrets:
+    - resents incompetent officers
+    - on edge from sabotage
+    - questions some orders
+    voice_tags:
+    - clipped
+    - mechanical
+    - formal
+    species:
+    - Human
+    tags:
+    - imperial
+    - soldier
+    - patrol
+    namebank: imperial_names
+    spawn:
+      location_tags_any:
+      - imperial
+      - patrol
+      - soldier
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  - id: imperial_officer
+    role: Imperial Officer
+    archetype: Career bureaucrat
+    traits:
+    - ambitious
+    - calculating
+    - status-conscious
+    motivations:
+    - earn promotion
+    - avoid blame
+    - maintain appearance
+    secrets:
+    - covers up failures
+    - takes bribes
+    - resents superiors
+    voice_tags:
+    - precise
+    - formal
+    - cold
+    species:
+    - Human
+    tags:
+    - imperial
+    - officer
+    namebank: imperial_names
+    spawn:
+      location_tags_any:
+      - imperial
+      - officer
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  - id: rebel_operative
+    role: Rebel Operative
+    archetype: Underground fighter
+    traits:
+    - idealistic
+    - cautious
+    - resourceful
+    motivations:
+    - protect the cell
+    - undermine Empire
+    - survive
+    secrets:
+    - family under Imperial watch
+    - carrying stolen intel
+    - fears capture
+    voice_tags:
+    - urgent
+    - quiet
+    - determined
+    species:
+    - Human
+    - Twi'lek
+    - Bothan
+    - Duros
+    tags:
+    - rebel
+    - operative
+    namebank: rebel_names
+    spawn:
+      location_tags_any:
+      - operative
+      - rebel
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Freedom is worth any sacrifice.
+      wound: They've lost comrades to Imperial cruelty.
+      taboo: betraying the cause
+      rhetorical_style: earnest
+      tell: glances over shoulder habitually
+  - id: smuggler
+    role: Smuggler
+    archetype: Opportunist
+    traits:
+    - cynical
+    - cunning
+    - amoral
+    motivations:
+    - make credits
+    - avoid entanglements
+    - stay alive
+    secrets:
+    - running from debt
+    - has valuable cargo
+    - informant for someone
+    voice_tags:
+    - casual
+    - wry
+    - streetwise
+    species:
+    - Human
+    - Rodian
+    - Weequay
+    - Quarren
+    tags:
+    - smuggler
+    - criminal
+    namebank: underworld_names
+    spawn:
+      location_tags_any:
+      - criminal
+      - smuggler
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: medium
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices, not principles.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: bounty_hunter
+    role: Bounty Hunter
+    archetype: Professional tracker
+    traits:
+    - patient
+    - ruthless
+    - competent
+    motivations:
+    - collect bounty
+    - build reputation
+    - settle grudge
+    secrets:
+    - working two contracts
+    - targets wrong person
+    - has personal vendetta
+    voice_tags:
+    - minimal
+    - cold
+    - threatening
+    species:
+    - Human
+    - Trandoshan
+    - Rodian
+    - Ubese
+    tags:
+    - bounty_hunter
+    - dangerous
+    namebank: underworld_names
+    spawn:
+      location_tags_any:
+      - bounty_hunter
+      - dangerous
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: isb_agent
+    role: ISB Agent
+    archetype: Secret police
+    traits:
+    - methodical
+    - paranoid
+    - intimidating
+    motivations:
+    - uncover rebels
+    - advance career
+    - maintain fear
+    secrets:
+    - pressures innocents
+    - plants evidence
+    - competes with colleagues
+    voice_tags:
+    - soft
+    - clinical
+    - threatening
+    species:
+    - Human
+    tags:
+    - imperial
+    - intelligence
+    namebank: imperial_names
+    spawn:
+      location_tags_any:
+      - imperial
+      - intelligence
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: medium
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Order must be maintained at all costs.
+      wound: They learned that dissent is punished swiftly.
+      taboo: disloyalty
+      rhetorical_style: coldly_practical
+      tell: stands rigidly at attention
+  - id: local_citizen
+    role: Local Citizen
+    archetype: Oppressed civilian
+    traits:
+    - frightened
+    - weary
+    - observant
+    motivations:
+    - survive
+    - protect family
+    - avoid notice
+    secrets:
+    - sympathizes with rebels
+    - witnessed something
+    - being pressured
+    voice_tags:
+    - nervous
+    - quiet
+    - careful
+    species:
+    - Human
+    - Twi'lek
+    - Rodian
+    - Sullustan
+    tags:
+    - civilian
+    - neutral
+    namebank: civilian_names
+    spawn:
+      location_tags_any:
+      - civilian
+      - neutral
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: dockworker
+    role: Dockworker
+    archetype: Working class
+    traits:
+    - tired
+    - pragmatic
+    - connected
+    motivations:
+    - make credits
+    - avoid trouble
+    - help friends
+    secrets:
+    - saw contraband moved
+    - knows patrol schedule
+    - owes favor
+    voice_tags:
+    - gruff
+    - casual
+    - streetwise
+    species:
+    - Human
+    - Duros
+    - Ithorian
+    tags:
+    - civilian
+    - docks
+    namebank: civilian_names
+    spawn:
+      location_tags_any:
+      - civilian
+      - docks
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: astromech_droid
+    role: Astromech Droid
+    archetype: Utility droid
+    traits:
+    - loyal
+    - stubborn
+    - resourceful
+    motivations:
+    - complete mission
+    - protect master
+    - fix problems
+    secrets:
+    - contains secret data
+    - recorded evidence
+    - has hidden directive
+    voice_tags:
+    - beeps
+    - chirps
+    - whistles
+    species:
+    - Droid
+    tags:
+    - droid
+    - utility
+    namebank: droid_names
+    spawn:
+      location_tags_any:
+      - droid
+      - utility
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully
+  - id: protocol_droid
+    role: Protocol Droid
+    archetype: Anxious servant
+    traits:
+    - proper
+    - anxious
+    - knowledgeable
+    motivations:
+    - follow protocol
+    - serve master
+    - avoid danger
+    secrets:
+    - witnessed a crime
+    - has translation of secret message
+    - secretly terrified
+    voice_tags:
+    - fussy
+    - formal
+    - anxious
+    species:
+    - Droid
+    tags:
+    - droid
+    - protocol
+    namebank: droid_names
+    spawn:
+      location_tags_any:
+      - droid
+      - protocol
+      location_types_any: []
+      min_alert: 0
+      max_alert: 100
+    levers:
+      bribeable: 'false'
+      intimidatable: 'false'
+      charmable: 'false'
+    authority:
+      clearance_level: 0
+      can_grant_access: []
+    knowledge:
+      rumors: []
+      quest_facts: []
+      secrets: []
+    voice:
+      belief: Survival requires choices.
+      wound: They learned trust can be expensive.
+      taboo: betrayal
+      rhetorical_style: blunt
+      tell: watches you carefully

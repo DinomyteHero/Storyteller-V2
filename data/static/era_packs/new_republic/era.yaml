@@ -1,0 +1,67 @@
+era_id: NEW_REPUBLIC
+style_ref: data/style/era/new_republic_style.md
+schema_version: 2
+file_index:
+  era: era.yaml
+  locations: locations.yaml
+  npcs: npcs.yaml
+  factions: factions.yaml
+  backgrounds: backgrounds.yaml
+  namebanks: namebanks.yaml
+  quests: quests.yaml
+  events: events.yaml
+  rumors: rumors.yaml
+  meters: meters.yaml
+  facts: facts.yaml
+  companions: companions.yaml
+start_location_pool:
+- loc-cantina
+- loc-bazaar_market
+- loc-safe_house
+- loc-yavin_base
+global_event_templates: []
+travel_graph: []
+default_scene_pacing: {}
+metadata:
+  display_name: Age of the New Republic
+  time_period: 5-19 ABY (Legends)
+  calendar_note: After Endor, before the Yuuzhan Vong invasion.
+  summary: The Empire has fallen from its throne but not from the stars. The New Republic
+    struggles to govern liberated worlds while Imperial warlords regroup in the shadows.
+    Luke Skywalker begins rebuilding the Jedi Order amid political uncertainty and
+    old grudges. Intelligence wars, border conflicts, and broken treaties define this
+    fragile peace.
+  tone: Hard-won optimism; political intrigue; reconstruction under pressure.
+  key_conflicts:
+  - New Republic governance vs. Imperial remnant insurgencies.
+  - Rebuilding the Jedi amid fear, trauma, and ideological fracture.
+  - Outer Rim autonomy vs. central authority from Coruscant.
+  themes:
+  - The cost of rebuilding after total war.
+  - Legacy, mentorship, and the burden of institutions.
+  - Hope tested by compromise and relapse into extremism.
+setting_rules:
+  setting_name: Star Wars Legends
+  setting_genre: science fantasy
+  biographer_role: a biographer for a Star Wars narrative RPG
+  architect_role: the World Architect for a Star Wars narrative RPG
+  director_role: the Director for an interactive Star Wars story engine
+  suggestion_style: a Star Wars KOTOR-style game
+  common_species:
+  - Human
+  - Twi'lek
+  - Rodian
+  - Wookiee
+  - Zabrak
+  - Bothan
+  - Chiss
+  example_factions:
+  - Rebellion
+  - Empire
+  - Hutt Cartel
+  historical_lore_label: established Star Wars Legends lore
+  bypass_methods:
+  - force
+  - force_dark
+  - sith_amulet
+  fallback_background: A traveler in a vast galaxy.
