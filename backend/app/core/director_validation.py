@@ -4,7 +4,6 @@ from __future__ import annotations
 import re
 
 from backend.app.constants import (
-    DIRECTOR_ENTITY_STOP_WORDS,
     INTENT_JACCARD_THRESHOLD,
     SUGGESTED_ACTIONS_MAX,
     SUGGESTED_ACTIONS_MIN,
@@ -756,7 +755,7 @@ def generate_suggestions(
     # V3.0: Return visit — adapt paragon to acknowledge familiarity
     if is_return_visit and npc_names:
         paragon_label = f"Reconnect with {first_npc}"
-        paragon_intent = f"Say: 'I've been here before. Things are different now — tell me what changed.'"
+        paragon_intent = "Say: 'I've been here before. Things are different now — tell me what changed.'"
     else:
         paragon_label = f"Show {first_npc} good faith"
 

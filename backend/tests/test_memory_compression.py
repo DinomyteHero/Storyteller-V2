@@ -1,7 +1,6 @@
 """Tests for memory compression: compress_turn_history() and update_era_summaries() from ledger."""
 from __future__ import annotations
 
-import pytest
 
 from backend.app.core.ledger import compress_turn_history, update_era_summaries
 from backend.app.constants import (

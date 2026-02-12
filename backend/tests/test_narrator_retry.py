@@ -1,7 +1,6 @@
 """Tests for Phase 7 narrator feedback loop: _check_mechanic_consistency from narrative_validator."""
 from __future__ import annotations
 
-import pytest
 
 from backend.app.core.nodes.narrative_validator import _check_mechanic_consistency
 

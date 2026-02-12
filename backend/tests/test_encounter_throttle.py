@@ -8,19 +8,16 @@ import pytest
 
 from backend.app.db.migrate import apply_schema
 from backend.app.db.connection import get_connection
-from backend.app.core.state_loader import build_initial_gamestate, load_campaign
+from backend.app.core.state_loader import build_initial_gamestate
 from backend.app.core.graph import run_turn
 from backend.app.core.encounter_throttle import (
     can_introduce_new_npc,
-    record_npc_introduction,
     load_world_state,
     get_effective_location,
-    EARLY_GAME_WINDOW_MINUTES,
     EARLY_GAME_NPC_CAP,
 )
 from backend.app.models.state import MechanicOutput, ActionSuggestion
 from backend.app.models.narration import NarrationOutput
-from backend.app.models.events import Event
 
 
 @pytest.fixture

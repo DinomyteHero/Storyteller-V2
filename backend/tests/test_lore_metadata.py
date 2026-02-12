@@ -1,6 +1,5 @@
 """Tests for lore chunk metadata: ingestion, retrieval, backward compat."""
 import json
-import os
 import sys
 import tempfile
 import unittest
@@ -223,7 +222,6 @@ class TestLoreMetadataIngestion(unittest.TestCase):
     def test_ingest_produces_default_metadata(self) -> None:
         """ingest.py produces chunks with default doc_type/section_kind when not set."""
         from ingestion.ingest import ingest_txt
-        from ingestion.store import LanceStore
 
         with tempfile.TemporaryDirectory() as tmp:
             txt_path = Path(tmp) / "sample.txt"

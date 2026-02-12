@@ -1,5 +1,4 @@
 """Tests for character voice retriever: fallback logic, missing table."""
-import os
 import sys
 import tempfile
 import unittest
@@ -15,7 +14,6 @@ from unittest.mock import patch
 
 from backend.app.rag.character_voice_retriever import (
     get_voice_snippets,
-    VoiceSnippet,
 )
 
 TABLE_NAME = "character_voice_chunks"

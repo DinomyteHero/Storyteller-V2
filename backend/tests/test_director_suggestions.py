@@ -13,8 +13,6 @@ from backend.app.models.state import (
     STRATEGY_TAG_ALTERNATIVE,
     TONE_TAG_PARAGON,
     TONE_TAG_RENEGADE,
-    TONE_TAG_INVESTIGATE,
-    TONE_TAG_NEUTRAL,
 )
 from backend.app.core.agents.director import DirectorAgent
 from backend.app.core.director_validation import (

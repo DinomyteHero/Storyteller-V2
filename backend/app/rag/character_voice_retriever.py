@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, List
+from typing import Any
 
 from backend.app.config import (
     CHARACTER_VOICE_TABLE_NAME,

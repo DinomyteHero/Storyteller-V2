@@ -1,18 +1,17 @@
 """Script to create a minimal test EPUB file."""
-import ebooklib
 from ebooklib import epub
 from pathlib import Path
 
 def create_test_epub(output_path: Path):
     """Create a minimal test EPUB with chapters."""
     book = epub.EpubBook()
-    
+
     # Set metadata
     book.set_identifier('test-book-123')
     book.set_title('Test Legacy of the Force Book')
     book.set_language('en')
     book.add_author('Test Author')
-    
+
     # Chapter 1
     c1 = epub.EpubHtml(title='Chapter 1: The Beginning', file_name='chap01.xhtml', lang='en')
     c1.content = '''
@@ -25,7 +24,7 @@ def create_test_epub(output_path: Path):
     </body>
     </html>
     '''
-    
+
     # Chapter 2
     c2 = epub.EpubHtml(title='Chapter 2: Shadows', file_name='chap02.xhtml', lang='en')
     c2.content = '''
@@ -38,24 +37,24 @@ def create_test_epub(output_path: Path):
     </body>
     </html>
     '''
-    
+
     # Add chapters to book
     book.add_item(c1)
     book.add_item(c2)
-    
+
     # Create spine (reading order)
     book.spine = [c1, c2]
-    
+
     # Add default NCX and Nav file
     book.toc = [
         c1,
         c2
     ]
-    
+
     # Add navigation files
     book.add_item(epub.EpubNcx())
     book.add_item(epub.EpubNav())
-    
+
     # Write the EPUB file
     epub.write_epub(str(output_path), book, {})
     print(f"Created test EPUB at {output_path}")

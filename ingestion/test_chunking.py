@@ -7,7 +7,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ingestion.chunking import (
     chunk_text_by_tokens,
-    count_tokens,
     get_tokenizer,
     get_overlap_text,
 )

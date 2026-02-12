@@ -14,7 +14,6 @@ from backend.app.world.era_pack_models import (
 from backend.app.content.repository import CONTENT_REPOSITORY
 from backend.app.core.party_state import (
     PartyState,
-    CompanionRuntimeState,
     add_companion_to_party,
     remove_companion_from_party,
     apply_influence_delta,

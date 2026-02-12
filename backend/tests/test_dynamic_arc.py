@@ -1,13 +1,11 @@
 """Tests for dynamic arc staging: _determine_arc_stage_dynamic() and arc_planner_node()."""
 from __future__ import annotations
 
-import pytest
 
 from backend.app.core.nodes.arc_planner import (
     _determine_arc_stage_dynamic,
     arc_planner_node,
 )
-from backend.app.constants import ARC_MAX_TURNS
 
 
 # ---------------------------------------------------------------------------

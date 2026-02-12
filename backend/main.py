@@ -255,7 +255,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     campaign_id = None
     if hasattr(request, "path_params") and "campaign_id" in request.path_params:
         campaign_id = request.path_params.get("campaign_id")
-    
+
     node = "api"
     if "/turn" in request.url.path:
         node = "turn"
@@ -263,7 +263,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         node = "setup"
     elif "/state" in request.url.path:
         node = "state"
-    
+
     error_response = create_error_response(
         error_code=f"{node.upper()}_HTTP_{exc.status_code}",
         message=exc.detail,
@@ -283,7 +283,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     campaign_id = None
     if hasattr(request, "path_params") and "campaign_id" in request.path_params:
         campaign_id = request.path_params.get("campaign_id")
-    
+
     # Determine node/endpoint from path
     node = "api"
     if "/turn" in request.url.path:
@@ -292,7 +292,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         node = "setup"
     elif "/state" in request.url.path:
         node = "state"
-    
+
     # Log error with full context and stack trace
     log_error_with_context(
         error=exc,
@@ -306,13 +306,13 @@ async def global_exception_handler(request: Request, exc: Exception):
             "query_params": dict(request.query_params),
         },
     )
-    
+
     # Return structured error response
     error_code = f"{node.upper()}_ERROR"
     message = f"An error occurred: {type(exc).__name__}"
     if str(exc):
         message = str(exc)
-    
+
     error_response = create_error_response(
         error_code=error_code,
         message=message,
@@ -322,7 +322,7 @@ async def global_exception_handler(request: Request, exc: Exception):
             "path": request.url.path,
         },
     )
-    
+
     return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=error_response)
 
 # V2 is the official path (LangGraph engine)

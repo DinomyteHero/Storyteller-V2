@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from backend.app.core.agents.narrator import NarratorAgent
 from backend.app.models.state import GameState

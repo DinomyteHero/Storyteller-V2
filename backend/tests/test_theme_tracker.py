@@ -1,7 +1,6 @@
 """Tests for thematic resonance: _themes_from_text(), format_ledger_for_prompt(), update_ledger()."""
 from __future__ import annotations
 
-import pytest
 
 from backend.app.core.ledger import (
     _themes_from_text,

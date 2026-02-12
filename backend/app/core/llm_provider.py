@@ -94,7 +94,7 @@ class AnthropicClient:
             )
             response.raise_for_status()
         except httpx.TimeoutException as exc:
-            raise LLMProviderError(f"Anthropic request timed out") from exc
+            raise LLMProviderError("Anthropic request timed out") from exc
         except httpx.ConnectError as exc:
             raise LLMProviderError(f"Cannot connect to Anthropic API at {self.base_url}") from exc
         except httpx.HTTPStatusError as exc:

@@ -46,27 +46,27 @@ def chunk_text_by_tokens(text: str, target_tokens: int = 600, overlap_percent: f
     """
     tokenizer = get_tokenizer()
     tokens = tokenizer.encode(text)
-    
+
     if len(tokens) <= target_tokens:
         return [text]
-    
+
     overlap_tokens = int(target_tokens * overlap_percent)
     chunks = []
     start = 0
-    
+
     while start < len(tokens):
         end = start + target_tokens
         chunk_tokens = tokens[start:end]
         chunk_text = tokenizer.decode(chunk_tokens)
         chunks.append(chunk_text)
-        
+
         # Move start forward by (target - overlap) to create overlap
         start += target_tokens - overlap_tokens
-        
+
         # Prevent infinite loop
         if start >= len(tokens):
             break
-    
+
     return chunks
 
 
@@ -83,23 +83,23 @@ def chunk_text_smart(text: str, target_tokens: int = 600, overlap_percent: float
     """
     # First, try to chunk by paragraphs
     paragraphs = text.split("\n\n")
-    
+
     if not paragraphs:
         return chunk_text_by_tokens(text, target_tokens, overlap_percent)
-    
+
     chunks = []
     current_chunk = ""
     current_tokens = 0
     target = target_tokens
     overlap = int(target_tokens * overlap_percent)
-    
+
     for para in paragraphs:
         para = para.strip()
         if not para:
             continue
-        
+
         para_tokens = count_tokens(para)
-        
+
         # If paragraph itself is too large, chunk it directly
         if para_tokens > target:
             # Finalize current chunk if any
@@ -121,10 +121,10 @@ def chunk_text_smart(text: str, target_tokens: int = 600, overlap_percent: float
                 current_chunk = sub_chunks[-1]  # Keep last as start of next
                 current_tokens = count_tokens(current_chunk)
             continue
-        
+
         # Check if adding this paragraph would exceed target
         new_tokens = current_tokens + para_tokens + 2  # +2 for "\n\n"
-        
+
         if new_tokens > target and current_chunk:
             # Finalize current chunk
             chunks.append(current_chunk.strip())
@@ -142,11 +142,11 @@ def chunk_text_smart(text: str, target_tokens: int = 600, overlap_percent: float
             else:
                 current_chunk = para
             current_tokens = count_tokens(current_chunk)
-    
+
     # Add final chunk
     if current_chunk.strip():
         chunks.append(current_chunk.strip())
-    
+
     return chunks if chunks else [text]
 
 

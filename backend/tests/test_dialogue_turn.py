@@ -1,11 +1,9 @@
 """Tests for V2.17+V2.18 DialogueTurn contract: schema, scene_frame, npc_utterance, player_responses, validation."""
 from __future__ import annotations
 
-import pytest
 
 from backend.app.models.dialogue_turn import (
     DEFAULT_DEPTH_BUDGET,
-    DepthBudget,
     DialogueTurn,
     NPCRef,
     NPCUtterance,
@@ -34,7 +32,6 @@ from backend.app.core.nodes.scene_frame import (
     _derive_pressure,
     _build_voice_profile,
 )
-from backend.app.models.state import ActionSuggestion
 
 
 # ---------------------------------------------------------------------------

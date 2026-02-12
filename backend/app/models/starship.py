@@ -3,7 +3,7 @@ Starship models for player-owned ships.
 Supports acquisition, customization, and companion capacity mechanics.
 """
 
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, List
 from pydantic import BaseModel, ConfigDict, Field
 
 

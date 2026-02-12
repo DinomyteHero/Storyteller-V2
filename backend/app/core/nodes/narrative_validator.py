@@ -5,7 +5,6 @@ import logging
 import re
 from typing import Any
 
-from backend.app.core.warnings import add_warning
 
 logger = logging.getLogger(__name__)
 

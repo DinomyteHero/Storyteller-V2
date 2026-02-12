@@ -4,7 +4,6 @@ import sqlite3
 import sys
 import unittest
 from pathlib import Path
-from unittest.mock import patch
 
 _root = Path(__file__).resolve().parents[2]
 if str(_root) not in sys.path:
@@ -12,7 +11,6 @@ if str(_root) not in sys.path:
 
 from backend.app.core.state_loader import load_campaign, _default_companion_state
 from backend.app.core.projections import apply_projection
-from backend.app.models.events import Event
 
 
 def _create_in_memory_db() -> sqlite3.Connection:

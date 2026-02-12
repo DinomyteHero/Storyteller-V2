@@ -1,12 +1,10 @@
 """Tests for era+genre layered style retrieval and static mappings."""
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import pytest
 
 from backend.app.rag.style_mappings import (
-    ERA_STYLE_MAP,
     GENRE_STYLE_MAP,
     era_source_titles,
     genre_source_title,

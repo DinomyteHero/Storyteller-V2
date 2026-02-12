@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Iterable
 
 from ingestion.era_aliases import normalize_segment
 

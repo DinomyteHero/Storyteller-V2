@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 from backend.app.constants import SUGGESTED_ACTIONS_TARGET
 from backend.app.config import DEFAULT_DB_PATH, DEV_CONTEXT_STATS, ENABLE_BIBLE_CASTING
-from backend.app.core.error_handling import log_error_with_context, create_error_response
+from backend.app.core.error_handling import log_error_with_context
 from backend.app.core.text_utils import normalize_identifier
 from backend.app.content.repository import CONTENT_REPOSITORY
 
@@ -699,7 +699,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         player_id = str(uuid.uuid4())
         title = skeleton.get("title", "New Campaign")
         time_period = skeleton.get("time_period")
-        
+
         # Extract character info early (needed for NPC generation)
         name = character_sheet.get("name", "Hero")
         stats = character_sheet.get("stats") or {}
@@ -732,7 +732,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                 if loc_obj and loc_obj.planet:
                     starting_planet = loc_obj.planet
                     character_sheet["starting_planet"] = starting_planet
-        
+
         # Persist world_state_json: active_factions from SetupOutput (top-level or world_state_json)
         active_factions = skeleton.get("active_factions")
         if not isinstance(active_factions, list):
@@ -870,7 +870,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         world_state["act_outline"] = {
             "act_1_setup": f"Player discovers signs of {villain_name}'s operation. {informant_name} may hold key information. Alliances and enemies begin to form.",
             "act_2_rising": f"Escalating conflict with {villain_name}. {rival_name} complicates matters. Player's earlier choices shape available paths.",
-            "act_3_climax": f"Final confrontation. Player's relationships and decisions determine the outcome.",
+            "act_3_climax": "Final confrontation. Player's relationships and decisions determine the outcome.",
             "key_npcs": {
                 "villain": villain_name,
                 "rival": rival_name,
@@ -1518,7 +1518,7 @@ def _run_pre_narrator_pipeline(conn, state: GameState) -> dict:
     Returns the state dict ready for Narrator input.
     """
     from backend.app.core.nodes import state_to_dict
-    from backend.app.core.nodes.router import router_node, meta_node
+    from backend.app.core.nodes.router import router_node
     from backend.app.core.nodes.mechanic import make_mechanic_node
     from backend.app.core.nodes.encounter import make_encounter_node
     from backend.app.core.nodes.world_sim import make_world_sim_node
@@ -1622,7 +1622,6 @@ def post_turn_stream(
             from backend.app.core.agents.base import AgentLLM
             from backend.app.core.nodes.narrator import _is_high_stakes_combat
             from backend.app.rag.kg_retriever import KGRetriever
-            from backend.app.core.warnings import add_warning
 
             state = build_initial_gamestate(conn, campaign_id, player_id)
             if body.intent is not None:

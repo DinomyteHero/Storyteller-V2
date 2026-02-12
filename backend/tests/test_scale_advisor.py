@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import os
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 
 # ── Scale advisor tests ──────────────────────────────────────────────

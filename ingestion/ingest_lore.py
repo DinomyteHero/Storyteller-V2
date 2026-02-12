@@ -27,7 +27,7 @@ _root = Path(__file__).resolve().parents[1]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from ingestion.chunking import chunk_text_by_tokens, count_tokens
+from ingestion.chunking import chunk_text_by_tokens
 from ingestion.classify_document import classify_document
 from ingestion.era_aliases import load_era_aliases
 from ingestion.manifest import input_file_hashes, write_run_manifest, check_chunk_id_scheme

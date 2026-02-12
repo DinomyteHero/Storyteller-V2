@@ -5,7 +5,7 @@ from typing import Callable
 
 import logging
 
-from backend.app.models.state import ActionSuggestion, GameState, ACTION_CATEGORY_COMMIT
+from backend.app.models.state import ActionSuggestion, GameState
 from backend.app.core.agents.base import AgentLLM
 from backend.app.core.agent_utils import call_retriever, collect_related_npc_ids
 from backend.app.core.context_budget import build_context

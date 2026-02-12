@@ -1,7 +1,6 @@
 """Tests for narrator style-chunk wiring: _build_prompt accepts and uses style chunks."""
 from __future__ import annotations
 
-import pytest
 
 from backend.app.models.state import GameState
 from backend.app.core.agents.narrator import _build_prompt, NarratorAgent

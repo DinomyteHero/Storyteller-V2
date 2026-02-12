@@ -4,7 +4,6 @@ import sqlite3
 import sys
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
 
 _root = Path(__file__).resolve().parents[2]
 if str(_root) not in sys.path:

@@ -1,7 +1,6 @@
 """Tests for Phase 5 deep companion system: arc stages, conflicts, moments, party state."""
 from __future__ import annotations
 
-import pytest
 
 from backend.app.core.companion_reactions import (
     companion_arc_stage,

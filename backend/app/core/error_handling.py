@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-import traceback
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -35,7 +34,7 @@ def log_error_with_context(
     if agent_name:
         context_parts.append(f"agent={agent_name}")
     context_str = ", ".join(context_parts) if context_parts else "no context"
-    
+
     extra = {}
     if extra_context:
         extra.update(extra_context)
@@ -46,7 +45,7 @@ def log_error_with_context(
     if agent_name:
         extra["agent_name"] = agent_name
     extra["node_name"] = node_name
-    
+
     logger.error(
         f"[{node_name}] Error: {type(error).__name__}: {str(error)} ({context_str})",
         exc_info=True,

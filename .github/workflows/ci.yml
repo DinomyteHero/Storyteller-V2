@@ -48,4 +48,4 @@ jobs:
         run: pip install ruff
 
       - name: Lint backend
-        run: ruff check backend/ shared/ ingestion/ --select E,F,W --ignore E501
+        run: ruff check backend/ shared/ ingestion/ --select E,F,W --ignore E501,E402

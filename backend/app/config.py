@@ -11,12 +11,6 @@ import os
 from pathlib import Path
 
 from shared.config import (
-    EMBEDDING_DIMENSION,
-    EMBEDDING_MODEL,
-    ERA_PACK_DIR,
-    LORE_DATA_DIR,
-    MANIFESTS_DIR,
-    STYLE_DATA_DIR,
     _env_flag,
 )
 
@@ -180,7 +174,6 @@ ENABLE_SCALE_ADVISOR = _env_flag("ENABLE_SCALE_ADVISOR", default=False)
 
 # World simulation (V2.5): tick interval in hours (default 4 = 240 min)
 # Override via WORLD_TICK_INTERVAL_HOURS env. See backend.app.time_economy for action costs.
-from backend.app.time_economy import WORLD_TICK_INTERVAL_HOURS
 
 # Psychological profile defaults for characters (V2.5)
 PSYCH_PROFILE_DEFAULTS: dict[str, str | int | None] = {

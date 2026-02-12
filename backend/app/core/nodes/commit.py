@@ -25,7 +25,6 @@ from backend.app.models.dialogue_turn import (
     NPCUtterance,
     PlayerResponse,
     SceneFrame,
-    ValidationReport,
 )
 from backend.app.models.events import Event
 from backend.app.models.event_utils import ensure_event

@@ -8,7 +8,6 @@ import random
 from backend.app.constants import (
     BANTER_MEMORY_POOL,
     BANTER_POOL,
-    COMPANION_ARC_ALLY_MIN,
     COMPANION_ARC_LOYAL_MIN,
     COMPANION_ARC_STRANGER_MAX,
     COMPANION_ARC_TRUSTED_MIN,
