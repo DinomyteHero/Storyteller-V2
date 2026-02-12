@@ -59,7 +59,7 @@
 </script>
 
 {#if hasCompanions}
-  <aside class="companion-sidebar" role="complementary" aria-label="Companion reactions">
+  <aside class="companion-sidebar" aria-label="Companion reactions">
     <h3 class="sidebar-title">Companions</h3>
     {#each companions as companion (companion.id)}
       {@const stage = getArcStage(companion.affinity)}
