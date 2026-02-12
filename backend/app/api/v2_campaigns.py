@@ -33,6 +33,10 @@ from backend.app.core.truth_ledger import get_facts, ledger_summary, upsert_fact
 from backend.app.core.passages.engine import load_episode, render_template, build_choices, apply_choice
 from backend.app.models.events import Event
 from backend.app.core.agents import CampaignArchitect, BiographerAgent
+from backend.app.core.story_position import (
+    canonical_year_label_from_campaign,
+    initialize_story_position,
+)
 
 router = APIRouter(prefix="/v2", tags=["v2-campaigns"])
 
@@ -279,6 +283,7 @@ class TurnResponse(BaseModel):
     inventory: list
     quest_log: dict
     world_time_minutes: int | None = None
+    canonical_year_label: str | None = None
     state: dict | None = None
     debug: dict | None = None
     # Optional companion/alignment UI (render if present)
@@ -728,6 +733,14 @@ def setup_auto(body: SetupAutoRequest):
                 create_default_npcs = True
         companion_state = build_initial_companion_state(world_time_minutes=0, era=time_period)
         world_state = {"active_factions": active_factions, **companion_state}
+        world_state["setting_id"] = req_setting
+        world_state["period_id"] = req_period
+        world_state["story_position"] = initialize_story_position(
+            setting_id=req_setting,
+            period_id=req_period,
+            campaign_mode=body.campaign_mode or "historical",
+            world_time_minutes=0,
+        )
         # Hybrid arc approach: one setup-time scaffold (LLM when available),
         # then deterministic arc progression for all runtime turns.
         world_state["arc_seed"] = _generate_arc_seed(
@@ -977,6 +990,12 @@ def create_campaign(body: CreateCampaignRequest):
         else:
             active_factions = []
         world_state = {"active_factions": active_factions, **companion_state}
+        world_state["story_position"] = initialize_story_position(
+            setting_id=body.setting_id if hasattr(body, "setting_id") else None,
+            period_id=body.time_period,
+            campaign_mode="historical",
+            world_time_minutes=0,
+        )
         if body.genre:
             world_state["genre"] = body.genre
         world_state["campaign_scale"] = body.campaign_scale or "medium"
@@ -1258,6 +1277,7 @@ def post_turn(
             world_time_minutes = result.campaign.get("world_time_minutes")
         if world_time_minutes is None and camp:
             world_time_minutes = camp.get("world_time_minutes")
+        canonical_year_label = canonical_year_label_from_campaign(campaign=result.campaign, world_state=_ws_raw)
 
         debug_out = None
         if body.debug:
@@ -1386,6 +1406,7 @@ def post_turn(
             inventory=inventory,
             quest_log=quest_log or {},
             world_time_minutes=world_time_minutes,
+            canonical_year_label=canonical_year_label,
             state=state_out,
             debug=debug_out,
             party_status=party_status,
@@ -1677,6 +1698,7 @@ def post_turn_stream(
                 world_time_minutes = result_gs.campaign.get("world_time_minutes")
             if world_time_minutes is None and camp:
                 world_time_minutes = camp.get("world_time_minutes")
+            canonical_year_label = canonical_year_label_from_campaign(campaign=result_gs.campaign, world_state=_ws_sse_raw)
 
             warnings_out = getattr(result_gs, "warnings", None) or []
 
@@ -1728,6 +1750,7 @@ def post_turn_stream(
                 "inventory": inventory,
                 "quest_log": quest_log or {},
                 "world_time_minutes": world_time_minutes,
+                "canonical_year_label": canonical_year_label,
                 "warnings": warnings_out,
                 "dialogue_turn": getattr(result_gs, "dialogue_turn", None),
                 "turn_contract": turn_contract.model_dump(mode="json"),

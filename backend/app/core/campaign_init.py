@@ -118,8 +118,7 @@ def _build_generation_prompt(
     system_prompt = (
         "You are a world-builder for a narrative RPG game. Generate unique campaign content "
         "that enriches the base world with new locations, NPCs, and quest hooks.\n\n"
-        + mode_instruction
-        "Output ONLY a valid JSON object with this exact structure:\n"
+        + mode_instruction + "Output ONLY a valid JSON object with this exact structure:\n"
         "{\n"
         '  "locations": [\n'
         '    {"id": "gen-loc-NAME", "name": "Location Name", "description": "1-2 sentences", '
