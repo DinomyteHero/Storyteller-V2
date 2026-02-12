@@ -35,6 +35,77 @@ _VALID_TONES = {"PARAGON", "INVESTIGATE", "RENEGADE", "NEUTRAL"}
 
 _DEFAULT_SUGGESTION_STYLE = "a Star Wars KOTOR-style game"
 
+# Era-specific emergency fallback suggestions for when LLM and deterministic systems both fail.
+# Each era uses era-appropriate language while maintaining the SOCIAL/SOCIAL/COMMIT/EXPLORE structure.
+_ERA_EMERGENCY_SUGGESTIONS: dict[str, list[dict]] = {
+    "REBELLION": [
+        {"label": "We need to stay sharp. What's the Alliance hearing?",
+         "intent_text": "We need to stay sharp. What's the Alliance hearing?",
+         "category": "SOCIAL", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "PARAGON",
+         "intent_style": "calm", "consequence_hint": "gather Rebel intelligence"},
+        {"label": "Something doesn't add up. Who's really pulling the strings here?",
+         "intent_text": "Something doesn't add up. Who's really pulling the strings here?",
+         "category": "SOCIAL", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "INVESTIGATE",
+         "intent_style": "probing", "consequence_hint": "press for hidden motives"},
+        {"label": "The Empire won't wait. Neither will I.",
+         "intent_text": "The Empire won't wait. Neither will I.",
+         "category": "COMMIT", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "RENEGADE",
+         "intent_style": "firm", "consequence_hint": "take decisive action"},
+        {"label": "Let me check the perimeter before we move.",
+         "intent_text": "Let me check the perimeter before we move.",
+         "category": "EXPLORE", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "NEUTRAL",
+         "intent_style": "patient", "consequence_hint": "scout the area"},
+    ],
+    "LEGACY": [
+        {"label": "The old wars cast long shadows. What do you know about what happened here?",
+         "intent_text": "The old wars cast long shadows. What do you know about what happened here?",
+         "category": "SOCIAL", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "PARAGON",
+         "intent_style": "calm", "consequence_hint": "learn the history"},
+        {"label": "Everyone's got an angle in this new order. What's yours?",
+         "intent_text": "Everyone's got an angle in this new order. What's yours?",
+         "category": "SOCIAL", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "INVESTIGATE",
+         "intent_style": "probing", "consequence_hint": "uncover allegiances"},
+        {"label": "The galaxy doesn't fix itself. Let's move.",
+         "intent_text": "The galaxy doesn't fix itself. Let's move.",
+         "category": "COMMIT", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "RENEGADE",
+         "intent_style": "firm", "consequence_hint": "take action now"},
+        {"label": "I want to see what this place has to offer before committing.",
+         "intent_text": "I want to see what this place has to offer before committing.",
+         "category": "EXPLORE", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "NEUTRAL",
+         "intent_style": "patient", "consequence_hint": "explore the area"},
+    ],
+    "_DEFAULT": [
+        {"label": "Tell me more about what's going on.",
+         "intent_text": "Tell me more about what's going on.",
+         "category": "SOCIAL", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "PARAGON",
+         "intent_style": "calm", "consequence_hint": "learn more"},
+        {"label": "What aren't you telling me?",
+         "intent_text": "What aren't you telling me?",
+         "category": "SOCIAL", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "INVESTIGATE",
+         "intent_style": "probing", "consequence_hint": "press for truth"},
+        {"label": "Enough talk. Let's get this done.",
+         "intent_text": "Enough talk. Let's get this done.",
+         "category": "COMMIT", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "RENEGADE",
+         "intent_style": "firm", "consequence_hint": "move things along"},
+        {"label": "I'll look around first.",
+         "intent_text": "I'll look around first.",
+         "category": "EXPLORE", "risk_level": "SAFE",
+         "strategy_tag": "ALTERNATIVE", "tone_tag": "NEUTRAL",
+         "intent_style": "patient", "consequence_hint": "observe the situation"},
+    ],
+}
+
 # Placeholder __SUGGESTION_STYLE__ is replaced at runtime with setting_rules.suggestion_style
 # Loaded from versioned prompt pack with fallback for resilience.
 try:
@@ -406,36 +477,16 @@ def make_suggestion_refiner_node():
         except Exception as _det_err:
             logger.warning("SuggestionRefiner: deterministic fallback failed (%s), using generic emergency", _det_err)
 
-        # Tier 2: Generic emergency suggestions (last resort)
+        # Tier 2: Era-aware emergency suggestions (last resort)
+        # Select era-specific or default suggestion set
+        era_id = ""
+        ws = state.get("campaign") or {}
+        if isinstance(ws, dict):
+            ws_json = ws.get("world_state_json") if isinstance(ws.get("world_state_json"), dict) else {}
+            era_id = (ws_json.get("era") or ws_json.get("era_id") or "").upper() if isinstance(ws_json, dict) else ""
+        era_set = _ERA_EMERGENCY_SUGGESTIONS.get(era_id, _ERA_EMERGENCY_SUGGESTIONS["_DEFAULT"])
         emergency_suggestions = [
-            ActionSuggestion(
-                label="Tell me more about what's going on.",
-                intent_text="Tell me more about what's going on.",
-                category="SOCIAL", risk_level="SAFE",
-                strategy_tag="ALTERNATIVE", tone_tag="PARAGON",
-                intent_style="calm", consequence_hint="learn more",
-            ),
-            ActionSuggestion(
-                label="What aren't you telling me?",
-                intent_text="What aren't you telling me?",
-                category="SOCIAL", risk_level="SAFE",
-                strategy_tag="ALTERNATIVE", tone_tag="INVESTIGATE",
-                intent_style="probing", consequence_hint="press for truth",
-            ),
-            ActionSuggestion(
-                label="Enough talk. Let's get this done.",
-                intent_text="Enough talk. Let's get this done.",
-                category="COMMIT", risk_level="SAFE",
-                strategy_tag="ALTERNATIVE", tone_tag="RENEGADE",
-                intent_style="firm", consequence_hint="move things along",
-            ),
-            ActionSuggestion(
-                label="I'll look around first.",
-                intent_text="I'll look around first.",
-                category="EXPLORE", risk_level="SAFE",
-                strategy_tag="ALTERNATIVE", tone_tag="NEUTRAL",
-                intent_style="patient", consequence_hint="observe the situation",
-            ),
+            ActionSuggestion(**s) for s in era_set
         ]
         actions_list = [a.model_dump(mode="json") for a in emergency_suggestions]
         scene_frame = state.get("scene_frame")

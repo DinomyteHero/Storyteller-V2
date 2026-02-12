@@ -17,7 +17,7 @@ def main(argv: list[str] | None = None) -> None:
     sub = parser.add_subparsers(dest="command")
 
     # Import and register each command
-    from storyteller.commands import doctor, setup, dev, ingest, query, extract_knowledge, organize_ingest, models, style_audit, build_style_pack
+    from storyteller.commands import doctor, setup, dev, ingest, query, extract_knowledge, organize_ingest, models, style_audit, build_style_pack, generate_era_content
 
     doctor.register(sub)
     setup.register(sub)
@@ -29,6 +29,7 @@ def main(argv: list[str] | None = None) -> None:
     models.register(sub)
     style_audit.register(sub)
     build_style_pack.register(sub)
+    generate_era_content.register(sub)
 
     args = parser.parse_args(argv)
 
