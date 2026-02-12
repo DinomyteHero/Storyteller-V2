@@ -1,6 +1,7 @@
 # Dialogue System Architecture
 
 ## Overview
+
 This document explains how Storyteller AI generates NPC dialogue, tracks conversations, and maintains dialogue state across turns. This is the technical companion to `player_ux_flow.md`.
 
 ---
@@ -71,11 +72,11 @@ flowchart TD
 
     BuildVoice --> VoiceSource{Voice Data Source?}
 
-    VoiceSource -->|Era Pack NPC| EraVoice[Extract from era pack JSON:<br/>• motivation → belief<br/>• secret → wound<br/>• taboo inferred from traits<br/>• voice_tags → rhetorical_style<br/>• mannerisms → tell]
+    VoiceSource --> | Era Pack NPC| EraVoice[Extract from era pack JSON:<br/>• motivation → belief<br/>• secret → wound<br/>• taboo inferred from traits<br/>• voice_tags → rhetorical_style<br/>• mannerisms → tell]
 
-    VoiceSource -->|Companion| CompVoice[Extract from companion data:<br/>• personality → belief<br/>• backstory → wound<br/>• taboo from personality<br/>• voice_tags → rhetorical_style<br/>• banter_style → tell]
+    VoiceSource --> | Companion| CompVoice[Extract from companion data:<br/>• personality → belief<br/>• backstory → wound<br/>• taboo from personality<br/>• voice_tags → rhetorical_style<br/>• banter_style → tell]
 
-    VoiceSource -->|Generated NPC| GenVoice[Extract from generated data:<br/>• role/background → belief<br/>• hidden motivations → wound<br/>• default taboo<br/>• default rhetorical_style<br/>• default tell]
+    VoiceSource --> | Generated NPC| GenVoice[Extract from generated data:<br/>• role/background → belief<br/>• hidden motivations → wound<br/>• default taboo<br/>• default rhetorical_style<br/>• default tell]
 
     EraVoice --> VoiceProfile[VoiceProfile Dict:<br/>belief: core value 120 chars<br/>wound: hidden pain 120 chars<br/>taboo: forbidden topic<br/>rhetorical_style: socratic/blunt/evasive<br/>tell: mannerism pauses/smirks/fidgets]
     CompVoice --> VoiceProfile
@@ -87,9 +88,9 @@ flowchart TD
 
     Topic --> TopicLogic{Topic Derivation?}
 
-    TopicLogic -->|Primary| PrimaryT[From NPC role mapping:<br/>mentor → identity<br/>authority → duty<br/>merchant → debt<br/>rebel → trust<br/>criminal → loyalty]
+    TopicLogic --> | Primary| PrimaryT[From NPC role mapping:<br/>mentor → identity<br/>authority → duty<br/>merchant → debt<br/>rebel → trust<br/>criminal → loyalty]
 
-    TopicLogic -->|Secondary| SecondaryT[From arc stage:<br/>setup → curiosity<br/>rising → conflict<br/>climax → sacrifice<br/>resolution → forgiveness]
+    TopicLogic --> | Secondary| SecondaryT[From arc stage:<br/>setup → curiosity<br/>rising → conflict<br/>climax → sacrifice<br/>resolution → forgiveness]
 
     PrimaryT --> Subtext[Generate Subtext:<br/>The question of topic<br/>hangs in the air]
     SecondaryT --> Subtext
@@ -98,13 +99,13 @@ flowchart TD
 
     Agenda --> AgendaLogic{Agenda Derivation?}
 
-    AgendaLogic -->|Setup stage| AgendaSetup[test_player<br/>establish_boundaries<br/>signal_availability]
+    AgendaLogic --> | Setup stage| AgendaSetup[test_player<br/>establish_boundaries<br/>signal_availability]
 
-    AgendaLogic -->|Rising stage| AgendaRising[request_commitment<br/>challenge_assumptions<br/>reveal_stakes]
+    AgendaLogic --> | Rising stage| AgendaRising[request_commitment<br/>challenge_assumptions<br/>reveal_stakes]
 
-    AgendaLogic -->|Climax stage| AgendaClimax[demand_choice<br/>force_reckoning<br/>escalate_conflict]
+    AgendaLogic --> | Climax stage| AgendaClimax[demand_choice<br/>force_reckoning<br/>escalate_conflict]
 
-    AgendaLogic -->|Resolution stage| AgendaResolution[offer_closure<br/>accept_outcome<br/>pass_wisdom]
+    AgendaLogic --> | Resolution stage| AgendaResolution[offer_closure<br/>accept_outcome<br/>pass_wisdom]
 
     AgendaSetup --> Pressure[Compute Scene Pressure]
     AgendaRising --> Pressure
@@ -161,7 +162,7 @@ flowchart LR
 **Voice Profile Sources by NPC Type:**
 
 | NPC Type | Belief | Wound | Taboo | Rhetoric | Tell |
-|----------|--------|-------|-------|----------|------|
+| ---------- | -------- | ------- | ------- | ---------- | ------ |
 | **Era Pack** | `motivation` field | `secret` field | Inferred from traits | Mapped from `voice_tags` | `mannerisms` field |
 | **Companion** | `personality` field | `backstory` field | Inferred from personality | Mapped from `voice_tags` | `banter_style` mapped |
 | **Generated** | Role-based template | Random secret | Generic | Default for role | Generic fidget/pause |
@@ -175,15 +176,15 @@ flowchart LR
 flowchart TD
     NarrOutput[Narrator LLM Output:<br/>Full text block with prose + NPC line] --> Check{Contains<br/>---NPC_LINE---?}
 
-    Check -->|Yes| Split[Split on separator:<br/>prose = before<br/>npc_section = after]
-    Check -->|No| Fallback1[FALLBACK 1:<br/>Extract last sentence as<br/>narrator observation]
+    Check --> | Yes| Split[Split on separator:<br/>prose = before<br/>npc_section = after]
+    Check --> | No| Fallback1[FALLBACK 1:<br/>Extract last sentence as<br/>narrator observation]
 
     Split --> ParseSpeaker[Parse SPEAKER line:<br/>Regex: SPEAKER:\s*the\s+name<br/>or SPEAKER: name]
 
     ParseSpeaker --> ValidateSpeaker{Speaker in<br/>present_npcs?}
 
-    ValidateSpeaker -->|Yes| ExtractText[Extract dialogue text:<br/>Lines after SPEAKER line<br/>Strip whitespace<br/>Max 500 chars]
-    ValidateSpeaker -->|No| Fallback2[FALLBACK 2:<br/>Use narrator<br/>speaker_id=narrator<br/>text=last sentence]
+    ValidateSpeaker --> | Yes| ExtractText[Extract dialogue text:<br/>Lines after SPEAKER line<br/>Strip whitespace<br/>Max 500 chars]
+    ValidateSpeaker --> | No| Fallback2[FALLBACK 2:<br/>Use narrator<br/>speaker_id=narrator<br/>text=last sentence]
 
     ExtractText --> BuildUtterance[Build NPCUtterance:<br/>speaker_id: npc-id<br/>speaker_name: extracted name<br/>text: dialogue text<br/>subtext_hint: empty<br/>rhetorical_moves: empty]
 
@@ -199,19 +200,22 @@ flowchart TD
 **Code Reference:** `backend/app/core/agents/narrator.py` → `_extract_npc_utterance()`
 
 **Example Narrator Output:**
-```
+
+```text
 The cantina is thick with smoke and the smell of spice. You
 approach the bar where the Devaronian barkeep is polishing
 glasses with a grimy rag. He looks up as you approach, his
 red eyes narrowing with suspicion.
 
 ---NPC_LINE---
+
 SPEAKER: Grumthar the Barkeep
 "You got business, or you just here to gawk? I don't got
 time for tourists."
 ```
 
 **Parsed Result:**
+
 ```python
 NPCUtterance(
     speaker_id="npc-barkeep-grumthar",
@@ -238,8 +242,8 @@ flowchart TD
 
     Search --> CheckCount{Results >= k/2?}
 
-    CheckCount -->|Yes| UseResults[Use retrieved snippets]
-    CheckCount -->|No| Widen[FALLBACK: Widen search<br/>Filter: character_id=id ANY era<br/>Accept cross-era voice samples]
+    CheckCount --> | Yes| UseResults[Use retrieved snippets]
+    CheckCount --> | No| Widen[FALLBACK: Widen search<br/>Filter: character_id=id ANY era<br/>Accept cross-era voice samples]
 
     Widen --> UseWide[Use widened results]
 
@@ -257,6 +261,7 @@ flowchart TD
 **Storage:** `lancedb/` directory, table `character_voice_chunks`
 
 **Voice Snippet Example:**
+
 ```python
 VoiceSnippet(
     character_id="char-luke-skywalker",
@@ -265,7 +270,6 @@ VoiceSnippet(
     chunk_id="luke_voice_003"
 )
 ```
-
 
 ---
 
@@ -314,6 +318,7 @@ flowchart TD
 ```
 
 **Key Insight:** No mutable conversation state object exists. All conversation continuity comes from:
+
 1. **Event log** (authoritative source)
 2. **Ephemeral state dict** (rebuilt each turn from events)
 3. **History field** (recent narrative paragraphs)
@@ -332,13 +337,13 @@ flowchart TD
 
     Suggestions --> CheckParse{JSON parse<br/>success?}
 
-    CheckParse -->|Yes| Convert[action_suggestions_to_player_responses<br/>Converts to PlayerResponse format]
-    CheckParse -->|No| Retry[Retry with correction prompt<br/>1 retry allowed]
+    CheckParse --> | Yes| Convert[action_suggestions_to_player_responses<br/>Converts to PlayerResponse format]
+    CheckParse --> | No| Retry[Retry with correction prompt<br/>1 retry allowed]
 
     Retry --> CheckRetry{Retry parse<br/>success?}
 
-    CheckRetry -->|Yes| Convert
-    CheckRetry -->|No| Emergency[FALLBACK:<br/>Use minimal emergency responses<br/>Continue, Investigate, Leave, Attack]
+    CheckRetry --> | Yes| Convert
+    CheckRetry --> | No| Emergency[FALLBACK:<br/>Use minimal emergency responses<br/>Continue, Investigate, Leave, Attack]
 
     Emergency --> Convert
 
@@ -356,6 +361,7 @@ flowchart TD
 ```
 
 **Code Reference:**
+
 - `backend/app/core/nodes/suggestion_refiner.py` → `make_suggestion_refiner_node()`
 - `backend/app/core/director_validation.py` → `action_suggestions_to_player_responses()`
 
@@ -481,29 +487,37 @@ sequenceDiagram
 
 From `CLAUDE.md`:
 
-**1. Prose-Only Narrator (V2.15)**
+### 1. Prose-Only Narrator (V2.15)
+
 > The Narrator generates only prose text (5-8 sentences, max 250 words). It does NOT generate action suggestions.
 
-**2. KOTOR Dialogue Wheel (4 suggestions)**
+### 2. KOTOR Dialogue Wheel (4 suggestions)
+
 > The SuggestionRefiner node is the sole source of suggestions. It generates 4 LLM-powered suggestions per turn.
 
-**3. Single Transaction Boundary**
+### 3. Single Transaction Boundary
+
 > Only the Commit node writes to the database. All other nodes are pure functions.
 
-**4. Event Sourcing**
+### 4. Event Sourcing
+
 > The `turn_events` table is append-only. Never update or delete events.
 
-**5. SceneFrame Immutability**
+### 5. SceneFrame Immutability
+
 > SceneFrame is built once per turn and read by all downstream nodes. No node modifies it.
 
-**6. JSON Retry Pattern**
-> LLM agents that expect JSON output must:
-> - Use `json_mode=True`
-> - Attempt `ensure_json()` repair
-> - Retry once with correction prompt
-> - Fall back to deterministic output on double failure
+### 6. JSON Retry Pattern
 
-**7. Deterministic Fallbacks**
+LLM agents that expect JSON output must:
+
+- Use `json_mode=True`
+- Attempt `ensure_json()` repair
+- Retry once with correction prompt
+- Fall back to deterministic output on double failure
+
+### 7. Deterministic Fallbacks
+
 > Every LLM-dependent agent must have a deterministic fallback. If the LLM fails, the game continues with safe defaults.
 
 ---
@@ -547,11 +561,13 @@ flowchart LR
 ```
 
 **State Fields for Continuity:**
+
 - `history: list[str]` — Last 2-3 narrative paragraphs (prose only)
 - `recent_narrative: list[str]` — Rebuilt from turn_events
 - `last_user_inputs: list[str]` — Last N player inputs for tone streak detection
 
 **Limitations:**
+
 - No explicit conversation tree or branching paths
 - No dialogue choice memory (player can't reference "that thing I said 5 turns ago")
 - NPC memory is implicit through LLM context window, not explicit KB
@@ -610,7 +626,7 @@ flowchart TB
 ## 13. File Reference Quick Guide
 
 | Component | File Path | Purpose |
-|-----------|-----------|---------|
+| ----------- | ----------- | --------- |
 | **DialogueTurn model** | `backend/app/models/dialogue_turn.py` | Canonical turn output contract |
 | **SceneFrame node** | `backend/app/core/nodes/scene_frame.py` | Builds immutable scene snapshot |
 | **Narrator agent** | `backend/app/core/agents/narrator.py` | Generates prose + NPC utterance |
@@ -631,7 +647,7 @@ flowchart TB
 **Common Problems and Solutions:**
 
 | Issue | Likely Cause | Debug Steps |
-|-------|--------------|-------------|
+| ------- | -------------- | ------------- |
 | **No NPC speaks** | `present_npcs` empty | Check Encounter node output, verify era pack NPCs exist |
 | **NPC speaks but wrong voice** | Voice profile missing/malformed | Check SceneFrame output, verify voice_profile dict populated |
 | **NPC speaks out of character** | Wrong rhetoric style or missing taboo | Verify voice_profile.rhetorical_style and taboo fields |
@@ -641,6 +657,7 @@ flowchart TB
 | **Duplicate/repetitive responses** | LLM temperature too low | Adjust model config, verify temperature >= 0.7 |
 
 **Debug Tools:**
+
 - `debug=true` in `/turn` request: Returns full pipeline diagnostics
 - `DEV_CONTEXT_STATS=1`: Shows token budgeting and RAG retrieval stats
 - Check logs: `backend/logs/` for agent-level warnings

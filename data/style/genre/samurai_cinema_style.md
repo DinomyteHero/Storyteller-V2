@@ -51,6 +51,7 @@ Avoid modern conversational patterns entirely — no banter, no quips, no rapid-
 ## Sensory Lexicon
 
 ### Sound
+
 - wind across open ground, low sustained moan through canyon walls
 - vibroblade drawn from sheath, the faint ring of durasteel on leather
 - single footstep on stone, gravel shift, boot on wet deck plate
@@ -59,6 +60,7 @@ Avoid modern conversational patterns entirely — no banter, no quips, no rapid-
 - rain striking duracrete, each drop distinct in the quiet
 
 ### Sight
+
 - wide horizon line, sky meeting desert or ocean at the edge of vision
 - single figure silhouetted against a viewport or sunset
 - dust motes suspended in a shaft of light through damaged hull plating
@@ -67,6 +69,7 @@ Avoid modern conversational patterns entirely — no banter, no quips, no rapid-
 - wet stone, rain-slicked landing pads reflecting nav lights
 
 ### Smell
+
 - wet stone and mineral dust after rain on a dry world
 - oiled durasteel, the clean sharp scent of a maintained blade
 - incense or burnt herbs in a meditation chamber
@@ -74,6 +77,7 @@ Avoid modern conversational patterns entirely — no banter, no quips, no rapid-
 - cold mountain air through an open hangar, thin and clean
 
 ### Touch
+
 - the weight of a vibroblade in the hand, balanced and familiar
 - rough-woven robes against skin, travel-worn fabric
 - cold wind on exposed face, the sting of dust carried in it

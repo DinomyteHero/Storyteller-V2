@@ -22,6 +22,7 @@ jobs:
         with:
           globs: |
             **/*.md
+            !docs/archive/**/*.md
             !frontend/node_modules/**/*.md
 
   links:
@@ -33,7 +34,13 @@ jobs:
         with:
           args: >-
             --no-progress
-            --exclude-mail
+            --max-concurrency 4
+            --retry-wait-time 2
+            --max-retries 2
+            --exclude "^http://localhost"
+            --exclude "^http://127\\.0\\.0\\.1"
+            --exclude "^http://0\\.0\\.0\\.0"
+            --exclude-path docs/archive
             --exclude-path frontend/node_modules
             "**/*.md"
         env:

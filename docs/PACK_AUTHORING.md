@@ -56,11 +56,16 @@ This appends or merges location objects by `id`.
 
 ```yaml
 # data/static/setting_packs/overrides/lotr/periods/third_age/npcs.yaml
+
 npcs:
   templates:
+
     - id: npc_ranger_generic
+
       disabled: true
+
     - id: npc_ranger_veteran
+
       extends: npc_ranger_base
       role: scout_captain
       tags: [wilderness, elite]

@@ -48,6 +48,7 @@ If you are comfortable with a controlled release (trusted users, modest traffic)
 - No explicit CI gate shown for frontend accessibility warnings.
 
 **Recommendation:**
+
 - Treat Python 3.11 as hard requirement before deployment.
 - If horizontally scaling, move rate limit to Redis or gateway.
 - Add CI lint/a11y checks for frontend and fail builds on high-severity issues.
@@ -77,6 +78,7 @@ If you are comfortable with a controlled release (trusted users, modest traffic)
 - No explicit stress/load simulation evidence captured in this pass for concurrent users.
 
 **Recommendation:**
+
 - Run `backend/scripts/tick_pacing_sim.py` and turn throughput/load checks in staging.
 - Add a short “first 10 turns” telemetry dashboard (latency, retries, hallucination/error rate, choice quality).
 
@@ -97,6 +99,7 @@ If you are comfortable with a controlled release (trusted users, modest traffic)
 - Limited explicit style-governance artifacts for narrator/director prompt evolution found in this pass.
 
 **Recommendation:**
+
 - Add prompt versioning for all major narrative roles (Director/Narrator/Casting) if not already externalized.
 - Maintain a “golden transcript set” for story-tone regression before each release.
 
@@ -115,6 +118,7 @@ If you are comfortable with a controlled release (trusted users, modest traffic)
 - No explicit automated schema-validation test shown for malformed LLM output recovery in this walkthrough.
 
 **Recommendation:**
+
 - Expand prompt registry snapshot coverage to all active role prompts.
 - Add explicit tests for malformed/non-JSON LLM completions and fallback behavior.
 
@@ -155,4 +159,3 @@ npm run build   # in frontend/
 - `make check`: PASS (targeted 43 tests passed).
 - `python scripts/preflight.py`: FAIL in this environment (Python 3.10, requires 3.11+).
 - `npm run build`: PASS with warnings (accessibility + tsconfig warning).
-

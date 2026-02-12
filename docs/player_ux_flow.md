@@ -1,6 +1,7 @@
 # Player User Experience Flow Diagram
 
 ## Overview
+
 This document visualizes the complete player journey through Storyteller AI, from campaign creation to turn-by-turn gameplay.
 
 ---
@@ -11,8 +12,8 @@ This document visualizes the complete player journey through Storyteller AI, fro
 flowchart TD
     Start([Player Starts Game]) --> Choice{Choose Creation Method}
 
-    Choice -->|Auto Setup| AutoAPI[POST /v2/setup/auto<br/>Player provides:<br/>- Time period<br/>- Genre/themes<br/>- Character concept<br/>- Background<br/>- Gender]
-    Choice -->|Manual Setup| ManualAPI[POST /v2/campaigns<br/>Player provides:<br/>- Title<br/>- Player name<br/>- Stats<br/>- Starting location<br/>- HP]
+    Choice --> | Auto Setup| AutoAPI[POST /v2/setup/auto<br/>Player provides:<br/>- Time period<br/>- Genre/themes<br/>- Character concept<br/>- Background<br/>- Gender]
+    Choice --> | Manual Setup| ManualAPI[POST /v2/campaigns<br/>Player provides:<br/>- Title<br/>- Player name<br/>- Stats<br/>- Starting location<br/>- HP]
 
     AutoAPI --> Architect[Architect Agent Generates:<br/>- Campaign skeleton<br/>- Locations<br/>- Factions<br/>- NPCs]
     Architect --> Biographer[Biographer Agent Generates:<br/>- Character sheet<br/>- Stats<br/>- Starting location<br/>- Background story]
@@ -38,8 +39,8 @@ flowchart TD
     PlayerReady([Player Views Game State]) --> ViewState[GET /campaigns/{id}/state<br/><br/>Player sees:<br/>- Character sheet HP/stats/credits<br/>- Current location<br/>- Inventory<br/>- Companion status<br/>- Quest log<br/>- Faction reputation<br/>- World time<br/>- News feed]
 
     ViewState --> LastTurn{First Turn?}
-    LastTurn -->|No| ShowNarrative[Display Previous Turn:<br/>- Narrative prose 5-8 sentences<br/>- 4 KOTOR-style suggestions<br/>- NPC dialogue if present<br/>- Quest/companion updates]
-    LastTurn -->|Yes| ShowOpening[Show Campaign Opening]
+    LastTurn --> | No| ShowNarrative[Display Previous Turn:<br/>- Narrative prose 5-8 sentences<br/>- 4 KOTOR-style suggestions<br/>- NPC dialogue if present<br/>- Quest/companion updates]
+    LastTurn --> | Yes| ShowOpening[Show Campaign Opening]
 
     ShowNarrative --> PlayerChoice[Player Selects Action<br/>from 4 Suggestions:<br/><br/>Each shows:<br/>- Label text<br/>- Tone PARAGON/RENEGADE/INVESTIGATE/NEUTRAL<br/>- Risk level SAFE/RISKY/DANGEROUS<br/>- Consequence hint]
     ShowOpening --> PlayerChoice
@@ -53,8 +54,8 @@ flowchart TD
     Response --> UpdateUI[UI Updates All State:<br/>- Show new narrative<br/>- Display 4 new suggestions<br/>- Update character sheet<br/>- Show companion reactions<br/>- Display quest changes<br/>- Show time passed<br/>- Render NPC dialogue wheel]
 
     UpdateUI --> NextTurn{Continue?}
-    NextTurn -->|Yes| ViewState
-    NextTurn -->|No| EndCampaign[POST /campaigns/{id}/complete<br/>Save legacy & outcome]
+    NextTurn --> | Yes| ViewState
+    NextTurn --> | No| EndCampaign[POST /campaigns/{id}/complete<br/>Save legacy & outcome]
 
     EndCampaign --> GameOver([Campaign Complete])
 
@@ -71,9 +72,9 @@ flowchart TD
 flowchart TD
     Input[Player Input Text] --> Router[ROUTER NODE<br/>Classifies intent:<br/>- META system command<br/>- TALK pure dialogue<br/>- MECHANIC action/persuasion]
 
-    Router -->|META| MetaShortcut[Meta Handler<br/>No time cost<br/>Query only]
-    Router -->|TALK| SkipMechanic[Skip Mechanic<br/>Fast dialogue path]
-    Router -->|MECHANIC| RunMechanic[MECHANIC NODE<br/>Deterministic Python only<br/>- Roll dice<br/>- Calculate DC<br/>- Resolve success/fail<br/>- Apply damage/effects<br/>- Time cost 8-60 min<br/>- Generate events]
+    Router --> | META| MetaShortcut[Meta Handler<br/>No time cost<br/>Query only]
+    Router --> | TALK| SkipMechanic[Skip Mechanic<br/>Fast dialogue path]
+    Router --> | MECHANIC| RunMechanic[MECHANIC NODE<br/>Deterministic Python only<br/>- Roll dice<br/>- Calculate DC<br/>- Resolve success/fail<br/>- Apply damage/effects<br/>- Time cost 8-60 min<br/>- Generate events]
 
     MetaShortcut --> CommitMeta[COMMIT NODE<br/>Return query result]
     CommitMeta --> OutputMeta[Response: system info]
@@ -137,8 +138,8 @@ flowchart LR
         N12[Commit]
     end
 
-    Meta -->|Direct path| N1
-    N1 -.->|Skip all| N12
+    Meta --> | Direct path| N1
+    N1 -.-> | Skip all| N12
 
     Talk --> N1
     N1 --> N3
@@ -167,6 +168,7 @@ flowchart LR
 ```
 
 **Pipeline Path Summary:**
+
 - **META**: Router → Commit (instant, 0 time cost)
 - **TALK**: Router → Encounter → WorldSim → CompanionReaction → ArcPlanner → SceneFrame → Director → Narrator → Validator → SuggestionRefiner → Commit (~8-18 min)
 - **DIALOGUE_WITH_ACTION**: Router → **Mechanic** → Encounter → ... → Commit (8-30 min, with roll)
@@ -200,8 +202,8 @@ flowchart TB
     State --> World[World State<br/>- Time elapsed minutes<br/>- Faction reputations<br/>- News feed headlines<br/>- Active rumors]
 
     Turn --> Dialogue{NPC Present?}
-    Dialogue -->|Yes| NPCWheel[NPC Dialogue Wheel<br/>- Scene frame context<br/>- NPC utterance<br/>- 4 response options<br/>- Voice profile<br/>- Topics belief/wound/taboo]
-    Dialogue -->|No| Continue[Action suggestions only]
+    Dialogue --> | Yes| NPCWheel[NPC Dialogue Wheel<br/>- Scene frame context<br/>- NPC utterance<br/>- 4 response options<br/>- Voice profile<br/>- Topics belief/wound/taboo]
+    Dialogue --> | No| Continue[Action suggestions only]
 
     Turn --> Warnings[Warnings Array<br/>- Quest updates<br/>- Companion reactions<br/>- World events<br/>- System messages]
 
@@ -221,18 +223,18 @@ flowchart TB
 flowchart TD
     Action[Player Takes Action] --> TimeCost{Action Type?}
 
-    TimeCost -->|META| T0[Time cost: 0 minutes<br/>No world advancement]
-    TimeCost -->|TALK| T1[Time cost: 8-18 minutes<br/>Dialogue duration]
-    TimeCost -->|DIALOGUE ACTION| T2[Time cost: 8-30 minutes<br/>Persuasion + conversation]
-    TimeCost -->|PHYSICAL ACTION| T3[Time cost: 20-60 minutes<br/>Combat/investigation/travel]
+    TimeCost --> | META| T0[Time cost: 0 minutes<br/>No world advancement]
+    TimeCost --> | TALK| T1[Time cost: 8-18 minutes<br/>Dialogue duration]
+    TimeCost --> | DIALOGUE ACTION| T2[Time cost: 8-30 minutes<br/>Persuasion + conversation]
+    TimeCost --> | PHYSICAL ACTION| T3[Time cost: 20-60 minutes<br/>Combat/investigation/travel]
 
     T0 --> Check
     T1 --> Check{World Time % 240 == 0?}
     T2 --> Check
     T3 --> Check
 
-    Check -->|No| NoTick[Continue normally]
-    Check -->|Yes| Tick[WORLD TICK TRIGGERS<br/>Every ~240 minutes / 4 hours]
+    Check --> | No| NoTick[Continue normally]
+    Check --> | Yes| Tick[WORLD TICK TRIGGERS<br/>Every ~240 minutes / 4 hours]
 
     Tick --> Factions[Factions Move:<br/>- Execute plans<br/>- Shift control<br/>- Generate events]
 
@@ -254,6 +256,7 @@ flowchart TD
 ```
 
 **Key Insight:** Time pressure creates meaningful choices:
+
 - **Rush through actions** = cover more ground, but miss clues and opportunities
 - **Take time to investigate** = gather intel, but world advances without you
 
@@ -265,10 +268,10 @@ flowchart TD
 flowchart TD
     PlayerAction[Player Chooses Action] --> Tone{Action Tone?}
 
-    Tone -->|PARAGON| ToneP[Empathetic/diplomatic<br/>Help others<br/>Uphold ideals]
-    Tone -->|RENEGADE| ToneR[Aggressive/decisive<br/>Get results<br/>Break rules]
-    Tone -->|INVESTIGATE| ToneI[Cautious/thoughtful<br/>Gather information]
-    Tone -->|NEUTRAL| ToneN[Tactical/pragmatic]
+    Tone --> | PARAGON| ToneP[Empathetic/diplomatic<br/>Help others<br/>Uphold ideals]
+    Tone --> | RENEGADE| ToneR[Aggressive/decisive<br/>Get results<br/>Break rules]
+    Tone --> | INVESTIGATE| ToneI[Cautious/thoughtful<br/>Gather information]
+    Tone --> | NEUTRAL| ToneN[Tactical/pragmatic]
 
     ToneP --> CompCheck[Companion Reaction Node<br/>Deterministic calculation]
     ToneR --> CompCheck
@@ -277,18 +280,18 @@ flowchart TD
 
     CompCheck --> Match{Match Companion<br/>Personality?}
 
-    Match -->|Strong Match| Approve[Affinity +5 to +15<br/>Mood: PLEASED/SUPPORTIVE<br/>Potential loyalty progress]
-    Match -->|Weak Match| Neutral[Affinity +0 to -2<br/>Mood: NEUTRAL/WARY]
-    Match -->|Conflict| Disapprove[Affinity -5 to -20<br/>Mood: DISAPPROVING/HOSTILE<br/>May leave party if severe]
+    Match --> | Strong Match| Approve[Affinity +5 to +15<br/>Mood: PLEASED/SUPPORTIVE<br/>Potential loyalty progress]
+    Match --> | Weak Match| Neutral[Affinity +0 to -2<br/>Mood: NEUTRAL/WARY]
+    Match --> | Conflict| Disapprove[Affinity -5 to -20<br/>Mood: DISAPPROVING/HOSTILE<br/>May leave party if severe]
 
     Approve --> Thresholds{Cross Affinity<br/>Threshold?}
     Neutral --> Thresholds
     Disapprove --> Thresholds
 
-    Thresholds -->|Reach +40| Trusted[Loyalty Stage 1: TRUSTED<br/>Unlock personal quest<br/>New dialogue options]
-    Thresholds -->|Reach +75| Loyal[Loyalty Stage 2: LOYAL<br/>Combat bonuses<br/>Romance available<br/>Final quest unlocked]
-    Thresholds -->|Fall Below -40| Hostile[Companion Leaves Party<br/>May become enemy]
-    Thresholds -->|No threshold| Continue[Update party status]
+    Thresholds --> | Reach +40| Trusted[Loyalty Stage 1: TRUSTED<br/>Unlock personal quest<br/>New dialogue options]
+    Thresholds --> | Reach +75| Loyal[Loyalty Stage 2: LOYAL<br/>Combat bonuses<br/>Romance available<br/>Final quest unlocked]
+    Thresholds --> | Fall Below -40| Hostile[Companion Leaves Party<br/>May become enemy]
+    Thresholds --> | No threshold| Continue[Update party status]
 
     Trusted --> Display[Display in TurnResponse:<br/>party_status array<br/>- Affinity score<br/>- Loyalty progress<br/>- Mood tag<br/>- Influence/trust/respect axes]
     Loyal --> Display
@@ -304,6 +307,7 @@ flowchart TD
 ```
 
 **Companion Personality Examples:**
+
 - **Idealist** (e.g., Jedi Knight): Approves PARAGON, disapproves RENEGADE
 - **Pragmatist** (e.g., Smuggler): Approves tactical NEUTRAL, tolerates RENEGADE
 - **Rebel** (e.g., Freedom Fighter): Approves defiance, disapproves submission
@@ -319,9 +323,9 @@ flowchart TD
 
     Seed --> Discover{How Quest Activates?}
 
-    Discover -->|Player visits location| Trigger1[Quest auto-activates<br/>Status: ACTIVE<br/>Warning shown]
-    Discover -->|NPC conversation| Trigger2[NPC offers quest<br/>Player accepts<br/>Status: ACTIVE]
-    Discover -->|World event| Trigger3[News feed / rumor<br/>Quest becomes available<br/>Status: AVAILABLE]
+    Discover --> | Player visits location| Trigger1[Quest auto-activates<br/>Status: ACTIVE<br/>Warning shown]
+    Discover --> | NPC conversation| Trigger2[NPC offers quest<br/>Player accepts<br/>Status: ACTIVE]
+    Discover --> | World event| Trigger3[News feed / rumor<br/>Quest becomes available<br/>Status: AVAILABLE]
 
     Trigger1 --> Active[Quest in Quest Log<br/>Shows:<br/>- Title<br/>- Current stage<br/>- Objectives<br/>- Progress]
     Trigger2 --> Active
@@ -332,10 +336,10 @@ flowchart TD
 
     PlayerAct --> Check{Objective Met?}
 
-    Check -->|No| Advance[Continue quest]
-    Check -->|Yes - Stage Complete| NextStage[Advance to next stage<br/>stages_completed += 1<br/>current_stage_idx += 1<br/>Warning: Stage complete]
-    Check -->|Yes - Quest Complete| Complete[Status: COMPLETED<br/>Rewards granted:<br/>- Credits<br/>- Items<br/>- Reputation<br/>- Experience]
-    Check -->|Fail Condition Met| Failed[Status: FAILED<br/>World state updated<br/>Consequences applied]
+    Check --> | No| Advance[Continue quest]
+    Check --> | Yes - Stage Complete| NextStage[Advance to next stage<br/>stages_completed += 1<br/>current_stage_idx += 1<br/>Warning: Stage complete]
+    Check --> | Yes - Quest Complete| Complete[Status: COMPLETED<br/>Rewards granted:<br/>- Credits<br/>- Items<br/>- Reputation<br/>- Experience]
+    Check --> | Fail Condition Met| Failed[Status: FAILED<br/>World state updated<br/>Consequences applied]
 
     NextStage --> Active
 
@@ -343,8 +347,8 @@ flowchart TD
     Failed --> Legacy
 
     Advance --> Time{Time Limit?}
-    Time -->|Expired| Failed
-    Time -->|Ongoing| Continue[Next turn]
+    Time --> | Expired| Failed
+    Time --> | Ongoing| Continue[Next turn]
 
     Complete --> Continue
 
@@ -356,6 +360,7 @@ flowchart TD
 ```
 
 **Quest Stage Example:**
+
 ```json
 {
   "quest-rescue-pilot": {
@@ -458,6 +463,7 @@ flowchart TB
 ```
 
 **Average Session Lengths:**
+
 - **Short session:** 5-10 turns, 15-30 minutes real time
 - **Medium session:** 20-40 turns, 1-2 hours real time
 - **Long campaign:** 100-300 turns, 10-30 hours total playtime
@@ -467,7 +473,7 @@ flowchart TB
 ## API Endpoint Quick Reference
 
 | Endpoint | Method | Purpose | When Player Uses |
-|----------|--------|---------|------------------|
+| ---------- | -------- | --------- | ------------------ |
 | `/v2/setup/auto` | POST | Auto-generate campaign | First time setup |
 | `/v2/campaigns` | POST | Manual campaign creation | First time setup (advanced) |
 | `/v2/campaigns/{id}/state` | GET | Fetch full game state | Every session start |
@@ -523,6 +529,7 @@ flowchart TB
 ## This Diagram's Purpose
 
 This flow diagram is designed to help:
+
 - **Players** understand what the system does turn-by-turn
 - **Developers** see the player-facing experience separate from internal pipeline
 - **Designers** identify UX touchpoints and state visibility

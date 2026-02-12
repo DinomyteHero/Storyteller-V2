@@ -3,10 +3,10 @@
 Date: 2026-02-12  
 Scope: backend architecture, ingestion/RAG modularity, production readiness, gameplay and narrative engagement
 
-
 ## Implementation status update
 
 Completed after this review was written:
+
 - `GET /v2/campaigns` resume listing endpoint is implemented.
 - `GET /health/detail` structured diagnostics endpoint is implemented.
 - Ingestion CLI supports non-interactive `--yes/--non-interactive`.
@@ -15,6 +15,7 @@ Completed after this review was written:
 - Sprint B prompt versioning is implemented for SuggestionRefiner and exposed in `turn_contract.meta.prompt_versions`.
 
 Still pending from this review roadmap:
+
 - Service-layer split for `v2_campaigns`.
 - Prompt regression/golden scenario tests beyond registry hashing checks.
 - Ingestion SLA metrics + CI gates.
@@ -25,6 +26,7 @@ Still pending from this review roadmap:
 ## Executive assessment
 
 The recent changes materially improved the project:
+
 - Clear direction toward modularity (`VectorStore` protocol, ingestion path helpers, role-specific model/timeout config)
 - Better resilience (fallbacks, warnings, startup checks)
 - Better deployability (Docker, production env template, runbook)
@@ -48,20 +50,24 @@ The recent changes materially improved the project:
 ## A) Modularity and architecture boundaries
 
 ### A1. Vector DB abstraction is defined but not fully adopted
+
 - `backend/app/rag/vector_store.py` introduces `VectorStore`/`LanceDBStore`, but most retrievers and ingestion paths still call LanceDB directly.
 - **Risk:** backend swap will require touching many modules (and likely tests).
 
 **Recommendation (high priority):**
+
 1. Introduce a `VectorStoreFactory` in one place (config-driven backend selection).
 2. Refactor retrievers (`lore_retriever`, `style_retriever`, `character_voice_retriever`, `kg/chunk_reader`) to depend on the protocol only.
 3. Move all backend-specific filter syntax to adapter classes.
 4. Add adapter contract tests that run for all vector backends.
 
 ### A2. API layer remains monolithic
+
 - `backend/app/api/v2_campaigns.py` is very large and mixes routing, orchestration, and domain policy.
 - **Risk:** high change surface, difficult onboarding, harder reliability improvements.
 
 **Recommendation (high priority):**
+
 - Split into feature routers/services:
   - `setup_service`
   - `turn_service` (stream + sync variants)
@@ -70,10 +76,12 @@ The recent changes materially improved the project:
 - Keep route files thin; isolate logic and dependencies in service modules.
 
 ### A3. Legacy and modern ingestion are both exposed
+
 - `ingestion/ingest.py` is deprecated but still wired through CLI (`storyteller ingest --pipeline simple`).
 - **Risk:** support burden and inconsistent metadata quality.
 
 **Recommendation (high priority):**
+
 - Make `lore` the only default public path in the next minor release.
 - Move `simple` pipeline behind `--allow-legacy` gate.
 - Add a migration helper to convert legacy manifests/metadata to the new schema.
@@ -83,18 +91,22 @@ The recent changes materially improved the project:
 ## B) Production readiness and portability
 
 ### B1. Environment and runtime drift still occurs across machines
+
 - Runtime requires Python 3.11+, but local execution can silently use other versions.
 - Some tooling remains interactive (CLI prompts), which hurts automation.
 
 **Recommendation (high priority):**
+
 1. Add a one-command non-interactive bootstrap script (`scripts/bootstrap.sh` + `.ps1`) that validates Python, installs deps, copies `.env`, verifies models, checks pack paths.
 2. Add `--yes`/`--non-interactive` support to CLI flows that currently prompt.
 3. Add `make check`/`task check` command that runs preflight + smoke tests + content checks.
 
 ### B2. Docker topology is useful but not yet "prod-safe by default"
+
 - Good baseline compose exists, but production patterns need hardening.
 
 **Recommendation (medium priority):**
+
 - Add compose override for production:
   - read-only root FS where possible
   - explicit resource limits
@@ -104,9 +116,11 @@ The recent changes materially improved the project:
 - Add backup/restore verification script (`scripts/verify_backup_restore.py`).
 
 ### B3. Startup environment checks need deeper coverage
+
 - Current checks confirm reachability/path presence; they don’t validate operational correctness deeply.
 
 **Recommendation (medium priority):**
+
 - Extend startup diagnostics to verify:
   - required tables exist in LanceDB and include expected columns
   - era pack shape integrity (12-file contract)
@@ -118,6 +132,7 @@ The recent changes materially improved the project:
 ## C) Gameplay, narrative, and UX depth
 
 ### C1. Gameplay loop should become explicitly "intent -> consequence -> reflection"
+
 You already have strong ingredients (mechanic determinism, memory, narrative guardrails). To increase player immersion, formalize this loop in data + UI:
 
 1. **Intent:** action card + tone tag + risk stance (safe/bold/reckless)
@@ -125,13 +140,16 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 3. **Reflection:** NPC memory callback + ledger update + optional companion commentary
 
 **Recommendation (high priority):**
+
 - Add a `consequence hooks` layer executed post-commit that seeds delayed payoffs.
 - Display subtle "world remembers" indicators in UI (not spoilery).
 
 ### C2. Companion/NPC systems need stronger authored + procedural blend
+
 - Emotional volatility and memory exist, but engagement improves with predictable relational arcs.
 
 **Recommendation (high priority):**
+
 - Add relationship arc states per key companion (trust, dependency, ideological tension).
 - Add scene directors for companion beats (e.g., confession, challenge, crisis, reconciliation).
 - Gate some high-impact options by relationship state to create meaningful social gameplay.
@@ -139,6 +157,7 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 ### C3. Suggestion quality should be scene-state aware, not just text aware
 
 **Recommendation (medium priority):**
+
 - Include structured scene-state features in SuggestionRefiner inputs:
   - location danger level
   - faction heat
@@ -149,6 +168,7 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 ### C4. UX should make narrative systems legible without breaking immersion
 
 **Recommendation (medium priority):**
+
 - Add optional "Narrative Signals" drawer:
   - recent world-state shifts
   - faction movement
@@ -162,6 +182,7 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 ### D1. Prompt strategy should be versioned and testable
 
 **Recommendation (high priority):**
+
 1. Move major system prompts into versioned prompt packs (`prompts/vX/`).
 2. Add prompt regression tests using golden scenarios (tone, continuity, safety).
 3. Track prompt hash/version in turn metadata for reproducibility.
@@ -169,6 +190,7 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 ### D2. Ingestion quality should shift from "best effort" to measurable SLAs
 
 **Recommendation (high priority):**
+
 - Add ingestion QA metrics and thresholds:
   - metadata completeness rate
   - chunk coherence score
@@ -179,6 +201,7 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 ### D3. Caching and retrieval observability can be expanded
 
 **Recommendation (medium priority):**
+
 - Instrument cache hit rate by lane (lore/style/voice/KG).
 - Add top-k overlap diagnostics to detect retrieval drift after re-ingest.
 - Emit trace IDs for end-to-end turn pipeline correlation.
@@ -188,22 +211,26 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 ## Prioritized implementation roadmap
 
 ## Phase 0 (1-2 weeks): stabilize + simplify startup
+
 - Unify startup docs into a single "new machine" path with copy/paste commands.
 - Add non-interactive bootstrap + preflight command.
 - Gate legacy simple ingestion behind explicit flag.
 - Add `/health/detail` and expand environment checks.
 
 ## Phase 1 (2-4 weeks): enforce modular data boundaries
+
 - Complete VectorStore adapter adoption across retrievers and ingestion query paths.
 - Introduce service layer split for `v2_campaigns`.
 - Add contract tests for adapters and route/service boundaries.
 
 ## Phase 2 (3-6 weeks): narrative depth + UX legibility
+
 - Implement consequence hooks and delayed payoff clocks.
 - Add relationship arc states and companion beat directors.
 - Add scene-state aware suggestion refinement and option diversity constraints.
 
 ## Phase 3 (ongoing): deployment confidence and content ops
+
 - Prompt pack versioning + golden tests.
 - Ingestion SLA metrics and CI gates.
 - Backup/restore drills and performance SLO tracking.

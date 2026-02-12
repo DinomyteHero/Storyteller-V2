@@ -1,7 +1,7 @@
 # Documentation Ownership Matrix
 
 | Domain | Primary owner | Backup owner | Review cadence | Triggered updates |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | Getting Started (`README.md`, `QUICKSTART.md`) | Developer Experience | Backend Team | Monthly | setup flow changes, launcher changes |
 | Concepts (`docs/00-09`, architecture docs) | Architecture | Backend Team | Quarterly | major pipeline changes, model orchestration changes |
 | How-to Guides (pack authoring, ingestion, user guide) | Content Team | Data Platform | Monthly | ingestion command changes, authoring schema changes |

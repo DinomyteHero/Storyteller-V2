@@ -9,7 +9,7 @@ Storyteller AI uses SQLite with an event sourcing architecture. The schema is ma
 ### Migration Sequence
 
 | Migration | Purpose |
-|-----------|---------|
+| ----------- | --------- |
 | `0001_init.sql` | Core tables: campaigns, characters, inventory, turn_events |
 | `0002_add_rendered_turns.sql` | Turn narration cache |
 | `0003_add_credits.sql` | Character credits field |
@@ -40,6 +40,7 @@ Storyteller AI uses SQLite with an event sourcing architecture. The schema is ma
 
 ```sql
 -- Insert test campaign
+
 INSERT INTO campaigns (
   id,
   title,
@@ -89,6 +90,7 @@ INSERT INTO campaigns (
 
 ```sql
 -- Insert test player
+
 INSERT INTO characters (
   id,
   campaign_id,
@@ -128,6 +130,7 @@ INSERT INTO characters (
 
 ```sql
 -- Villain
+
 INSERT INTO characters (
   id,
   campaign_id,
@@ -150,6 +153,7 @@ INSERT INTO characters (
   '{}',
   15,
   -30,
+
   'Seeks to crush Rebel cells on Tatooine through intelligence gathering.',
   500,
   datetime('now'),
@@ -157,6 +161,7 @@ INSERT INTO characters (
 );
 
 -- Informant
+
 INSERT INTO characters (
   id,
   campaign_id,
@@ -186,6 +191,7 @@ INSERT INTO characters (
 );
 
 -- Merchant
+
 INSERT INTO characters (
   id,
   campaign_id,
@@ -219,6 +225,7 @@ INSERT INTO characters (
 
 ```sql
 -- Initial FLAG_SET event
+
 INSERT INTO turn_events (
   campaign_id,
   turn_number,
@@ -236,6 +243,7 @@ INSERT INTO turn_events (
 );
 
 -- Story note (background seed)
+
 INSERT INTO turn_events (
   campaign_id,
   turn_number,
@@ -285,6 +293,7 @@ INSERT INTO objectives (
 
 ```sql
 -- Complete rebellion-era campaign with all features
+
 INSERT INTO campaigns (
   id,
   title,
@@ -427,6 +436,7 @@ WHERE campaign_id = 'test-campaign-001' AND status = 'active';
 
 ```sql
 -- Delete test campaign and all related data
+
 DELETE FROM turn_events WHERE campaign_id LIKE 'test-campaign-%';
 DELETE FROM rendered_turns WHERE campaign_id LIKE 'test-campaign-%';
 DELETE FROM objectives WHERE campaign_id LIKE 'test-campaign-%';
@@ -435,6 +445,7 @@ DELETE FROM characters WHERE campaign_id LIKE 'test-campaign-%';
 DELETE FROM campaigns WHERE id LIKE 'test-campaign-%';
 
 -- Verify cleanup
+
 SELECT COUNT(*) as remaining FROM campaigns WHERE id LIKE 'test-campaign-%';
 ```
 

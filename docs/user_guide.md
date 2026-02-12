@@ -58,7 +58,7 @@ The game uses a **four-option dialogue wheel** inspired by *Knights of the Old R
 ### 3.1 The Four Options
 
 | Tone | Color | What it tends to do |
-|------|-------|---------------------|
+| ------ | ------- | --------------------- |
 | **PARAGON** | Blue | Empathetic, cooperative, diplomatic. "Talk, persuade, help." |
 | **INVESTIGATE** | Gold | Gather information, observe, question. "Look, ask, learn." |
 | **RENEGADE** | Red | Decisive, forceful, aggressive. "Act, intimidate, commit." |
@@ -74,7 +74,7 @@ The game uses a **four-option dialogue wheel** inspired by *Knights of the Old R
 Each suggested action carries a **risk level** that the Mechanic uses to set difficulty:
 
 | Risk | Meaning |
-|------|---------|
+| ------ | --------- |
 | **SAFE** | Low stakes. Unlikely to fail or trigger combat. |
 | **RISKY** | Moderate stakes. May require a skill check; failure has consequences. |
 | **DANGEROUS** | High stakes. Likely to trigger combat or severe consequences on failure. |
@@ -100,7 +100,7 @@ The game includes **108 companions** across all eras, each with a unique persona
 Each companion has a **banter style** that determines how they react to your choices. There are **17 banter styles**:
 
 | Style | Flavor |
-|-------|--------|
+| ------- | -------- |
 | **warm** | Gentle, supportive, emotionally present |
 | **snarky** | Sarcastic, witty, irreverent |
 | **stoic** | Reserved, disciplined, few words |
@@ -126,7 +126,7 @@ Banter lines are selected from a **pre-written pool** (60+ one-liners) using see
 Approval is tracked as **affinity** (-100 to 100). Affinity determines your relationship stage:
 
 | Stage | Affinity Range | What Unlocks |
-|-------|---------------|--------------|
+| ------- | --------------- | -------------- |
 | **STRANGER** | -100 to -10 | Minimal interaction. Companion may leave if pushed further. |
 | **ALLY** | -9 to 29 | Standard companion behavior. Banter and reactions. |
 | **TRUSTED** | 30 to 69 | Private conversation requests. Deeper personal dialogue. |
@@ -175,7 +175,7 @@ This ensures banter feels natural and doesn't break dramatic tension.
 You do **not** start with a starship. Ships are earned **in-story** through one of several acquisition methods:
 
 | Method | How |
-|--------|-----|
+| -------- | ----- |
 | **Quest reward** | Complete a major story objective to receive a ship |
 | **Purchase** | Buy a ship at a shipyard (costs credits) |
 | **Salvage** | Find and repair an abandoned or wrecked vessel |
@@ -201,7 +201,7 @@ The Director and Narrator are aware of whether you have a ship. Scenes adapt acc
 The story follows a **Hero's Journey** arc with 4 stages and 12 beats:
 
 | Stage | Beats | Focus |
-|-------|-------|-------|
+| ------- | ------- | ------- |
 | **SETUP** (3-10 turns) | Ordinary World, Call to Adventure, Refusal of the Call | Establish your character, introduce the inciting incident, show initial hesitation |
 | **RISING** (5-25 turns) | Meeting the Mentor, Crossing the Threshold, Tests/Allies/Enemies | Commit to the journey, face trials, build alliances and rivalries |
 | **CLIMAX** (5-15 turns) | Approach Inmost Cave, Ordeal, Reward | Preparation for the central crisis, the supreme test, seize the prize |
@@ -232,7 +232,7 @@ NPCs are cast into **Hero's Journey archetypes** that match the current beat:
 The game automatically assigns a **narrative genre** based on your background and location. Genre shapes the Director's scene instructions and the Narrator's prose tone. There are **10 genres**:
 
 | Genre | Flavor |
-|-------|--------|
+| ------- | -------- |
 | **military_tactical** | Squad tactics, chain of command, battlefield tension |
 | **espionage_thriller** | Covert ops, double agents, information warfare |
 | **space_western** | Frontier justice, cantina deals, outpost survival |
@@ -257,7 +257,7 @@ Genre can **shift mid-campaign** when your location context changes significantl
 The game supports four major eras of the Star Wars Expanded Universe:
 
 | Era | Period | Key Context |
-|-----|--------|-------------|
+| ----- | -------- | ------------- |
 | **REBELLION** | Galactic Civil War | Empire vs Rebellion, Death Star era |
 | **NEW_REPUBLIC** | Post-Endor reconstruction | New government, Imperial remnants |
 | **NEW_JEDI_ORDER** | Yuuzhan Vong invasion | Extragalactic threat, Jedi Order rebuilding |
@@ -290,7 +290,7 @@ When the world **ticks** (or you travel), **rumors** can appear—turned into a 
 ## 11. Quick Reference
 
 | Concept | Takeaway |
-|--------|----------|
+| -------- | ---------- |
 | **Time** | Every action costs in-world time; the world clock advances and drives off-screen events and rumors at set intervals (`WORLD_TICK_INTERVAL_HOURS`). |
 | **Waiting** | When you wait or time passes, the world can "tick": factions move, rumors appear. |
 | **Stress** | High stress changes how the narrator tells the story (fragmented, sensory, less "reliable" in tone)—not the underlying facts. |
@@ -325,6 +325,7 @@ Edit **`data/character_aliases.yml`**. The format is:
 
 ```yaml
 canonical_id:
+
   - "Display Name 1"
   - "Display Name 2"
   - "Alias"
@@ -334,11 +335,13 @@ Example:
 
 ```yaml
 luke_skywalker:
+
   - "Luke"
   - "Luke Skywalker"
   - "Master Skywalker"
 
 leia_organa:
+
   - "Leia"
   - "Leia Organa"
   - "Leia Organa Solo"
@@ -357,7 +360,6 @@ leia_organa:
 
 ## 14. Character Facets & Era-Specific Voice (Feature Not Implemented)
 
-
 ### 14.1 Current State
 
 The codebase includes infrastructure for era-scoped character voice profiles, but the implementation is non-functional:
@@ -368,20 +370,18 @@ The codebase includes infrastructure for era-scoped character voice profiles, bu
 
 To make character facets functional, you would need to:
 
-   - Add personality trait extraction to populate `character_core`
+- Add personality trait extraction to populate `character_core`
 
-2. **Era normalization**: Fix inconsistent era metadata in lore chunks (currently a mix of canonical eras, book series names, and "unknown/default")
-
+1. **Era normalization**: Fix inconsistent era metadata in lore chunks (currently a mix of canonical eras, book series names, and "unknown/default")
 
 ### 14.3 Current Recommendation
-
 
 ## 15. Canon / Voice Guardrail
 
 The Narrator must **not assert character-history specifics** (e.g. favorite X, always/never, born, grew up, used to) unless supported by retrieved lore or voice snippets. When **neither** exists, a post-processor **softens** risky phrases deterministically:
 
 | Risky phrase | Softened to |
-|--------------|-------------|
+| -------------- | ------------- |
 | favorite | apparent favorite |
 | always | often |
 | never | rarely |

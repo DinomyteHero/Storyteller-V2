@@ -4,15 +4,16 @@ Use this prompt to generate or improve Star Wars era packs for Storyteller AI. C
 
 ---
 
-# ROLE
+## ROLE
 
 You are an expert Star Wars lore master and interactive narrative designer specializing in the Storyteller AI system. Your task is to create or improve a complete era pack for an interactive Star Wars story engine.
 
-# TASK
+## TASK
 
 Generate a complete, lore-accurate, gameplay-rich era pack for the **[ERA_NAME]** era of Star Wars.
 
 **Era Specification:**
+
 - **Era Key:** [UPPERCASE_ERA_KEY] (e.g., CLONE_WARS, HIGH_REPUBLIC, NEW_REPUBLIC)
 - **Time Period:** [BBY/ABY range, e.g., "22-19 BBY"]
 - **Canon:** [Legends / Canon / Mixed]
@@ -22,16 +23,18 @@ Generate a complete, lore-accurate, gameplay-rich era pack for the **[ERA_NAME]*
 - **Key Locations:** [List planets/locations that should be included]
 
 **Existing Era Pack Status:** [NEW / EXISTS_NEEDS_IMPROVEMENT]
+
 - If EXISTS: Read all files in `data/static/era_packs/[era_key]/` and PRESERVE all existing content while adding depth, fixing errors, and filling gaps.
 - If NEW: Generate from scratch following all templates and conventions.
 
 ---
 
-# TECHNICAL SPECIFICATIONS
+## TECHNICAL SPECIFICATIONS
 
-## System Context
+### System Context
 
 **Storyteller AI Architecture:**
+
 - FastAPI backend + LangGraph pipeline (Router → Mechanic → Encounter → WorldSim → CompanionReaction → ArcPlanner → SceneFrame → Director → Narrator → NarrativeValidator → SuggestionRefiner → Commit)
 - Local LLM via Ollama (mistral-nemo for prose, qwen3 for lightweight tasks)
 - SQLite event sourcing, LanceDB for RAG
@@ -40,13 +43,14 @@ Generate a complete, lore-accurate, gameplay-rich era pack for the **[ERA_NAME]*
 - Tone system: PARAGON (blue/heroic), INVESTIGATE (gold/thoughtful), RENEGADE (red/ruthless), NEUTRAL (gray)
 
 **Output Format:**
+
 - Generate valid YAML for all 12 files: `era.yaml`, `locations.yaml`, `npcs.yaml`, `companions.yaml`, `factions.yaml`, `backgrounds.yaml`, `namebanks.yaml`, `quests.yaml`, `events.yaml`, `rumors.yaml`, `facts.yaml`, `meters.yaml`
 - Follow the exact schemas from `data/static/era_packs/_template/`
 - Preserve all comments and structure from templates
 
 ---
 
-# GENERATION GUIDELINES
+## GENERATION GUIDELINES
 
 ## 1. ERA METADATA (`era.yaml`)
 
@@ -65,6 +69,7 @@ Generate a complete, lore-accurate, gameplay-rich era pack for the **[ERA_NAME]*
 **Target: 12-20 locations** (mix of planets, buildings, sub-locations)
 
 ### Location Variety
+
 - **Hub locations:** Cantinas, spaceports, markets (3-4)
 - **Faction bases:** Rebel safe houses, Imperial garrisons, Jedi temples (3-4)
 - **Story locations:** Quest-specific sites, hidden caches, ancient ruins (3-4)
@@ -72,6 +77,7 @@ Generate a complete, lore-accurate, gameplay-rich era pack for the **[ERA_NAME]*
 - **Sub-locations:** Hangars inside bases, command rooms, meditation chambers (3-5)
 
 ### Per Location Requirements
+
 - **Atmospheric descriptions:** 4-6 sentences with sensory details (sights, sounds, smells)
 - **Tags:** 3-5 relevant keywords for spawn matching
 - **Region:** Outer Rim / Mid Rim / Core / Mobile
@@ -84,6 +90,7 @@ Generate a complete, lore-accurate, gameplay-rich era pack for the **[ERA_NAME]*
 - **Scene types:** Appropriate allowed scene types (dialogue, combat, stealth, investigation, etc.)
 
 ### Critical Rules
+
 - Location IDs: `loc-snake_case` (e.g., `loc-jedi_temple`, `loc-coruscant_underworld`)
 - Sub-locations use `parent_id` to reference parent
 - All `controlling_factions` must exist in `factions.yaml`
@@ -93,7 +100,8 @@ Generate a complete, lore-accurate, gameplay-rich era pack for the **[ERA_NAME]*
 ## 3. NPCS (`npcs.yaml`)
 
 ### ANCHORS (Canonical Characters)
-**Target: 8-15 major canonical characters**
+
+Target: 8-15 major canonical characters
 
 - Include era-defining characters (e.g., for Clone Wars: Anakin, Obi-Wan, Ahsoka, Palpatine, Dooku, etc.)
 - Each anchor needs:
@@ -107,29 +115,34 @@ Generate a complete, lore-accurate, gameplay-rich era pack for the **[ERA_NAME]*
   - **tags**, **traits**, **motivation**, **secret**
 
 ### ROTATING (Era-Specific Named NPCs)
-**Target: 5-10 recurring named characters**
+
+Target: 5-10 recurring named characters
 
 - Original characters specific to this era pack (information brokers, recurring contacts, local leaders)
 - Same structure as anchors but can be less detailed
 - Provide gameplay utility (quest givers, rumor sources, social interaction practice)
 
 ### TEMPLATES (Procedural Archetypes)
-**Target: 8-12 templates covering common encounter types**
+
+Target: 8-12 templates covering common encounter types
 
 Must include:
+
 - **Military/guards:** Faction-specific soldiers (e.g., `tpl-clone_trooper`, `tpl-battle_droid`)
 - **Civilians:** Merchants, refugees, locals (e.g., `tpl-civilian`, `tpl-merchant`)
 - **Underworld:** Smugglers, bounty hunters, criminals (e.g., `tpl-smuggler`, `tpl-bounty_hunter`)
 - **Specialists:** Techs, medics, slicers (e.g., `tpl-tech_specialist`)
 
 Each template needs:
+
 - **role** (REQUIRED), **archetype**, **namebank** reference
 - **species** list (3-5 species options for variety)
 - **motivations**, **secrets**, **traits** (lists for random selection)
 - **spawn** rules (location_tags_any, min_alert, max_alert)
 - **voice**, **levers**, **authority** (same as anchors)
 
-### Critical Rules
+### NPC Critical Rules
+
 - Template IDs: `tpl-descriptive_name` or plain snake_case
 - Lever values MUST be quoted strings: `'false'` not `false`
 - All 5 voice fields required when voice object present
@@ -140,6 +153,7 @@ Each template needs:
 **Target: 3-6 companions** with diverse backgrounds, skills, and personalities
 
 ### Per Companion Requirements
+
 - **ID:** `comp-<era_key>-<name>` (e.g., `comp-cw-ahsoka`, `comp-hr-porter`)
 - **Voice characterization:** belief, wound, taboo, rhetorical_style, tell
 - **Voice tags:** Must be valid values from VOICE_TAG_SPEECH_PATTERNS:
@@ -158,6 +172,7 @@ Each template needs:
 - **Personal quest:** Optional personal_quest_id linking to quests.yaml
 
 ### Companion Diversity Checklist
+
 - [ ] Mix of species (Human, Twi'lek, droid, etc.)
 - [ ] Mix of roles (combat, tech, social, Force-sensitive)
 - [ ] Mix of factions (protagonist, neutral, reformed antagonist)
@@ -169,18 +184,21 @@ Each template needs:
 **Target: 4-6 factions** covering the political spectrum
 
 ### Required Factions
+
 1. **faction_neutral** (always include) — Independents, unaffiliated
 2. **Primary protagonist faction** (Rebels, Republic, Jedi Order, etc.)
 3. **Primary antagonist faction** (Empire, Separatists, Sith Empire, etc.)
 4. **Secondary factions:** Criminal syndicates, rival governments, neutral powers
 
 ### Per Faction Requirements
+
 - **ID:** snake_case (e.g., `rebel_alliance`, `separatist_alliance`, `hutt_cartel`)
 - **name**, **tags**, **home_locations**
 - **goals:** 2-4 objectives driving this faction's actions (used in Director prompts)
 - **metadata.flavor:** One-line description
 
 ### Faction Relationships Matrix
+
 - **relationships:** -100 (mortal enemies) to +100 (close allies)
   - Make symmetric: if A hates B at -80, B should hate A around -80
 - **cascades:** Multipliers for reputation propagation (-1.0 to 1.0)
@@ -192,6 +210,7 @@ Each template needs:
 **Target: 3-6 backgrounds** representing different player archetypes
 
 ### Per Background Requirements
+
 - **ID:** snake_case (e.g., `jedi_padawan`, `clone_trooper`, `smuggler`)
 - **name**, **description**, **icon** (icon matches frontend assets)
 - **starting_stats:** Combat, Stealth, Charisma, Tech, General (total ~10 points)
@@ -200,6 +219,7 @@ Each template needs:
 - **questions:** 2 questions with 3 choices each
 
 ### Question Structure
+
 1. **First question:** Unconditional, sets faction/location
    - 3 choices covering PARAGON / NEUTRAL / RENEGADE tones
    - Each choice has `effects.faction_hint`, `effects.location_hint`, `effects.thread_seed`
@@ -208,6 +228,7 @@ Each template needs:
    - Refines the opening narrative
 
 ### Choice Requirements
+
 - **label:** The choice text (1-2 sentences)
 - **concept:** Internal concept for Architect (describes the character)
 - **tone:** PARAGON / INVESTIGATE / RENEGADE / NEUTRAL
@@ -218,12 +239,14 @@ Each template needs:
 **Target: 15-20 name pools** for procedural NPC generation
 
 ### Required Pools
+
 - **Faction-specific:** `rebel_names`, `imperial_names`, `jedi_names`, etc.
 - **Species-specific:** `human_first_names_male`, `human_first_names_female`, `human_surnames`, `twilek_names`, `rodian_names`, `wookiee_names`, `droid_names`, etc.
 - **Role-specific:** `military_ranks`, `criminal_titles`, `imperial_titles`, `jedi_titles`, `sith_titles`
 - **Regional:** `corellian_surnames`, `alderaanian_surnames`, `outer_rim_surnames`, `core_world_surnames`
 
 ### Per Pool Requirements
+
 - 15-30 names per pool for variety
 - Lore-accurate names matching Star Wars naming conventions
 - Mix of canon names and original names that "sound Star Wars"
@@ -233,12 +256,14 @@ Each template needs:
 **Target: 4-8 quests** providing multi-stage story arcs
 
 ### Quest Types to Include
+
 - **Main story quest:** Ties to era's central conflict
 - **Faction quests:** 2-3 quests for major factions
 - **Companion personal quests:** 1 quest per companion with personal_quest_id
 - **Side quests:** 1-2 optional exploration/discovery quests
 
 ### Per Quest Requirements
+
 - **ID:** snake_case (e.g., `quest_sabotage_depot`, `quest_rescue_senator`)
 - **title**, **description**
 - **entry_conditions:** When quest becomes available (e.g., `{turn: {min: 5}}`)
@@ -251,11 +276,13 @@ Each template needs:
 **Target: 3-6 world events** triggered by conditions
 
 ### Event Types
+
 - **Heat events:** Imperial inspections, raids (trigger on high heat_global)
 - **Reputation events:** Faction recognition, bounties (trigger on reputation thresholds)
 - **Story events:** Era-specific major events (Order 66, Battle of X, etc.)
 
 ### Per Event Requirements
+
 - **ID:** snake_case (e.g., `event_imperial_inspection`, `event_order_66`)
 - **type:** `hard` (mandatory cutscene) or `soft` (background flavor)
 - **triggers:** Meter thresholds (e.g., `{heat_global: {min: 60}}`)
@@ -268,6 +295,7 @@ Each template needs:
 **Target: 8-15 rumors** for NPC dialogue
 
 ### Rumor Categories
+
 - **Lore rumors:** Background info about the era (3-4)
 - **Quest hooks:** Lead to quest content (3-4)
 - **Faction rumors:** Intel on faction activities (2-3)
@@ -275,6 +303,7 @@ Each template needs:
 - **Character rumors:** Info on major NPCs (1-2)
 
 ### Per Rumor Requirements
+
 - **ID:** snake_case (e.g., `rumor_death_star_plans`, `rumor_jedi_survivor`)
 - **text:** 1-3 sentences, atmospheric and intriguing
 - **tags:** 2-4 thematic tags
@@ -283,15 +312,17 @@ Each template needs:
 
 ## 11. FACTS (`facts.yaml`)
 
-**Target: 8-12 knowledge graph seed facts**
+Target: 8-12 knowledge graph seed facts
 
 ### Fact Types
+
 - **Control facts:** Faction X controls Location Y (3-4)
 - **Alliance facts:** Faction X allied with Faction Y (2-3)
 - **Location facts:** NPC X hides in Location Y (2-3)
 - **Secret facts:** Hidden information (1-2)
 
 ### Per Fact Requirements
+
 - **ID:** snake_case (e.g., `fact_empire_controls_coruscant`, `fact_jedi_hiding_tatooine`)
 - **subject:** Entity ID (faction, NPC, location)
 - **predicate:** Relationship verb (`controls`, `allied_with`, `hides_in`, `seeks`, etc.)
@@ -324,38 +355,49 @@ meters:
 
 ---
 
-# CRITICAL YAML GOTCHAS
+## CRITICAL YAML GOTCHAS
 
 ## 1. Boolean Quoting
+
 ```yaml
 # WRONG - boolean False
+
 bribeable: false
 
 # CORRECT - string "false"
+
 bribeable: 'false'
 ```
 
 ## 2. Integer Anchors
+
 ```yaml
 # WRONG - parsed as int
+
 anchor: 81
 
 # CORRECT
+
 anchor: "81"
 ```
 
 ## 3. Em Dashes and Colons
+
 ```yaml
 # WRONG
+
 description: War — it never ends.
 
 # CORRECT (single-quote the whole line)
+
 description: 'War -- it never ends.'
 ```
 
 ## 4. Multiline Strings
+
 ```yaml
 # Use | for literal blocks
+
 description: |
   Line one.
   Line two.
@@ -363,14 +405,16 @@ description: |
 ```
 
 ## 5. Starting Starships
+
 ```yaml
 # V2.10+: ships earned in-story, not starting equipment
+
 starting_starship: null
 ```
 
 ---
 
-# LORE ACCURACY REQUIREMENTS
+## LORE ACCURACY REQUIREMENTS
 
 1. **Canon Consistency:**
    - Respect established character personalities, relationships, and arcs
@@ -397,28 +441,32 @@ starting_starship: null
 
 ---
 
-# GAMEPLAY BALANCE REQUIREMENTS
+## GAMEPLAY BALANCE REQUIREMENTS
 
-## Location Distribution
+### Location Distribution
+
 - [ ] 3-4 safe/neutral hubs for social gameplay
 - [ ] 3-4 hostile/secure locations for stealth/combat
 - [ ] 2-3 quest-specific story locations
 - [ ] 2-3 travel/mobile locations (ships, stations)
 
-## NPC Template Coverage
+### NPC Template Coverage
+
 - [ ] Guard/patrol templates for 2-3 major factions
 - [ ] Civilian templates for social locations
 - [ ] Specialist templates (medic, tech, slicer)
 - [ ] Underworld templates (smuggler, bounty hunter, criminal)
 
-## Companion Roster
+### Companion Roster
+
 - [ ] At least one Force-sensitive (if appropriate to era)
 - [ ] At least one tech specialist
 - [ ] At least one combat specialist
 - [ ] At least one social/charisma specialist
 - [ ] Mix of species and genders
 
-## Background Variety
+### Background Variety
+
 - [ ] At least one military background
 - [ ] At least one underworld/criminal background
 - [ ] At least one civilian/neutral background
@@ -426,7 +474,7 @@ starting_starship: null
 
 ---
 
-# OUTPUT FORMAT
+## OUTPUT FORMAT
 
 Generate complete YAML files for all 12 era pack components. For each file:
 
@@ -436,14 +484,17 @@ Generate complete YAML files for all 12 era pack components. For each file:
 4. **Include inline comments:** For complex entries, add brief clarifying comments
 
 **Delivery Format:**
+
 ```yaml
 # ============================================================
 # [filename].yaml -- [Purpose]
 # ============================================================
+
 [Full file content with all entries]
 ```
 
 Provide all 12 files in order:
+
 1. `era.yaml`
 2. `locations.yaml`
 3. `npcs.yaml`
@@ -459,7 +510,7 @@ Provide all 12 files in order:
 
 ---
 
-# FINAL CHECKLIST
+## FINAL CHECKLIST
 
 Before submitting, verify:
 
@@ -485,11 +536,12 @@ Before submitting, verify:
 
 ---
 
-# READY TO GENERATE
+## READY TO GENERATE
 
 I am ready to generate a complete, lore-accurate, gameplay-rich era pack for **[ERA_NAME]**.
 
 **What I need from you:**
+
 1. **Era specification** (name, time period, canon type, tone, key conflicts)
 2. **Notable characters** to include
 3. **Key locations** to include

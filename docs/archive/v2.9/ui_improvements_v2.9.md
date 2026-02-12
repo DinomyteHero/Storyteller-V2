@@ -114,7 +114,7 @@ This document describes the SWTOR/KOTOR-themed UI enhancements implemented to su
 ```
 
 **Features**:
-- **Speaker parsing**: Regex `^([A-Z][a-z]+):\s*['"](.+?)['"]` extracts name + dialogue
+- **Speaker parsing**: Regex pattern `^([A-Z][a-z]+):` + quoted dialogue body extracts name + dialogue
 - **Visual styling**:
   - Speech bubble icon (🗣)
   - Uppercase speaker name in gold (tone_investigate color)

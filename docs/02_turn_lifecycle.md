@@ -11,9 +11,9 @@ flowchart TD
     START([Player Input]) --> ROUTER
 
     ROUTER{Router Node}
-    ROUTER -->|"intent=META"| META[Meta Node]
-    ROUTER -->|"intent=TALK"| ENCOUNTER[Encounter Node]
-    ROUTER -->|"intent=ACTION"| MECHANIC[Mechanic Node]
+    ROUTER --> | "intent=META"| META[Meta Node]
+    ROUTER --> | "intent=TALK"| ENCOUNTER[Encounter Node]
+    ROUTER --> | "intent=ACTION"| MECHANIC[Mechanic Node]
 
     META --> COMMIT[Commit Node]
 
@@ -42,19 +42,23 @@ flowchart TD
 ### 1) Router + Meta
 
 **Files:**
+
 - Router: `backend/app/core/nodes/router.py` (delegates to `backend/app/core/router.py`)
 - Meta: `backend/app/core/nodes/router.py`
 
 **Purpose:** Classify input into one of three intents:
+
 - `META`: help/save/load/quit-style commands (no world time, no events)
 - `TALK`: dialogue-only (skips Mechanic but still runs Encounter -> WorldSim -> ...)
 - `ACTION`: full pipeline
 
 **Key rules:**
+
 - Only true dialogue-only (`route=TALK`, `action_class=DIALOGUE_ONLY`, `requires_resolution=false`) becomes `intent=TALK`.
 - Action/persuasion guardrails force `intent=ACTION` even if input contains dialogue cues.
 
 **Output keys set:**
+
 - `intent`, `route`, `action_class`, `intent_text`, `router_output`
 - For `intent=TALK`: a minimal `mechanic_result` is synthesized with `time_cost_minutes=DIALOGUE_ONLY_MINUTES` (default 8).
 - Meta node sets deterministic `final_text` + `suggested_actions` and skips all LLM/RAG work.
@@ -68,12 +72,14 @@ flowchart TD
 **Purpose:** Deterministic action resolution (dice/DC/events/time). No LLM.
 
 Key features:
+
 - 3-tier risk levels: SAFE, RISKY, DANGEROUS (affects DC modifiers and stress delta)
 - Dynamic difficulty: `_ARC_DC_MODIFIER` adjusts DCs by arc stage (SETUP=-2, CLIMAX=+3)
 - Environmental modifiers: `environmental_modifiers()` infers location tag, weapon check, time-of-day
 - Player stat advantage computation
 
 Outputs:
+
 - `mechanic_result` (serialized `MechanicOutput`): `action_type`, `events`, `narrative_facts`, `time_cost_minutes`, `success`, `outcome_summary`, `modifiers`, `stress_delta`, `critical_outcome`, `world_reaction_needed`, plus tone/alignment scaffolding.
 
 ---
@@ -85,6 +91,7 @@ Outputs:
 **Purpose:** Determine `present_npcs` at the player's effective location and stage any NPC introduction events.
 
 Behavior (current/default):
+
 - Reads DB connection from `state["__runtime_conn"]`.
 - Queries existing NPCs for `(campaign_id, effective_location)`.
 - If none exist:
@@ -95,6 +102,7 @@ Behavior (current/default):
 - Dynamic NPC cap: `MAX_NPCS_BY_LOC_TAG` limits NPCs per location type, plus background figures (5-tuple return).
 
 Also:
+
 - Stages hidden throttle events (`NPC_INTRODUCTION_RECORDED`, `LAST_LOCATION_UPDATED`) that are applied inside Commit's DB transaction.
 - Loads `active_rumors` via `get_recent_public_rumors(limit=3)`.
 
@@ -109,12 +117,14 @@ Also:
 **Purpose:** Run off-screen simulation on tick-boundary crossing or travel.
 
 **Trigger logic:**
+
 - Let `t0 = campaign.world_time_minutes` and `dt = mechanic_result.time_cost_minutes` and `t1 = t0 + dt`.
 - Run WorldSim when:
   - tick boundary crossed: `floor(t0/tick_minutes) != floor(t1/tick_minutes)`, where `tick_minutes = WORLD_TICK_INTERVAL_HOURS*60` (default 240), **or**
   - travel occurred (MOVE event or `action_type == "TRAVEL"`).
 
 **When triggered:**
+
 - Loads current `active_factions` from DB (`campaigns.world_state_json.active_factions`).
 - Calls `CampaignArchitect.simulate_off_screen(...)`.
 - Produces:
@@ -245,6 +255,7 @@ After the Narrative Validator, the Suggestion Refiner reads the Narrator's `fina
 **Purpose:** **The only node that writes to the DB.**
 
 In one SQLite transaction, Commit:
+
 1. Advances `campaigns.world_time_minutes` (from `pending_world_time_minutes` or `mechanic_result.time_cost_minutes`)
 2. Persists `campaigns.world_state_json` (active_factions + party state + news_feed + ledger + **arc_state** + throttling state + **known_npcs** + **companion_memories** + **era_summaries** + **opening_beats** + **act_outline** + **faction_memory** + **npc_states**)
 3. Appends all staged events to `turn_events`
@@ -264,7 +275,7 @@ After commit, it reloads and returns a refreshed `GameState` from the DB so the 
 Most fields are defined in `backend/app/models/state.py`.
 
 | Key | Set By | Notes |
-|-----|--------|------|
+| ----- | -------- | ------ |
 | `intent`, `route`, `action_class`, `router_output` | Router | Security routing (META/TALK/ACTION) |
 | `mechanic_result` | Router (TALK) or Mechanic (ACTION) | TALK uses a synthesized result (time cost only) |
 | `present_npcs`, `spawn_events`, `throttle_events`, `active_rumors` | Encounter | `spawn_events`/`throttle_events` are committed later |

@@ -9,7 +9,7 @@ The "Living World" mechanic is the core differentiator: every player action cost
 ## Key Design Principles
 
 | Principle | Implementation |
-|-----------|---------------|
+| ----------- | --------------- |
 | **Local-First** | Default provider is Ollama (local LLMs). No cloud dependency required. |
 | **Single Transaction Boundary** | Only `CommitNode` (the last pipeline node) writes to the database. All preceding nodes are pure functions that pass state forward. This prevents partial-write corruption. |
 | **Deterministic Mechanic** | The `MechanicAgent` uses zero LLM calls. All dice rolls, DC computation, time costs, and event generation are pure Python. This guarantees reproducible gameplay mechanics regardless of model quality. |
@@ -26,7 +26,7 @@ The "Living World" mechanic is the core differentiator: every player action cost
 ## Feature Highlights
 
 | Feature | Details |
-|---------|---------|
+| --------- | --------- |
 | **Gender/Pronoun System** | Male/female selection with pronoun injection into Director + Narrator prompts (`backend/app/core/pronouns.py`). |
 | **4-Lane Style RAG** | Layered style retrieval: Base Star Wars (always-on) + Era + Genre + Archetype lanes via `retrieve_style_layered()`. |
 | **Companion System** | 108 YAML-defined companions with species, voice_tags, motivation, speech_quirk. 17 banter styles. Inter-party tensions via `compute_inter_party_tensions()`. Companion-initiated events at loyalty thresholds. |
@@ -48,9 +48,9 @@ graph TD
     end
 
     subgraph "LangGraph Pipeline (graph.py)"
-        R[Router Node] -->|META| META[Meta Node]
-        R -->|TALK| ENC[Encounter Node]
-        R -->|ACTION| MECH[Mechanic Node]
+        R[Router Node] --> | META| META[Meta Node]
+        R --> | TALK| ENC[Encounter Node]
+        R --> | ACTION| MECH[Mechanic Node]
         MECH --> ENC
         ENC --> WS[WorldSim Node]
         WS --> CR[Companion Reaction Node]
@@ -74,10 +74,10 @@ graph TD
 
     API --> R
     COMMIT --> SQLite
-    ENC -->|read-only| SQLite
-    WS -->|read-only| SQLite
-    DIR -.->|RAG| LanceDB
-    NAR -.->|RAG| LanceDB
+    ENC --> | read-only| SQLite
+    WS --> | read-only| SQLite
+    DIR -.-> | RAG| LanceDB
+    NAR -.-> | RAG| LanceDB
     WS -.-> Ollama
     DIR -.-> Ollama
     NAR -.-> Ollama
@@ -87,6 +87,7 @@ graph TD
 ## Quickstart
 
 ### Prerequisites
+
 - Python 3.11+
 - Ollama running locally (`http://localhost:11434`) with models pulled:
   - `ollama pull mistral-nemo` (Director/Narrator — quality-critical roles)
@@ -108,19 +109,23 @@ graph TD
 ```bash
 python -m venv venv
 # Activate venv, then:
+
 pip install -e .
 python -m storyteller setup
 python -m storyteller dev
 ```
 
 ### Create a Campaign & Play
+
 ```bash
 # Auto-setup (LLM generates campaign skeleton + character sheet)
+
 curl -X POST http://localhost:8000/v2/setup/auto \
   -H "Content-Type: application/json" \
   -d '{"player_concept": "A bounty hunter in a cyberpunk city"}'
 
 # Run a turn
+
 curl -X POST "http://localhost:8000/v2/campaigns/{campaign_id}/turn?player_id={player_id}" \
   -H "Content-Type: application/json" \
   -d '{"user_input": "I search the back alley for clues"}'
@@ -129,7 +134,7 @@ curl -X POST "http://localhost:8000/v2/campaigns/{campaign_id}/turn?player_id={p
 ## Tech Stack Summary
 
 | Component | Technology |
-|-----------|-----------|
+| ----------- | ----------- |
 | Language | Python 3.11 |
 | Web Framework | FastAPI + Uvicorn |
 | Pipeline Orchestration | LangGraph (StateGraph) |

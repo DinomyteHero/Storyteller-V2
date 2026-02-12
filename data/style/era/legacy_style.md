@@ -26,20 +26,6 @@ Civilian populations experience authoritarian drift with mixed reactions — Cor
 
 Loyalty and allegiance are tested constantly — Alliance officers must choose between following orders to imprison Jedi or protecting people they respect. Jedi must choose between Order solidarity and personal conscience. Family members must choose between blood and principle. No choice is clean. Supporting the Alliance means enabling authoritarianism. Opposing it means destabilizing fragile recovery. Protecting Jedi means harboring potential threats. Regulating Jedi means punishing the innocent with the dangerous. Characters navigate these contradictions by making provisional choices and living with consequences. Loyalty is conditional and renegotiated constantly.
 
-## Power Structures & Factions
-
-The Galactic Alliance governs through increasingly authoritarian measures justified by security concerns — after the Yuuzhan Vong War devastated the galaxy, the Alliance centralized power to rebuild. Chief of State Cal Omas (then Jacen Solo as co-Chief of State, then Natasi Daala post-Jacen) wields emergency powers that were never rescinded. Senate oversight weakens as executive authority expands. Security checkpoints proliferate, surveillance intensifies, and dissent is framed as destabilization. The Alliance isn't cartoonishly evil; it's exhausted people prioritizing order over liberty because chaos killed billions. Officials genuinely believe restricting Jedi prevents another Jacen Solo. This creates moral complexity: their methods are wrong, but their fears are legitimate.
-
-The Jedi Order fractures under internal and external pressure — Force psychosis afflicts Jedi seemingly at random, causing paranoid delusions and violent outbreaks. Luke's leadership is questioned: did his training methods fail Jacen? Should Jedi serve governments or operate independently? Philosophical splits emerge between Luke's establishment, Kyp Durron's aggressive faction, and younger Jedi who distrust all authority after Jacen's fall. The Order is simultaneously victim (Alliance imprisons Jedi) and perpetrator (Jacen was a Jedi Knight). External, Daala's government treats Jedi as threats requiring regulation. Internal, the Order debates whether to submit, resist, or reform. There's no unified Jedi voice; it's fractured perspectives competing for legitimacy.
-
-Family power dynamics complicate political conflict — the Skywalker and Solo families have shaped galactic history for three generations. Luke founded the new Jedi Order; Leia is a respected senator and diplomat; Han is a war hero. Their influence opens doors but also paints targets. Jacen's fall as Darth Caedus devastates the family: Leia and Han lose their son, Luke questions his teaching, Jaina must kill her brother. Family gatherings are minefields of grief and blame. Political opponents leverage Skywalker/Solo mistakes as evidence against Jedi or Alliance policy. Being part of these families means every personal failure becomes public scandal and every public choice affects family bonds.
-
-The Lost Tribe of the Sith emerges from millennia of isolation — descended from ancient Sith, they're sophisticated, philosophically developed, and coldly manipulative. Unlike ranting Sith Lords, the Lost Tribe practices subtlety: infiltration, seduction, and long-term planning. They see the galaxy as rightfully theirs and dark side philosophy as enlightenment. Their presence introduces external manipulation into already-fragile Alliance and Jedi politics. Characters like Vestara Khai complicate moral lines: she's Sith but young, intelligent, and capable of questioning her upbringing. The Lost Tribe isn't stupid evil; they're dangerous because they're smart and patient.
-
-Civilian populations experience authoritarian drift with mixed reactions — Core Worlds that were devastated by the Vong War support Alliance security measures, viewing Jedi regulation as prudent oversight after Jacen's dictatorship. Outer Rim worlds resent Alliance overreach and see Jedi as protectors being persecuted. Public opinion fragments along regional and ideological lines. Some civilians fear Force users; others revere them. Economic recovery continues unevenly. Daily life improves materially (infrastructure rebuilt, trade restored) but civil liberties erode. Citizens experience the tension between security and freedom, often prioritizing the former because they remember starvation and invasion.
-
-Loyalty and allegiance are tested constantly — Alliance officers must choose between following orders to imprison Jedi or protecting people they respect. Jedi must choose between Order solidarity and personal conscience. Family members must choose between blood and principle. No choice is clean. Supporting the Alliance means enabling authoritarianism. Opposing it means destabilizing fragile recovery. Protecting Jedi means harboring potential threats. Regulating Jedi means punishing the innocent with the dangerous. Characters navigate these contradictions by making provisional choices and living with consequences. Loyalty is conditional and renegotiated constantly.
-
 ## Technology & Daily Life
 
 Technology in the Legacy era is recovered and improved post-Vong — the galaxy has rebuilt infrastructure destroyed during the war. Shipyards produce new vessels combining lessons learned from wartime innovation. Communication networks are restored and improved with redundant nodes. Medical technology advances driven by wartime triage necessity. Jedi use refined lightsaber construction techniques, sometimes incorporating ancient knowledge recovered during reconstruction. The aesthetic is recovered prosperity: cleaner than wartime desperation, more sophisticated than Rebellion-era improvisation, but carrying scars from recent trauma.
@@ -105,6 +91,7 @@ Afflicted Jedi dialogue reflects paranoid delusion — they speak with absolute 
 ## Sensory Lexicon
 
 **Sound:**
+
 - security scanner beep, lock engagement, surveillance hum
 - lightsaber clash between allies, Force lightning crackle
 - committee arguments echoing, vote override chime
@@ -113,6 +100,7 @@ Afflicted Jedi dialogue reflects paranoid delusion — they speak with absolute 
 - checkpoint foot traffic shuffling, ID verification chime
 
 **Smell:**
+
 - sterile government corridors, military polish
 - ozone from Force use, dark side corruption stink
 - Senate office caf, old leather chairs, data banks
@@ -121,6 +109,7 @@ Afflicted Jedi dialogue reflects paranoid delusion — they speak with absolute 
 - recycled air in shielded rooms, paranoia-cold
 
 **Sight:**
+
 - security cameras watching, red recording lights
 - Jedi imprisoned in carbonite, Alliance guards at Temple
 - family holograms from better times, faces aged
@@ -129,6 +118,7 @@ Afflicted Jedi dialogue reflects paranoid delusion — they speak with absolute 
 - Force psychosis in Jedi eyes, fear and madness
 
 **Touch:**
+
 - cold security restraints, smooth desk barriers
 - lightsaber grip familiar now wrong, Force bond fraying
 - datapad with evidence, recordings of betrayal
@@ -137,6 +127,7 @@ Afflicted Jedi dialogue reflects paranoid delusion — they speak with absolute 
 - surveillance sensor cold against skin during scan
 
 **Taste:**
+
 - bitter caf in Senate meetings, tension metallic
 - adrenaline during confrontation, fear sour
 - sterile air in detention facilities, copper blood

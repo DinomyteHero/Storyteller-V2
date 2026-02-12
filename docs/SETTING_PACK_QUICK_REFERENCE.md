@@ -7,10 +7,12 @@ This document consolidates all setting pack documentation into a single quick re
 Setting Packs are YAML-based content bundles that define the worldbuilding, NPCs, quests, factions, and tone for a specific Star Wars Legends era. Each pack contains 12 files that work together to create a cohesive narrative experience.
 
 **Current Setting Packs:**
+
 - `_template` - Reference structure for creating new packs
 - `rebellion` - Galactic Civil War (0 BBY - 4 ABY) - **Canonical reference pack**
 
 **Removed Setting Packs (can be regenerated):**
+
 - `dark_times`, `kotor`, `legacy`, `new_jedi_order`, `new_republic`
 
 ---
@@ -20,7 +22,7 @@ Setting Packs are YAML-based content bundles that define the worldbuilding, NPCs
 Each setting pack lives in `/data/static/setting_packs/{era_id}/` and contains **12 YAML files**:
 
 | File | Purpose | Required |
-|------|---------|----------|
+| ------ | --------- | ---------- |
 | `era.yaml` | Era metadata, time period, tone, galactic state | ✅ Yes |
 | `companions.yaml` | Recruitable party members (max 5) | ✅ Yes |
 | `quests.yaml` | Quest templates and objectives | ✅ Yes |
@@ -68,6 +70,7 @@ curl http://localhost:8000/v2/era/rebellion/companions
 curl -X POST http://localhost:8000/v2/setup/auto \
   -H "Content-Type: application/json" \
   -d '{
+
     "time_period": "rebellion",
     "genre": "espionage_thriller",
     "themes": ["trust", "sacrifice"],
@@ -103,7 +106,9 @@ tone:
 
 ```yaml
 companions:
+
   - id: comp-cassian
+
     name: "Cassian Andor"
     species: "Human"
     archetype: "spy"
@@ -119,16 +124,22 @@ companions:
 
 ```yaml
 quests:
+
   - id: quest-scarif
+
     title: "Scarif Infiltration"
     description: "Retrieve the Death Star plans from the Imperial archive."
     quest_type: "main_story"
     entry_location: "loc-rebel-base"
     stages:
+
       - id: stage-1
+
         description: "Assemble infiltration team"
         success_condition: "recruit_companion:cassian"
+
       - id: stage-2
+
         description: "Infiltrate Scarif security perimeter"
         success_condition: "reach_location:loc-scarif-citadel"
 ```
@@ -137,7 +148,9 @@ quests:
 
 ```yaml
 backgrounds:
+
   - id: spy_defector
+
     name: "Imperial Defector"
     description: "You served the Empire, saw its atrocities, and defected to the Rebellion."
     starting_stats:
@@ -145,13 +158,19 @@ backgrounds:
       intelligence: 10
       strength: 8
     questions:
+
       - id: q1_motivation
+
         text: "Why did you defect?"
         choices:
+
           - id: moral_awakening
+
             label: "Witnessed an Imperial massacre"
             stat_bonus: {wisdom: +2}
+
           - id: betrayed
+
             label: "The Empire betrayed you"
             stat_bonus: {charisma: +2}
 ```
@@ -163,6 +182,7 @@ backgrounds:
 ### Using the Template
 
 1. Copy the `_template` directory:
+
    ```bash
    cp -r data/static/setting_packs/_template data/static/setting_packs/new_era
    ```
@@ -172,6 +192,7 @@ backgrounds:
 3. Fill in each of the 12 YAML files with era-specific content
 
 4. Validate the pack:
+
    ```bash
    python scripts/validate_setting_pack.py new_era
    ```
@@ -182,6 +203,7 @@ The following setting packs were removed but can be regenerated:
 
 ```bash
 # Using the LLM generation prompt
+
 python -m backend.app.scripts.generate_setting_pack \
   --era_id kotor \
   --time_period "3956 BBY" \
@@ -204,6 +226,7 @@ ENABLE_BIBLE_CASTING = 1  # Use setting pack deterministic casting
 ```
 
 **Impact:**
+
 - NPCs are pulled from setting pack `npcs.yaml`
 - Factions are derived from `factions.yaml`
 - Deterministic, reproducible NPC generation
@@ -241,15 +264,18 @@ Era packs are loaded via `/backend/app/world/setting_pack_loader.py`:
 from backend.app.world.setting_pack_loader import get_setting_pack
 
 # Load an setting pack
+
 pack = get_setting_pack("rebellion")
 
 # Access components
+
 locations = pack.locations
 companions = pack.companions
 factions = pack.factions
 backgrounds = pack.backgrounds
 
 # Lookup by ID
+
 location = pack.location_by_id("loc-cantina")
 companion = pack.companion_by_id("comp-cassian")
 background = pack.background_by_id("spy_defector")
@@ -260,6 +286,7 @@ background = pack.background_by_id("spy_defector")
 ## Schema Reference
 
 For detailed schema documentation, see:
+
 - `/docs/setting_pack_template.md` - Comprehensive template with examples
 - `/docs/setting_pack_schema_reference.md` - Schema validation rules
 - `/docs/setting_pack_generation_prompt.md` - LLM prompt for automated generation
@@ -269,26 +296,34 @@ For detailed schema documentation, see:
 ## Design Principles
 
 ### 1. Deterministic Content
+
 Era packs provide deterministic content that doesn't require LLM calls. This ensures:
+
 - Consistent worldbuilding across playthroughs
 - No LLM downtime impact
 - Reproducible for testing
 - Lore-accurate to Star Wars Legends
 
 ### 2. Bible-Based Casting
+
 NPCs, factions, and locations are defined upfront in the "bible" (setting pack YAML files) rather than procedurally generated. This ensures:
+
 - Canonical character roles (Vader as Villain, Leia as Leader, etc.)
 - Faction relationships grounded in lore
 - Locations that feel authentic to the era
 
 ### 3. Layered Retrieval
+
 Era packs work alongside RAG retrieval:
+
 - **Era pack** provides structure (NPCs, quests, factions)
 - **RAG lore retrieval** provides narrative flavor (novel snippets, sourcebook lore)
 - **Style guides** provide tone and voice (`/data/style/era/`)
 
 ### 4. Modular Expansion
+
 New eras can be added without code changes:
+
 - Drop new YAML bundle into `/data/static/setting_packs/{era_id}/`
 - System auto-detects and loads
 - UI shows era in selection dropdown
@@ -298,7 +333,7 @@ New eras can be added without code changes:
 ## File Size Guidelines
 
 | File | Target Lines | Max Size |
-|------|--------------|----------|
+| ------ | -------------- | ---------- |
 | `era.yaml` | 30-50 | 2 KB |
 | `companions.yaml` | 200-300 (5 companions) | 15 KB |
 | `quests.yaml` | 300-500 | 25 KB |
@@ -322,15 +357,21 @@ New eras can be added without code changes:
 
 ```yaml
 locations:
+
   - id: loc-cantina
+
     name: "Mos Eisley Cantina"
     planet: "Tatooine"
     tags: ["cantina", "underworld"]
     threat_level: moderate
     travel_links:
+
       - to_location_id: loc-spaceport
+
         travel_time_minutes: 10
+
       - to_location_id: loc-marketplace
+
         travel_time_minutes: 15
 ```
 
@@ -338,7 +379,9 @@ locations:
 
 ```yaml
 npcs:
+
   - id: npc-vader
+
     name: "Darth Vader"
     role: "Villain"
     faction: "Galactic Empire"
@@ -352,14 +395,22 @@ npcs:
 
 ```yaml
 quests:
+
   - id: quest-rescue-leia
+
     title: "Rescue Princess Leia"
     stages:
+
       - id: stage-1
+
         description: "Infiltrate the Death Star"
+
       - id: stage-2
+
         description: "Locate detention block AA-23"
+
       - id: stage-3
+
         description: "Escape with Leia"
 ```
 

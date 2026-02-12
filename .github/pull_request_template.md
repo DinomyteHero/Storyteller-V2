@@ -1,10 +1,10 @@
 ## Summary
 
-- 
+-
 
 ## Validation
 
-- 
+-
 
 ## Documentation impact checklist
 

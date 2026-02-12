@@ -16,7 +16,7 @@ The story engine is a **LangGraph** pipeline. Every turn flows through the "Livi
 
 ### 1.1 Flow Diagram
 
-```
+```text
                     ┌─────────┐
                     │  Router │  route + action_class (three-way: META, TALK, ACTION)
                     └────┬────┘
@@ -97,52 +97,67 @@ The story engine is a **LangGraph** pipeline. Every turn flows through the "Livi
 ### 1.2 Step-by-Step
 
 1. **Router**
+
    Classifies user input into **route** (TALK | MECHANIC | META) and **action_class** (DIALOGUE_ONLY | DIALOGUE_WITH_ACTION | PHYSICAL_ACTION | META). **Three-way routing:** META input (help/save/load/quit) shortcuts directly to Commit. The graph skips the Mechanic node **only** when `route == TALK` **and** `action_class == DIALOGUE_ONLY` **and** `requires_resolution == false` (pure speech/questions/persuasion). Otherwise the turn goes to the Mechanic (e.g. "I say hi and stab him" or "I threaten him and pull my blaster" must be resolved by the Mechanic). A deterministic **action-verb guardrail** overrides to non-dialogue-only if the input contains high-signal verbs (stab, shoot, steal, punch, grab, run, sneak, attack, kill, pull, draw, etc.). Router output schema: `intent_text`, `route`, `action_class`, optional `confidence`, optional `rationale_short`. For dialogue-only, the Router pre-fills a minimal `mechanic_result` (time from `DIALOGUE_ONLY_MINUTES`, no dice, no state changes).
 
 2. **Mechanic (Time Cost)**
+
    For `ACTION`, the Mechanic resolves dice, DCs, events (DAMAGE, MOVE, ITEM_GET, etc.) and **always** sets `time_cost_minutes` from the centralized time economy (`backend/app/time_economy.py`). This drives the world clock. Dynamic difficulty via `_ARC_DC_MODIFIER` (SETUP=-2, CLIMAX=+3). Environmental modifiers from location tags, inventory, and time-of-day.
 
 3. **Encounter**
+
    Resolves who is present at the current location; may spawn NPCs via CastingAgent. Attaches `present_npcs` and `active_rumors` (last 3 `is_public_rumor` events) for Director/Narrator.
 
 4. **World Sim (single pipeline)**
+
    There is **one** simulation system per turn. WorldSim runs **before** Commit and writes only to state; Commit persists factions and rumor events. **Triggers** (any one runs the sim once this turn):
+
    - **Tick boundary crossed:** `t0 = state.campaign.world_time_minutes`, `dt = mechanic_result.time_cost_minutes`, `t1 = t0 + dt`. Run if `floor(t0 / tick) != floor(t1 / tick)` (config: `WORLD_TICK_INTERVAL_HOURS`, default 4 → tick = 240 minutes).
    - **Travel:** Player moved (mechanic_result has MOVE event or `action_type == TRAVEL`).
    - (Future: major events can be added as additional triggers; still one run per turn.)
    - **Computation:** Store `t1` in `state.pending_world_time_minutes`. When any trigger fires: **FactionEngine** (`backend/app/world/faction_engine.py`) runs `simulate_faction_tick()` (deterministic: zero LLM, seeded RNG) for faction moves and rumor generation. Falls back to **Campaign Architect** `simulate_off_screen(...)` (LLM with deterministic fallback) when faction engine is not applicable. Rumors are converted into **NewsItems** (headline, source_tag, urgency, related_factions) and merged into `campaign.news_feed` (bounded, e.g. latest 20). Commit later persists `active_factions`, `news_feed`, `faction_memory`, `npc_states`, and appends RUMOR events. Director and Narrator see sim results the same turn.
 
 5. **Companion Reaction (pure, no DB)**
+
    After World Sim, **CompanionReactionNode** runs. It is **deterministic** (no LLM, no DB writes). The system supports **108 companions** with full metadata (gender, species, voice_tags, motivation, speech_quirk) and **17 banter styles**. It: (a) applies **alignment_delta** and **faction_reputation_delta** from `mechanic_result` to `campaign.alignment` and `campaign.faction_reputation`; (b) computes **companion affinity deltas** from `mechanic_result.tone_tag` and each companion's traits (idealist/pragmatic, merciful/ruthless, etc.)--if `mechanic_result.companion_affinity_delta` is present for a companion, that overrides; (c) nudges **loyalty_progress** when affinity moves positive; (d) optionally enqueues **banter** (rate-limited) and **news banter** when a NewsItem touches a faction a companion cares about; (e) computes **inter-party tensions** when companions have opposing reactions; (f) triggers companion-initiated events (COMPANION_REQUEST at TRUSTED, COMPANION_QUEST at LOYAL, COMPANION_CONFRONTATION on sharp drops); (g) **V2.20: PartyState influence** — `compute_influence_from_response()` applies per-companion influence deltas based on intent, meaning_tag, and tone matching against era-pack triggers. Influence is stored in `PartyState` (`backend/app/core/party_state.py`) with trust/respect/fear axes. All updates are in-memory; Commit persists them in `world_state_json["party_state"]` (with backward-compatible legacy fields).
 
 6. **Arc Planner (deterministic)**
+
    Tracks **Hero's Journey beats** with content-aware stage transitions (SETUP → RISING → CLIMAX → RESOLUTION). Outputs `arc_guidance` containing: arc stage, tension level, priority threads, pacing hints, suggested action weights, active themes, **hero_beat**, **archetype_hints**, **theme_guidance**, **era_transition_pending**. Integrates with **genre triggers** (`backend/app/core/genre_triggers.py`) and **era transitions** (`backend/app/core/era_transition.py`).
 
 6b. **SceneFrame (V2.17, pure Python, no LLM, no DB)**
    Inserted between ArcPlanner and Director. Establishes the immutable scene context for downstream nodes: location, present NPCs (with voice profiles from era packs and companion data), immediate situation, allowed scene type, scene hash (SHA256 for deduplication), KOTOR-soul topic anchoring (primary/secondary), subtext, NPC agenda, pressure (alert/heat from world state), and style tags. Active companions from **PartyState** are auto-injected into `present_npcs`. The **BanterManager** (`backend/app/core/banter_manager.py`) may inject a banter micro-scene if safety guards pass (no banter during combat, stealth, or high-pressure states like Watchful/Lockdown/Wanted; per-companion and global cooldowns enforced). Output is stored as `state["scene_frame"]` and used by Director, Narrator, SuggestionRefiner, and Commit (to assemble `DialogueTurn`).
 
 7. **Clock Update (in Commit)**
+
    Commit sets **world_time_minutes** to the post-action time (no double increment):
+
    - If `state.pending_world_time_minutes` is set: `UPDATE campaigns SET world_time_minutes = ? WHERE id = ?` with that value (`t1`).
    - Otherwise (fallback): `world_time_minutes = COALESCE(world_time_minutes, 0) + time_cost_minutes`.
 
 8. **Director (Text-Only Instructions + Deterministic Suggestions)**
+
    Uses **4-lane style RAG** (Base SW + Era + Genre + Archetype), **player psych_profile** (e.g. `stress_level`, `active_trauma`), **gender/pronoun context** (via `pronouns.py`), and **arc_guidance** (arc stage, tension, pacing hints, priority threads, hero_beat) for tone and scene direction. Incorporates **latest 3 NewsItems** from `campaign.news_feed`; if any has urgency HIGH, the prompt nudges at least one suggested action to respond to it. Falls back to **new_rumors** / **active_rumors** when news_feed is empty. The **LLM generates text-only `director_instructions`** (no JSON schema, no retries for suggestions). **Suggestions are 100% deterministic:** `generate_suggestions(state, mechanic_result)` produces exactly **4 suggested_actions** using pure Python -- mechanic results (post-combat success/failure, post-stealth branches), present NPCs, arc stage, tone diversity (PARAGON/INVESTIGATE/RENEGADE), and exploration/high-stress options. Each action has **category** (SOCIAL | EXPLORE | COMMIT), **risk_level** (SAFE | RISKY | DANGEROUS), **tone_tag** (PARAGON | INVESTIGATE | RENEGADE | NEUTRAL). Server validates via `lint_actions()`. Director also prepares **shared_kg_character_context** and **shared_episodic_memories** to pass to Narrator (avoiding duplicate RAG retrieval).
 
 9. **Narrator (Prose-Only)**
+
    Generates **prose-only** narrative from GameState: mechanic result (facts), director instructions, **lore** RAG, present_npcs, active_rumors, **psych_profile** for tone, **gender/pronoun** context, and **shared RAG data** from Director (KG character context, episodic memories). Outputs `final_text` (returned to the client as **`narrated_text`** in the turn response) and `lore_citations`. **No suggestion generation** -- `embedded_suggestions=None` always. Prose is **5-8 sentences, max 250 words**; `_truncate_overlong_prose()` caps at sentence boundary. Post-processing via `_strip_structural_artifacts()` catches option blocks, meta-game sections, character sheet fields, and meta-narrator patterns. High stress can make prose more fragmented/sensory.
 
 10. **Narrative Validator (deterministic, non-blocking)**
+
     **NarrativeValidatorNode** runs after Narrator. It is **deterministic** (no LLM, no DB writes) and performs post-narration validation:
+
     - **Mechanic consistency**: checks that `final_text` doesn't use success language when `mechanic_result.success=False` (or vice versa)
     - **Constraint contradictions**: checks for negation keywords near constraint keywords from the ledger
 
     Validation warnings are added to `state.warnings` and logged, but the narration is **never blocked** -- this is an observability/quality check, not a gate.
 
 11. **Suggestion Refiner (V2.16+, feature-flagged)**
+
     **SuggestionRefinerNode** (`backend/app/core/nodes/suggestion_refiner.py`) runs after the Narrative Validator. It is the **sole source of suggestions** in the pipeline. It uses `qwen3:8b` to read the Narrator's `final_text` prose and scene context (location, present NPCs, mechanic outcome), then generates **4 scene-aware KOTOR-style suggestions** that respond to what actually happened in the prose. Feature-flagged via `ENABLE_SUGGESTION_REFINER` (default: `True`). When disabled or on any failure, minimal emergency fallback responses are used. `generate_suggestions()` in `director_validation.py` still exists but is **not called** from the pipeline. 3-layer fallback: AgentLLM JSON retry -> node-level validation (tone/label checks) -> emergency fallback. Output passes through `classify_suggestion()`, `ensure_tone_diversity()`, and `lint_actions()` for consistency.
 
 12. **Commit**
+
     Writes `turn_events` (including world-sim RUMOR events with `is_public_rumor`, STARSHIP_ACQUIRED events, era transition events), sets `campaigns.world_time_minutes = pending_world_time_minutes` (t1), runs projections, persists `arc_state` in `world_state_json`, persists **episodic_memories**, **known_npcs**, **companion_memories**, **era_summaries**, **faction_memory**, **npc_states**, **PartyState** (`world_state_json["party_state"]`), and writes `rendered_turns`. Assembles the **DialogueTurn** (V2.17) from `scene_frame` + `npc_utterance` + `player_responses` and stores it in the returned GameState. **No** second world sim: travel-triggered updates are handled by the same World Sim node (tick or travel → one simulation run per turn).
 
 ---
@@ -153,15 +168,15 @@ The story engine is a **LangGraph** pipeline. Every turn flows through the "Livi
 
 Persisted in `campaigns` table. Relevant columns:
 
-| Column               | Type    | Description |
-|----------------------|---------|-------------|
-| id                   | TEXT    | Primary key |
-| title                | TEXT    | Campaign title |
-| time_period          | TEXT    | Era (e.g. LOTF) |
-| world_state_json     | TEXT    | JSON; includes `active_factions`, `faction_memory`, `npc_states`, `known_npcs`, `companion_memories`, `era_summaries`, `opening_beats`, `act_outline`. Default `'{}'`. |
+| Column | Type | Description |
+| ---------------------- | --------- | ------------- |
+| id | TEXT | Primary key |
+| title | TEXT | Campaign title |
+| time_period | TEXT | Era (e.g. LOTF) |
+| world_state_json | TEXT | JSON; includes `active_factions`, `faction_memory`, `npc_states`, `known_npcs`, `companion_memories`, `era_summaries`, `opening_beats`, `act_outline`. Default `'{}'`. |
 | **world_time_minutes** | INTEGER | In-world elapsed time in minutes. Default `0`. Incremented each turn by `mechanic_result.time_cost_minutes`. Drives clock-tick for World Sim. |
-| created_at           | TEXT    | ISO timestamp (migration 0006) |
-| updated_at           | TEXT    | ISO timestamp (migration 0007) |
+| created_at | TEXT | ISO timestamp (migration 0006) |
+| updated_at | TEXT | ISO timestamp (migration 0007) |
 
 **GameState:** `state.campaign` is a dict built from this row; it includes `world_time_minutes` for the World Sim node and for any UI that shows "world time."
 
@@ -169,24 +184,24 @@ Persisted in `campaigns` table. Relevant columns:
 
 Persisted in `characters` table. Relevant columns:
 
-| Column        | Type    | Description |
-|---------------|---------|-------------|
-| id            | TEXT    | Primary key |
-| campaign_id   | TEXT    | FK → campaigns(id) |
-| name          | TEXT    | |
-| role          | TEXT    | e.g. Player, Villain, Rival, Merchant |
-| location_id   | TEXT    | |
-| stats_json    | TEXT    | Default `'{}'` |
-| hp_current    | INTEGER | Default 0 |
+| Column | Type | Description |
+| --------------- | --------- | ------------- |
+| id | TEXT | Primary key |
+| campaign_id | TEXT | FK → campaigns(id) |
+| name | TEXT | |
+| role | TEXT | e.g. Player, Villain, Rival, Merchant |
+| location_id | TEXT | |
+| stats_json | TEXT | Default `'{}'` |
+| hp_current | INTEGER | Default 0 |
 | relationship_score | INTEGER | |
-| secret_agenda | TEXT    | |
-| credits       | INTEGER | Default 0 |
-| gender        | TEXT    | male/female (migration 0015) |
-| planet        | TEXT    | Starting planet (migration 0008) |
-| background    | TEXT    | Character background (migration 0009) |
-| **psych_profile** | TEXT  | JSON. Default `'{}'`. Fields: `current_mood`, `stress_level`, `active_trauma`. Used by Director and Narrator for tone and pacing. |
-| created_at    | TEXT    | ISO timestamp (migration 0010) |
-| updated_at    | TEXT    | ISO timestamp (migration 0011) |
+| secret_agenda | TEXT | |
+| credits | INTEGER | Default 0 |
+| gender | TEXT | male/female (migration 0015) |
+| planet | TEXT | Starting planet (migration 0008) |
+| background | TEXT | Character background (migration 0009) |
+| **psych_profile** | TEXT | JSON. Default `'{}'`. Fields: `current_mood`, `stress_level`, `active_trauma`. Used by Director and Narrator for tone and pacing. |
+| created_at | TEXT | ISO timestamp (migration 0010) |
+| updated_at | TEXT | ISO timestamp (migration 0011) |
 
 **In-memory:** `CharacterSheet` in `backend/app/models/state.py` includes `psych_profile: dict`, `gender: str`; the state loader fills it from the DB (`load_player_by_id` → `build_initial_gamestate`). Config defaults: `config.PSYCH_PROFILE_DEFAULTS` (`current_mood`, `stress_level`, `active_trauma`). Gender/pronoun injection via `backend/app/core/pronouns.py:pronoun_block()`.
 
@@ -194,24 +209,24 @@ Persisted in `characters` table. Relevant columns:
 
 Persisted in `turn_events` table. Relevant columns:
 
-| Column             | Type    | Description |
-|--------------------|---------|-------------|
-| id                 | INTEGER | AUTOINCREMENT primary key |
-| campaign_id        | TEXT    | FK → campaigns(id) |
-| turn_number        | INTEGER | |
-| event_type         | TEXT    | e.g. TURN, MOVE, DAMAGE, ITEM_GET, RUMOR, DIALOGUE, STARSHIP_ACQUIRED, STORY_NOTE |
-| payload_json       | TEXT    | JSON. Default `'{}'`. |
-| is_hidden          | INTEGER | 0/1. Default 0. |
-| **is_public_rumor**| INTEGER | 0/1. Default 0. Set to 1 for RUMOR events from the World Sim (clock-tick). These are the "public rumors" returned by `get_recent_public_rumors` and passed to Director/Narrator. |
-| timestamp          | TEXT    | ISO; default `datetime('now')`. |
-| created_at         | TEXT    | ISO timestamp (migration 0012) |
+| Column | Type | Description |
+| -------------------- | --------- | ------------- |
+| id | INTEGER | AUTOINCREMENT primary key |
+| campaign_id | TEXT | FK → campaigns(id) |
+| turn_number | INTEGER | |
+| event_type | TEXT | e.g. TURN, MOVE, DAMAGE, ITEM_GET, RUMOR, DIALOGUE, STARSHIP_ACQUIRED, STORY_NOTE |
+| payload_json | TEXT | JSON. Default `'{}'`. |
+| is_hidden | INTEGER | 0/1. Default 0. |
+| **is_public_rumor** | INTEGER | 0/1. Default 0. Set to 1 for RUMOR events from the World Sim (clock-tick). These are the "public rumors" returned by `get_recent_public_rumors` and passed to Director/Narrator. |
+| timestamp | TEXT | ISO; default `datetime('now')`. |
+| created_at | TEXT | ISO timestamp (migration 0012) |
 
 `event_store.append_events` writes `is_public_rumor` from `Event.is_public_rumor`.
 
 ### 2.4 Additional Tables (Migrations 0005-0018)
 
 | Table / Migration | Description |
-|-------------------|-------------|
+| ------------------- | ------------- |
 | `kg_entities`, `kg_triples`, `kg_summaries`, `kg_extraction_checkpoints` (0005) | Knowledge graph storage for entity-relation extraction |
 | `cyoa_answers` (0013) | CYOA answer tracking |
 | `episodic_memories` (0014) | Long-term episodic memory for cross-session recall |
@@ -237,8 +252,8 @@ The **Campaign Architect** (`core/agents/architect.py`) is used in two places:
 
 ### 3.2 Other Agents (summary)
 
-| Agent     | Responsibility |
-|----------|----------------|
+| Agent | Responsibility |
+| ---------- | ---------------- |
 | **Router** | Classify user input into route (TALK | MECHANIC) and action_class (DIALOGUE_ONLY | DIALOGUE_WITH_ACTION | PHYSICAL_ACTION | META). Only DIALOGUE_ONLY skips Mechanic; action-verb guardrail prevents smuggling violence/theft into dialogue. |
 | **Mechanic** | Authoritative for physics: action type, dice, DCs, events, **time_cost_minutes**. Dynamic difficulty via `_ARC_DC_MODIFIER`. Environmental modifiers. Narrator only describes Mechanic results. **Note:** `companion_affinity_delta` works via trait scoring; `alignment_delta` and `faction_reputation_delta` are defined in `MechanicOutput` but currently default to empty dicts -- the companion reaction system computes its own deltas from `tone_tag` and traits instead. |
 | **Director** | Text-only scene instructions via LLM; uses **4-lane style RAG** (Base SW + Era + Genre + Archetype), **psych_profile**, **gender/pronoun context**, and recent rumors. **Suggestions are 100% deterministic** via `generate_suggestions()`: exactly **4 suggested_actions** using pure Python (mechanic results, NPCs, arc stage, tone). Each action has **category** (SOCIAL | EXPLORE | COMMIT), **risk_level** (SAFE | RISKY | DANGEROUS), **tone_tag** (PARAGON | INVESTIGATE | RENEGADE | NEUTRAL). Server validates via `lint_actions()`. |
@@ -258,7 +273,9 @@ Lore ingestion lives in **`ingestion/`**. It uses an **Enriched RAG** process: *
 ### 4.1 Where It Lives
 
 - **Lore ingestion:** `ingestion/ingest_lore.py`
+
   CLI: `python -m ingestion.ingest_lore --input ./data/lore [--time-period LOTF] [--planet Tatooine] [--faction Empire]`
+
 - **Chunking helpers:** `ingestion/chunking.py` (token counting, `chunk_text_by_tokens`, overlap).
 
 ### 4.2 Parent-Child Chunking Strategy
@@ -337,42 +354,42 @@ The SvelteKit frontend provides a KOTOR-inspired game interface: a single-page n
 
 ### 6.2 Component Hierarchy
 
-```
+```text
 +page.svelte (route: /play)
-  |
+ |
   +-- <header> HUD Bar (inline)
-  |     |-- hamburger toggle (drawer)
-  |     |-- LOC / DAY / TIME pills
-  |     |-- HP / CR / Stress pills
-  |     |-- Heat / Alert pills (from SceneFrame.pressure)
-  |     +-- Quit button
-  |
+ | |-- hamburger toggle (drawer)
+ | |-- LOC / DAY / TIME pills
+ | |-- HP / CR / Stress pills
+ | |-- Heat / Alert pills (from SceneFrame.pressure)
+ | +-- Quit button
+ |
   +-- <main> Gameplay Main
-  |     |-- "Previously..." accordion (collapsed past turns)
-  |     |-- Mission Briefing card (opening scene only)
-  |     |-- Narrative container
-  |     |     |-- Turn header + scene subtitle
-  |     |     |-- SceneContext          (topic tag, scene type, pressure pills)
-  |     |     |-- NpcSpeech             (NPC name + quoted dialogue)
-  |     |     +-- Narrative prose       (typewriter or instant render)
-  |     |
-  |     +-- DialogueWheel              (4 tone-sorted KOTOR-style choices)
-  |
+ | |-- "Previously..." accordion (collapsed past turns)
+ | |-- Mission Briefing card (opening scene only)
+ | |-- Narrative container
+ | | |-- Turn header + scene subtitle
+ | | |-- SceneContext          (topic tag, scene type, pressure pills)
+ | | |-- NpcSpeech             (NPC name + quoted dialogue)
+ | | +-- Narrative prose       (typewriter or instant render)
+ | |
+ | +-- DialogueWheel              (4 tone-sorted KOTOR-style choices)
+ |
   +-- <aside> Info Drawer (slide-in panel)
-        |-- Tab bar: Character | Companions | Factions | Inventory | Quests | Comms | Journal
-        |-- Character tab       (name, stats, psych_profile)
-        |-- Companions tab      (affinity hearts, loyalty badge, influence/trust/respect/fear meters)
-        |-- Factions tab        (reputation bars with tier badges: HOSTILE..ALLIED)
-        |-- Inventory tab       (item list with quantities)
-        |-- Quests tab          (quest log with status badges and stage progress)
-        |-- Comms tab           (news feed: headline, source, urgency, related factions)
+ | -- Tab bar: Character | Companions | Factions | Inventory | Quests | Comms | Journal
+ | -- Character tab       (name, stats, psych_profile)
+ | -- Companions tab      (affinity hearts, loyalty badge, influence/trust/respect/fear meters)
+ | -- Factions tab        (reputation bars with tier badges: HOSTILE..ALLIED)
+ | -- Inventory tab       (item list with quantities)
+ | -- Quests tab          (quest log with status badges and stage progress)
+ | -- Comms tab           (news feed: headline, source, urgency, related factions)
         +-- Journal tab         (turn transcript with time deltas)
 ```
 
 Extracted components live in `frontend/src/lib/components/`:
 
 | Component | Path | Responsibility |
-|-----------|------|----------------|
+| ----------- | ------ | ---------------- |
 | DialogueWheel | `choices/DialogueWheel.svelte` | Renders 4 KOTOR-style choices sorted by tone (PARAGON, INVESTIGATE, RENEGADE, NEUTRAL). Accepts both `PlayerResponse[]` (primary) and `ActionSuggestion[]` (fallback). Tone-filled backgrounds, hover-reveal metadata (risk, consequence hint, companion deltas). |
 | NpcSpeech | `narrative/NpcSpeech.svelte` | Renders NPC utterance above prose. Shows speaker name + quoted text. Hidden when `speaker_id === "narrator"` or text is empty. |
 | SceneContext | `narrative/SceneContext.svelte` | Scene awareness bar: topic tag, scene type icon, pressure pills (alert, heat). Only renders when SceneFrame data is available. |
@@ -381,12 +398,12 @@ Extracted components live in `frontend/src/lib/components/`:
 
 Stores live in `frontend/src/lib/stores/`. All use Svelte's `writable` / `derived` primitives.
 
-```
+```text
 API Response (TurnResponse)
-  |
+ |
   v
 lastTurnResponse (writable)  <-- set after runTurn() or streamTurn() completes
-  |
+ |
   +---> suggestedActions (derived)     -- $resp.suggested_actions (legacy flat list)
   +---> playerSheet (derived)          -- $resp.player_sheet
   +---> inventory (derived)            -- $resp.inventory
@@ -395,16 +412,16 @@ lastTurnResponse (writable)  <-- set after runTurn() or streamTurn() completes
   +---> newsFeed (derived)             -- $resp.news_feed
   +---> warnings (derived)            -- $resp.warnings
   +---> questLog (derived)             -- $resp.quest_log
-  |
+ |
   +---> dialogueTurn (derived)         -- $resp.dialogue_turn (V2.17+)
-          |
+ |
           +---> sceneFrame (derived)       -- $dt.scene_frame
           +---> npcUtterance (derived)     -- $dt.npc_utterance
           +---> playerResponses (derived)  -- $dt.player_responses (primary choices)
 ```
 
 | Store file | Purpose | Persistence |
-|------------|---------|-------------|
+| ------------ | --------- | ------------- |
 | `game.ts` | Campaign session: IDs, lastTurnResponse, transcript, all derived stores | Memory only |
 | `streaming.ts` | SSE streaming state: isStreaming, streamedText, streamError, showCursor | Memory only |
 | `ui.ts` | UI preferences: theme, enableStreaming, enableTypewriter, showDebug, drawer state | localStorage |
@@ -416,9 +433,11 @@ lastTurnResponse (writable)  <-- set after runTurn() or streamTurn() completes
 The frontend supports two data paths for player choices, with automatic fallback:
 
 **Primary path (V2.17+ DialogueTurn):**
+
 `TurnResponse.dialogue_turn.player_responses` (array of `PlayerResponse`) provides KOTOR-style choices with `display_text`, `tone_tag`, `risk_level`, `consequence_hint`, `meaning_tag`, and structured `action` (type, intent, target, tone).
 
 **Fallback path (legacy):**
+
 `TurnResponse.suggested_actions` (array of `ActionSuggestion`) provides flat suggestions with `label`, `intent_text`, `tone_tag`, `risk_level`, `consequence_hint`, `companion_reactions`.
 
 The `DialogueWheel` component unifies both into a `UnifiedChoice` interface and renders identically. Selection logic in `+page.svelte` checks `playerResponses.length > 0` before falling back to `suggestedActions`. Keyboard shortcuts (1-4) work with both paths.
@@ -426,7 +445,7 @@ The `DialogueWheel` component unifies both into a `UnifiedChoice` interface and 
 TypeScript interfaces in `frontend/src/lib/api/types.ts` mirror backend Pydantic models:
 
 | TypeScript interface | Backend Pydantic model |
-|---------------------|----------------------|
+| --------------------- | ---------------------- |
 | `TurnResponse` | `TurnResponse` (v2_campaigns.py) |
 | `DialogueTurn` | `DialogueTurn` (dialogue_turn.py) |
 | `SceneFrame` | `SceneFrameSnapshot` (dialogue_turn.py) |
@@ -443,7 +462,7 @@ Themes are defined in `frontend/src/lib/themes/tokens.ts` as `ThemeTokens` objec
 **Tone color tokens** (consistent across all themes):
 
 | Token | Color | Usage |
-|-------|-------|-------|
+| ------- | ------- | ------- |
 | `--tone-paragon` | Blue | Light-side / helpful choices |
 | `--tone-investigate` | Amber/Gold | Probing / cautious choices |
 | `--tone-renegade` | Red | Aggressive / dark-side choices |
@@ -456,24 +475,24 @@ Theme selection is persisted in localStorage via the `ui` store and can be chang
 ### 6.6 Key Pages
 
 | Route | Page | Description |
-|-------|------|-------------|
+| ------- | ------ | ------------- |
 | `/` | Home | Campaign list (saved campaigns from localStorage), New Campaign / Load Campaign buttons, settings panel (theme selection, streaming/typewriter toggles, debug mode) |
 | `/create` | Character Creation | Multi-step wizard: era selection (with companion preview), background selection (era-pack CYOA questions with conditional branching), name/gender entry, campaign setup via `POST /v2/setup/auto` |
 | `/play` | Game Loop | Main gameplay: HUD bar, narrative viewport (typewriter or SSE streaming), NPC speech, scene context, DialogueWheel choices, info drawer (7 tabs). Keyboard shortcuts: 1-4 (choices), Space/Enter (skip typewriter), i (toggle drawer), j (journal), Escape (close drawer) |
 
 **Data flow on `/play`:**
 
-```
+```text
 User clicks choice (or presses 1-4)
-  |
+ |
   v
 handleChoiceInput(userInput, label)
-  |
+ |
   +-- SSE mode: streamTurn() --> token events --> streamedText store --> prose render
-  |                           --> done event --> lastTurnResponse store --> all derived stores
-  |
+ | --> done event --> lastTurnResponse store --> all derived stores
+ |
   +-- Batch mode: runTurn() --> lastTurnResponse store --> all derived stores
-  |
+ |
   v
 Typewriter effect (if enabled) --> choicesReady flag --> DialogueWheel renders
 ```

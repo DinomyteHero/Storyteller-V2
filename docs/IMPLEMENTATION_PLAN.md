@@ -29,7 +29,7 @@ The implementation below is a full, staged migration designed to keep the game p
 
 ## Phase 0 — Baseline Hardening (Week 1)
 
-### Objectives
+### Phase 0 Objectives
 
 - Ensure one guaranteed playable path in all environments.
 - Stop false failures caused by stale defaults.
@@ -49,7 +49,7 @@ The implementation below is a full, staged migration designed to keep the game p
 
 ## Phase 1 — Content Discovery API (Week 1–2)
 
-### Objectives
+### Phase 1 Objectives
 
 - Introduce canonical API surface for dynamic settings/periods.
 
@@ -74,7 +74,7 @@ The implementation below is a full, staged migration designed to keep the game p
 
 - Keep `/v2/era/{era_id}/...` alive, implemented as adapters over content catalog resolution.
 
-### Acceptance Criteria
+### Phase 1 Acceptance Criteria
 
 - Frontend can populate timeline selector entirely from API.
 - Catalog endpoint works whether content comes from `setting_packs/*` or legacy `era_packs/*`.
@@ -83,11 +83,11 @@ The implementation below is a full, staged migration designed to keep the game p
 
 ## Phase 2 — Setup & Turn API Robustness (Week 2–3)
 
-### Objectives
+### Phase 2 Objectives
 
 - Eliminate setup hard crashes from invalid period selections.
 
-### Tasks
+### Phase 2 Tasks
 
 1. Add normalized request schema for setup:
    - Preferred: `setting_id`, `period_id`
@@ -99,7 +99,7 @@ The implementation below is a full, staged migration designed to keep the game p
    - Use `content/default` resolver.
 4. Apply same validation to all period-dependent endpoints.
 
-### Acceptance Criteria
+### Phase 2 Acceptance Criteria
 
 - Selecting unavailable period no longer raises unhandled exceptions.
 - API returns clear correction options (e.g., available periods list).
@@ -108,11 +108,11 @@ The implementation below is a full, staged migration designed to keep the game p
 
 ## Phase 3 — Frontend Dynamic Timeline Migration (Week 3–4)
 
-### Objectives
+### Phase 3 Objectives
 
 - Remove hardcoded era/timeline options and bind UI to content catalog.
 
-### Tasks
+### Phase 3 Tasks
 
 1. Add frontend data layer:
    - `getContentCatalog()`, `getContentDefault()`, `getContentSummary()`
@@ -123,7 +123,7 @@ The implementation below is a full, staged migration designed to keep the game p
    - legacy `charEra` remains temporary adapter until full cutover
 5. On startup, auto-select server default content when user has no prior preference.
 
-### Acceptance Criteria
+### Phase 3 Acceptance Criteria
 
 - Adding/removing period folders changes UI choices without frontend code edits.
 - Creation flow succeeds with dynamic selections and fails gracefully otherwise.
@@ -132,11 +132,11 @@ The implementation below is a full, staged migration designed to keep the game p
 
 ## Phase 4 — Content Model Convergence (Week 4–6)
 
-### Objectives
+### Phase 4 Objectives
 
 - Complete migration from era-first semantics to setting/period-first internals.
 
-### Tasks
+### Phase 4 Tasks
 
 1. Introduce canonical internal key object for all content fetches:
    - `ContentRef { setting_id, period_id }`
@@ -146,7 +146,7 @@ The implementation below is a full, staged migration designed to keep the game p
 4. Add migration report command:
    - shows which code paths still rely on era aliases.
 
-### Acceptance Criteria
+### Phase 4 Acceptance Criteria
 
 - Main game loop no longer depends on legacy `era_id` internally.
 - Legacy routes still function for existing clients.
@@ -155,11 +155,11 @@ The implementation below is a full, staged migration designed to keep the game p
 
 ## Phase 5 — Data Quality & Playability Gates (Week 5–7)
 
-### Objectives
+### Phase 5 Objectives
 
-- Prevent “selectable but unplayable” periods.
+- Prevent "selectable but unplayable" periods.
 
-### Tasks
+### Phase 5 Tasks
 
 1. Add playability validator score per period:
    - required minima for locations, NPC templates, backgrounds, quests, rumors
@@ -170,7 +170,7 @@ The implementation below is a full, staged migration designed to keep the game p
 4. CI gate for content packs:
    - new/updated periods must meet threshold or be flagged experimental.
 
-### Acceptance Criteria
+### Phase 5 Acceptance Criteria
 
 - User cannot accidentally start campaign in content-incomplete period unless they explicitly opt in.
 
@@ -178,11 +178,11 @@ The implementation below is a full, staged migration designed to keep the game p
 
 ## Phase 6 — Documentation & Operations Cleanup (Week 6–8)
 
-### Objectives
+### Phase 6 Objectives
 
 - Align docs and runbooks with new dynamic architecture.
 
-### Tasks
+### Phase 6 Tasks
 
 1. Update docs to describe content catalog API as authoritative discovery mechanism.
 2. Replace examples using deprecated hardcoded periods.
@@ -192,7 +192,7 @@ The implementation below is a full, staged migration designed to keep the game p
    - how to validate playability
 4. Add troubleshooting matrix for common migration failures.
 
-### Acceptance Criteria
+### Phase 6 Acceptance Criteria
 
 - New contributor can add a period folder and see it in UI without touching frontend constants.
 
@@ -263,4 +263,3 @@ The long-term migration is complete when all of the following are true:
 - Unknown periods return friendly 4xx errors with correction hints.
 - New content folders become selectable in UI automatically.
 - Default smoke tests pass without manual period/environment surgery.
-

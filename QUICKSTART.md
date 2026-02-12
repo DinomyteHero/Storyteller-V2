@@ -76,10 +76,6 @@ python run_app.py --dev
 
 Useful variants:
 
-This repo includes:
-- Era Pack (Bible): `data/static/era_packs/rebellion/` (12 YAML files)
-- Style guide: `data/style/era/rebellion_style.md`
-- Optional local lore directory for ingestion: `data/lore/rebellion/` (create if missing)
 ```bash
 python run_app.py --check
 python run_app.py --api-only --dev
@@ -89,8 +85,6 @@ python run_app.py --validate-packs --dev
 
 ### Alternative CLI launcher
 
-# Style
-python scripts/ingest_style.py --input_dir ./data/style --era REBELLION --source_type style --out_db ./data/lancedb
 ```bash
 python -m storyteller dev
 ```
@@ -108,6 +102,7 @@ python -m storyteller dev
 Character alias tagging during ingestion is supported via `data/character_aliases.yml`.
 
 **Status:** The core system works without aliases enabled. Keep `ENABLE_CHARACTER_FACETS=0` unless you are explicitly testing experimental retrieval behavior.
+
 ## 4) Verify services
 
 - API root: `http://localhost:8000/`
