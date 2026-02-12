@@ -10,8 +10,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from backend.app.core.text_utils import normalize_identifier
-
 
 # World-time -> story progression tuning.
 # 1 chapter every N in-world minutes. Conservative default keeps progression slow.
@@ -41,7 +39,7 @@ _PERIOD_ANCHORS: dict[str, TimelineAnchor] = {
 
 
 def _norm_period(period_id: str | None) -> str:
-    return normalize_identifier(period_id or "")
+    return str(period_id or "").strip().lower().replace("-", "_")
 
 
 def _anchor_for_period(period_id: str | None) -> TimelineAnchor:

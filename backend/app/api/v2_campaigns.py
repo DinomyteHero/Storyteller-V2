@@ -7,7 +7,6 @@ import logging
 import random
 import uuid
 import time
-from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -15,7 +14,6 @@ from pydantic import BaseModel, Field
 from backend.app.constants import SUGGESTED_ACTIONS_TARGET
 from backend.app.config import DEFAULT_DB_PATH, DEV_CONTEXT_STATS, ENABLE_BIBLE_CASTING
 from backend.app.core.error_handling import log_error_with_context, create_error_response
-from backend.app.core.text_utils import normalize_identifier
 from backend.app.content.repository import CONTENT_REPOSITORY
 
 logger = logging.getLogger(__name__)
@@ -226,8 +224,8 @@ def _resolve_requested_period(*, setting_id: str | None, period_id: str | None, 
     """Resolve request into canonical (setting_id, period_id, legacy_era_id)."""
     items = _catalog_items()
     if setting_id and period_id:
-        s = normalize_identifier(setting_id)
-        p = normalize_identifier(period_id)
+        s = str(setting_id).strip().lower().replace("-", "_")
+        p = str(period_id).strip().lower().replace("-", "_")
         for item in items:
             if item["setting_id"] == s and item["period_id"] == p:
                 return s, p, item["legacy_era_id"]
@@ -235,7 +233,7 @@ def _resolve_requested_period(*, setting_id: str | None, period_id: str | None, 
         raise HTTPException(status_code=400, detail=f"Unknown period '{s}/{p}'. Available: {available}")
 
     if time_period:
-        era = normalize_identifier(time_period)
+        era = str(time_period).strip().lower().replace("-", "_")
         for item in items:
             if item["period_id"] == era or item["legacy_era_id"].strip().lower() == era:
                 return item["setting_id"], item["period_id"], item["legacy_era_id"]
@@ -246,8 +244,8 @@ def _resolve_requested_period(*, setting_id: str | None, period_id: str | None, 
             return fallback["setting_id"], fallback["period_id"], fallback["legacy_era_id"]
 
     # Default resolver
-    default_setting = normalize_identifier(os.environ.get("DEFAULT_SETTING_ID") or "star_wars_legends")
-    default_period = normalize_identifier(os.environ.get("DEFAULT_PERIOD_ID") or "rebellion")
+    default_setting = (os.environ.get("DEFAULT_SETTING_ID") or "star_wars_legends").strip().lower().replace("-", "_")
+    default_period = (os.environ.get("DEFAULT_PERIOD_ID") or "rebellion").strip().lower().replace("-", "_")
     for item in items:
         if item["setting_id"] == default_setting and item["period_id"] == default_period:
             return default_setting, default_period, item["legacy_era_id"]
@@ -364,19 +362,19 @@ def _create_npc_cast_from_skeleton(conn, campaign_id: str, skeleton: dict, start
 
 
 @router.get("/content/catalog", response_model=ContentCatalogResponse)
-def get_content_catalog() -> dict[str, Any]:
+def get_content_catalog():
     """Return discovered setting/period catalog for dynamic frontend selectors."""
     return {"items": _catalog_items()}
 
 
 @router.get("/content/default", response_model=ContentDefaultResponse)
-def get_content_default() -> dict[str, Any]:
+def get_content_default():
     setting_id, period_id, legacy_era_id = _resolve_requested_period(setting_id=None, period_id=None, time_period=None)
     return {"setting_id": setting_id, "period_id": period_id, "legacy_era_id": legacy_era_id}
 
 
 @router.get("/content/{setting_id}/{period_id}/summary", response_model=ContentSummaryResponse)
-def get_content_summary(setting_id: str, period_id: str) -> dict[str, Any]:
+def get_content_summary(setting_id: str, period_id: str):
     s, p, legacy = _resolve_requested_period(setting_id=setting_id, period_id=period_id, time_period=None)
     pack = CONTENT_REPOSITORY.get_content(s, p)
     playable = bool(pack.locations) and bool(pack.backgrounds)
@@ -393,7 +391,7 @@ def get_content_summary(setting_id: str, period_id: str) -> dict[str, Any]:
 
 
 @router.get("/era/{era_id}/locations")
-def get_era_locations(era_id: str) -> dict[str, Any]:
+def get_era_locations(era_id: str):
     """Return known locations for an era pack (for UI starting-area selection)."""
     try:
         pack = CONTENT_REPOSITORY.get_pack(era_id) if era_id else None
@@ -408,7 +406,7 @@ def get_era_locations(era_id: str) -> dict[str, Any]:
 
 
 @router.get("/era/{era_id}/backgrounds")
-def get_era_backgrounds(era_id: str) -> dict[str, Any]:
+def get_era_backgrounds(era_id: str):
     """Return available backgrounds and their question chains for the given era."""
     logger.info(f"Received request for era backgrounds: era_id={era_id}")
     try:
@@ -427,7 +425,7 @@ def get_era_backgrounds(era_id: str) -> dict[str, Any]:
 
 
 @router.get("/era/{era_id}/companions")
-def get_era_companions(era_id: str) -> dict[str, Any]:
+def get_era_companions(era_id: str):
     """Return companion previews for character creation screen."""
     from backend.app.core.companions import load_companions
     companions = load_companions(era=era_id)
@@ -446,7 +444,7 @@ def get_era_companions(era_id: str) -> dict[str, Any]:
 
 
 @router.get("/debug/era-packs")
-def debug_era_packs() -> dict[str, Any]:
+def debug_era_packs():
     """Debug endpoint showing loaded era packs and their backgrounds count."""
     from shared.config import ERA_PACK_DIR
     from pathlib import Path
@@ -630,7 +628,7 @@ def _generate_arc_seed(
 
 
 @router.post("/setup/auto", response_model=SetupAutoResponse)
-def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
+def setup_auto(body: SetupAutoRequest):
     """Create campaign via Architect + Biographer; return campaign_id, player_id, skeleton, character_sheet."""
     from backend.app.core.agents.base import AgentLLM
     conn = _get_conn()
@@ -991,7 +989,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
 
 
 @router.post("/campaigns", response_model=CreateCampaignResponse)
-def create_campaign(body: CreateCampaignRequest) -> dict[str, Any]:
+def create_campaign(body: CreateCampaignRequest):
     """Create a new campaign and player character. Returns campaign_id and player_id."""
     conn = _get_conn()
     try:
@@ -1120,7 +1118,7 @@ def get_campaign_state(
 
 
 @router.get("/campaigns/{campaign_id}/world_state")
-def get_campaign_world_state(campaign_id: str) -> dict[str, Any]:
+def get_campaign_world_state(campaign_id: str):
     """Return world_state_json (flags/quest state) for the campaign."""
     conn = _get_conn()
     try:
@@ -1133,7 +1131,7 @@ def get_campaign_world_state(campaign_id: str) -> dict[str, Any]:
 
 
 @router.get("/campaigns/{campaign_id}/locations")
-def get_campaign_locations(campaign_id: str) -> dict[str, Any]:
+def get_campaign_locations(campaign_id: str):
     """Return merged locations (era pack + generated) for the campaign world map."""
     conn = _get_conn()
     try:
@@ -1894,7 +1892,7 @@ class CompleteCampaignRequest(BaseModel):
 
 
 @router.post("/player/profiles", response_model=PlayerProfileResponse)
-def create_player_profile(body: CreatePlayerProfileRequest) -> PlayerProfileResponse:
+def create_player_profile(body: CreatePlayerProfileRequest):
     """Create a new player profile for cross-campaign persistence."""
     conn = _get_conn()
     try:
@@ -1912,7 +1910,7 @@ def create_player_profile(body: CreatePlayerProfileRequest) -> PlayerProfileResp
 
 
 @router.get("/player/profiles")
-def list_player_profiles() -> dict[str, Any]:
+def list_player_profiles():
     """List all player profiles."""
     conn = _get_conn()
     try:
@@ -1930,7 +1928,7 @@ def list_player_profiles() -> dict[str, Any]:
 
 
 @router.get("/player/{player_profile_id}/legacy")
-def get_player_legacy(player_profile_id: str) -> dict[str, Any]:
+def get_player_legacy(player_profile_id: str):
     """Fetch past campaign outcomes for a player profile."""
     conn = _get_conn()
     try:
@@ -1955,7 +1953,7 @@ def get_player_legacy(player_profile_id: str) -> dict[str, Any]:
 
 
 @router.post("/campaigns/{campaign_id}/complete")
-def complete_campaign(campaign_id: str, body: CompleteCampaignRequest) -> dict[str, Any]:
+def complete_campaign(campaign_id: str, body: CompleteCampaignRequest):
     """Mark a campaign as completed and save legacy data for cross-campaign influence."""
     from backend.app.constants import INTER_CAMPAIGN_SCALE_MAP
     conn = _get_conn()
@@ -2073,7 +2071,7 @@ class ChooseRequest(BaseModel):
 
 
 @router.post("/campaigns/{campaign_id}/start_passage")
-def start_passage(campaign_id: str, body: StartPassageRequest) -> dict[str, Any]:
+def start_passage(campaign_id: str, body: StartPassageRequest):
     conn = _get_conn()
     start_ts = time.perf_counter()
     try:
@@ -2122,7 +2120,7 @@ def start_passage(campaign_id: str, body: StartPassageRequest) -> dict[str, Any]
 
 
 @router.post("/campaigns/{campaign_id}/choose")
-def choose_passage(campaign_id: str, body: ChooseRequest) -> dict[str, Any]:
+def choose_passage(campaign_id: str, body: ChooseRequest):
     conn = _get_conn()
     start_ts = time.perf_counter()
     try:

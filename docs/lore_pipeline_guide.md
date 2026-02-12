@@ -8,7 +8,7 @@ A practical guide to organizing, ingesting, and querying lore for the Storytelle
 
 Organize lore by **era** and **type** so the classifier can infer metadata from paths:
 
-```text
+```
 data/
 ├── lore/
 │   ├── lotf/                    # Era: LOTF (Legacy of the Force)
@@ -24,13 +24,13 @@ data/
 │   └── high_republic/           # Era: High Republic
 └── style/
     └── *.txt                    # Style docs (tone, pacing) — separate pipeline
-```text
+```
 
 ### Rebellion starter pack example
 
 If you’re building a Rebellion MVP content pack, a simple layout is:
 
-```text
+```
 data/lore/rebellion/
   sourcebooks/
     rebel_alliance_faction_sourcebook.txt
@@ -39,7 +39,7 @@ data/lore/rebellion/
   adventures/
     rebellion_adventure_stolen_codes.txt
     rebellion_adventure_safehouse_burn.txt
-```text
+```
 
 **Path heuristics** (from `ingestion/classify_document.py`):
 
@@ -95,7 +95,7 @@ Both scripts process files in the given directory by default. Use `--recursive` 
 
 ```powershell
 python -m storyteller ingest --pipeline lore --input ./data/lore
-```text
+```
 
 This wrapper validates inputs and then dispatches to `ingestion.ingest_lore`.
 
@@ -103,25 +103,25 @@ This wrapper validates inputs and then dispatches to `ingestion.ingest_lore`.
 
 ```powershell
 python -m ingestion.ingest --input_dir sample_data --era LOTF --source_type novel --out_db ./data/lancedb
-```text
+```
 
 **Hierarchical** (parent 1024 / child 256, PDF support, `ingest_lore`):
 
 ```powershell
 python -m ingestion.ingest_lore --input ./data/lore --db ./data/lancedb --time-period LOTF
-```text
+```
 
 **UI era keys (recommended if you use the frontend era dropdown):**
 
 ```powershell
 python -m ingestion.ingest_lore --input ./data/lore --db ./data/lancedb --era-mode ui
-```text
+```
 
 **Rebellion UI-key ingestion (recommended for Rebellion era packs):**
 
 ```powershell
 python -m ingestion.ingest_lore --input ./data/lore/rebellion --db ./data/lancedb --time-period REBELLION --era-mode ui --recursive
-```text
+```
 
 Notes:
 - Director retrieval expects `doc_type=adventure` + `section_kind=hook` (start files with `Adventure Summary:` / `Act I` / `Encounter:` and include `adventure` in the filename).
@@ -133,7 +133,7 @@ This stores the *top-level folder name* under `data/lore/` as `era`/`time_period
 
 ```powershell
 python -m ingestion.ingest_lore --input ./data/lore --db ./data/lancedb --era-mode folder --recursive
-```text
+```
 
 In the frontend UI, choose **Era → Custom...** and enter the same folder name string so retrieval filters match.
 
@@ -162,7 +162,7 @@ Only one model is loaded at a time (specialist swapping), so peak VRAM equals th
 $env:VECTORDB_PATH = "./data/lancedb"
 $env:PYTHONPATH = (Get-Location).Path
 uvicorn backend.main:app --host 0.0.0.0 --port 8000
-```text
+```
 
 ---
 

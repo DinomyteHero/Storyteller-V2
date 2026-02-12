@@ -16,7 +16,7 @@ The story engine is a **LangGraph** pipeline. Every turn flows through the "Livi
 
 ### 1.1 Flow Diagram
 
-```text
+```
                     ┌─────────┐
                     │  Router │  route + action_class (three-way: META, TALK, ACTION)
                     └────┬────┘
@@ -92,24 +92,20 @@ The story engine is a **LangGraph** pipeline. Every turn flows through the "Livi
                         │            (META path arrives here directly from Router)
                         ▼
                        END
-```text
+```
 
 ### 1.2 Step-by-Step
 
 1. **Router**
-
    Classifies user input into **route** (TALK | MECHANIC | META) and **action_class** (DIALOGUE_ONLY | DIALOGUE_WITH_ACTION | PHYSICAL_ACTION | META). **Three-way routing:** META input (help/save/load/quit) shortcuts directly to Commit. The graph skips the Mechanic node **only** when `route == TALK` **and** `action_class == DIALOGUE_ONLY` **and** `requires_resolution == false` (pure speech/questions/persuasion). Otherwise the turn goes to the Mechanic (e.g. "I say hi and stab him" or "I threaten him and pull my blaster" must be resolved by the Mechanic). A deterministic **action-verb guardrail** overrides to non-dialogue-only if the input contains high-signal verbs (stab, shoot, steal, punch, grab, run, sneak, attack, kill, pull, draw, etc.). Router output schema: `intent_text`, `route`, `action_class`, optional `confidence`, optional `rationale_short`. For dialogue-only, the Router pre-fills a minimal `mechanic_result` (time from `DIALOGUE_ONLY_MINUTES`, no dice, no state changes).
 
 2. **Mechanic (Time Cost)**
-
    For `ACTION`, the Mechanic resolves dice, DCs, events (DAMAGE, MOVE, ITEM_GET, etc.) and **always** sets `time_cost_minutes` from the centralized time economy (`backend/app/time_economy.py`). This drives the world clock. Dynamic difficulty via `_ARC_DC_MODIFIER` (SETUP=-2, CLIMAX=+3). Environmental modifiers from location tags, inventory, and time-of-day.
 
 3. **Encounter**
-
    Resolves who is present at the current location; may spawn NPCs via CastingAgent. Attaches `present_npcs` and `active_rumors` (last 3 `is_public_rumor` events) for Director/Narrator.
 
 4. **World Sim (single pipeline)**
-
    There is **one** simulation system per turn. WorldSim runs **before** Commit and writes only to state; Commit persists factions and rumor events. **Triggers** (any one runs the sim once this turn):
    - **Tick boundary crossed:** `t0 = state.campaign.world_time_minutes`, `dt = mechanic_result.time_cost_minutes`, `t1 = t0 + dt`. Run if `floor(t0 / tick) != floor(t1 / tick)` (config: `WORLD_TICK_INTERVAL_HOURS`, default 4 → tick = 240 minutes).
    - **Travel:** Player moved (mechanic_result has MOVE event or `action_type == TRAVEL`).
@@ -117,28 +113,23 @@ The story engine is a **LangGraph** pipeline. Every turn flows through the "Livi
    - **Computation:** Store `t1` in `state.pending_world_time_minutes`. When any trigger fires: **FactionEngine** (`backend/app/world/faction_engine.py`) runs `simulate_faction_tick()` (deterministic: zero LLM, seeded RNG) for faction moves and rumor generation. Falls back to **Campaign Architect** `simulate_off_screen(...)` (LLM with deterministic fallback) when faction engine is not applicable. Rumors are converted into **NewsItems** (headline, source_tag, urgency, related_factions) and merged into `campaign.news_feed` (bounded, e.g. latest 20). Commit later persists `active_factions`, `news_feed`, `faction_memory`, `npc_states`, and appends RUMOR events. Director and Narrator see sim results the same turn.
 
 5. **Companion Reaction (pure, no DB)**
-
    After World Sim, **CompanionReactionNode** runs. It is **deterministic** (no LLM, no DB writes). The system supports **108 companions** with full metadata (gender, species, voice_tags, motivation, speech_quirk) and **17 banter styles**. It: (a) applies **alignment_delta** and **faction_reputation_delta** from `mechanic_result` to `campaign.alignment` and `campaign.faction_reputation`; (b) computes **companion affinity deltas** from `mechanic_result.tone_tag` and each companion's traits (idealist/pragmatic, merciful/ruthless, etc.)--if `mechanic_result.companion_affinity_delta` is present for a companion, that overrides; (c) nudges **loyalty_progress** when affinity moves positive; (d) optionally enqueues **banter** (rate-limited) and **news banter** when a NewsItem touches a faction a companion cares about; (e) computes **inter-party tensions** when companions have opposing reactions; (f) triggers companion-initiated events (COMPANION_REQUEST at TRUSTED, COMPANION_QUEST at LOYAL, COMPANION_CONFRONTATION on sharp drops); (g) **V2.20: PartyState influence** — `compute_influence_from_response()` applies per-companion influence deltas based on intent, meaning_tag, and tone matching against era-pack triggers. Influence is stored in `PartyState` (`backend/app/core/party_state.py`) with trust/respect/fear axes. All updates are in-memory; Commit persists them in `world_state_json["party_state"]` (with backward-compatible legacy fields).
 
 6. **Arc Planner (deterministic)**
-
    Tracks **Hero's Journey beats** with content-aware stage transitions (SETUP → RISING → CLIMAX → RESOLUTION). Outputs `arc_guidance` containing: arc stage, tension level, priority threads, pacing hints, suggested action weights, active themes, **hero_beat**, **archetype_hints**, **theme_guidance**, **era_transition_pending**. Integrates with **genre triggers** (`backend/app/core/genre_triggers.py`) and **era transitions** (`backend/app/core/era_transition.py`).
 
 6b. **SceneFrame (V2.17, pure Python, no LLM, no DB)**
    Inserted between ArcPlanner and Director. Establishes the immutable scene context for downstream nodes: location, present NPCs (with voice profiles from era packs and companion data), immediate situation, allowed scene type, scene hash (SHA256 for deduplication), KOTOR-soul topic anchoring (primary/secondary), subtext, NPC agenda, pressure (alert/heat from world state), and style tags. Active companions from **PartyState** are auto-injected into `present_npcs`. The **BanterManager** (`backend/app/core/banter_manager.py`) may inject a banter micro-scene if safety guards pass (no banter during combat, stealth, or high-pressure states like Watchful/Lockdown/Wanted; per-companion and global cooldowns enforced). Output is stored as `state["scene_frame"]` and used by Director, Narrator, SuggestionRefiner, and Commit (to assemble `DialogueTurn`).
 
 7. **Clock Update (in Commit)**
-
    Commit sets **world_time_minutes** to the post-action time (no double increment):
    - If `state.pending_world_time_minutes` is set: `UPDATE campaigns SET world_time_minutes = ? WHERE id = ?` with that value (`t1`).
    - Otherwise (fallback): `world_time_minutes = COALESCE(world_time_minutes, 0) + time_cost_minutes`.
 
 8. **Director (Text-Only Instructions + Deterministic Suggestions)**
-
    Uses **4-lane style RAG** (Base SW + Era + Genre + Archetype), **player psych_profile** (e.g. `stress_level`, `active_trauma`), **gender/pronoun context** (via `pronouns.py`), and **arc_guidance** (arc stage, tension, pacing hints, priority threads, hero_beat) for tone and scene direction. Incorporates **latest 3 NewsItems** from `campaign.news_feed`; if any has urgency HIGH, the prompt nudges at least one suggested action to respond to it. Falls back to **new_rumors** / **active_rumors** when news_feed is empty. The **LLM generates text-only `director_instructions`** (no JSON schema, no retries for suggestions). **Suggestions are 100% deterministic:** `generate_suggestions(state, mechanic_result)` produces exactly **4 suggested_actions** using pure Python -- mechanic results (post-combat success/failure, post-stealth branches), present NPCs, arc stage, tone diversity (PARAGON/INVESTIGATE/RENEGADE), and exploration/high-stress options. Each action has **category** (SOCIAL | EXPLORE | COMMIT), **risk_level** (SAFE | RISKY | DANGEROUS), **tone_tag** (PARAGON | INVESTIGATE | RENEGADE | NEUTRAL). Server validates via `lint_actions()`. Director also prepares **shared_kg_character_context** and **shared_episodic_memories** to pass to Narrator (avoiding duplicate RAG retrieval).
 
 9. **Narrator (Prose-Only)**
-
    Generates **prose-only** narrative from GameState: mechanic result (facts), director instructions, **lore** RAG, present_npcs, active_rumors, **psych_profile** for tone, **gender/pronoun** context, and **shared RAG data** from Director (KG character context, episodic memories). Outputs `final_text` (returned to the client as **`narrated_text`** in the turn response) and `lore_citations`. **No suggestion generation** -- `embedded_suggestions=None` always. Prose is **5-8 sentences, max 250 words**; `_truncate_overlong_prose()` caps at sentence boundary. Post-processing via `_strip_structural_artifacts()` catches option blocks, meta-game sections, character sheet fields, and meta-narrator patterns. High stress can make prose more fragmented/sensory.
 
 10. **Narrative Validator (deterministic, non-blocking)**
@@ -267,7 +258,6 @@ Lore ingestion lives in **`ingestion/`**. It uses an **Enriched RAG** process: *
 ### 4.1 Where It Lives
 
 - **Lore ingestion:** `ingestion/ingest_lore.py`
-
   CLI: `python -m ingestion.ingest_lore --input ./data/lore [--time-period LOTF] [--planet Tatooine] [--faction Empire]`
 - **Chunking helpers:** `ingestion/chunking.py` (token counting, `chunk_text_by_tokens`, overlap).
 
@@ -288,7 +278,7 @@ Child text stored in the vector DB is **prefixed** so retrieval carries source a
 
 ```text
 [Source: {filename}, Section: {parent_header}] {child_text}
-```text
+```
 
 This is built in `_hierarchical_chunks` and stored in the `text` field of child chunks.
 
@@ -347,7 +337,7 @@ The SvelteKit frontend provides a KOTOR-inspired game interface: a single-page n
 
 ### 6.2 Component Hierarchy
 
-```text
+```
 +page.svelte (route: /play)
   |
   +-- <header> HUD Bar (inline)
@@ -377,7 +367,7 @@ The SvelteKit frontend provides a KOTOR-inspired game interface: a single-page n
         |-- Quests tab          (quest log with status badges and stage progress)
         |-- Comms tab           (news feed: headline, source, urgency, related factions)
         +-- Journal tab         (turn transcript with time deltas)
-```text
+```
 
 Extracted components live in `frontend/src/lib/components/`:
 
@@ -391,7 +381,7 @@ Extracted components live in `frontend/src/lib/components/`:
 
 Stores live in `frontend/src/lib/stores/`. All use Svelte's `writable` / `derived` primitives.
 
-```text
+```
 API Response (TurnResponse)
   |
   v
@@ -411,7 +401,7 @@ lastTurnResponse (writable)  <-- set after runTurn() or streamTurn() completes
           +---> sceneFrame (derived)       -- $dt.scene_frame
           +---> npcUtterance (derived)     -- $dt.npc_utterance
           +---> playerResponses (derived)  -- $dt.player_responses (primary choices)
-```text
+```
 
 | Store file | Purpose | Persistence |
 |------------|---------|-------------|
@@ -426,11 +416,9 @@ lastTurnResponse (writable)  <-- set after runTurn() or streamTurn() completes
 The frontend supports two data paths for player choices, with automatic fallback:
 
 **Primary path (V2.17+ DialogueTurn):**
-
 `TurnResponse.dialogue_turn.player_responses` (array of `PlayerResponse`) provides KOTOR-style choices with `display_text`, `tone_tag`, `risk_level`, `consequence_hint`, `meaning_tag`, and structured `action` (type, intent, target, tone).
 
 **Fallback path (legacy):**
-
 `TurnResponse.suggested_actions` (array of `ActionSuggestion`) provides flat suggestions with `label`, `intent_text`, `tone_tag`, `risk_level`, `consequence_hint`, `companion_reactions`.
 
 The `DialogueWheel` component unifies both into a `UnifiedChoice` interface and renders identically. Selection logic in `+page.svelte` checks `playerResponses.length > 0` before falling back to `suggestedActions`. Keyboard shortcuts (1-4) work with both paths.
@@ -475,7 +463,7 @@ Theme selection is persisted in localStorage via the `ui` store and can be chang
 
 **Data flow on `/play`:**
 
-```text
+```
 User clicks choice (or presses 1-4)
   |
   v
@@ -488,6 +476,6 @@ handleChoiceInput(userInput, label)
   |
   v
 Typewriter effect (if enabled) --> choicesReady flag --> DialogueWheel renders
-```text
+```
 
 **Accessibility:** ARIA labels on all interactive elements, `aria-live` regions for dynamic content, screen reader announcements via `announce()` utility, focus trapping in the info drawer, keyboard navigation for all choices.

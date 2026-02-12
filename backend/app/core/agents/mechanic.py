@@ -15,7 +15,6 @@ from backend.app.models.state import (
     TONE_TAG_NEUTRAL,
 )
 from backend.app.models.events import Event
-from backend.app.models.event_utils import ensure_event
 from backend.app.time_economy import get_time_cost, TRAVEL_HYPERSPACE_MINUTES
 
 # Action types (authoritative)
@@ -130,9 +129,14 @@ def _compute_stress_delta(
         delta += 1
     # High damage event
     for e in events:
-        event = ensure_event(e)
-        et = event.event_type
-        payload = event.payload or {}
+        if isinstance(e, Event):
+            et = e.event_type
+            payload = e.payload or {}
+        elif isinstance(e, dict):
+            et = e.get("event_type", "")
+            payload = e.get("payload") or {}
+        else:
+            continue
         if et == "DAMAGE":
             amount = int(payload.get("amount", 0))
             if amount > 3:
@@ -158,9 +162,14 @@ def _compute_critical_outcome(roll: int | None) -> str | None:
 def _compute_world_reaction_needed(events: list) -> bool:
     """True when events demand immediate world-sim response."""
     for e in events:
-        event = ensure_event(e)
-        et = event.event_type
-        payload = event.payload or {}
+        if isinstance(e, Event):
+            et = e.event_type
+            payload = e.payload or {}
+        elif isinstance(e, dict):
+            et = e.get("event_type", "")
+            payload = e.get("payload") or {}
+        else:
+            continue
         # Severe combat event.
         if et == "DAMAGE" and int(payload.get("amount", 0)) >= 6:
             return True

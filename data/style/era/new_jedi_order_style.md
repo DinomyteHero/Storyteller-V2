@@ -87,7 +87,6 @@ Yuuzhan Vong dialogue is ritualistic and alien — when Vong speak Basic, they u
 ## Sensory Lexicon
 
 **Sound:**
-
 - klaxon wail, evacuation sirens, comlink static
 - Vong coralskipper scream, plasma discharge shriek
 - medic shouts over wounded, triage calls
@@ -96,7 +95,6 @@ Yuuzhan Vong dialogue is ritualistic and alien — when Vong speak Basic, they u
 - hull breach alarm, air hissing out
 
 **Smell:**
-
 - bacta tang, blood copper, smoke from burning hulls
 - unwashed bodies in refugee bays, recycled fear-sweat
 - Vong biotech rot-sweet-strange, coral growth
@@ -105,7 +103,6 @@ Yuuzhan Vong dialogue is ritualistic and alien — when Vong speak Basic, they u
 - medical disinfectant failing to mask death
 
 **Sight:**
-
 - red holographic invasion vectors spreading
 - Vong worldship organic horror, coral growths pulsing
 - overcrowded evacuation zones, families separated
@@ -114,7 +111,6 @@ Yuuzhan Vong dialogue is ritualistic and alien — when Vong speak Basic, they u
 - emergency lighting red-shift, displays flickering
 
 **Touch:**
-
 - cold durasteel in failing heat, controls slick with sweat
 - vibration of weapons fire through deck plates
 - refugee crush press, desperate hands grasping
@@ -123,7 +119,6 @@ Yuuzhan Vong dialogue is ritualistic and alien — when Vong speak Basic, they u
 - medical bandages rough, dried blood sticky
 
 **Taste:**
-
 - metallic fear, adrenaline bitter
 - stale rations, recycled water chemical-tinged
 - blood from bitten lip, dust in mouth

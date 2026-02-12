@@ -40,7 +40,7 @@ These are non-negotiable constraints. Do not violate them.
 
 ## Pipeline Node Order
 
-```text
+```
 Router → Mechanic → Encounter → WorldSim → CompanionReaction → ArcPlanner → SceneFrame → Director → Narrator → NarrativeValidator → SuggestionRefiner → Commit
 ```
 
@@ -51,7 +51,7 @@ Router → Mechanic → Encounter → WorldSim → CompanionReaction → ArcPlan
 ## Feature Flags
 
 | Flag | Default | Purpose |
-| ---- | ------- | ------- |
+|------|---------|---------|
 | `ENABLE_BIBLE_CASTING` | `1` (on) | Use Era Pack deterministic NPC casting instead of LLM CastingAgent |
 | `ENABLE_PROCEDURAL_NPCS` | `1` (on) | Deterministic procedural NPC generation fallback |
 | `ENABLE_SUGGESTION_REFINER` | `1` (on) | LLM-based suggestion refinement (V2.16+) |
@@ -89,7 +89,7 @@ Router → Mechanic → Encounter → WorldSim → CompanionReaction → ArcPlan
 ## Key File Locations
 
 | Purpose | Path |
-| ------- | ---- |
+|---------|------|
 | FastAPI entry point | `backend/main.py` |
 | LangGraph pipeline topology | `backend/app/core/graph.py` |
 | LangGraph node implementations | `backend/app/core/nodes/` |

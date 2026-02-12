@@ -40,7 +40,6 @@ Storyteller AI uses SQLite with an event sourcing architecture. The schema is ma
 
 ```sql
 -- Insert test campaign
-
 INSERT INTO campaigns (
   id,
   title,
@@ -84,13 +83,12 @@ INSERT INTO campaigns (
   datetime('now'),
   datetime('now')
 );
-```text
+```
 
 ### 2. Create Test Player Character
 
 ```sql
 -- Insert test player
-
 INSERT INTO characters (
   id,
   campaign_id,
@@ -124,13 +122,12 @@ INSERT INTO characters (
   datetime('now'),
   datetime('now')
 );
-```text
+```
 
 ### 3. Create Test NPCs
 
 ```sql
 -- Villain
-
 INSERT INTO characters (
   id,
   campaign_id,
@@ -153,7 +150,6 @@ INSERT INTO characters (
   '{}',
   15,
   -30,
-
   'Seeks to crush Rebel cells on Tatooine through intelligence gathering.',
   500,
   datetime('now'),
@@ -161,7 +157,6 @@ INSERT INTO characters (
 );
 
 -- Informant
-
 INSERT INTO characters (
   id,
   campaign_id,
@@ -191,7 +186,6 @@ INSERT INTO characters (
 );
 
 -- Merchant
-
 INSERT INTO characters (
   id,
   campaign_id,
@@ -219,13 +213,12 @@ INSERT INTO characters (
   datetime('now'),
   datetime('now')
 );
-```text
+```
 
 ### 4. Seed Initial Events
 
 ```sql
 -- Initial FLAG_SET event
-
 INSERT INTO turn_events (
   campaign_id,
   turn_number,
@@ -243,7 +236,6 @@ INSERT INTO turn_events (
 );
 
 -- Story note (background seed)
-
 INSERT INTO turn_events (
   campaign_id,
   turn_number,
@@ -259,7 +251,7 @@ INSERT INTO turn_events (
   0,
   datetime('now')
 );
-```text
+```
 
 ### 5. Seed Initial Objective
 
@@ -285,7 +277,7 @@ INSERT INTO objectives (
   datetime('now'),
   datetime('now')
 );
-```text
+```
 
 ---
 
@@ -293,7 +285,6 @@ INSERT INTO objectives (
 
 ```sql
 -- Complete rebellion-era campaign with all features
-
 INSERT INTO campaigns (
   id,
   title,
@@ -384,7 +375,7 @@ INSERT INTO campaigns (
   datetime('now'),
   datetime('now')
 );
-```text
+```
 
 ---
 
@@ -394,7 +385,7 @@ INSERT INTO campaigns (
 
 ```sql
 SELECT id, title, time_period, created_at FROM campaigns WHERE id = 'test-campaign-001';
-```text
+```
 
 ### 2. Verify Player Character
 
@@ -402,7 +393,7 @@ SELECT id, title, time_period, created_at FROM campaigns WHERE id = 'test-campai
 SELECT c.id, c.name, c.role, c.location_id, c.hp_current, c.credits
 FROM characters c
 WHERE c.campaign_id = 'test-campaign-001' AND c.role = 'Player';
-```text
+```
 
 ### 3. Verify NPCs
 
@@ -411,7 +402,7 @@ SELECT c.id, c.name, c.role, c.location_id, c.relationship_score
 FROM characters c
 WHERE c.campaign_id = 'test-campaign-001' AND c.role != 'Player'
 ORDER BY c.relationship_score DESC;
-```text
+```
 
 ### 4. Verify Turn Events
 
@@ -420,7 +411,7 @@ SELECT turn_number, event_type, payload_json, created_at
 FROM turn_events
 WHERE campaign_id = 'test-campaign-001'
 ORDER BY turn_number, id;
-```text
+```
 
 ### 5. Verify Objectives
 
@@ -428,7 +419,7 @@ ORDER BY turn_number, id;
 SELECT id, title, description, status, progress_json
 FROM objectives
 WHERE campaign_id = 'test-campaign-001' AND status = 'active';
-```text
+```
 
 ---
 
@@ -436,7 +427,6 @@ WHERE campaign_id = 'test-campaign-001' AND status = 'active';
 
 ```sql
 -- Delete test campaign and all related data
-
 DELETE FROM turn_events WHERE campaign_id LIKE 'test-campaign-%';
 DELETE FROM rendered_turns WHERE campaign_id LIKE 'test-campaign-%';
 DELETE FROM objectives WHERE campaign_id LIKE 'test-campaign-%';
@@ -445,9 +435,8 @@ DELETE FROM characters WHERE campaign_id LIKE 'test-campaign-%';
 DELETE FROM campaigns WHERE id LIKE 'test-campaign-%';
 
 -- Verify cleanup
-
 SELECT COUNT(*) as remaining FROM campaigns WHERE id LIKE 'test-campaign-%';
-```text
+```
 
 ---
 
@@ -457,26 +446,26 @@ SELECT COUNT(*) as remaining FROM campaigns WHERE id LIKE 'test-campaign-%';
 
 ```sql
 SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
-```text
+```
 
 ### Inspect Campaigns Table
 
 ```sql
 PRAGMA table_info(campaigns);
-```text
+```
 
 ### Check Indexes
 
 ```sql
 SELECT name, tbl_name, sql FROM sqlite_master WHERE type='index';
-```text
+```
 
 ### View Foreign Keys
 
 ```sql
 PRAGMA foreign_keys;
 PRAGMA foreign_key_list(characters);
-```text
+```
 
 ---
 

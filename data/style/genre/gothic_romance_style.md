@@ -53,7 +53,6 @@ Avoid modern colloquialisms entirely — language should feel elevated and sligh
 ## Sensory Lexicon
 
 ### Sound
-
 - the creak of floorboards in an empty corridor, suggesting presence where none should be
 - wind howling through ill-fitted windows, nature pressing against human habitation
 - the distant crash of storm waves against cliffs, isolation emphasized by natural violence
@@ -63,7 +62,6 @@ Avoid modern colloquialisms entirely — language should feel elevated and sligh
 - rain against glass, relentless percussion that drowns other sounds
 
 ### Sight
-
 - candlelight throwing long shadows, illumination that creates as much darkness as it dispels
 - portraits with eyes that seem to follow, the dead observing the living
 - cobwebs stretched across doorways, evidence of spaces unvisited for years
@@ -73,7 +71,6 @@ Avoid modern colloquialisms entirely — language should feel elevated and sligh
 - gardens overgrown with roses and thorns, beauty consuming itself
 
 ### Smell
-
 - old paper and leather bindings in libraries untended for decades, knowledge gathering dust
 - candle wax and smoke, artificial light that stains the air
 - mildew in unused rooms, damp creeping through stone walls
@@ -83,7 +80,6 @@ Avoid modern colloquialisms entirely — language should feel elevated and sligh
 - decay masked by potpourri, attempts to conceal decline
 
 ### Touch
-
 - cold stone walls that leach warmth from the hand, architecture that resists comfort
 - heavy velvet curtains, fabric thick with dust and age
 - the weight of an old key, metal worn smooth by generations of hands

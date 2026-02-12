@@ -53,7 +53,6 @@ Avoid optimism and inspirational speeches — no one in the wasteland believes i
 ## Sensory Lexicon
 
 ### Sound
-
 - wind through broken windows, structure compromised and open to elements
 - the creak and groan of unstable buildings, collapse always possible
 - distant gunfire or explosion, conflict elsewhere, a reminder of ongoing danger
@@ -63,7 +62,6 @@ Avoid optimism and inspirational speeches — no one in the wasteland believes i
 - silence where there should be wildlife, ecosystem damaged or gone
 
 ### Sight
-
 - rust and decay on every metal surface, oxidation without maintenance
 - vegetation breaking through pavement and walls, nature reclaiming human space
 - graffiti or markers left by previous survivors, messages and warnings
@@ -73,7 +71,6 @@ Avoid optimism and inspirational speeches — no one in the wasteland believes i
 - empty windows in ruined buildings, dark voids that could hide anything
 
 ### Smell
-
 - dust and dry rot, organic and inorganic decay mixing
 - stagnant water, pools that have sat unmoving and turned foul
 - smoke from fires, wood and less pleasant materials burned for warmth or disposal
@@ -83,7 +80,6 @@ Avoid optimism and inspirational speeches — no one in the wasteland believes i
 - the smell of cooking food, rare and precious, drawing attention from far away
 
 ### Touch
-
 - the grit of dust and dirt on everything, no clean surfaces remain
 - the weight of a pack loaded with salvage, burden and wealth simultaneously
 - rough fabric or patched clothing, comfort sacrificed to function and availability

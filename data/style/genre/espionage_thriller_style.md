@@ -53,7 +53,6 @@ Avoid action movie quips and bravado — real espionage is not glamorous, and op
 ## Sensory Lexicon
 
 ### Sound
-
 - the click of a door lock engaging, confirming a space is secure or compromised
 - street noise through a window, ambient cover for sensitive conversation
 - the shuffle of papers during a briefing, intelligence physically transferred
@@ -63,7 +62,6 @@ Avoid action movie quips and bravado — real espionage is not glamorous, and op
 - silence where conversation should be, communications discipline or operational security
 
 ### Sight
-
 - chalk mark on a lamppost, dead drop signal executed in public and unnoticed
 - the same face in three different locations across an afternoon, surveillance confirmed
 - a café with good sightlines to the entrance, operational positioning for meeting
@@ -73,7 +71,6 @@ Avoid action movie quips and bravado — real espionage is not glamorous, and op
 - a newspaper left on a bench, folded to specific page, message delivered in open
 
 ### Smell
-
 - cigarette smoke in a cramped safe house, tension and waiting
 - fresh coffee in a neutral meeting location, cover for operational discussion
 - the chemical smell of newly printed documents, forged credentials still settling
@@ -82,7 +79,6 @@ Avoid action movie quips and bravado — real espionage is not glamorous, and op
 - stale air in a basement or underground parking structure, clandestine meeting space
 
 ### Touch
-
 - the weight of a false passport in an interior pocket, physical reminder of assumed identity
 - cold metal of a key taped to the underside of a park bench, dead drop retrieval
 - sweat on palms during high-stakes asset meeting, physical response to operational stress

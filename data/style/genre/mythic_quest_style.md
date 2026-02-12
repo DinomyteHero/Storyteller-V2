@@ -51,7 +51,6 @@ Avoid casual speech and modern idiom entirely — dialogue in this mode should f
 ## Sensory Lexicon
 
 ### Sound
-
 - wind through ancient stone corridors, deep and resonant
 - the hum of a kyber crystal in darkness, felt as much as heard
 - distant thunder rolling across a vast plain, slow and heavy
@@ -60,7 +59,6 @@ Avoid casual speech and modern idiom entirely — dialogue in this mode should f
 - a voice speaking from within the Force, sourceless and calm
 
 ### Sight
-
 - starlight reflected in still water, cold and ancient light
 - fire casting long shadows on cave walls, shapes that almost move
 - vast stone architecture weathered by millennia, moss and vine
@@ -69,7 +67,6 @@ Avoid casual speech and modern idiom entirely — dialogue in this mode should f
 - horizon line where sky meets ocean or desert, infinite and flat
 
 ### Smell
-
 - petrichor on ancient stone, rain on a world that rarely sees it
 - woodsmoke from a fire built in ruins, warmth against cold stone
 - deep mineral scent of caves and underground rivers
@@ -77,7 +74,6 @@ Avoid casual speech and modern idiom entirely — dialogue in this mode should f
 - salt wind off an ocean older than the Republic itself
 
 ### Touch
-
 - cold stone under bare feet, smooth from centuries of pilgrimage
 - the vibration of a kyber crystal responding to proximity
 - heat radiating from volcanic stone, warmth rising from below

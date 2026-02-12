@@ -3,6 +3,7 @@
 Date: 2026-02-12  
 Scope: backend architecture, ingestion/RAG modularity, production readiness, gameplay and narrative engagement
 
+
 ## Implementation status update
 
 Completed after this review was written:
@@ -47,7 +48,6 @@ The recent changes materially improved the project:
 ## A) Modularity and architecture boundaries
 
 ### A1. Vector DB abstraction is defined but not fully adopted
-
 - `backend/app/rag/vector_store.py` introduces `VectorStore`/`LanceDBStore`, but most retrievers and ingestion paths still call LanceDB directly.
 - **Risk:** backend swap will require touching many modules (and likely tests).
 
@@ -58,7 +58,6 @@ The recent changes materially improved the project:
 4. Add adapter contract tests that run for all vector backends.
 
 ### A2. API layer remains monolithic
-
 - `backend/app/api/v2_campaigns.py` is very large and mixes routing, orchestration, and domain policy.
 - **Risk:** high change surface, difficult onboarding, harder reliability improvements.
 
@@ -71,7 +70,6 @@ The recent changes materially improved the project:
 - Keep route files thin; isolate logic and dependencies in service modules.
 
 ### A3. Legacy and modern ingestion are both exposed
-
 - `ingestion/ingest.py` is deprecated but still wired through CLI (`storyteller ingest --pipeline simple`).
 - **Risk:** support burden and inconsistent metadata quality.
 
@@ -85,7 +83,6 @@ The recent changes materially improved the project:
 ## B) Production readiness and portability
 
 ### B1. Environment and runtime drift still occurs across machines
-
 - Runtime requires Python 3.11+, but local execution can silently use other versions.
 - Some tooling remains interactive (CLI prompts), which hurts automation.
 
@@ -95,7 +92,6 @@ The recent changes materially improved the project:
 3. Add `make check`/`task check` command that runs preflight + smoke tests + content checks.
 
 ### B2. Docker topology is useful but not yet "prod-safe by default"
-
 - Good baseline compose exists, but production patterns need hardening.
 
 **Recommendation (medium priority):**
@@ -108,7 +104,6 @@ The recent changes materially improved the project:
 - Add backup/restore verification script (`scripts/verify_backup_restore.py`).
 
 ### B3. Startup environment checks need deeper coverage
-
 - Current checks confirm reachability/path presence; they don’t validate operational correctness deeply.
 
 **Recommendation (medium priority):**
@@ -123,7 +118,6 @@ The recent changes materially improved the project:
 ## C) Gameplay, narrative, and UX depth
 
 ### C1. Gameplay loop should become explicitly "intent -> consequence -> reflection"
-
 You already have strong ingredients (mechanic determinism, memory, narrative guardrails). To increase player immersion, formalize this loop in data + UI:
 
 1. **Intent:** action card + tone tag + risk stance (safe/bold/reckless)
@@ -135,7 +129,6 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 - Display subtle "world remembers" indicators in UI (not spoilery).
 
 ### C2. Companion/NPC systems need stronger authored + procedural blend
-
 - Emotional volatility and memory exist, but engagement improves with predictable relational arcs.
 
 **Recommendation (high priority):**
@@ -195,26 +188,22 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 ## Prioritized implementation roadmap
 
 ## Phase 0 (1-2 weeks): stabilize + simplify startup
-
 - Unify startup docs into a single "new machine" path with copy/paste commands.
 - Add non-interactive bootstrap + preflight command.
 - Gate legacy simple ingestion behind explicit flag.
 - Add `/health/detail` and expand environment checks.
 
 ## Phase 1 (2-4 weeks): enforce modular data boundaries
-
 - Complete VectorStore adapter adoption across retrievers and ingestion query paths.
 - Introduce service layer split for `v2_campaigns`.
 - Add contract tests for adapters and route/service boundaries.
 
 ## Phase 2 (3-6 weeks): narrative depth + UX legibility
-
 - Implement consequence hooks and delayed payoff clocks.
 - Add relationship arc states and companion beat directors.
 - Add scene-state aware suggestion refinement and option diversity constraints.
 
 ## Phase 3 (ongoing): deployment confidence and content ops
-
 - Prompt pack versioning + golden tests.
 - Ingestion SLA metrics and CI gates.
 - Backup/restore drills and performance SLO tracking.

@@ -51,7 +51,6 @@ Avoid direct confrontation in dialogue — characters in this mode do not accuse
 ## Sensory Lexicon
 
 ### Sound
-
 - the low hum of a secure conference room, sound dampening active
 - encrypted datapad chime, incoming classified communication
 - polite applause at a diplomatic function, measured and hollow
@@ -60,7 +59,6 @@ Avoid direct confrontation in dialogue — characters in this mode do not accuse
 - murmured conversation behind closed doors, words indistinct but tone urgent
 
 ### Sight
-
 - formal attire concealing concealed comlinks and recording devices
 - security droids positioned at corridor junctions, scanning passively
 - holographic displays showing sector maps, troop deployments, trade routes
@@ -69,7 +67,6 @@ Avoid direct confrontation in dialogue — characters in this mode do not accuse
 - the way a person's smile does not change when bad news is delivered
 
 ### Smell
-
 - expensive caf and polished wood in a senator's private office
 - the sterile nothing-smell of a military intelligence facility
 - faint cologne or perfume at a diplomatic reception, too many competing scents
@@ -77,7 +74,6 @@ Avoid direct confrontation in dialogue — characters in this mode do not accuse
 - ozone from a recently wiped datapad, evidence freshly erased
 
 ### Touch
-
 - the smooth surface of a conference table, cold and impersonal
 - a handshake that communicates more than the words that follow it
 - the weight of a classified datapad in an inner pocket, heavier than it should be
