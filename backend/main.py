@@ -5,6 +5,7 @@ import time as _time
 from collections import defaultdict as _defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -15,31 +16,16 @@ from backend.app.api import v2_campaigns as v2_campaigns_api, starships as stars
 from backend.app.config import DEFAULT_DB_PATH, MODEL_CONFIG
 from backend.app.core.error_handling import create_error_response, log_error_with_context
 from backend.app.db.migrate import apply_schema
-from shared.config import _env_flag
+from shared.runtime_settings import load_security_settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def _parse_cors_allowlist(raw: str) -> list[str]:
-    origins = [o.strip() for o in raw.split(",") if o and o.strip()]
-    if origins:
-        return origins
-    return [
-        "http://localhost",
-        "http://127.0.0.1",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:8501",
-        "http://127.0.0.1:8501",
-    ]
-
-
-DEV_MODE = _env_flag("STORYTELLER_DEV_MODE", default=True)
-API_TOKEN = os.environ.get("STORYTELLER_API_TOKEN", "").strip()
-CORS_ALLOW_ORIGINS = _parse_cors_allowlist(os.environ.get("STORYTELLER_CORS_ALLOW_ORIGINS", ""))
+SECURITY_SETTINGS = load_security_settings()
+DEV_MODE = SECURITY_SETTINGS.dev_mode
+API_TOKEN = SECURITY_SETTINGS.api_token
+CORS_ALLOW_ORIGINS = SECURITY_SETTINGS.cors_allow_origins
 
 
 
