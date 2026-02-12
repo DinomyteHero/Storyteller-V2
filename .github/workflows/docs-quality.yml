@@ -34,7 +34,6 @@ jobs:
         with:
           args: >-
             --no-progress
-            --exclude-mail
             --max-concurrency 4
             --retry-wait-time 2
             --max-retries 2
