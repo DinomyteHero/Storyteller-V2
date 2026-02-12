@@ -309,7 +309,7 @@
         </div>
 
         <div class="form-field">
-          <label id="gender-label">Gender</label>
+          <p class="field-label" id="gender-label">Gender</p>
           <div class="gender-row" role="group" aria-labelledby="gender-label">
             <button
               class="btn gender-btn"
@@ -325,7 +325,7 @@
         </div>
 
         <div class="form-field">
-          <label id="era-label">Choose Your Era</label>
+          <p class="field-label" id="era-label">Choose Your Era</p>
           <div class="era-cards" role="group" aria-labelledby="era-label">
             {#each ERA_OPTIONS as option}
               <button
@@ -659,7 +659,8 @@
     text-align: left;
     margin-bottom: 1.25rem;
   }
-  .form-field > label {
+  .form-field > label,
+  .form-field > .field-label {
     display: block;
     font-size: var(--font-caption);
     color: var(--text-secondary);

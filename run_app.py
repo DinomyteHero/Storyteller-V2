@@ -248,11 +248,34 @@ def build_commands(args: argparse.Namespace, python_exe: str, ui_mode: str | Non
     return api_cmd, ui_cmd, ui_cwd
 
 
+def _ensure_prod_env_safety() -> None:
+    """Validate production auth/cors env when STORYTELLER_DEV_MODE=0."""
+    dev_mode = os.environ.get("STORYTELLER_DEV_MODE", "1").strip().lower()
+    if dev_mode not in {"0", "false", "no", "off"}:
+        return
+
+    api_token = os.environ.get("STORYTELLER_API_TOKEN", "").strip()
+    if not api_token:
+        raise AppRunnerError("Production mode requires STORYTELLER_API_TOKEN")
+
+    raw_allowlist = os.environ.get("STORYTELLER_CORS_ALLOW_ORIGINS", "").strip()
+    if not raw_allowlist:
+        raise AppRunnerError("Production mode requires explicit STORYTELLER_CORS_ALLOW_ORIGINS")
+
+    origins = [o.strip() for o in raw_allowlist.split(",") if o.strip()]
+    if not origins or "*" in origins:
+        raise AppRunnerError("Production mode forbids wildcard CORS; set explicit STORYTELLER_CORS_ALLOW_ORIGINS")
+
+    print("[OK] Production env safety checks (dev_mode=0, explicit CORS, API token)")
+
+
 def run_preflight(args: argparse.Namespace, python_exe: str, ui_mode: str | None) -> None:
     print("== Storyteller preflight ==")
     if sys.version_info < (3, 11):
         raise AppRunnerError("Python 3.11+ is required")
     print(f"[OK] Python {sys.version.split()[0]}")
+
+    _ensure_prod_env_safety()
 
     for module in ("fastapi", "uvicorn", "httpx"):
         try:

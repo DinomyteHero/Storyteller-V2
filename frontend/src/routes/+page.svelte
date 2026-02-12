@@ -114,15 +114,14 @@
 {#if showLoadModal}
   <div
     class="modal-overlay"
-    onclick={() => showLoadModal = false}
+    onclick={(e) => e.currentTarget === e.target && (showLoadModal = false)}
     onkeydown={(e) => e.key === 'Escape' && (showLoadModal = false)}
     role="dialog"
     aria-modal="true"
     aria-label="Load Campaign"
     tabindex="0"
   >
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="modal-content load-modal" onclick={(e) => e.stopPropagation()} role="document">
+    <div class="modal-content load-modal" role="document">
       <h2>Load Campaign</h2>
 
       {#if loadError}
@@ -181,15 +180,14 @@
 {#if showSettings}
   <div
     class="modal-overlay"
-    onclick={() => showSettings = false}
+    onclick={(e) => e.currentTarget === e.target && (showSettings = false)}
     onkeydown={(e) => e.key === 'Escape' && (showSettings = false)}
     role="dialog"
     aria-modal="true"
     aria-label="Settings"
     tabindex="0"
   >
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="modal-content" onclick={(e) => e.stopPropagation()} role="document">
+    <div class="modal-content" role="document">
       <h2>Settings</h2>
 
       <div class="setting-group">
