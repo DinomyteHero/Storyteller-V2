@@ -11,6 +11,7 @@ Primary sources:
 
 - Root API metadata: `GET /`
 - Health: `GET /health`
+- Detailed diagnostics: `GET /health/detail`
 - Campaign APIs: `/v2/...`
 - Starship APIs: `/v2/starships/...`
 
@@ -56,6 +57,7 @@ Errors are returned in a structured object:
 
 - `POST /v2/setup/auto`
 - `POST /v2/campaigns`
+- `GET /v2/campaigns`
 - `GET /v2/campaigns/{campaign_id}/state?player_id=...`
 - `GET /v2/campaigns/{campaign_id}/world_state`
 - `GET /v2/campaigns/{campaign_id}/locations`
@@ -117,6 +119,33 @@ Example response:
 }
 ```
 
+
+## `GET /v2/campaigns`
+
+Lists existing campaigns so clients can resume prior sessions after restart.
+
+Query params:
+- `limit` (default 25, max 200)
+- `offset` (default 0)
+
+Response shape:
+
+```json
+{
+  "items": [
+    {
+      "campaign_id": "uuid",
+      "title": "Campaign Name",
+      "time_period": "rebellion",
+      "player_id": "uuid",
+      "player_name": "Rex",
+      "current_turn": 4,
+      "updated_at": "2026-02-12T..."
+    }
+  ]
+}
+```
+
 ## `POST /v2/setup/auto`
 
 Auto-builds a campaign skeleton + initial character sheet through setup agents.
@@ -157,6 +186,7 @@ May also include:
 - `news_feed`
 - `dialogue_turn`
 - `turn_contract`
+- `turn_contract.meta.prompt_versions` (prompt pack version/hash metadata)
 - `debug` (when requested)
 - `state` (when requested)
 - `context_stats` (when enabled)
@@ -179,3 +209,10 @@ For exact payload schemas, refer to Pydantic models in:
 
 OpenAPI remains the most precise runtime contract:
 - `http://localhost:8000/docs`
+
+
+## `GET /health/detail`
+
+Returns structured readiness diagnostics (Ollama reachability, data/vector paths, era pack contract checks, and configured LLM roles).
+
+Key fields include `ok` and `checks.{ollama,data_root,vector_db_path,era_packs,llm_roles}`.

@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Any, List
 
 from backend.app.config import LORE_TABLE_NAME, resolve_vectordb_path, EMBEDDING_MODEL
-from backend.app.rag._cache import get_encoder, get_lancedb_table
+from backend.app.rag._cache import get_encoder
+from backend.app.rag.vector_store import create_vector_store, LanceDBStore
 from backend.app.rag.utils import assert_vector_dim, esc, safe_filter_token, safe_filter_tokens
 from backend.app.core.warnings import add_warning
 
@@ -75,19 +76,20 @@ def retrieve_lore(
         return []
 
     try:
-        table = get_lancedb_table(db_path, table_name)
+        store = create_vector_store(db_path, table_name)
+        schema_cols = store.get_schema_columns()
+        if isinstance(store, LanceDBStore):
+            _assert_vector_dim(store._get_table(), str(table_name))
     except Exception as e:
         logger.warning("Could not open lore table %s: %s", table_name, e)
         add_warning(warnings, "Lore retrieval failed: continuing without lore context.")
         return []
 
-    _assert_vector_dim(table, str(table_name))
     encoder = get_encoder(EMBEDDING_MODEL)
     query_vector = encoder.encode([query], show_progress_bar=False)[0]
     if hasattr(query_vector, "tolist"):
         query_vector = query_vector.tolist()
 
-    schema_cols = {f.name for f in table.schema}
     char_filter = characters
     if isinstance(char_filter, str):
         char_filter = [char_filter] if char_filter.strip() else None
@@ -100,7 +102,7 @@ def retrieve_lore(
         npc_filter = [n for n in npc_filter if n and str(n).strip()] or None
 
     try:
-        q = table.search(query_vector).limit(top_k)
+        where_clauses: list[str] = []
         era = _safe_filter_token(era)
         time_period = _safe_filter_token(time_period)
         planet = _safe_filter_token(planet)
@@ -119,84 +121,80 @@ def retrieve_lore(
         safe_source_titles = _safe_filter_tokens(source_titles)
 
         if setting_id and "setting_id" in schema_cols:
-            q = q.where(f"setting_id = '{_esc(setting_id)}'")
+            where_clauses.append(f"setting_id = '{_esc(setting_id)}'")
         if period_id and "period_id" in schema_cols:
-            q = q.where(f"period_id = '{_esc(period_id)}'")
+            where_clauses.append(f"period_id = '{_esc(period_id)}'")
         if universe and "universe" in schema_cols:
-            q = q.where(f"universe = '{_esc(universe)}'")
+            where_clauses.append(f"universe = '{_esc(universe)}'")
         if "source" in schema_cols:
             if safe_source_titles:
                 parts = [f"source = '{_esc(s)}'" for s in safe_source_titles]
                 if parts:
-                    q = q.where(f"({' OR '.join(parts)})")
+                    where_clauses.append(f"({' OR '.join(parts)})")
             elif source_title:
-                q = q.where(f"source = '{_esc(source_title)}'")
+                where_clauses.append(f"source = '{_esc(source_title)}'")
         elif "book_title" in schema_cols:
             if safe_source_titles:
                 parts = [f"book_title = '{_esc(s)}'" for s in safe_source_titles]
                 if parts:
-                    q = q.where(f"({' OR '.join(parts)})")
+                    where_clauses.append(f"({' OR '.join(parts)})")
             elif source_title:
-                q = q.where(f"book_title = '{_esc(source_title)}'")
+                where_clauses.append(f"book_title = '{_esc(source_title)}'")
         if chapter_index_min is not None and "chapter_index" in schema_cols:
-            q = q.where(f"chapter_index >= {int(chapter_index_min)}")
+            where_clauses.append(f"chapter_index >= {int(chapter_index_min)}")
         if chapter_index_max is not None and "chapter_index" in schema_cols:
-            q = q.where(f"chapter_index <= {int(chapter_index_max)}")
+            where_clauses.append(f"chapter_index <= {int(chapter_index_max)}")
         if era and "era" in schema_cols:
-            q = q.where(f"era = '{_esc(era)}'")
+            where_clauses.append(f"era = '{_esc(era)}'")
         if time_period and "time_period" in schema_cols:
-            q = q.where(f"time_period = '{_esc(time_period)}'")
+            where_clauses.append(f"time_period = '{_esc(time_period)}'")
         if planet and "planet" in schema_cols:
-            q = q.where(f"planet = '{_esc(planet)}'")
+            where_clauses.append(f"planet = '{_esc(planet)}'")
         if faction and "faction" in schema_cols:
-            q = q.where(f"faction = '{_esc(faction)}'")
+            where_clauses.append(f"faction = '{_esc(faction)}'")
         if source_type and "source_type" in schema_cols:
-            q = q.where(f"source_type = '{_esc(source_type)}'")
+            where_clauses.append(f"source_type = '{_esc(source_type)}'")
         if "doc_type" in schema_cols:
             if safe_doc_types:
                 parts = [f"doc_type = '{_esc(d)}'" for d in safe_doc_types]
                 if parts:
-                    q = q.where(f"({' OR '.join(parts)})")
+                    where_clauses.append(f"({' OR '.join(parts)})")
             elif doc_type:
-                q = q.where(f"doc_type = '{_esc(doc_type)}'")
+                where_clauses.append(f"doc_type = '{_esc(doc_type)}'")
         if "section_kind" in schema_cols:
             if safe_section_kinds:
                 parts = [f"section_kind = '{_esc(s)}'" for s in safe_section_kinds]
                 if parts:
-                    q = q.where(f"({' OR '.join(parts)})")
+                    where_clauses.append(f"({' OR '.join(parts)})")
             elif section_kind:
-                q = q.where(f"section_kind = '{_esc(section_kind)}'")
+                where_clauses.append(f"section_kind = '{_esc(section_kind)}'")
         if safe_char_filter:
             if "characters_json" in schema_cols:
                 parts = [f"characters_json LIKE '%\"{_esc(c)}\"%'" for c in safe_char_filter]
-                q = q.where(f"({' OR '.join(parts)})")
+                where_clauses.append(f"({' OR '.join(parts)})")
             elif "characters" in schema_cols:
                 parts = [f"list_contains(characters, '{_esc(c)}')" for c in safe_char_filter]
-                q = q.where(f"({' OR '.join(parts)})")
+                where_clauses.append(f"({' OR '.join(parts)})")
         if safe_npc_filter:
             if "related_npcs_json" in schema_cols:
                 parts = [f"related_npcs_json LIKE '%\"{_esc(n)}\"%'" for n in safe_npc_filter]
-                q = q.where(f"({' OR '.join(parts)})")
+                where_clauses.append(f"({' OR '.join(parts)})")
             elif "related_npcs" in schema_cols:
                 parts = [f"list_contains(related_npcs, '{_esc(n)}')" for n in safe_npc_filter]
-                q = q.where(f"({' OR '.join(parts)})")
-        tbl = q.to_arrow()
+                where_clauses.append(f"({' OR '.join(parts)})")
+        rows = store.search_multi_where(query_vector, top_k=top_k, where_clauses=where_clauses) if isinstance(store, LanceDBStore) else [r for r in store.search(query_vector, top_k=top_k, where=" AND ".join(where_clauses) if where_clauses else None)]
     except Exception as e:
         logger.warning("Lore search failed: %s", e)
         add_warning(warnings, "Lore retrieval failed: continuing without lore context.")
         return []
 
-    if tbl.num_rows == 0:
+    if not rows:
         return []
 
-    d = tbl.to_pydict()
     out: List[dict[str, Any]] = []
-    for i in range(tbl.num_rows):
+    for row in rows:
         def _v(name: str, default: Any = ""):
-            col = d.get(name)
-            if col is None:
-                return default
-            return col[i] if i < len(col) else default
+            return row.get(name, default)
 
         dist = _v("_distance", 0.0)
         score = float(1.0 - (dist if dist is not None else 0.0))

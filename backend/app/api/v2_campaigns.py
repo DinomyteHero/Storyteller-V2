@@ -37,6 +37,7 @@ from backend.app.core.story_position import (
     canonical_year_label_from_campaign,
     initialize_story_position,
 )
+from backend.app.prompts.registry import prompt_registry_snapshot
 
 router = APIRouter(prefix="/v2", tags=["v2-campaigns"])
 
@@ -299,6 +300,21 @@ class TurnResponse(BaseModel):
     # V2.17: Canonical DialogueTurn (scene + NPC utterance + player responses)
     dialogue_turn: dict | None = None
     turn_contract: TurnContract | None = None
+
+
+class CampaignSummary(BaseModel):
+    """Lightweight campaign listing item for resume flows."""
+    campaign_id: str
+    title: str
+    time_period: str | None = None
+    player_id: str | None = None
+    player_name: str | None = None
+    current_turn: int = 0
+    updated_at: str | None = None
+
+
+class CampaignListResponse(BaseModel):
+    items: list[CampaignSummary]
 
 
 def _get_conn():
@@ -1037,6 +1053,54 @@ def create_campaign(body: CreateCampaignRequest):
         conn.close()
 
 
+@router.get("/campaigns", response_model=CampaignListResponse)
+def list_campaigns(limit: int = Query(25, ge=1, le=200), offset: int = Query(0, ge=0)):
+    """List campaigns so clients can resume previous sessions after restart."""
+    conn = _get_conn()
+    try:
+        rows = conn.execute(
+            """
+            SELECT
+                c.id AS campaign_id,
+                c.title AS title,
+                c.time_period AS time_period,
+                p.id AS player_id,
+                p.name AS player_name,
+                COALESCE(
+                    (
+                        SELECT MAX(te.turn_number)
+                        FROM turn_events te
+                        WHERE te.campaign_id = c.id
+                    ),
+                    0
+                ) AS current_turn,
+                c.updated_at AS updated_at
+            FROM campaigns c
+            LEFT JOIN characters p
+                ON p.campaign_id = c.id
+               AND p.role = 'Player'
+            ORDER BY COALESCE(c.updated_at, c.created_at, c.id) DESC
+            LIMIT ? OFFSET ?
+            """,
+            (int(limit), int(offset)),
+        ).fetchall()
+        items = [
+            CampaignSummary(
+                campaign_id=r["campaign_id"],
+                title=r["title"],
+                time_period=r["time_period"],
+                player_id=r["player_id"],
+                player_name=r["player_name"],
+                current_turn=int(r["current_turn"] or 0),
+                updated_at=r["updated_at"],
+            )
+            for r in rows
+        ]
+        return CampaignListResponse(items=items)
+    finally:
+        conn.close()
+
+
 @router.get("/campaigns/{campaign_id}/state", response_model=GameState)
 def get_campaign_state(
     campaign_id: str,
@@ -1382,6 +1446,7 @@ def post_turn(
                 alignment=alignment_out or None,
                 reputations=faction_reputation_out or None,
                 passage_id=ws_live.get("current_passage_id"),
+                prompt_versions=prompt_registry_snapshot(),
             ),
             ledger_facts=ledger_facts,
             has_companions=bool((camp or {}).get("party")),
@@ -1726,6 +1791,7 @@ def post_turn_stream(
                     beats_remaining=beats_remaining,
                     active_objectives=objectives,
                     passage_id=ws_live.get("current_passage_id"),
+                    prompt_versions=prompt_registry_snapshot(),
                 ),
                 ledger_facts=get_facts(conn, campaign_id),
                 has_companions=bool((camp or {}).get("party")),
@@ -2084,7 +2150,7 @@ def choose_passage(campaign_id: str, body: ChooseRequest):
                     {"id": "fallback_info", "label": "Gather intel safely", "intent": {"intent_type": "INVESTIGATE", "target_ids": {}, "params": {}}, "risk": "low", "cost": {"time_minutes": 5}},
                     {"id": "fallback_push", "label": "Push the mission forward", "intent": {"intent_type": "FIGHT", "target_ids": {}, "params": {}}, "risk": "high", "cost": {"time_minutes": 8}},
                 ],
-                meta=TurnMeta(passage_id="fallback_missing_pack", beats_remaining=int(ws.get("beats_remaining", 4))),
+                meta=TurnMeta(passage_id="fallback_missing_pack", beats_remaining=int(ws.get("beats_remaining", 4)), prompt_versions=prompt_registry_snapshot()),
                 debug=TurnDebug(validation_errors=[f"passage_pack_invalid:{pack_id}"], repaired=False, repair_count=0),
             )
             return {"turn_contract": fallback.model_dump(mode="json")}
@@ -2110,7 +2176,7 @@ def choose_passage(campaign_id: str, body: ChooseRequest):
             outcome=outcome,
             state_delta=delta,
             choices=build_choices(nxt, ws),
-            meta=TurnMeta(passage_id=next_passage_id, beats_remaining=int(ws.get("beats_remaining", 4)), active_objectives=_active_objectives(conn, campaign_id)),
+            meta=TurnMeta(passage_id=next_passage_id, beats_remaining=int(ws.get("beats_remaining", 4)), active_objectives=_active_objectives(conn, campaign_id), prompt_versions=prompt_registry_snapshot()),
             debug=TurnDebug(),
         )
         logger.info("passage_choose node=choose campaign_id=%s turn_id=%s latency_ms=%s", campaign_id, turn.turn_id, int((time.perf_counter()-start_ts)*1000))

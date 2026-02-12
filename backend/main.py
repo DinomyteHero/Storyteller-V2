@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from backend.app.api import v2_campaigns as v2_campaigns_api, starships as starships_api
-from backend.app.config import DEFAULT_DB_PATH
+from backend.app.config import DEFAULT_DB_PATH, MODEL_CONFIG
 from backend.app.core.error_handling import create_error_response, log_error_with_context
 from backend.app.db.migrate import apply_schema
 from shared.config import _env_flag
@@ -41,6 +41,59 @@ DEV_MODE = _env_flag("STORYTELLER_DEV_MODE", default=True)
 API_TOKEN = os.environ.get("STORYTELLER_API_TOKEN", "").strip()
 CORS_ALLOW_ORIGINS = _parse_cors_allowlist(os.environ.get("STORYTELLER_CORS_ALLOW_ORIGINS", ""))
 
+
+
+
+def _collect_environment_diagnostics() -> dict:
+    """Collect structured environment diagnostics for /health/detail."""
+    import httpx
+    from backend.app.config import resolve_vectordb_path, ERA_PACK_DIR, DATA_ROOT
+
+    checks: dict[str, dict] = {}
+
+    ollama_url = os.environ.get("OLLAMA_BASE_URL", os.environ.get("OLLAMA_HOST", "http://localhost:11434"))
+    try:
+        resp = httpx.get(f"{ollama_url}/api/tags", timeout=5.0)
+        models = [m.get("name", "") for m in resp.json().get("models", [])]
+        checks["ollama"] = {
+            "ok": True,
+            "url": ollama_url,
+            "models_loaded": len(models),
+        }
+    except Exception as e:
+        checks["ollama"] = {"ok": False, "url": ollama_url, "error": str(e)}
+
+    data_root_ok = DATA_ROOT.exists()
+    checks["data_root"] = {"ok": data_root_ok, "path": str(DATA_ROOT)}
+
+    vdb = resolve_vectordb_path()
+    checks["vector_db_path"] = {"ok": vdb.exists(), "path": str(vdb)}
+
+    era_dir = Path(str(ERA_PACK_DIR))
+    era_pack_details: list[dict] = []
+    era_ok = False
+    if era_dir.exists() and era_dir.is_dir():
+        for d in sorted([x for x in era_dir.iterdir() if x.is_dir()]):
+            yml_count = len(list(d.glob("*.yml")) + list(d.glob("*.yaml")))
+            era_pack_details.append({
+                "era_id": d.name,
+                "yaml_files": yml_count,
+                "pack_contract_ok": yml_count >= 12,
+            })
+        era_ok = len(era_pack_details) > 0
+    checks["era_packs"] = {
+        "ok": era_ok,
+        "path": str(era_dir),
+        "packs": era_pack_details,
+    }
+
+    checks["llm_roles"] = {
+        "ok": True,
+        "configured_roles": sorted(list(MODEL_CONFIG.keys())),
+    }
+
+    overall_ok = all(v.get("ok", False) for v in checks.values())
+    return {"ok": overall_ok, "checks": checks}
 
 def _validate_environment() -> None:
     """Log environment health checks at startup. Never fails — graceful degradation."""
@@ -259,6 +312,13 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+
+@app.get("/health/detail")
+async def health_detail():
+    """Structured readiness diagnostics for deployment checks."""
+    diag = _collect_environment_diagnostics()
+    return {"status": "healthy" if diag.get("ok") else "degraded", **diag}
 
 
 # Serve SvelteKit static build in production.

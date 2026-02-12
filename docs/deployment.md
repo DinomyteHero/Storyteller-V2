@@ -26,6 +26,7 @@ docker compose exec api python -m ingestion.ingest_lore
 
 # 6. Verify
 curl http://localhost:8000/health
+curl http://localhost:8000/health/detail
 ```
 
 ## Manual Setup (Without Docker)
@@ -37,6 +38,10 @@ curl http://localhost:8000/health
 
 ### Backend
 ```bash
+# Option A: one-command bootstrap
+bash scripts/bootstrap.sh
+
+# Option B: manual
 python -m venv .venv && source .venv/bin/activate
 pip install -e .
 cp .env.production.example .env  # Edit as needed
@@ -57,6 +62,16 @@ ollama pull qwen3:4b
 ollama pull qwen3:8b
 ollama pull nomic-embed-text
 ```
+
+## Runtime verification
+
+- List resumable campaigns:
+
+```bash
+curl http://localhost:8000/v2/campaigns
+```
+
+- Turn contract now includes prompt pack versions under `turn_contract.meta.prompt_versions` for reproducibility auditing.
 
 ## Production Checklist
 

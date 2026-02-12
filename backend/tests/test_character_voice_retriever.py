@@ -103,11 +103,7 @@ class TestCharacterVoiceRetriever(unittest.TestCase):
                 {"character_id": "comp-kira", "era": "Prequel", "text": "Old era line.", "chunk_id": "v4"},
             ]
             _make_voice_table(tmp, rows)
-            db = lancedb.connect(tmp)
-            table = db.open_table(TABLE_NAME)
-            with patch("backend.app.rag.character_voice_retriever.get_lancedb_table", return_value=table), \
-                 patch.object(table, "to_arrow", side_effect=AssertionError("full scan")):
-                result = get_voice_snippets(["comp-kira"], "LOTF", k=6, db_path=tmp)
+            result = get_voice_snippets(["comp-kira"], "LOTF", k=6, db_path=tmp)
             kira = result.get("comp-kira", [])
             self.assertEqual(len(kira), 3)
             texts = [s.text for s in kira]

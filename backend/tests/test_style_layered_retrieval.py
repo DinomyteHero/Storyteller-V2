@@ -156,10 +156,10 @@ def test_director_passes_none_when_no_genre():
         return []
 
     agent = DirectorAgent(llm=None, style_retriever=fake_style_retriever)
-    state = _minimal_state(campaign={"time_period": "LEGACY", "world_state_json": {}})
+    state = _minimal_state(campaign={"time_period": "REBELLION", "world_state_json": {}})
     agent._build_instructions(state)
 
-    assert captured_kwargs.get("era_id") == "LEGACY"
+    assert captured_kwargs.get("era_id") == "REBELLION"
     assert captured_kwargs.get("genre") is None
 
 

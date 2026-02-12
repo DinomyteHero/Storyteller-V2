@@ -11,7 +11,8 @@ from backend.app.config import (
     EMBEDDING_MODEL,
     resolve_vectordb_path,
 )
-from backend.app.rag._cache import get_lancedb_table, get_encoder
+from backend.app.rag._cache import get_encoder
+from backend.app.rag.vector_store import create_vector_store, LanceDBStore
 from backend.app.rag.utils import assert_vector_dim, esc, safe_filter_token
 from backend.app.core.warnings import add_warning
 
@@ -66,14 +67,14 @@ def get_voice_snippets(
         return {str(cid).strip(): [] for cid in character_ids if cid}
 
     try:
-        table = get_lancedb_table(db_path, table_name)
+        store = create_vector_store(db_path, table_name)
+        schema_cols = store.get_schema_columns()
+        if isinstance(store, LanceDBStore):
+            _assert_vector_dim(store._get_table(), str(table_name))
     except Exception as e:
         logger.debug("Could not open character voice table %s: %s. Voice snippets unavailable.", table_name, e)
         add_warning(warnings, "Voice retrieval failed: continuing without voice context.")
         return {str(cid).strip(): [] for cid in character_ids if cid}
-
-    _assert_vector_dim(table, str(table_name))
-    schema_cols = {f.name for f in table.schema}
     if "character_id" not in schema_cols or "text" not in schema_cols:
         logger.debug("character_voice_chunks missing required columns. Voice snippets unavailable.")
         add_warning(warnings, "Voice retrieval failed: continuing without voice context.")
@@ -114,7 +115,7 @@ def get_voice_snippets(
             result[cid] = []
             continue
         snippets = _search_snippets(
-            table,
+            store,
             vec,
             cid,
             era_stripped if has_era else "",
@@ -123,7 +124,7 @@ def get_voice_snippets(
         )
         if has_era and len(snippets) < min_acceptable:
             widened = _search_snippets(
-                table,
+                store,
                 vec,
                 cid,
                 "",
@@ -143,7 +144,7 @@ def get_voice_snippets(
 
 
 def _search_snippets(
-    table: Any,
+    store: Any,
     vector: list[float],
     character_id: str,
     era: str,
@@ -155,32 +156,25 @@ def _search_snippets(
     safe_era = _safe_filter_token(era) if era else None
     if not safe_character_id:
         return []
+    where_clauses = [f"character_id = '{_esc(safe_character_id)}'"]
+    if safe_era:
+        where_clauses.append(f"era = '{_esc(safe_era)}'")
     try:
-        q = table.search(vector).limit(k)
-        q = q.where(f"character_id = '{_esc(safe_character_id)}'")
-        if safe_era:
-            q = q.where(f"era = '{_esc(safe_era)}'")
-        arr = q.to_arrow()
+        if isinstance(store, LanceDBStore):
+            rows = store.search_multi_where(vector, top_k=k, where_clauses=where_clauses)
+        else:
+            rows = store.search(vector, top_k=k, where=" AND ".join(where_clauses))
     except Exception as ex:
         logger.debug("Voice search failed: %s", ex)
         add_warning(warnings, "Voice retrieval failed: continuing without voice context.")
         return []
 
-    d = arr.to_pydict()
-    n = arr.num_rows
-
-    def _v(name: str, i: int, default: Any = ""):
-        col = d.get(name)
-        if col is None:
-            return default
-        return col[i] if i < len(col) else default
-
     out: list[VoiceSnippet] = []
-    for i in range(n):
-        text = (str(_v("text", i, "") or "")).strip()
+    for row in rows:
+        text = (str(row.get("text", "") or "")).strip()
         if not text:
             continue
-        row_era = (str(_v("era", i, "") or "")).strip()
-        chunk_id = str(_v("chunk_id", i) or _v("id", i) or "")
+        row_era = (str(row.get("era", "") or "")).strip()
+        chunk_id = str(row.get("chunk_id") or row.get("id") or "")
         out.append(VoiceSnippet(character_id=character_id, era=row_era, text=text, chunk_id=chunk_id))
     return out
