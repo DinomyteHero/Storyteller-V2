@@ -51,7 +51,6 @@ Avoid bravado and one-liners entirely — no character in this mode is having a 
 ## Sensory Lexicon
 
 ### Sound
-
 - dripping in the dark, irregular and echoing, source unidentifiable
 - ventilation cycling on and off, each silence a held breath
 - something scraping against the hull, slow and deliberate
@@ -60,7 +59,6 @@ Avoid bravado and one-liners entirely — no character in this mode is having a 
 - a sound like a voice but not a voice, coming from the wrong direction
 
 ### Sight
-
 - emergency lighting casting everything in red shadow, depth perception gone
 - darkness beyond the reach of a glow rod, absolute and textured
 - condensation on cold durasteel, beading and dripping in patterns
@@ -69,7 +67,6 @@ Avoid bravado and one-liners entirely — no character in this mode is having a 
 - a closed door with something pressing against it from the other side
 
 ### Smell
-
 - recycled air gone stale, carbon dioxide building
 - organic decay where nothing organic should be, sweet and wrong
 - ozone from shorted electrical systems, sharp and immediate
@@ -77,7 +74,6 @@ Avoid bravado and one-liners entirely — no character in this mode is having a 
 - chemical coolant leaking, acrid burn in the nostrils
 
 ### Touch
-
 - cold sweat inside gloves, grip slipping on a weapon stock
 - vibration through the deck plates, rhythmic, not matching any engine cycle
 - humidity in a corridor that should be climate-controlled, warm and wet

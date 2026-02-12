@@ -35,7 +35,7 @@ flowchart TD
     style ARCPLAN fill:#cfc,stroke:#333
     style VALIDATOR fill:#fcf,stroke:#333
     style REFINER fill:#ffc,stroke:#333
-```text
+```
 
 ## Node-by-Node Detail
 

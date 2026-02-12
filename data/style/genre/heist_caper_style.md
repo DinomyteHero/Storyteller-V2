@@ -53,7 +53,6 @@ Avoid explaining the plan during execution — the crew does not narrate what th
 ## Sensory Lexicon
 
 ### Sound
-
 - the subtle click of a lock mechanism disengaging, tumblers aligning perfectly
 - near-silent footsteps on polished floors, trained movement minimizing noise
 - the hum of security equipment, active systems that must be avoided or defeated
@@ -63,7 +62,6 @@ Avoid explaining the plan during execution — the crew does not narrate what th
 - ambient crowd noise during a distraction, chaos as cover for the real work
 
 ### Sight
-
 - security camera sweep patterns, predictable arcs that create blind spots
 - laser tripwires visible in refracted dust, elegant geometry to navigate
 - the glow of a datapad screen in darkness, specialist at work in low light
@@ -73,7 +71,6 @@ Avoid explaining the plan during execution — the crew does not narrate what th
 - crew members in position, each where they are supposed to be, choreography
 
 ### Smell
-
 - the sterile air of a high-security facility, climate-controlled and artificial
 - ozone from electronic equipment, server rooms and security grids active
 - expensive cologne or perfume on a mark being played, close-quarters manipulation
@@ -82,7 +79,6 @@ Avoid explaining the plan during execution — the crew does not narrate what th
 - coffee and caf on breath during tense close conversation, masking nerves
 
 ### Touch
-
 - gloved fingers on smooth metal surfaces, leaving no prints, professional caution
 - the weight of stolen data in a hidden pocket, compact and invaluable
 - sweat under the mask of calm, physical response to stress concealed by control

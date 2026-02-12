@@ -1,7 +1,6 @@
 # Player User Experience Flow Diagram
 
 ## Overview
-
 This document visualizes the complete player journey through Storyteller AI, from campaign creation to turn-by-turn gameplay.
 
 ---
@@ -28,7 +27,7 @@ flowchart TD
     style AutoAPI fill:#e1f5ff
     style ManualAPI fill:#e1f5ff
     style Ready fill:#90EE90
-```text
+```
 
 ---
 
@@ -62,7 +61,7 @@ flowchart TD
     style PlayerChoice fill:#FFD700
     style Response fill:#90EE90
     style GameOver fill:#FF6B6B
-```text
+```
 
 ---
 
@@ -108,7 +107,7 @@ flowchart TD
     style Refiner fill:#DDA0DD
     style Commit fill:#90EE90
     style Output fill:#90EE90
-```text
+```
 
 ---
 
@@ -165,7 +164,7 @@ flowchart LR
     style Talk fill:#B0E0E6
     style DAction fill:#DDA0DD
     style PAction fill:#FFB6C1
-```text
+```
 
 **Pipeline Path Summary:**
 - **META**: Router → Commit (instant, 0 time cost)
@@ -212,7 +211,7 @@ flowchart TB
     style S3 fill:#FF6B6B
     style S4 fill:#D3D3D3
     style NPCWheel fill:#DDA0DD
-```text
+```
 
 ---
 
@@ -252,7 +251,7 @@ flowchart TD
 
     style Tick fill:#FFB6C1
     style PlayerSees fill:#90EE90
-```text
+```
 
 **Key Insight:** Time pressure creates meaningful choices:
 - **Rush through actions** = cover more ground, but miss clues and opportunities
@@ -302,7 +301,7 @@ flowchart TD
     style Disapprove fill:#FF6B6B
     style Loyal fill:#FFD700
     style Hostile fill:#8B0000
-```text
+```
 
 **Companion Personality Examples:**
 - **Idealist** (e.g., Jedi Knight): Approves PARAGON, disapproves RENEGADE
@@ -354,7 +353,7 @@ flowchart TD
     style Complete fill:#90EE90
     style Failed fill:#FF6B6B
     style Legacy fill:#FFD700
-```text
+```
 
 **Quest Stage Example:**
 ```json
@@ -371,7 +370,7 @@ flowchart TD
     ]
   }
 }
-```text
+```
 
 ---
 
@@ -415,7 +414,7 @@ mindmap
       All changes shown to player
       Warnings for important events
       Debug mode available
-```text
+```
 
 ---
 
@@ -456,7 +455,7 @@ flowchart TB
     style P3Companion fill:#FFD700
     style P4Complete fill:#FF6B6B
     style P5 fill:#DDA0DD
-```text
+```
 
 **Average Session Lengths:**
 - **Short session:** 5-10 turns, 15-30 minutes real time

@@ -91,7 +91,6 @@ Civilian dialogue reflects post-war adjustment — people talk about reconstruct
 ## Sensory Lexicon
 
 **Sound:**
-
 - committee chambers echoing, gavel strike, vote chime
 - holoprojector hum, data slate tap, comlink trill
 - Senate murmur, crowd applause, protest chants
@@ -100,7 +99,6 @@ Civilian dialogue reflects post-war adjustment — people talk about reconstruct
 - droid maintenance beeps, cargo loaders rumble
 
 **Smell:**
-
 - caf brewing in Senate offices, polished durasteel
 - recycled air in converted bases, fresh paint on walls
 - engine coolant, hydraulic fluid, welding residue
@@ -109,7 +107,6 @@ Civilian dialogue reflects post-war adjustment — people talk about reconstruct
 - market spices, diverse species cooking, prosperity scents
 
 **Sight:**
-
 - Republic banners over Imperial architecture
 - holos of vote tallies, debate chambers crowded
 - Mon Cal ship curves, Bothan fur patterns
@@ -118,7 +115,6 @@ Civilian dialogue reflects post-war adjustment — people talk about reconstruct
 - diverse species in Senate galleries, former Rebels in uniform
 
 **Touch:**
-
 - smooth data slate screens, worn Senate seats
 - training lightsaber grips, meditation chamber stone
 - cold space wind from hangar bays
@@ -126,7 +122,6 @@ Civilian dialogue reflects post-war adjustment — people talk about reconstruct
 - handshakes sealing deals, shoulder clasps between veterans
 
 **Taste:**
-
 - quality caf in Core Worlds, better rations
 - diverse species cuisines, trade bringing variety
 - celebration wine after Senate victories

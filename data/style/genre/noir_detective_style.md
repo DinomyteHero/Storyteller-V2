@@ -51,7 +51,6 @@ Avoid exposition dumps disguised as conversation — nobody in this mode explain
 ## Sensory Lexicon
 
 ### Sound
-
 - neon buzz and flicker, the electric hum of cheap signage
 - cantina music muffled through a closed door, bass thrum
 - ice shifting in a glass, liquid poured slowly
@@ -60,7 +59,6 @@ Avoid exposition dumps disguised as conversation — nobody in this mode explain
 - blaster safety clicking off under a table, quiet and deliberate
 
 ### Sight
-
 - neon reflections in rain puddles on duracrete, smeared color
 - smoke layered in still air, curling under dim overhead lights
 - shadows that move wrong, a figure stepping back from a doorway
@@ -69,7 +67,6 @@ Avoid exposition dumps disguised as conversation — nobody in this mode explain
 - a contact's eyes tracking someone behind you while talking to you
 
 ### Smell
-
 - stale smoke and cheap stimulant caf, cantina baseline
 - rain on hot duracrete, metallic and sharp
 - whiskey analog and synth-leather, a booth in the back corner
@@ -77,7 +74,6 @@ Avoid exposition dumps disguised as conversation — nobody in this mode explain
 - recycled air with a chemical edge, lower-level ventilation failing
 
 ### Touch
-
 - cold glass sweating condensation, wet ring on the bar
 - synth-leather booth cracked and worn smooth by years of use
 - the weight of a concealed hold-out blaster against the ribs

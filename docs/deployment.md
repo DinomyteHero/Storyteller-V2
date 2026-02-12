@@ -6,75 +6,62 @@ The fastest way to deploy Storyteller-V2 on a new machine:
 
 ```bash
 # 1. Clone the repository
-
 git clone <repo-url> && cd Storyteller-V2
 
 # 2. Copy and configure environment
-
 cp .env.production.example .env
 # Edit .env — set STORYTELLER_API_TOKEN and STORYTELLER_CORS_ALLOW_ORIGINS
 
 # 3. Start all services
-
 docker compose up --build -d
 
 # 4. Pull required Ollama models (first time only)
-
 docker compose exec ollama ollama pull mistral-nemo:latest
 docker compose exec ollama ollama pull qwen3:4b
 docker compose exec ollama ollama pull qwen3:8b
 docker compose exec ollama ollama pull nomic-embed-text
 
 # 5. Run ingestion (if you have lore content)
-
 docker compose exec api python -m ingestion.ingest_lore
 
 # 6. Verify
-
 curl http://localhost:8000/health
 curl http://localhost:8000/health/detail
-```text
+```
 
 ## Manual Setup (Without Docker)
 
 ### Prerequisites
-
 - Python 3.11+
 - Node.js 20+ (for frontend)
 - Ollama installed and running
 
 ### Backend
-
 ```bash
 # Option A: one-command bootstrap
-
 bash scripts/bootstrap.sh
 
 # Option B: manual
-
 python -m venv .venv && source .venv/bin/activate
 pip install -e .
 cp .env.production.example .env  # Edit as needed
 uvicorn backend.main:app --host 0.0.0.0 --port 8000
-```text
+```
 
 ### Frontend
-
 ```bash
 cd frontend
 npm install && npm run build
 # Built files are served automatically by the backend at /
-
-```text
+```
 
 ### Ollama Models
-
 ```bash
 ollama pull mistral-nemo:latest
 ollama pull qwen3:4b
 ollama pull qwen3:8b
 ollama pull nomic-embed-text
-```text
+```
 
 ## Runtime verification
 
@@ -82,7 +69,7 @@ ollama pull nomic-embed-text
 
 ```bash
 curl http://localhost:8000/v2/campaigns
-```text
+```
 
 - Turn contract now includes prompt pack versions under `turn_contract.meta.prompt_versions` for reproducibility auditing.
 
@@ -99,34 +86,27 @@ curl http://localhost:8000/v2/campaigns
 ## Backup and Restore
 
 ### SQLite Database
-
 ```bash
 # Backup
-
 cp data/storyteller.db data/storyteller.db.backup.$(date +%Y%m%d)
 
 # Restore
-
 cp data/storyteller.db.backup.YYYYMMDD data/storyteller.db
-```text
+```
 
 ### LanceDB Vector Store
-
 ```bash
 # Backup (it's a directory)
-
 tar -czf lancedb-backup-$(date +%Y%m%d).tar.gz data/lancedb/
 
 # Restore
-
 tar -xzf lancedb-backup-YYYYMMDD.tar.gz
-```text
+```
 
 ### Full Data Backup
-
 ```bash
 tar -czf storyteller-data-$(date +%Y%m%d).tar.gz data/
-```text
+```
 
 ## Architecture Notes
 

@@ -280,7 +280,6 @@ Commit updates the ledger every turn (`update_ledger(...)`) using the staged eve
 `campaigns.world_state_json` is a JSON object. Common keys:
 
 ### Living World
-
 - `active_factions`: list of faction dicts (seeded from Era Packs when `ENABLE_BIBLE_CASTING=1`)
 - `news_feed`: list of ME-style briefing items
 - `new_rumors_raw`: list of raw rumor strings from the most recent WorldSim run
@@ -288,7 +287,6 @@ Commit updates the ledger every turn (`update_ledger(...)`) using the staged eve
 - `npc_states`: dict of npc_id -> autonomous NPC state (location, goals, 20% movement per tick)
 
 ### Party / Alignment
-
 - `party`: list of companion IDs (strings)
 - `party_traits`: dict of companion_id -> trait dict
 - `party_affinity`: dict of companion_id -> int
@@ -299,7 +297,6 @@ Commit updates the ledger every turn (`update_ledger(...)`) using the staged eve
 - `companion_memories`: dict of companion_id -> list of memory strings
 
 ### Encounter Throttling (NPC pacing)
-
 Persisted via events staged in Encounter and applied inside Commit:
 - `introduced_npcs`: list of NPC ids already introduced
 - `introduction_log`: list of `{npc_id, introduced_at_minutes, trigger}`
@@ -307,14 +304,12 @@ Persisted via events staged in Encounter and applied inside Commit:
 - `npc_introduction_triggers`: optional list (single-use; cleared after location update)
 
 ### Prompt Grounding & Arc Tracking
-
 - `ledger`: structured ledger object (see above)
 - `arc_state`: arc stage tracking (`current_stage`, `stage_start_turn`)
 - `known_npcs`: list of NPC IDs the player has encountered (names shown; unknowns get descriptive roles)
 - `era_summaries`: dict of era -> compressed narrative summary
 
 ### Campaign Opening (V2.12)
-
 - `opening_beats`: 3-beat structure (ARRIVAL, ENCOUNTER, INCITING_INCIDENT) for turns 1-3
 - `act_outline`: lightweight 3-act story arc with key NPCs (villain/rival/informant)
 

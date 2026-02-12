@@ -3,7 +3,6 @@
 Storyteller AI is a local-first narrative RPG engine powered by a FastAPI backend, SvelteKit frontend, and deterministic world content loaded from YAML-based Era Packs.
 
 **Current System (V2.20):**
-
 - Star Wars Legends narrative campaigns with LLM-powered storytelling
 - Era Pack system for deterministic world content (`/data/static/era_packs/`)
 - Event sourcing architecture with SQLite persistence
@@ -11,7 +10,6 @@ Storyteller AI is a local-first narrative RPG engine powered by a FastAPI backen
 - Ollama-first local LLM execution (cloud providers supported per-role when explicitly configured)
 
 **Repository Status:**
-
 - Streamlined to `_template` + `rebellion` era packs (others can be regenerated)
 - Removed legacy migration scripts and obsolete tooling
 - Consolidated documentation and templates
@@ -29,7 +27,6 @@ Storyteller AI combines deterministic game systems with LLM-powered narrative ge
 - **Persistence:** Event sourcing with SQLite (append-only events + projections)
 
 **Key Features:**
-
 - Historical/Sandbox campaign modes
 - Deterministic mechanics (dice, time, encounters)
 - Companion affinity and party dynamics
@@ -52,7 +49,6 @@ Era Packs are YAML-based content bundles that define a playable Star Wars Legend
 - `namebanks.yaml`, `meters.yaml`, `events.yaml`, `rumors.yaml`, `facts.yaml`
 
 **Current Era Packs:**
-
 - `_template` - Reference structure for authoring new packs
 - `rebellion` - Galactic Civil War (0 BBY - 4 ABY) - canonical example
 
@@ -63,14 +59,12 @@ See `/docs/SETTING_PACK_QUICK_REFERENCE.md` for complete documentation.
 ### Campaign Creation
 
 Campaigns are created via:
-
 - `GET /v2/content/catalog` + `GET /v2/content/default` - Discover available settings/periods dynamically
 - `POST /v2/setup/auto` - Automated setup with CampaignArchitect + BiographerAgent
 - `POST /v2/campaigns` - Manual campaign creation
 - `GET /v2/campaigns` - List resumable campaigns
 
 Each campaign includes:
-
 - Player character with background and stats
 - 12 NPCs (Villain, Rival, Merchants, Informants, Guards)
 - Active factions from the era pack
@@ -111,11 +105,12 @@ python -m storyteller setup --skip-deps
 
 `storyteller setup` creates standard runtime directories, copies `.env.example` to `.env` when missing, and runs `storyteller doctor`.
 
-Ingestion note:
 
+Ingestion note:
 - `storyteller ingest --pipeline lore` is the recommended/default path.
 - Deprecated simple pipeline now requires explicit opt-in: `--pipeline simple --allow-legacy`.
 - For CI/automation use `--yes` to run non-interactively.
+
 
 One-command bootstrap (new machine):
 
@@ -226,7 +221,6 @@ For detailed authoring guidance, see:
 ### Creating a New Era Pack
 
 1. Copy the template:
-
    ```bash
    cp -r data/static/era_packs/_template data/static/era_packs/kotor
    ```
@@ -236,7 +230,6 @@ For detailed authoring guidance, see:
 3. Fill in each of the 12 YAML files with era-specific content
 
 4. Validate the pack:
-
    ```bash
    python scripts/validate_era_pack.py kotor
    ```
@@ -325,7 +318,6 @@ See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for operational details.
 ## Documentation
 
 ### Core Documentation (Sequential Learning Path)
-
 - [`docs/00_overview.md`](docs/00_overview.md) - High-level overview
 - [`docs/01_repo_map.md`](docs/01_repo_map.md) - Repository structure
 - [`docs/02_turn_lifecycle.md`](docs/02_turn_lifecycle.md) - Turn execution flow
@@ -338,24 +330,20 @@ See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for operational details.
 - [`docs/09_call_graph.md`](docs/09_call_graph.md) - Call graph & dependencies
 
 For concrete runnable commands, prefer:
-
 - [`QUICKSTART.md`](QUICKSTART.md) for setup + launch
 - [`API_REFERENCE.md`](API_REFERENCE.md) for current endpoint coverage
 
 ### Deep Dives
-
 - [`docs/architecture.md`](docs/architecture.md) - Complete system architecture
 - [`docs/user_guide.md`](docs/user_guide.md) - Player-facing documentation
 - [`docs/lore_pipeline_guide.md`](docs/lore_pipeline_guide.md) - Lore ingestion
 
 ### Templates
-
 - [`docs/templates/CAMPAIGN_INIT_TEMPLATE.md`](docs/templates/CAMPAIGN_INIT_TEMPLATE.md) - Campaign creation
 - [`docs/templates/DB_SEED_TEMPLATE.md`](docs/templates/DB_SEED_TEMPLATE.md) - Database seeding
 - [`docs/SETTING_PACK_QUICK_REFERENCE.md`](docs/SETTING_PACK_QUICK_REFERENCE.md) - Era pack guide
 
 ### Root Documentation
-
 - [`README.md`](README.md) - This file
 - [`CLAUDE.md`](CLAUDE.md) - Project constraints & coding standards
 - [`QUICKSTART.md`](QUICKSTART.md) - Quick start guide

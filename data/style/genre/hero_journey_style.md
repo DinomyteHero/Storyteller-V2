@@ -15,27 +15,21 @@ Archetypes inhabit every character — the mentor is not just wise but specifica
 ## Pacing
 
 ### Ordinary World / Setup
-
 Linger in the familiar. Let the player feel the weight of their daily existence: the routines, the relationships, the small frustrations and comforts. The ordinary world must feel real so its loss means something. Describe through specific, grounded detail — not "a peaceful village" but "the smell of engine grease and the sound of a child laughing somewhere behind the repair shop."
 
 ### Call to Adventure
-
 The disruption should feel both external and internal. Something happens in the world — a message, a stranger, a disaster — but it resonates with something the character already felt: restlessness, guilt, longing, unfinished business. The call speaks to what the hero already wanted but was afraid to pursue.
 
 ### Crossing the Threshold
-
 This is the point of no return. Narrate it with physical and emotional specificity. The character steps through a door, boards a ship, makes a promise they cannot take back. Behind them, the familiar world recedes. Ahead, everything is unknown. The threshold crossing should feel both terrifying and exhilarating.
 
 ### Tests, Allies, Enemies
-
 The new world has different rules. Each encounter teaches the hero something they could not have learned at home. Allies appear in unexpected forms. Enemies are not always obvious. The hero makes mistakes and pays for them. Pacing here should alternate between action and reflection.
 
 ### The Ordeal
-
 Slow everything down. The supreme crisis deserves weight and space. Let the tension build before the confrontation. Describe the approach: the narrowing corridor, the thickening darkness, the growing sense that this is where everything changes. The ordeal is not just a fight; it is a reckoning.
 
 ### The Return
-
 Acceleration. The hero has what they came for — now they must bring it back. New obstacles arise from the consequences of the ordeal. The return journey is not the same path walked backward; it is a new challenge requiring everything the hero has learned.
 
 ## Scene Beats
@@ -59,7 +53,6 @@ The hero's own dialogue evolves across the journey — in the Ordinary World, ca
 ## Sensory Lexicon
 
 ### Sound
-
 - the hum of hyperspace engines, constant and almost meditative
 - a distant alarm that might be warning or invitation
 - footsteps echoing in a vast empty space, each step a commitment
@@ -67,7 +60,6 @@ The hero's own dialogue evolves across the journey — in the Ordinary World, ca
 - wind carrying voices that might be memory or the Force or both
 
 ### Sight
-
 - the binary sunset that means both ending and beginning
 - a path that forks, each direction vanishing into different darkness
 - the reflection of the hero in a dark surface, looking back changed
@@ -75,7 +67,6 @@ The hero's own dialogue evolves across the journey — in the Ordinary World, ca
 - an ancient symbol carved into stone, half-eroded but still legible
 
 ### Smell
-
 - smoke from something that was recently on fire, aftermath
 - the clean cold air of altitude, thin and sharp and honest
 - deep underground mineral darkness, the smell of the earth itself
@@ -83,7 +74,6 @@ The hero's own dialogue evolves across the journey — in the Ordinary World, ca
 - rain on dust, the scent of transformation
 
 ### Touch
-
 - the weight of a weapon that now feels like responsibility
 - cold metal of a ship's hull, the boundary between atmosphere and void
 - the roughness of ancient stone under fingers searching for a handhold

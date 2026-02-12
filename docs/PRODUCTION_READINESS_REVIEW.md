@@ -148,7 +148,7 @@ If you are comfortable with a controlled release (trusted users, modest traffic)
 make check
 python scripts/preflight.py
 npm run build   # in frontend/
-```text
+```
 
 ## Validation Snapshot
 

@@ -51,7 +51,6 @@ Avoid reassurance and optimism entirely — no character says "We'll figure this
 ## Sensory Lexicon
 
 ### Sound
-
 - a tone that should not be audible to human hearing, but is heard anyway
 - harmonics that make the inner ear ache, nausea-inducing frequency
 - silence so complete it feels like pressure on the eardrums
@@ -60,7 +59,6 @@ Avoid reassurance and optimism entirely — no character says "We'll figure this
 - the absence of expected noise, environmental sounds missing without explanation
 
 ### Sight
-
 - geometry that hurts to look at, angles that do not resolve properly
 - colors at the edge of perception, wavelengths the eye should not register
 - movement in peripheral vision that stops when directly observed
@@ -70,7 +68,6 @@ Avoid reassurance and optimism entirely — no character says "We'll figure this
 - space that looks deeper than it physically should be, perspective broken
 
 ### Smell
-
 - ozone and metal tang without electrical source, air ionized by nothing
 - a scent organic and wrong, biology that does not follow terrestrial chemistry
 - the smell of vacuum, a sensory impossibility, cold nothing
@@ -78,7 +75,6 @@ Avoid reassurance and optimism entirely — no character says "We'll figure this
 - chemical wrongness, compounds that should not be stable at this temperature and pressure
 
 ### Touch
-
 - surfaces that feel warm and cold simultaneously, temperature paradox
 - vibration with no rhythm, chaotic resonance felt through bones
 - the sensation of more space in a room than geometry allows, proprioception failing
@@ -87,7 +83,6 @@ Avoid reassurance and optimism entirely — no character says "We'll figure this
 - the weight of attention from something vast, pressure against the mind
 
 ### Taste
-
 - copper and burnt plastic, the taste of fear and overloaded neurons
 - a taste like static electricity, electrons on the tongue
 - the mouth going dry with existential dread, involuntary physical response

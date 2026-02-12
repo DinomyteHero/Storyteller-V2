@@ -10,7 +10,6 @@ Replace all `{{PLACEHOLDER}}` values before submitting.
 Style guide files are ingested into LanceDB and searched **semantically** by the Director agent at runtime. The Director builds a query from the current scene (location, player action, intent) and retrieves the most relevant style paragraphs to guide its narrative beat selection and action suggestions.
 
 **Key implications for writing:**
-
 - Each paragraph should be **self-contained** — it may be retrieved independently of surrounding paragraphs.
 - Use clear, descriptive language — the retrieval system matches by meaning, not headings.
 - Include concrete sensory words and examples — vague guidance gets vague results.
@@ -43,7 +42,6 @@ One-line premise that captures the emotional core of this era in a single senten
 #### 2. `## Tone`
 
 3-4 paragraphs, each covering a different tonal dimension. Think about:
-
 - What is the dominant emotional tension? (e.g., hope vs oppression, survival vs extinction, trust vs betrayal)
 - What does the physical world feel like? (used-future grime, sleek political corridors, war-torn rubble, alien biotech horror)
 - What is the player's power fantasy? (scrappy underdog, powerful Jedi, political operator, war hero)
@@ -54,7 +52,6 @@ Each paragraph should be independently retrievable. Start each with a clear topi
 #### 3. `## Pacing`
 
 2-3 paragraphs covering:
-
 - Paragraph length and rhythm (short and punchy? longer and atmospheric?)
 - How turns should end (decision points, cliffhangers, ticking clocks, moral weight)
 - Escalation pattern (how tension builds across a scene or session)
@@ -64,8 +61,7 @@ Each paragraph should be independently retrievable. Start each with a clear topi
 A default 3-5 step pattern for how scenes unfold. Write this as a numbered list with brief explanation for each step. The Director uses this to structure its beat selection.
 
 Example format:
-
-```text
+```
 1) Establish the space (one concrete sensory detail).
 2) Reveal the pressure (what's at stake right now).
 3) Present a choice (two obvious paths, one clever path).
@@ -77,7 +73,6 @@ Tailor the pattern to this era's gameplay feel.
 #### 5. `## Dialogue`
 
 3-4 paragraphs covering distinct speech registers that appear in this era:
-
 - How does each major faction talk? (military brevity, political formality, underworld slang, alien speech patterns)
 - What verbal tics or patterns distinguish this era from others?
 - What to avoid (modern slang, anachronisms, out-of-character speech)
@@ -93,7 +88,6 @@ Focus on sounds, smells, textures, and visual details **unique to this era** —
 #### 7. `## Canon Guardrails`
 
 2-3 paragraphs covering:
-
 - What to do when lore context is missing (use rumors, reports, hearsay — never invent canon)
 - Named-entity usage rules (only reference characters/events that are grounded in scene context)
 - Era-specific pitfalls (common mistakes an AI might make about this era)
@@ -101,7 +95,6 @@ Focus on sounds, smells, textures, and visual details **unique to this era** —
 #### 8. `## Output Format Tips`
 
 2-3 short paragraphs covering:
-
 - Write like a scene, not an encyclopedia
 - Avoid markdown formatting in narrative output
 - Suggested actions should be concrete verbs with immediate intent

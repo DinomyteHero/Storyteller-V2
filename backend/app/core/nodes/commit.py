@@ -28,7 +28,6 @@ from backend.app.models.dialogue_turn import (
     ValidationReport,
 )
 from backend.app.models.events import Event
-from backend.app.models.event_utils import ensure_event
 
 
 def make_commit_node():
@@ -50,8 +49,10 @@ def make_commit_node():
         ]
         spawn_events = state.get("spawn_events") or []
         for e in spawn_events:
-            event = ensure_event(e, default_event_type="NPC_SPAWN")
-            events.append(event)
+            if isinstance(e, Event):
+                events.append(e)
+            elif isinstance(e, dict):
+                events.append(Event(event_type=e.get("event_type", "NPC_SPAWN"), payload=e.get("payload") or {}, is_hidden=e.get("is_hidden", False)))
         if intent == "TALK":
             events.append(
                 Event(
@@ -73,19 +74,26 @@ def make_commit_node():
         if not world_sim_events:
             world_sim_events = list(state.get("world_sim_rumors") or [])
         for e in world_sim_events:
-            # For dict events, ensure is_public_rumor is preserved
-            if isinstance(e, dict) and "event_type" not in e:
-                e = {**e, "event_type": "RUMOR"}
-            event = ensure_event(e, default_event_type="RUMOR")
-            events.append(event)
+            if isinstance(e, Event):
+                events.append(e)
+            elif isinstance(e, dict):
+                events.append(Event(
+                    event_type=e.get("event_type", "RUMOR"),
+                    payload=e.get("payload") or {},
+                    is_hidden=e.get("is_hidden", False),
+                    is_public_rumor=e.get("is_public_rumor", False),
+                ))
 
         throttle_events = state.get("throttle_events") or []
         for e in throttle_events:
-            # For dict events, ensure is_hidden defaults to True for throttle events
-            if isinstance(e, dict) and "is_hidden" not in e:
-                e = {**e, "is_hidden": True}
-            event = ensure_event(e)
-            events.append(event)
+            if isinstance(e, Event):
+                events.append(e)
+            elif isinstance(e, dict):
+                events.append(Event(
+                    event_type=e.get("event_type", ""),
+                    payload=e.get("payload") or {},
+                    is_hidden=e.get("is_hidden", True),
+                ))
 
         try:
             if not conn.in_transaction:
@@ -251,7 +259,8 @@ def make_commit_node():
                 from backend.app.core.quest_tracker import process_quests_for_turn
                 quest_era = str(camp.get("time_period") or camp.get("era") or "REBELLION").strip()
                 quest_events = [
-                    {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
+                    {"event_type": e.event_type, "payload": e.payload or {}}
+                    if isinstance(e, Event) else e
                     for e in events
                 ]
                 quest_notifications = process_quests_for_turn(
@@ -298,7 +307,7 @@ def make_commit_node():
                 )
                 ensure_npc_memory_table(conn)
                 npc_mems = extract_npc_memories_from_events(
-                    [{"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}} for e in events],
+                    [{"event_type": e.event_type, "payload": e.payload or {}} if isinstance(e, Event) else e for e in events],
                     present_npcs=state.get("present_npcs"),
                 )
                 for mem in npc_mems:
@@ -321,7 +330,7 @@ def make_commit_node():
                     story_position=world_state.get("story_position") if isinstance(world_state, dict) else None,
                     world_time_minutes=effective_world_time,
                     campaign_mode=str(world_state.get("campaign_mode") or "historical"),
-                    event_types=[ensure_event(e).event_type for e in events],
+                    event_types=[getattr(e, "event_type", "") for e in events if isinstance(e, Event)],
                 )
             except Exception as _story_pos_err:
                 logger.warning("Story-position advance failed (non-fatal): %s", _story_pos_err)
@@ -333,9 +342,14 @@ def make_commit_node():
             append_events(conn, campaign_id, next_turn_number, events, commit=False)
             apply_projection(conn, campaign_id, events, commit=False)
             for e in throttle_events:
-                event = ensure_event(e)
-                event_type = event.event_type
-                payload = event.payload or {}
+                if isinstance(e, Event):
+                    event_type = e.event_type
+                    payload = e.payload or {}
+                elif isinstance(e, dict):
+                    event_type = e.get("event_type", "")
+                    payload = e.get("payload") or {}
+                else:
+                    continue
                 if event_type == "NPC_INTRODUCTION_RECORDED":
                     npc_id = payload.get("npc_id")
                     world_time = payload.get("world_time_minutes", 0)
@@ -367,12 +381,15 @@ def make_commit_node():
                 ]
                 key_events_for_mem = []
                 for e in events:
-                    event = ensure_event(e)
-                    is_hidden = event.is_hidden if isinstance(e, Event) else (e.get("is_hidden", False) if isinstance(e, dict) else False)
-                    if not is_hidden:
+                    if isinstance(e, Event) and not e.is_hidden:
                         key_events_for_mem.append({
-                            "event_type": event.event_type,
-                            "payload": event.payload or {},
+                            "event_type": e.event_type,
+                            "payload": e.payload or {},
+                        })
+                    elif isinstance(e, dict) and not e.get("is_hidden"):
+                        key_events_for_mem.append({
+                            "event_type": e.get("event_type", ""),
+                            "payload": e.get("payload") or {},
                         })
                 stress_lvl = 0
                 player_data = state.get("player")
