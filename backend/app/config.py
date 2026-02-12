@@ -20,6 +20,8 @@ from shared.config import (
     _env_flag,
 )
 
+from shared.ingest_paths import lancedb_dir
+
 logger = logging.getLogger(__name__)
 
 
@@ -154,14 +156,15 @@ def resolve_vectordb_path(db_path: str | Path | None = None) -> Path:
     Precedence:
     1) explicit db_path argument
     2) VECTORDB_PATH env var
-    3) prefer ./data/lancedb unless only legacy ./lancedb exists
+    3) default to STORYTELLER_INGEST_ROOT/lancedb (or ./data/lancedb)
+       unless only legacy ./lancedb exists
     """
     if db_path:
         return Path(db_path)
     env_val = os.environ.get("VECTORDB_PATH", "").strip()
     if env_val:
         return Path(env_val)
-    preferred = Path("./data/lancedb")
+    preferred = lancedb_dir()
     legacy = Path("lancedb")
     if preferred.exists() or not legacy.exists():
         return preferred

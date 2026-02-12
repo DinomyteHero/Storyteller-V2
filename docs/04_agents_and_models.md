@@ -267,3 +267,15 @@ Always use these pronouns when referring to {name} in narration and dialogue.
 ```
 
 Injected into both Director and Narrator prompts during turn execution. Gender is set at character creation via `SetupAutoRequest.player_gender` and persisted on `CharacterSheet.gender`.
+
+---
+
+---
+
+## Operations Reference
+
+Model override mechanics, cloud/local/hybrid operating guidance, and timeline planning have been consolidated into:
+
+- `docs/10_model_selection_and_timeline.md`
+
+This avoids duplicating operational guidance across architecture docs.
