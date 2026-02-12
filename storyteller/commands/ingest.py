@@ -37,6 +37,8 @@ def register(subparsers) -> None:
     p.add_argument("--skip-checks", action="store_true", help="Skip Ollama/model pre-flight checks")
     p.add_argument("--ingest-root", type=str, default=None, help="Portable ingestion root (uses <root>/lore + <root>/lancedb)")
     p.add_argument("--no-venv", action="store_true", help="Skip venv detection, use current Python")
+    p.add_argument("--yes", "--non-interactive", dest="yes", action="store_true", help="Run non-interactively (auto-confirm prompts)")
+    p.add_argument("--allow-legacy", action="store_true", help="Allow deprecated simple ingestion pipeline")
     p.set_defaults(func=run)
 
 
@@ -103,9 +105,12 @@ def run(args) -> int:
                 print(f"    source {venv_python.parent.parent.name}/bin/activate")
             print(f"  Then run: storyteller ingest ...")
             print()
-            resp = input("  Continue anyway? [y/N]: ")
-            if resp.strip().lower() != "y":
-                return 0
+            if not args.yes:
+                resp = input("  Continue anyway? [y/N]: ")
+                if resp.strip().lower() != "y":
+                    return 0
+            else:
+                print("  --yes supplied: continuing without prompt")
         elif venv_python and _is_in_venv():
             print(f"  Using virtual environment: {Path(sys.prefix).name}/")
         elif not venv_python:
@@ -132,6 +137,12 @@ def run(args) -> int:
         print(f"         Supported formats: .txt, .epub, .pdf")
         return 1
 
+    # Guardrail: legacy simple pipeline requires explicit opt-in
+    if args.pipeline == "simple" and not args.allow_legacy:
+        print("  ERROR: The simple pipeline is deprecated and gated behind --allow-legacy")
+        print("         Use --pipeline lore (recommended) or re-run with --allow-legacy")
+        return 1
+
     # Guardrail: PDFs found but using simple pipeline
     if args.pipeline == "simple" and _has_pdfs(input_dir):
         print(f"  WARNING: PDF files detected in {input_dir}")
@@ -140,9 +151,12 @@ def run(args) -> int:
         print(f"")
         print(f"             python -m storyteller ingest --pipeline lore --input {args._resolved_input}")
         print(f"")
-        resp = input("  Continue with simple pipeline anyway? (PDFs will be skipped) [y/N]: ")
-        if resp.strip().lower() != "y":
-            return 0
+        if not args.yes:
+            resp = input("  Continue with simple pipeline anyway? (PDFs will be skipped) [y/N]: ")
+            if resp.strip().lower() != "y":
+                return 0
+        else:
+            print("  --yes supplied: continuing with simple pipeline")
 
     # Pre-flight checks (unless skipped)
     if not args.skip_checks:

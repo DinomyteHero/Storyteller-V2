@@ -237,3 +237,17 @@ class TestV2OneTurn(unittest.TestCase):
         body = r.json()
         self.assertIn("validation_failures", body)
         self.assertIsInstance(body["validation_failures"], list)
+
+    def test_list_campaigns_includes_resume_metadata(self):
+        r = self.client.get("/v2/campaigns")
+        self.assertEqual(r.status_code, 200, r.text)
+        body = r.json()
+        self.assertIn("items", body)
+        self.assertIsInstance(body["items"], list)
+        self.assertGreaterEqual(len(body["items"]), 1)
+
+        first = body["items"][0]
+        self.assertEqual(first.get("campaign_id"), self.campaign_id)
+        self.assertEqual(first.get("player_id"), self.player_id)
+        self.assertIn("title", first)
+        self.assertIn("current_turn", first)

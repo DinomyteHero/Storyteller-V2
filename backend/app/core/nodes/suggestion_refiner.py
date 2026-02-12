@@ -27,6 +27,7 @@ from backend.app.core.director_validation import (
 from backend.app.core.action_lint import lint_actions
 from backend.app.core.warnings import add_warning
 from backend.app.models.state import ActionSuggestion, GameState
+from backend.app.prompts.registry import load_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -35,38 +36,11 @@ _VALID_TONES = {"PARAGON", "INVESTIGATE", "RENEGADE", "NEUTRAL"}
 _DEFAULT_SUGGESTION_STYLE = "a Star Wars KOTOR-style game"
 
 # Placeholder __SUGGESTION_STYLE__ is replaced at runtime with setting_rules.suggestion_style
-_SYSTEM_PROMPT_TEMPLATE = """\
-You write SHORT player dialogue options for __SUGGESTION_STYLE__.
-
-TASK: Given scene context, output EXACTLY 4 options the player character can say or do.
-
-OUTPUT FORMAT: A JSON array containing exactly 4 objects. Your response MUST start with [ and end with ].
-Do NOT output a single object. Do NOT wrap in {"suggestions": [...]}.
-Each object has exactly 3 keys: "text", "tone", "meaning"
-
-TONES (pick one per option, use at least 3 different tones):
-- PARAGON: kind, principled, empathetic
-- INVESTIGATE: curious, cautious, probing
-- RENEGADE: aggressive, ruthless, blunt
-- NEUTRAL: practical, tactical, detached
-
-MEANING TAGS (pick one per option):
-reveal_values, probe_belief, challenge_premise, seek_history, set_boundary, pragmatic, deflect, offer_alliance, express_doubt, invoke_authority, show_vulnerability, make_demand
-
-RULES:
-- Each "text" is 8-16 words, first person, spoken by the PLAYER CHARACTER
-- These are player CHOICES, not NPC dialogue or narration
-- DO NOT continue the scene or write NPC responses
-- DO NOT add fields beyond text/tone/meaning
-- Always output ALL 4 options in a single JSON array
-
-EXAMPLE OUTPUT:
-[
-  {"text": "What happened to you out there?", "tone": "PARAGON", "meaning": "seek_history"},
-  {"text": "That's convenient. Who told you that?", "tone": "INVESTIGATE", "meaning": "challenge_premise"},
-  {"text": "I don't need your guilt. Where's the ship?", "tone": "RENEGADE", "meaning": "set_boundary"},
-  {"text": "Save the philosophy. What's the job?", "tone": "NEUTRAL", "meaning": "pragmatic"}
-]"""
+# Loaded from versioned prompt pack with fallback for resilience.
+try:
+    _SYSTEM_PROMPT_TEMPLATE = load_prompt("suggestion_refiner_system")
+except Exception:
+    _SYSTEM_PROMPT_TEMPLATE = """You write SHORT player dialogue options for __SUGGESTION_STYLE__."""
 
 
 def _build_user_prompt(
