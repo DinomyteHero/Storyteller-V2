@@ -117,6 +117,6 @@ Fix pack data and re-run validator.
 
 - [README](../README.md)
 - [Quickstart](../QUICKSTART.md)
-- [Era Pack Quick Reference](./ERA_PACK_QUICK_REFERENCE.md)
+- [Era Pack Quick Reference](./SETTING_PACK_QUICK_REFERENCE.md)
 - [Pack Authoring](./PACK_AUTHORING.md)
 - [API Reference](../API_REFERENCE.md)
