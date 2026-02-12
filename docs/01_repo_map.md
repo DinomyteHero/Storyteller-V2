@@ -2,7 +2,7 @@
 
 ## Directory Structure (High-Level)
 
-```
+```text
 Storyteller AI/
   backend/                       # FastAPI backend + engine runtime
     main.py                      # FastAPI app wiring (V2)
@@ -173,7 +173,7 @@ Storyteller AI/
 ## Entry Points
 
 | Entry Point | File / Command | Purpose |
-|------------|------------------|---------|
+| ------------ | ------------------ | --------- |
 | **Dev stack (recommended)** | `python run_app.py --dev` | Start backend + UI with preflight checks |
 | **Alternative dev launcher** | `python -m storyteller dev` | Start backend + UI from CLI command |
 | **First-time setup** | `python -m storyteller setup` | Create data dirs + copy `.env` + run health check |

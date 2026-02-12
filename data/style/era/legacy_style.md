@@ -109,6 +109,7 @@ Afflicted Jedi dialogue reflects paranoid delusion — they speak with absolute 
 - recycled air in shielded rooms, paranoia-cold
 
 **Sight:**
+
 - security cameras watching, red recording lights
 - Jedi imprisoned in carbonite, Alliance guards at Temple
 - family holograms from better times, faces aged

@@ -395,6 +395,7 @@ See `/backend/app/db/migrations/` for full schema evolution.
   "campaign_mode": "historical"
 }
 ```
+
 - Canon events are immutable
 - Player operates in the margins of galactic history
 - NPCs and quests fit within established lore
@@ -408,6 +409,7 @@ See `/backend/app/db/migrations/` for full schema evolution.
   "campaign_mode": "sandbox"
 }
 ```
+
 - Player choices can reshape galactic history
 - Canon events are starting conditions, not certainties
 - Factions can be altered by player actions

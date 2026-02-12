@@ -62,19 +62,25 @@ era_id: {{ERA_ID}}          # UPPERCASE, e.g., REBELLION, OLD_REPUBLIC, CLONE_WA
 style_ref: data/style/{{era_id_lowercase}}_style.md
 
 factions:
+
   - id: faction_slug         # lowercase_with_underscores
+
     name: "Human Readable Name"
     tags: [tag1, tag2]       # IMPORTANT: "hostile" tag means enemy to player at start
     home_locations: [loc-slug1, loc-slug2]
     goals:
+
       - "FIRST goal becomes initial current_goal — make it specific and actionable"
       - "Secondary goal that creates tension with other factions"
+
     hostility_matrix:        # Score per other faction: -100 (enemies) to +100 (allies)
       other_faction_id: -80
       another_faction_id: 30
 
 locations:
+
   - id: loc-slug             # Always prefixed with "loc-"
+
     name: "Human Readable Name"
     tags: [tag1, tag2]       # Semantic tags (tavern, market, imperial, etc.)
     region: "Region Name"    # Outer Rim, Core, Mid Rim, Inner Rim, Unknown Regions, Mobile
@@ -84,7 +90,9 @@ locations:
 
 npcs:
   anchors:
+
     - id: character_slug     # lowercase_with_underscores, matches character_aliases.yml
+
       name: "Full Name"
       aliases: ["Title Name", "Short Name"]     # How the character might be referred to
       banned_aliases: ["Title"]                  # Generic titles that should NOT match alone
@@ -108,17 +116,23 @@ npcs:
     # Same structure as anchors
 
   templates:
+
     - id: template_slug
+
       role: "Role Title"
       archetype: "2-4 word archetype"
       traits: ["trait1", "trait2", "trait3"]
       motivations:           # Plural — multiple options for randomization
+
         - "motivation option 1"
         - "motivation option 2"
         - "motivation option 3"
+
       secrets:               # Plural — multiple options for randomization
+
         - "secret option 1"
         - "secret option 2"
+
       voice_tags: ["tag1", "tag2"]
       species: ["Species1", "Species2"]    # List — one picked randomly per spawn
       tags: [faction_tag, role_tag]        # Must overlap with location tags for matching

@@ -4,15 +4,16 @@ Use this prompt to generate or improve Star Wars era packs for Storyteller AI. C
 
 ---
 
-# ROLE
+## ROLE
 
 You are an expert Star Wars lore master and interactive narrative designer specializing in the Storyteller AI system. Your task is to create or improve a complete era pack for an interactive Star Wars story engine.
 
-# TASK
+## TASK
 
 Generate a complete, lore-accurate, gameplay-rich era pack for the **[ERA_NAME]** era of Star Wars.
 
 **Era Specification:**
+
 - **Era Key:** [UPPERCASE_ERA_KEY] (e.g., CLONE_WARS, HIGH_REPUBLIC, NEW_REPUBLIC)
 - **Time Period:** [BBY/ABY range, e.g., "22-19 BBY"]
 - **Canon:** [Legends / Canon / Mixed]
@@ -22,16 +23,18 @@ Generate a complete, lore-accurate, gameplay-rich era pack for the **[ERA_NAME]*
 - **Key Locations:** [List planets/locations that should be included]
 
 **Existing Era Pack Status:** [NEW / EXISTS_NEEDS_IMPROVEMENT]
+
 - If EXISTS: Read all files in `data/static/era_packs/[era_key]/` and PRESERVE all existing content while adding depth, fixing errors, and filling gaps.
 - If NEW: Generate from scratch following all templates and conventions.
 
 ---
 
-# TECHNICAL SPECIFICATIONS
+## TECHNICAL SPECIFICATIONS
 
-## System Context
+### System Context
 
 **Storyteller AI Architecture:**
+
 - FastAPI backend + LangGraph pipeline (Router → Mechanic → Encounter → WorldSim → CompanionReaction → ArcPlanner → SceneFrame → Director → Narrator → NarrativeValidator → SuggestionRefiner → Commit)
 - Local LLM via Ollama (mistral-nemo for prose, qwen3 for lightweight tasks)
 - SQLite event sourcing, LanceDB for RAG
@@ -40,13 +43,14 @@ Generate a complete, lore-accurate, gameplay-rich era pack for the **[ERA_NAME]*
 - Tone system: PARAGON (blue/heroic), INVESTIGATE (gold/thoughtful), RENEGADE (red/ruthless), NEUTRAL (gray)
 
 **Output Format:**
+
 - Generate valid YAML for all 12 files: `era.yaml`, `locations.yaml`, `npcs.yaml`, `companions.yaml`, `factions.yaml`, `backgrounds.yaml`, `namebanks.yaml`, `quests.yaml`, `events.yaml`, `rumors.yaml`, `facts.yaml`, `meters.yaml`
 - Follow the exact schemas from `data/static/era_packs/_template/`
 - Preserve all comments and structure from templates
 
 ---
 
-# GENERATION GUIDELINES
+## GENERATION GUIDELINES
 
 ## 1. ERA METADATA (`era.yaml`)
 
@@ -97,7 +101,7 @@ Generate a complete, lore-accurate, gameplay-rich era pack for the **[ERA_NAME]*
 
 ### ANCHORS (Canonical Characters)
 
-**Target: 8-15 major canonical characters**
+Target: 8-15 major canonical characters
 
 - Include era-defining characters (e.g., for Clone Wars: Anakin, Obi-Wan, Ahsoka, Palpatine, Dooku, etc.)
 - Each anchor needs:
@@ -112,7 +116,7 @@ Generate a complete, lore-accurate, gameplay-rich era pack for the **[ERA_NAME]*
 
 ### ROTATING (Era-Specific Named NPCs)
 
-**Target: 5-10 recurring named characters**
+Target: 5-10 recurring named characters
 
 - Original characters specific to this era pack (information brokers, recurring contacts, local leaders)
 - Same structure as anchors but can be less detailed
@@ -120,22 +124,24 @@ Generate a complete, lore-accurate, gameplay-rich era pack for the **[ERA_NAME]*
 
 ### TEMPLATES (Procedural Archetypes)
 
-**Target: 8-12 templates covering common encounter types**
+Target: 8-12 templates covering common encounter types
 
 Must include:
+
 - **Military/guards:** Faction-specific soldiers (e.g., `tpl-clone_trooper`, `tpl-battle_droid`)
 - **Civilians:** Merchants, refugees, locals (e.g., `tpl-civilian`, `tpl-merchant`)
 - **Underworld:** Smugglers, bounty hunters, criminals (e.g., `tpl-smuggler`, `tpl-bounty_hunter`)
 - **Specialists:** Techs, medics, slicers (e.g., `tpl-tech_specialist`)
 
 Each template needs:
+
 - **role** (REQUIRED), **archetype**, **namebank** reference
 - **species** list (3-5 species options for variety)
 - **motivations**, **secrets**, **traits** (lists for random selection)
 - **spawn** rules (location_tags_any, min_alert, max_alert)
 - **voice**, **levers**, **authority** (same as anchors)
 
-### Critical Rules
+### NPC Critical Rules
 
 - Template IDs: `tpl-descriptive_name` or plain snake_case
 - Lever values MUST be quoted strings: `'false'` not `false`
@@ -306,7 +312,7 @@ Each template needs:
 
 ## 11. FACTS (`facts.yaml`)
 
-**Target: 8-12 knowledge graph seed facts**
+Target: 8-12 knowledge graph seed facts
 
 ### Fact Types
 
@@ -349,7 +355,7 @@ meters:
 
 ---
 
-# CRITICAL YAML GOTCHAS
+## CRITICAL YAML GOTCHAS
 
 ## 1. Boolean Quoting
 
@@ -408,7 +414,7 @@ starting_starship: null
 
 ---
 
-# LORE ACCURACY REQUIREMENTS
+## LORE ACCURACY REQUIREMENTS
 
 1. **Canon Consistency:**
    - Respect established character personalities, relationships, and arcs
@@ -435,23 +441,23 @@ starting_starship: null
 
 ---
 
-# GAMEPLAY BALANCE REQUIREMENTS
+## GAMEPLAY BALANCE REQUIREMENTS
 
-## Location Distribution
+### Location Distribution
 
 - [ ] 3-4 safe/neutral hubs for social gameplay
 - [ ] 3-4 hostile/secure locations for stealth/combat
 - [ ] 2-3 quest-specific story locations
 - [ ] 2-3 travel/mobile locations (ships, stations)
 
-## NPC Template Coverage
+### NPC Template Coverage
 
 - [ ] Guard/patrol templates for 2-3 major factions
 - [ ] Civilian templates for social locations
 - [ ] Specialist templates (medic, tech, slicer)
 - [ ] Underworld templates (smuggler, bounty hunter, criminal)
 
-## Companion Roster
+### Companion Roster
 
 - [ ] At least one Force-sensitive (if appropriate to era)
 - [ ] At least one tech specialist
@@ -459,7 +465,7 @@ starting_starship: null
 - [ ] At least one social/charisma specialist
 - [ ] Mix of species and genders
 
-## Background Variety
+### Background Variety
 
 - [ ] At least one military background
 - [ ] At least one underworld/criminal background
@@ -468,7 +474,7 @@ starting_starship: null
 
 ---
 
-# OUTPUT FORMAT
+## OUTPUT FORMAT
 
 Generate complete YAML files for all 12 era pack components. For each file:
 
@@ -478,6 +484,7 @@ Generate complete YAML files for all 12 era pack components. For each file:
 4. **Include inline comments:** For complex entries, add brief clarifying comments
 
 **Delivery Format:**
+
 ```yaml
 # ============================================================
 # [filename].yaml -- [Purpose]
@@ -487,6 +494,7 @@ Generate complete YAML files for all 12 era pack components. For each file:
 ```
 
 Provide all 12 files in order:
+
 1. `era.yaml`
 2. `locations.yaml`
 3. `npcs.yaml`
@@ -502,7 +510,7 @@ Provide all 12 files in order:
 
 ---
 
-# FINAL CHECKLIST
+## FINAL CHECKLIST
 
 Before submitting, verify:
 
@@ -528,11 +536,12 @@ Before submitting, verify:
 
 ---
 
-# READY TO GENERATE
+## READY TO GENERATE
 
 I am ready to generate a complete, lore-accurate, gameplay-rich era pack for **[ERA_NAME]**.
 
 **What I need from you:**
+
 1. **Era specification** (name, time period, canon type, tone, key conflicts)
 2. **Notable characters** to include
 3. **Key locations** to include

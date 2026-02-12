@@ -9,7 +9,7 @@
 
 Each era pack lives in its own folder under `data/static/era_packs/<era_key>/`:
 
-```
+```text
 data/static/era_packs/
   rebellion/
     era.yaml          # Era metadata & file index (required)
@@ -33,7 +33,7 @@ data/static/era_packs/
 **Purpose:** Root manifest. Declares the era ID, schema version, and indexes all other files. Also defines starting locations, global events, travel graph, and display metadata.
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `era_id` | `str` | **Yes** | Unique era identifier (UPPERCASE convention: `REBELLION`, `OLD_REPUBLIC`) |
 | `schema_version` | `int` | No | Schema version; current is `2` |
 | `style_ref` | `str` | No | Path to style guide markdown (e.g., `data/style/rebellion_style.md`) |
@@ -45,6 +45,7 @@ data/static/era_packs/
 | `metadata` | `dict` | No | Freeform: `display_name`, `time_period`, `summary`, `tone`, `key_conflicts`, `themes` |
 
 **Example:**
+
 ```yaml
 era_id: REBELLION
 schema_version: 2
@@ -63,6 +64,7 @@ file_index:
   facts: facts.yaml
   companions: companions.yaml
 start_location_pool:
+
 - loc-cantina
 - loc-bazaar_market
 - loc-safe_house
@@ -74,6 +76,7 @@ metadata:
 ```
 
 **Gotchas:**
+
 - `file_index` keys must exactly match the logical names: `era`, `locations`, `npcs`, `factions`, `backgrounds`, `namebanks`, `quests`, `events`, `rumors`, `meters`, `facts`, `companions`.
 - `start_location_pool` IDs must exist in `locations.yaml`.
 
@@ -87,6 +90,7 @@ metadata:
 
 ```yaml
 locations:
+
 - id: loc-cantina
 
   name: Mos Eisley Cantina
@@ -96,14 +100,14 @@ locations:
 ### Per-Location Fields
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `id` | `str` | **Yes** | Unique ID; convention: `loc-snake_case` |
 | `name` | `str` | **Yes** | Display name |
 | `tags` | `list[str]` | No | Searchable tags (e.g., `rebel`, `cantina`, `spaceport`) |
 | `region` | `str` | No | Galaxy region (e.g., `Outer Rim`, `Mid Rim`, `Core`, `Mobile`) |
 | `planet` | `str` | No | Planet name (e.g., `Tatooine`, `Hoth`); `null` for mobile locations |
 | `controlling_factions` | `list[str]` | No | Faction IDs that control this location |
-| `description` | `str` | No | Prose description for the Narrator (use `\|` for multiline YAML) |
+| `description` | `str` | No | Prose description for the Narrator (use `\ | ` for multiline YAML) |
 | `threat_level` | `str` | No | One of: `low`, `moderate`, `high`, `extreme` |
 | `parent_id` | `str` | No | Parent location ID for sub-locations (e.g., hangar inside a base) |
 | `scene_types` | `list[str]` | No | Allowed: `dialogue`, `stealth`, `combat`, `travel`, `investigation`, `puzzle`, `philosophical_dialogue`, `meditation`, `tech_investigation`, `survival`, `exploration`, `training` |
@@ -112,13 +116,13 @@ locations:
 | `access_points` | `list[AccessPoint]` | No | Entry/exit points with bypass methods (see sub-table) |
 | `encounter_table` | `list[EncounterEntry]` | No | Weighted NPC template spawns |
 | `keywords` | `list[str]` | No | Additional search keywords for RAG |
-| `travel_links` | `list[str\|TravelLink]` | No | Connected locations (can be bare IDs or objects) |
+| `travel_links` | `list[str\ | TravelLink]` | No | Connected locations (can be bare IDs or objects) |
 | `metadata` | `dict` | No | Freeform extension |
 
 ### `security` Sub-Object
 
 | Field | Type | Default | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `controlling_faction` | `str` | `null` | Faction ID |
 | `security_level` | `int` | `50` | 0-100 scale |
 | `patrol_intensity` | `str` | `medium` | One of: `low`, `medium`, `high`, `constant`, `none` |
@@ -127,7 +131,7 @@ locations:
 ### `access_points[]` Sub-Object
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `id` | `str` | **Yes** | Unique within location (e.g., `main_entrance`) |
 | `type` | `str` | No | Free-form: `door`, `hatch`, `underground`, `ventilation` |
 | `visibility` | `str` | No | `public`, `restricted`, `hidden`, `secret` |
@@ -136,13 +140,15 @@ locations:
 ### `encounter_table[]` Sub-Object
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `template_id` | `str` | **Yes** | References an NPC template ID from `npcs.yaml` |
 | `weight` | `int` | No | Spawn weight (must be > 0; default `1`) |
 | `conditions` | `any` | No | Optional spawn conditions |
 
 **Example:**
+
 ```yaml
+
 - id: loc-cantina
 
   name: Mos Eisley Cantina
@@ -161,29 +167,35 @@ locations:
     inspection_chance: low
   services: [cantina, bounty_board]
   access_points:
+
   - id: main_entrance
 
     type: door
     visibility: public
     bypass_methods: [credential]
+
   - id: back_room
 
     type: door
     visibility: hidden
     bypass_methods: [bribe, charm]
   encounter_table:
+
   - template_id: smuggler_contact
 
     weight: 3
+
   - template_id: bounty_hunter_solo
 
     weight: 2
   travel_links:
+
   - loc-bazaar_market
   - loc-cargo_docks
 ```
 
 **Gotchas:**
+
 - `services` values are validated against a fixed allowlist; typos cause load failures.
 - `bypass_methods` are also validated; use only the values listed above.
 - `travel_links` can be bare location ID strings; they auto-convert to `{to_location_id: "loc-xxx"}`.
@@ -200,14 +212,17 @@ locations:
 ```yaml
 npcs:
   anchors:
+
   - id: luke_skywalker
 
     ...
   rotating:
+
   - id: some_recurring_npc
 
     ...
   templates:
+
   - id: stormtrooper_patrol
 
     ...
@@ -216,7 +231,7 @@ npcs:
 ### Anchor / Rotating NPC Fields (`EraNpcEntry`)
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `id` | `str` | **Yes** | Unique NPC ID (snake_case) |
 | `name` | `str` | **Yes** | Display name |
 | `rarity` | `str` | No | `common`, `uncommon`, `rare`, `legendary` (default: `common`) |
@@ -243,7 +258,7 @@ npcs:
 ### `match_rules` Sub-Object
 
 | Field | Type | Default | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `min_tokens` | `int` | `1` | Minimum name tokens for a match |
 | `require_surname` | `bool` | `false` | Require surname for match |
 | `case_sensitive` | `bool` | `false` | Case-sensitive matching |
@@ -252,7 +267,7 @@ npcs:
 ### `voice` Sub-Object
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `belief` | `str` | **Yes** | Core belief (1 sentence) |
 | `wound` | `str` | **Yes** | Formative wound (1 sentence) |
 | `taboo` | `str` | **Yes** | Personal taboo (short phrase) |
@@ -262,7 +277,7 @@ npcs:
 ### `levers` Sub-Object
 
 | Field | Type | Default | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `bribeable` | `str` | `"false"` | `"false"`, `"low"`, `"medium"`, `"high"` |
 | `intimidatable` | `str` | `"false"` | `"false"`, `"low"`, `"medium"`, `"high"` |
 | `charmable` | `str` | `"false"` | `"false"`, `"low"`, `"medium"`, `"high"` |
@@ -270,14 +285,14 @@ npcs:
 ### `authority` Sub-Object
 
 | Field | Type | Default | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `clearance_level` | `int` | `0` | 0-5 scale |
 | `can_grant_access` | `list[str]` | `[]` | Location IDs this NPC can grant access to |
 
 ### `knowledge` Sub-Object
 
 | Field | Type | Default | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `rumors` | `list[str]` | `[]` | Rumor IDs this NPC can share |
 | `quest_facts` | `list[str]` | `[]` | Quest IDs or `quest_id:stage_id` strings |
 | `secrets` | `list[str]` | `[]` | Fact IDs this NPC knows as secrets |
@@ -287,7 +302,7 @@ npcs:
 Templates define archetypes for dynamically spawned NPCs. Key differences from anchors:
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `id` | `str` | **Yes** | Unique template ID (e.g., `stormtrooper_patrol`) |
 | `role` | `str` | **Yes** | Role label |
 | `archetype` | `str` | No | Archetype label |
@@ -304,13 +319,14 @@ Templates define archetypes for dynamically spawned NPCs. Key differences from a
 ### `spawn` Sub-Object
 
 | Field | Type | Default | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `location_tags_any` | `list[str]` | `[]` | Spawn if location has any of these tags |
 | `location_types_any` | `list[str]` | `[]` | Spawn if location matches these types |
 | `min_alert` | `int` | `0` | Minimum alert level to spawn (0-100) |
 | `max_alert` | `int` | `100` | Maximum alert level to spawn (0-100) |
 
 **Gotchas:**
+
 - Lever values MUST be quoted strings: `bribeable: 'false'`, NOT `bribeable: false` (YAML `false` is boolean, not the string `"false"`).
 - Canonical characters go in `anchors` or `rotating`, NEVER in `templates`.
 - `encounter_table.template_id` in locations must reference template IDs, not anchor IDs.
@@ -326,6 +342,7 @@ Templates define archetypes for dynamically spawned NPCs. Key differences from a
 
 ```yaml
 companions:
+
 - id: comp-reb-kessa
 
   name: Kessa Vane
@@ -335,7 +352,7 @@ companions:
 ### Per-Companion Fields
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `id` | `str` | **Yes** | Unique ID; convention: `comp-<era>-<name>` |
 | `name` | `str` | **Yes** | Display name |
 | `species` | `str` | No | Species (default: `Human`) |
@@ -361,7 +378,7 @@ companions:
 ### `recruitment` Sub-Object
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `unlock_conditions` | `str` | No | Free-text condition (e.g., "Encounter Kessa at a Rebel safe house") |
 | `first_meeting_location` | `str` | No | Location ID for first encounter |
 | `first_scene_template` | `str` | No | Template ID for intro scene |
@@ -369,7 +386,7 @@ companions:
 ### `influence` Sub-Object
 
 | Field | Type | Default | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `starts_at` | `int` | `0` | Initial influence value |
 | `min` | `int` | `-100` | Minimum influence |
 | `max` | `int` | `100` | Maximum influence |
@@ -378,12 +395,13 @@ companions:
 ### `banter` Sub-Object
 
 | Field | Type | Default | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `frequency` | `str` | `normal` | `low`, `normal`, `high` |
 | `style` | `str` | `warm` | Must match `BANTER_POOL` keys: `warm`, `snarky`, `stoic`, etc. |
 | `triggers` | `list[str]` | `[]` | Topic triggers for banter (e.g., `[hyperspace, navigation]`) |
 
 **Gotchas:**
+
 - `voice_tags` must be values recognized in `VOICE_TAG_SPEECH_PATTERNS` (see `backend/app/core/companions.py`).
 - `banter.style` must match keys in `BANTER_POOL` (see `backend/app/core/banter_manager.py`).
 - `recruitment.first_meeting_location` must be a valid location ID.
@@ -399,6 +417,7 @@ companions:
 
 ```yaml
 factions:
+
 - id: rebel_alliance
 
   name: Alliance to Restore the Republic
@@ -417,7 +436,7 @@ faction_relationships:
 ### Per-Faction Fields
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `id` | `str` | **Yes** | Unique faction ID (snake_case) |
 | `name` | `str` | **Yes** | Display name |
 | `tags` | `list[str]` | No | Searchable tags (e.g., `[rebel, alliance]`) |
@@ -428,11 +447,12 @@ faction_relationships:
 ### `faction_relationships` Section
 
 | Field | Type | Description |
-|---|---|---|
+| --- | --- | --- |
 | `<faction_id>.relationships` | `dict[str, int]` | Disposition toward other factions: -100 (enemy) to +100 (ally) |
 | `<faction_id>.cascades` | `dict[str, float]` | Cascade multipliers: gaining rep with this faction multiplies delta for cascade targets |
 
 **Gotchas:**
+
 - Always include a `neutral` faction for unaffiliated NPCs.
 - Cascade values are multipliers (e.g., `-0.6` means gaining +10 with faction A gives -6 with the cascade target).
 - `home_locations` should reference existing location IDs.
@@ -447,6 +467,7 @@ faction_relationships:
 
 ```yaml
 backgrounds:
+
 - id: smuggler
 
   name: "Smuggler"
@@ -456,7 +477,7 @@ backgrounds:
 ### Per-Background Fields
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `id` | `str` | **Yes** | Unique background ID |
 | `name` | `str` | **Yes** | Display name |
 | `description` | `str` | No | Flavor text |
@@ -469,7 +490,7 @@ backgrounds:
 ### Question Fields
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `id` | `str` | **Yes** | Question ID (unique within background) |
 | `title` | `str` | **Yes** | Question text shown to player |
 | `subtitle` | `str` | No | Helper text |
@@ -479,7 +500,7 @@ backgrounds:
 ### Choice Fields
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `label` | `str` | **Yes** | Choice text shown to player |
 | `concept` | `str` | **Yes** | Internal concept string for the Architect |
 | `tone` | `str` | No | `PARAGON`, `INVESTIGATE`, `RENEGADE`, `NEUTRAL` (default: `NEUTRAL`) |
@@ -488,7 +509,7 @@ backgrounds:
 ### Choice Effect Fields
 
 | Field | Type | Description |
-|---|---|---|
+| --- | --- | --- |
 | `faction_hint` | `str` | Faction ID for initial alignment |
 | `location_hint` | `str` | Starting location ID |
 | `thread_seed` | `str` | Opening story hook text |
@@ -496,6 +517,7 @@ backgrounds:
 | `companion_affinity_bonus` | `list[dict]` | Companion affinity modifiers (e.g., `[{comp-reb-kessa: 20}]`) |
 
 **Gotchas:**
+
 - `starting_starship` should be `null` in V2.10+; ships are earned in-story.
 - `condition` strings use dot notation: `"<question_id>.tone == <TONE>"`.
 - `location_hint` and `faction_hint` must reference existing IDs.
@@ -540,6 +562,7 @@ namebanks:
 ```
 
 **Conventions:**
+
 - Keys are referenced by NPC templates via the `namebank` field (e.g., `namebank: imperial_names`).
 - Include species-specific name lists for diverse NPC generation.
 - Include rank/title lists for procedural name construction.
@@ -555,6 +578,7 @@ namebanks:
 
 ```yaml
 quests:
+
 - id: quest_first_contact
 
   title: First Contact
@@ -564,7 +588,7 @@ quests:
 ### Per-Quest Fields
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `id` | `str` | **Yes** | Unique quest ID |
 | `title` | `str` | **Yes** | Display title |
 | `description` | `str` | No | Quest description |
@@ -575,7 +599,7 @@ quests:
 ### Stage Fields
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `stage_id` | `str` | **Yes** | Unique within quest |
 | `objective` | `str` | No | Objective description |
 | `success_conditions` | `dict` | No | Conditions to advance (e.g., `{npc_met: rebel_contact}`) |
@@ -584,6 +608,7 @@ quests:
 | `on_exit_effects` | `dict` | No | Effects triggered on stage exit |
 
 **Gotchas:**
+
 - `consequences` values should be quoted strings when numeric: `'+10'`, not `+10`.
 - Quest IDs are referenced by NPCs (`knowledge.quest_facts`) and companions (`personal_quest_id`).
 
@@ -597,6 +622,7 @@ quests:
 
 ```yaml
 events:
+
 - id: event_imperial_inspection
 
   type: hard
@@ -606,7 +632,7 @@ events:
 ### Per-Event Fields
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `id` | `str` | **Yes** | Unique event ID |
 | `type` | `str` | **Yes** | `hard` (mandatory) or `soft` (optional) |
 | `triggers` | `dict` | No | Meter thresholds: `{heat_global: {min: 50}}` |
@@ -624,6 +650,7 @@ events:
 
 ```yaml
 rumors:
+
 - id: rumor_death_star_plans
 
   text: The Rebellion has stolen something from the Empire...
@@ -633,7 +660,7 @@ rumors:
 ### Per-Rumor Fields
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `id` | `str` | **Yes** | Unique rumor ID |
 | `text` | `str` | **Yes** | Rumor text (1-2 sentences) |
 | `tags` | `list[str]` | No | Thematic tags |
@@ -641,6 +668,7 @@ rumors:
 | `credibility` | `str` | No | `rumor`, `likely`, `confirmed` (default: `rumor`) |
 
 **Gotchas:**
+
 - Rumor IDs are referenced by NPCs via `knowledge.rumors`.
 - Keep rumor text concise; the Director uses them as narrative hooks.
 
@@ -654,6 +682,7 @@ rumors:
 
 ```yaml
 facts:
+
 - id: fact_empire_controls_garrisons
 
   subject: galactic_empire
@@ -665,7 +694,7 @@ facts:
 ### Per-Fact Fields
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `id` | `str` | **Yes** | Unique fact ID |
 | `subject` | `str` | **Yes** | Subject entity (faction ID, NPC ID, etc.) |
 | `predicate` | `str` | **Yes** | Relationship verb (e.g., `controls`, `hides_in`, `allied_with`) |
@@ -673,6 +702,7 @@ facts:
 | `confidence` | `float` | No | 0.0-1.0 confidence score |
 
 **Gotchas:**
+
 - Fact IDs are referenced by NPCs via `knowledge.secrets`.
 - `subject` and `object` should reference valid entity IDs where possible.
 
@@ -707,7 +737,7 @@ meters:
 ### Meter Bounds Fields
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `min` | `int` | **Yes** | Minimum value |
 | `max` | `int` | **Yes** | Maximum value (must be >= min) |
 | `default` | `int` | **Yes** | Starting value (must be within min/max) |
@@ -716,13 +746,14 @@ meters:
 ### Standard Meters
 
 | Meter | Purpose |
-|---|---|
+| --- | --- |
 | `reputation_by_faction` | Per-faction reputation (-100 to +100) |
 | `heat_global` | Global threat/attention level (0-100) |
 | `heat_by_location` | Per-location threat level (0-100) |
 | `control_shift` | Territory control mechanics (usually `enabled: false`) |
 
 **Gotchas:**
+
 - `control_shift` uses a different schema (`enabled: false/true`); leave as `{enabled: false}` unless implementing territory control.
 - Meter names are referenced by events and the world simulation.
 
@@ -735,6 +766,7 @@ These are common pitfalls when authoring era pack YAML files:
 ### 1. Boolean Quoting
 
 YAML `false` and `true` are booleans. For string fields that expect `"false"`:
+
 ```yaml
 # WRONG - parsed as boolean false
 
@@ -748,6 +780,7 @@ bribeable: 'false'
 ### 2. Integer Aliases
 
 YAML anchors that look like integers need quoting:
+
 ```yaml
 # WRONG - parsed as integer 81
 
@@ -761,6 +794,7 @@ anchor: "81"
 ### 3. Em Dashes in Strings
 
 Em dashes can break YAML parsing. Single-quote the entire line:
+
 ```yaml
 # WRONG - may fail
 
@@ -774,6 +808,7 @@ description: 'The galaxy lives under the boot -- crushed and broken.'
 ### 4. Colons in Strings
 
 Colons followed by spaces trigger YAML mapping syntax:
+
 ```yaml
 # WRONG
 
@@ -787,6 +822,7 @@ goal: "War: it never changes"
 ### 5. Multiline Strings
 
 Use the `|` (literal block) style for descriptions:
+
 ```yaml
 description: |
   This preserves newlines.
@@ -796,6 +832,7 @@ description: |
 ### 6. Starting Starship
 
 In V2.10+, backgrounds no longer grant starting ships:
+
 ```yaml
 starting_starship: null  # Ships earned in-story
 ```
@@ -833,7 +870,7 @@ The loader deduplicates by `id`; the last entry wins. Avoid duplicate IDs across
 ## Cross-Reference Table: Which Pipeline Nodes Use Which Fields
 
 | File | Field | Used By |
-|---|---|---|
+| --- | --- | --- |
 | `era.yaml` | `start_location_pool` | Architect (campaign setup) |
 | `era.yaml` | `metadata.tone`, `metadata.themes` | Director, Narrator (prompt context) |
 | `locations.yaml` | `description` | Narrator (scene prose) |

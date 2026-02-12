@@ -15,7 +15,7 @@
 ### Health & Root
 
 | Method | Path | Response |
-|--------|------|----------|
+| -------- | ------ | ---------- |
 | `GET` | `/` | `{"message": "Storyteller AI API", "version": "2.0.0"}` |
 | `GET` | `/health` | `{"status": "healthy"}` |
 
@@ -28,6 +28,7 @@
 Creates a campaign using LLM-generated skeleton + character sheet.
 
 **Request (`SetupAutoRequest`):**
+
 ```json
 {
   "time_period": "Old Republic Era",       // optional
@@ -44,6 +45,7 @@ Creates a campaign using LLM-generated skeleton + character sheet.
 ```
 
 **Response:**
+
 ```json
 {
   "campaign_id": "uuid",
@@ -56,12 +58,14 @@ Creates a campaign using LLM-generated skeleton + character sheet.
 **Process (high level):** CampaignArchitect.build() -> BiographerAgent.build() -> INSERT campaign + player -> initial FLAG_SET event.
 
 Notes:
+
 - With `ENABLE_BIBLE_CASTING=1` (default), the persisted `active_factions` are derived deterministically from Era Packs (`data/static/era_packs/`) and the backend does **not** pre-insert a static 12-NPC cast at setup (NPCs are introduced during play).
 - With `ENABLE_BIBLE_CASTING=0`, the backend can insert an initial static NPC cast (from the skeleton) at setup.
 
 #### `POST /v2/campaigns` — Manual Campaign Creation
 
 **Request:**
+
 ```json
 {
   "title": "New Campaign",
@@ -75,6 +79,7 @@ Notes:
 ```
 
 **Response:**
+
 ```json
 {
   "campaign_id": "uuid",
@@ -93,6 +98,7 @@ Notes:
 #### `GET /v2/campaigns/{campaign_id}/world_state` — Get World State
 
 **Response:**
+
 ```json
 {
   "campaign_id": "uuid",
@@ -105,6 +111,7 @@ Notes:
 **Query params:** `limit` (1-20, default 5)
 
 **Response:**
+
 ```json
 {
   "campaign_id": "uuid",
@@ -117,6 +124,7 @@ Notes:
 **Query params:** `limit` (1-200, default 50)
 
 **Response:**
+
 ```json
 {
   "campaign_id": "uuid",
@@ -136,6 +144,7 @@ Notes:
 Returns known locations for an era pack (for UI starting-area selection).
 
 **Response:**
+
 ```json
 {
   "era_id": "rebellion",
@@ -148,6 +157,7 @@ Returns known locations for an era pack (for UI starting-area selection).
 Returns available backgrounds and their question chains for the given era (CYOA character creation).
 
 **Response:**
+
 ```json
 {
   "era_id": "rebellion",
@@ -162,6 +172,7 @@ Returns available backgrounds and their question chains for the given era (CYOA 
 **Query params:** `player_id` (required)
 
 **Request:**
+
 ```json
 {
   "user_input": "I search the back alley for clues",
@@ -171,6 +182,7 @@ Returns available backgrounds and their question chains for the given era (CYOA 
 ```
 
 **Response (`TurnResponse`):**
+
 ```json
 {
   "narrated_text": "The alley is dark and narrow...",
@@ -252,6 +264,7 @@ Returns available backgrounds and their question chains for the given era (CYOA 
 `warnings` is always present (may be empty). `context_stats` is optional and only populated when `DEV_CONTEXT_STATS=1`.
 
 **Process:**
+
 1. `build_initial_gamestate(conn, campaign_id, player_id)` — load state from DB
 2. Set `state.user_input` from request
 3. `run_turn(conn, state)` — execute full LangGraph pipeline
@@ -269,13 +282,15 @@ Streams narration via Server-Sent Events. Runs the full pipeline synchronously u
 **Request:** Same as `/turn` (`TurnRequest`)
 
 **SSE event format:**
-```
+
+```text
 data: {"type": "token", "text": "..."}         — individual token
 data: {"type": "done", "narrated_text": "...", "suggested_actions": [...], ...}  — final metadata
 data: {"type": "error", "message": "..."}      — on failure
 ```
 
 **Notes:**
+
 - META input shortcuts directly to commit (no streaming needed)
 - Narrator post-processing (`_strip_structural_artifacts`, `_truncate_overlong_prose`, `_enforce_pov_consistency`) runs after streaming completes
 - Suggestions are padded to 4 via `_pad_suggestions_for_ui()` in the `done` event
@@ -327,6 +342,7 @@ Mounted at `/v2/starships`. Manages player-owned starship acquisition, customiza
 #### `POST /v2/starships/campaign/{campaign_id}/acquire` — Acquire Starship
 
 **Request (`PlayerStarshipCreate`):**
+
 ```json
 {
   "ship_type": "yt_1300",
@@ -340,6 +356,7 @@ Mounted at `/v2/starships`. Manages player-owned starship acquisition, customiza
 #### `PATCH /v2/starships/{ship_id}/upgrade` — Install Upgrade
 
 **Request (`PlayerStarshipUpgradeRequest`):**
+
 ```json
 {
   "slot": "weapons",
@@ -432,6 +449,7 @@ Note: `embedded_suggestions` is always `None` as of V2.15 (Narrator writes prose
 **No rate limiting** is implemented. No request validation beyond Pydantic model parsing.
 
 **Error responses** follow this structure:
+
 ```json
 {
   "error_code": "string",

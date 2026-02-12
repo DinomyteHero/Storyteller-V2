@@ -4,7 +4,7 @@
 
 ## Validation
 
-- 
+-
 
 ## Documentation impact checklist
 

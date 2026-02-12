@@ -3,7 +3,7 @@
 ## Agent Summary (Current)
 
 | Component | File | Deterministic? | LLM? | Output | Fallback Behavior |
-|----------|------|----------------|------|--------|-------------------|
+| ---------- | ------ | ---------------- | ------ | -------- | ------------------- |
 | **Router** | `backend/app/core/router.py` + `backend/app/core/nodes/router.py` | Yes | No | `RouterOutput` | Always deterministic routing |
 | **MechanicAgent** | `backend/app/core/agents/mechanic.py` | Yes | No | `MechanicOutput` | Always deterministic |
 | **EncounterManager** | `backend/app/core/agents/encounter.py` | Yes (DB + deterministic RNG) | No (default) | present NPCs + optional spawn payloads | Returns empty/purely anonymous NPCs when throttled |
@@ -20,6 +20,7 @@
 | **CastingAgent (legacy)** | `backend/app/core/agents/casting.py` | No | Yes (Ollama) | NPC payload dict | Generic "Wanderer" NPC payload |
 
 Notes:
+
 - **CastingAgent is legacy-only** in normal gameplay: the default encounter path introduces NPCs via Era Packs and/or deterministic procedural generation (`ENABLE_BIBLE_CASTING=1`, `ENABLE_PROCEDURAL_NPCS=1`). LLM casting is only used when both flags are off.
 - **DirectorAgent** no longer generates JSON suggestions. It produces text-only scene instructions (pacing, beat, NPC emphasis). All player-facing suggestions are generated deterministically via `generate_suggestions()` in `backend/app/core/director_validation.py`.
 - **NarratorAgent** (V2.15) writes prose only. The `_suggestion_request` prompt block was replaced with `_prose_stop_rule` — strict "STOP after last sentence" instructions. The `_extract_embedded_suggestions()` function is no longer called; `embedded_suggestions` is always `None`. Post-processing is hardened with `_strip_structural_artifacts()`, `_truncate_overlong_prose()` (max 250 words, sentence boundary), and `_enforce_pov_consistency()`.
@@ -38,6 +39,7 @@ Notes:
 **File:** `backend/app/core/agents/base.py`
 
 `AgentLLM(role)` is the central LLM wrapper. It:
+
 - Reads per-role config from `backend/app/config.py` (`MODEL_CONFIG`)
 - Only supports `provider=ollama`
 - Supports JSON mode (`json_mode=True`) with a single deterministic repair retry
@@ -45,7 +47,7 @@ Notes:
 ### Default Model Assignments
 
 | Tier | Model | Roles | VRAM |
-|------|-------|-------|------|
+| ------ | ------- | ------- | ------ |
 | Quality-critical | `mistral-nemo:latest` | Director, Narrator | ~7 GB |
 | Medium | `qwen3:8b` | Mechanic, Ingestion Tagger, NPC Render | ~5 GB |
 | Lightweight | `qwen3:4b` | Architect, Casting, Biographer, KG Extractor, Suggestion Refiner | ~2 GB |
@@ -56,7 +58,7 @@ Only one model is loaded at a time (specialist swapping), so peak VRAM equals th
 ### Token Budgets
 
 | Model class | Max context tokens | Reserved output tokens |
-|-------------|-------------------|----------------------|
+| ------------- | ------------------- | ---------------------- |
 | 14b models | 8192 | 2048 |
 | 7b models | 4096 | 1024 |
 
@@ -65,7 +67,7 @@ Only one model is loaded at a time (specialist swapping), so peak VRAM equals th
 Defined in `backend/app/config.py` (`HARDWARE_PROFILES`):
 
 | GPU | Director/Narrator | Architect/Casting/Biographer | Mechanic/Tagger/KG |
-|-----|-------------------|------------------------------|---------------------|
+| ----- | ------------------- | ------------------------------ | --------------------- |
 | RTX 4070 12GB | `mistral-nemo:latest` | `qwen3:4b` | `qwen3:8b` / `qwen3:4b` |
 | RTX 3080 10GB | `qwen3:8b` | `qwen3:4b` | `qwen3:8b` / `qwen3:4b` |
 | RTX 4090 24GB | `mistral-nemo:latest` | `mistral-nemo:latest` | `qwen3:8b` |
@@ -73,6 +75,7 @@ Defined in `backend/app/config.py` (`HARDWARE_PROFILES`):
 ### Roles
 
 Roles present in `MODEL_CONFIG` (some are for optional workflows):
+
 - `architect`, `director`, `narrator`, `casting`, `biographer`
 - `mechanic` (configured but MechanicAgent is deterministic)
 - `ingestion_tagger` (optional ingestion enrichment; off by default)
@@ -84,6 +87,7 @@ Roles present in `MODEL_CONFIG` (some are for optional workflows):
 ### Per-role env overrides
 
 `backend/app/config.py` supports:
+
 - `STORYTELLER_{ROLE}_PROVIDER` (must be `ollama`)
 - `STORYTELLER_{ROLE}_MODEL`
 - `STORYTELLER_{ROLE}_BASE_URL`
@@ -97,6 +101,7 @@ With fallback to `{ROLE}_MODEL`/`{ROLE}_BASE_URL` for convenience.
 **File:** `backend/app/core/context_budget.py`
 
 Both Director and Narrator use `build_context(...)` to:
+
 - Estimate tokens conservatively
 - Trim least-important context first (style -> voice -> lore -> history -> hard cut)
 - Emit a warning when trimming occurs
@@ -116,7 +121,7 @@ Player-facing suggestions are 100% deterministic (no LLM). The `generate_suggest
 **Context-aware branches:**
 
 | Branch | Trigger | Suggestion style |
-|--------|---------|-----------------|
+| -------- | --------- | ----------------- |
 | Post-combat success | `action_type` is ATTACK/COMBAT and `success=True` | Search fallen, interrogate, tend wounds, press deeper |
 | Post-combat failure | `action_type` is ATTACK/COMBAT and `success=False` | Fall back, negotiate, escape, desperate stand |
 | Post-stealth success | `action_type` is STEALTH/SNEAK and `success=True` | Eavesdrop, slip past, reveal self, ambush |
@@ -125,6 +130,7 @@ Player-facing suggestions are 100% deterministic (no LLM). The `generate_suggest
 | Social (default) | NPCs present | PARAGON offer help, INVESTIGATE press for info, RENEGADE confront, NEUTRAL tactical scan |
 
 **Additional context signals:**
+
 - Player background (Force-sensitive, smuggler, etc.) shapes PARAGON dialogue
 - Faction memory shapes INVESTIGATE questions
 - Location name shapes RENEGADE threats and tactical scan hints
@@ -171,6 +177,7 @@ Warnings from validation/linting are collected into `GameState.warnings` and ret
 ### Trait Scoring
 
 Companions react to player choices via deterministic trait-vs-tone scoring. Each companion has traits on three axes:
+
 - `idealist_pragmatic` — idealists like PARAGON, pragmatists like RENEGADE
 - `merciful_ruthless` — merciful likes PARAGON, ruthless likes RENEGADE
 - `lawful_rebellious` — cautious (low lawful) likes INVESTIGATE
@@ -180,7 +187,7 @@ The mechanic result's `tone_tag` is scored against each companion's traits to pr
 ### Affinity Arcs
 
 | Stage | Affinity range | Unlocks |
-|-------|---------------|---------|
+| ------- | --------------- | --------- |
 | STRANGER | <= -10 | Minimal interaction |
 | ALLY | -9 to 29 | Normal dialogue |
 | TRUSTED | 30 to 69 | COMPANION_REQUEST events (20% per turn), banter with memory |
@@ -203,6 +210,7 @@ When one companion approves (delta >= 2) and another disapproves (delta <= -2) o
 **Function:** `check_companion_triggers()`
 
 Milestone-based companion-initiated events:
+
 - **COMPANION_REQUEST:** TRUSTED companion wants to speak (20% per turn, seeded RNG)
 - **COMPANION_QUEST:** LOYAL companion reveals personal quest hook (one-time)
 - **COMPANION_CONFRONTATION:** Sharp drop conflict detected, companion confronts player
@@ -222,7 +230,8 @@ Transforms NPC data into structured prompt blocks for Director/Narrator context 
 **Input:** NPC dict (from era pack or companion YAML) with fields: `name`, `voice_tags`, `traits`, `archetype`, `motivation`, `speech_quirk`, `banter_style`.
 
 **Output:** Formatted text block:
-```
+
+```text
 [NPC_NAME -- Personality]
 Archetype: <archetype>
 Voice: <voice_tags>
@@ -237,7 +246,7 @@ Drives: <motivation>
 ### Constant Mappings
 
 | Map | Count | Purpose |
-|-----|-------|---------|
+| ----- | ------- | --------- |
 | `VOICE_TAG_SPEECH_PATTERNS` | ~82 tags | Voice tag -> speech pattern description |
 | `TRAIT_BEHAVIOR_MAP` | ~46 traits | Trait keyword -> behavioral description |
 | `ARCHETYPE_INTERACTION_MAP` | ~30 archetypes | Archetype -> interaction style |
@@ -261,7 +270,8 @@ Generates pronoun context for Director/Narrator prompts. Returns empty string wh
 **Supported genders:** `male` (he/him/his/himself), `female` (she/her/her/herself).
 
 **Output format:**
-```
+
+```text
 CHARACTER PRONOUNS: {name} uses {subject}/{object}/{possessive} pronouns.
 Always use these pronouns when referring to {name} in narration and dialogue.
 ```

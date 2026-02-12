@@ -41,7 +41,7 @@ It intentionally avoids line numbers (they go stale quickly). Use file paths + f
 
 Primary execution path for gameplay is the V2 turn endpoint:
 
-```
+```text
 SvelteKit frontend
   -> POST /v2/campaigns/{campaign_id}/turn?player_id=...
 
@@ -73,9 +73,9 @@ The graph is built once (lazy singleton via `_get_compiled_graph()`) and invoked
 
 ```mermaid
 flowchart LR
-  router[router] -->|META| meta[meta] --> commit[commit] --> end((END))
-  router -->|TALK| encounter[encounter]
-  router -->|ACTION| mechanic[mechanic] --> encounter
+  router[router] --> | META| meta[meta] --> commit[commit] --> end((END))
+  router --> | TALK| encounter[encounter]
+  router --> | ACTION| mechanic[mechanic] --> encounter
   encounter --> world_sim[world_sim] --> companion[companion_reaction]
   companion --> arc[arc_planner] --> director[director] --> narrator[narrator]
   narrator --> validator[narrative_validator] --> commit
@@ -196,7 +196,7 @@ All nodes live under `backend/app/core/nodes/`. The LangGraph state is a `dict` 
 
 ### Manual Campaign Creation
 
-```
+```text
 POST /v2/campaigns
   -> inserts campaigns row (world_state_json seeded with companion state and (optionally) Era Pack factions)
   -> inserts player character row
@@ -206,7 +206,7 @@ POST /v2/campaigns
 
 ### Auto Setup (Architect + Biographer)
 
-```
+```text
 POST /v2/setup/auto
   -> CampaignArchitect.build()  (LLM optional; deterministic fallback)
   -> BiographerAgent.build()    (LLM optional; deterministic fallback)

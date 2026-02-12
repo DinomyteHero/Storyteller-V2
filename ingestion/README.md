@@ -100,14 +100,18 @@ The implementation is incomplete - it uses deterministic heuristics (modal verb 
 ### Query
 
 ```powershell
+
 python -m ingestion.query --query "..." --k 5 --era LOTF --source_type novel --db ./data/lancedb
-```
+
+```text
 
 Example (Rebellion):
 
 ```powershell
+
 python -m ingestion.query --query "ISB tactics" --k 5 --era REBELLION --db ./data/lancedb
-```
+
+```text
 
 ## Chunking and Metadata
 
@@ -140,6 +144,7 @@ On failure, the tagger logs a warning and falls back to empty/default values. Se
 ## Tests
 
 ```powershell
+
 # Run all ingestion tests
 python -m pytest ingestion/ -q
 

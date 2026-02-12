@@ -8,7 +8,7 @@ A practical guide to organizing, ingesting, and querying lore for the Storytelle
 
 Organize lore by **era** and **type** so the classifier can infer metadata from paths:
 
-```
+```text
 data/
 ├── lore/
 │   ├── lotf/                    # Era: LOTF (Legacy of the Force)
@@ -30,7 +30,7 @@ data/
 
 If you’re building a Rebellion MVP content pack, a simple layout is:
 
-```
+```text
 data/lore/rebellion/
   sourcebooks/
     rebel_alliance_faction_sourcebook.txt
@@ -53,7 +53,7 @@ data/lore/rebellion/
 Classification is **heuristic-first**, with an **optional LLM fallback** only when confidence is low.
 
 | Step | Logic |
-|------|-------|
+| ------ | ------- |
 | **doc_type** | From path/filename (novel, sourcebook, adventure, map). |
 | **section_kind** | From first ~2000 chars: headings like "Equipment:", "Act I", "Faction:", "Planet:", "Chapter 1" + narrative → gear, hook, faction, location, lore/dialogue. |
 | **era** | From `--era` / `--time-period` CLI, else inferred from path. |
@@ -66,7 +66,7 @@ No LLM is required; heuristics alone work for well-structured folders.
 ## 3. Metadata fields
 
 | Field | Meaning | Used by |
-|-------|---------|---------|
+| ------- | --------- | --------- |
 | **doc_type** | `novel`, `sourcebook`, `adventure`, `map`, `unknown` | Narrator (novel, sourcebook); Director (adventure); Mechanic (sourcebook, future). |
 | **era** / **time_period** | Canonical era (e.g. LOTF, Clone Wars). Stored as both for compatibility. | Lore retrieval filter; voice retrieval (era-scoped). |
 | **section_kind** | Content type: `lore`, `dialogue`, `gear`, `faction`, `location`, `hook`, `rules`, `unknown`. | Narrator (lore, location, faction); Director (hook); Mechanic (rules, gear, future). |
@@ -80,7 +80,7 @@ No LLM is required; heuristics alone work for well-structured folders.
 Characters like Luke can appear in multiple eras with different voices and knowledge, but the facet generation is incomplete.
 
 | Concept | Status |
-|---------|--------|
+| --------- | -------- |
 | **Aliases** | ✅ Working. Map display names ("Luke", "Master Skywalker") → canonical ID (`luke_skywalker`). Ingestion tags chunks with `characters[]` using word-boundary matching. |
 
 ---
@@ -124,6 +124,7 @@ python -m ingestion.ingest_lore --input ./data/lore/rebellion --db ./data/lanced
 ```
 
 Notes:
+
 - Director retrieval expects `doc_type=adventure` + `section_kind=hook` (start files with `Adventure Summary:` / `Act I` / `Encounter:` and include `adventure` in the filename).
 - Narrator retrieval expects `doc_type in {novel, sourcebook}` + `section_kind in {lore, location, faction}` (use `Faction:` / `Planet:` / `Location:` headings early; include `sourcebook` in the filename).
 
@@ -143,14 +144,14 @@ Use the same `--db` / `--out_db` path for both; both write to `lore_chunks`. Cre
 
 ### 5.2 Build character facets (NOT RECOMMENDED - incomplete implementation)
 
-# DO NOT RUN - produces unusable output
+> DO NOT RUN - produces unusable output
 
 ### 5.3 Run backend
 
 Model defaults (configured in `backend/app/config.py`):
 
 | Role | Default Model | VRAM |
-|------|---------------|------|
+| ------ | --------------- | ------ |
 | Director, Narrator | `mistral-nemo:latest` | ~7 GB |
 | Architect, Casting, Biographer, KG Extractor | `qwen3:4b` | ~2 GB |
 | Mechanic, Ingestion Tagger | `qwen3:8b` | ~5 GB |
@@ -169,7 +170,7 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ## 6. Troubleshooting
 
 | Issue | Cause | Fix |
-|-------|-------|-----|
+| ------- | ------- | ----- |
 | **Empty lore retrieval** | `VECTORDB_PATH` not set or wrong; `lore_chunks` missing/empty; schema mismatch. | Set `VECTORDB_PATH` to the same path as `--out_db` / `--db`. Run ingestion first. Ensure `sentence-transformers` is installed. |
 | **"Not a directory" or "No .txt/.epub files"** | Input path missing or empty. | Create the directory and add files, or use `sample_data` for a quick test. |
 | **Wrong era results** | Era filter not applied; chunks have wrong `era` / `time_period`. | Pass `--era` / `--time-period` at ingest. Check chunk metadata: `python -m ingestion.query --query "test" --db ./data/lancedb` and inspect output. |

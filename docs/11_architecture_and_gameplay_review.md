@@ -6,6 +6,7 @@ Scope: backend architecture, ingestion/RAG modularity, production readiness, gam
 ## Implementation status update
 
 Completed after this review was written:
+
 - `GET /v2/campaigns` resume listing endpoint is implemented.
 - `GET /health/detail` structured diagnostics endpoint is implemented.
 - Ingestion CLI supports non-interactive `--yes/--non-interactive`.
@@ -14,6 +15,7 @@ Completed after this review was written:
 - Sprint B prompt versioning is implemented for SuggestionRefiner and exposed in `turn_contract.meta.prompt_versions`.
 
 Still pending from this review roadmap:
+
 - Service-layer split for `v2_campaigns`.
 - Prompt regression/golden scenario tests beyond registry hashing checks.
 - Ingestion SLA metrics + CI gates.
@@ -24,6 +26,7 @@ Still pending from this review roadmap:
 ## Executive assessment
 
 The recent changes materially improved the project:
+
 - Clear direction toward modularity (`VectorStore` protocol, ingestion path helpers, role-specific model/timeout config)
 - Better resilience (fallbacks, warnings, startup checks)
 - Better deployability (Docker, production env template, runbook)
@@ -52,6 +55,7 @@ The recent changes materially improved the project:
 - **Risk:** backend swap will require touching many modules (and likely tests).
 
 **Recommendation (high priority):**
+
 1. Introduce a `VectorStoreFactory` in one place (config-driven backend selection).
 2. Refactor retrievers (`lore_retriever`, `style_retriever`, `character_voice_retriever`, `kg/chunk_reader`) to depend on the protocol only.
 3. Move all backend-specific filter syntax to adapter classes.
@@ -63,6 +67,7 @@ The recent changes materially improved the project:
 - **Risk:** high change surface, difficult onboarding, harder reliability improvements.
 
 **Recommendation (high priority):**
+
 - Split into feature routers/services:
   - `setup_service`
   - `turn_service` (stream + sync variants)
@@ -76,6 +81,7 @@ The recent changes materially improved the project:
 - **Risk:** support burden and inconsistent metadata quality.
 
 **Recommendation (high priority):**
+
 - Make `lore` the only default public path in the next minor release.
 - Move `simple` pipeline behind `--allow-legacy` gate.
 - Add a migration helper to convert legacy manifests/metadata to the new schema.
@@ -90,6 +96,7 @@ The recent changes materially improved the project:
 - Some tooling remains interactive (CLI prompts), which hurts automation.
 
 **Recommendation (high priority):**
+
 1. Add a one-command non-interactive bootstrap script (`scripts/bootstrap.sh` + `.ps1`) that validates Python, installs deps, copies `.env`, verifies models, checks pack paths.
 2. Add `--yes`/`--non-interactive` support to CLI flows that currently prompt.
 3. Add `make check`/`task check` command that runs preflight + smoke tests + content checks.
@@ -99,6 +106,7 @@ The recent changes materially improved the project:
 - Good baseline compose exists, but production patterns need hardening.
 
 **Recommendation (medium priority):**
+
 - Add compose override for production:
   - read-only root FS where possible
   - explicit resource limits
@@ -112,6 +120,7 @@ The recent changes materially improved the project:
 - Current checks confirm reachability/path presence; they don’t validate operational correctness deeply.
 
 **Recommendation (medium priority):**
+
 - Extend startup diagnostics to verify:
   - required tables exist in LanceDB and include expected columns
   - era pack shape integrity (12-file contract)
@@ -131,6 +140,7 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 3. **Reflection:** NPC memory callback + ledger update + optional companion commentary
 
 **Recommendation (high priority):**
+
 - Add a `consequence hooks` layer executed post-commit that seeds delayed payoffs.
 - Display subtle "world remembers" indicators in UI (not spoilery).
 
@@ -139,6 +149,7 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 - Emotional volatility and memory exist, but engagement improves with predictable relational arcs.
 
 **Recommendation (high priority):**
+
 - Add relationship arc states per key companion (trust, dependency, ideological tension).
 - Add scene directors for companion beats (e.g., confession, challenge, crisis, reconciliation).
 - Gate some high-impact options by relationship state to create meaningful social gameplay.
@@ -146,6 +157,7 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 ### C3. Suggestion quality should be scene-state aware, not just text aware
 
 **Recommendation (medium priority):**
+
 - Include structured scene-state features in SuggestionRefiner inputs:
   - location danger level
   - faction heat
@@ -156,6 +168,7 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 ### C4. UX should make narrative systems legible without breaking immersion
 
 **Recommendation (medium priority):**
+
 - Add optional "Narrative Signals" drawer:
   - recent world-state shifts
   - faction movement
@@ -169,6 +182,7 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 ### D1. Prompt strategy should be versioned and testable
 
 **Recommendation (high priority):**
+
 1. Move major system prompts into versioned prompt packs (`prompts/vX/`).
 2. Add prompt regression tests using golden scenarios (tone, continuity, safety).
 3. Track prompt hash/version in turn metadata for reproducibility.
@@ -176,6 +190,7 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 ### D2. Ingestion quality should shift from "best effort" to measurable SLAs
 
 **Recommendation (high priority):**
+
 - Add ingestion QA metrics and thresholds:
   - metadata completeness rate
   - chunk coherence score
@@ -186,6 +201,7 @@ You already have strong ingredients (mechanic determinism, memory, narrative gua
 ### D3. Caching and retrieval observability can be expanded
 
 **Recommendation (medium priority):**
+
 - Instrument cache hit rate by lane (lore/style/voice/KG).
 - Add top-k overlap diagnostics to detect retrieval drift after re-ingest.
 - Emit trace IDs for end-to-end turn pipeline correlation.

@@ -7,10 +7,12 @@ This document consolidates all setting pack documentation into a single quick re
 Setting Packs are YAML-based content bundles that define the worldbuilding, NPCs, quests, factions, and tone for a specific Star Wars Legends era. Each pack contains 12 files that work together to create a cohesive narrative experience.
 
 **Current Setting Packs:**
+
 - `_template` - Reference structure for creating new packs
 - `rebellion` - Galactic Civil War (0 BBY - 4 ABY) - **Canonical reference pack**
 
 **Removed Setting Packs (can be regenerated):**
+
 - `dark_times`, `kotor`, `legacy`, `new_jedi_order`, `new_republic`
 
 ---
@@ -20,7 +22,7 @@ Setting Packs are YAML-based content bundles that define the worldbuilding, NPCs
 Each setting pack lives in `/data/static/setting_packs/{era_id}/` and contains **12 YAML files**:
 
 | File | Purpose | Required |
-|------|---------|----------|
+| ------ | --------- | ---------- |
 | `era.yaml` | Era metadata, time period, tone, galactic state | ✅ Yes |
 | `companions.yaml` | Recruitable party members (max 5) | ✅ Yes |
 | `quests.yaml` | Quest templates and objectives | ✅ Yes |
@@ -104,6 +106,7 @@ tone:
 
 ```yaml
 companions:
+
   - id: comp-cassian
 
     name: "Cassian Andor"
@@ -121,6 +124,7 @@ companions:
 
 ```yaml
 quests:
+
   - id: quest-scarif
 
     title: "Scarif Infiltration"
@@ -128,10 +132,12 @@ quests:
     quest_type: "main_story"
     entry_location: "loc-rebel-base"
     stages:
+
       - id: stage-1
 
         description: "Assemble infiltration team"
         success_condition: "recruit_companion:cassian"
+
       - id: stage-2
 
         description: "Infiltrate Scarif security perimeter"
@@ -142,6 +148,7 @@ quests:
 
 ```yaml
 backgrounds:
+
   - id: spy_defector
 
     name: "Imperial Defector"
@@ -151,14 +158,17 @@ backgrounds:
       intelligence: 10
       strength: 8
     questions:
+
       - id: q1_motivation
 
         text: "Why did you defect?"
         choices:
+
           - id: moral_awakening
 
             label: "Witnessed an Imperial massacre"
             stat_bonus: {wisdom: +2}
+
           - id: betrayed
 
             label: "The Empire betrayed you"
@@ -216,6 +226,7 @@ ENABLE_BIBLE_CASTING = 1  # Use setting pack deterministic casting
 ```
 
 **Impact:**
+
 - NPCs are pulled from setting pack `npcs.yaml`
 - Factions are derived from `factions.yaml`
 - Deterministic, reproducible NPC generation
@@ -275,6 +286,7 @@ background = pack.background_by_id("spy_defector")
 ## Schema Reference
 
 For detailed schema documentation, see:
+
 - `/docs/setting_pack_template.md` - Comprehensive template with examples
 - `/docs/setting_pack_schema_reference.md` - Schema validation rules
 - `/docs/setting_pack_generation_prompt.md` - LLM prompt for automated generation
@@ -286,6 +298,7 @@ For detailed schema documentation, see:
 ### 1. Deterministic Content
 
 Era packs provide deterministic content that doesn't require LLM calls. This ensures:
+
 - Consistent worldbuilding across playthroughs
 - No LLM downtime impact
 - Reproducible for testing
@@ -294,6 +307,7 @@ Era packs provide deterministic content that doesn't require LLM calls. This ens
 ### 2. Bible-Based Casting
 
 NPCs, factions, and locations are defined upfront in the "bible" (setting pack YAML files) rather than procedurally generated. This ensures:
+
 - Canonical character roles (Vader as Villain, Leia as Leader, etc.)
 - Faction relationships grounded in lore
 - Locations that feel authentic to the era
@@ -301,6 +315,7 @@ NPCs, factions, and locations are defined upfront in the "bible" (setting pack Y
 ### 3. Layered Retrieval
 
 Era packs work alongside RAG retrieval:
+
 - **Era pack** provides structure (NPCs, quests, factions)
 - **RAG lore retrieval** provides narrative flavor (novel snippets, sourcebook lore)
 - **Style guides** provide tone and voice (`/data/style/era/`)
@@ -308,6 +323,7 @@ Era packs work alongside RAG retrieval:
 ### 4. Modular Expansion
 
 New eras can be added without code changes:
+
 - Drop new YAML bundle into `/data/static/setting_packs/{era_id}/`
 - System auto-detects and loads
 - UI shows era in selection dropdown
@@ -317,7 +333,7 @@ New eras can be added without code changes:
 ## File Size Guidelines
 
 | File | Target Lines | Max Size |
-|------|--------------|----------|
+| ------ | -------------- | ---------- |
 | `era.yaml` | 30-50 | 2 KB |
 | `companions.yaml` | 200-300 (5 companions) | 15 KB |
 | `quests.yaml` | 300-500 | 25 KB |
@@ -341,6 +357,7 @@ New eras can be added without code changes:
 
 ```yaml
 locations:
+
   - id: loc-cantina
 
     name: "Mos Eisley Cantina"
@@ -348,9 +365,11 @@ locations:
     tags: ["cantina", "underworld"]
     threat_level: moderate
     travel_links:
+
       - to_location_id: loc-spaceport
 
         travel_time_minutes: 10
+
       - to_location_id: loc-marketplace
 
         travel_time_minutes: 15
@@ -360,6 +379,7 @@ locations:
 
 ```yaml
 npcs:
+
   - id: npc-vader
 
     name: "Darth Vader"
@@ -375,16 +395,20 @@ npcs:
 
 ```yaml
 quests:
+
   - id: quest-rescue-leia
 
     title: "Rescue Princess Leia"
     stages:
+
       - id: stage-1
 
         description: "Infiltrate the Death Star"
+
       - id: stage-2
 
         description: "Locate detention block AA-23"
+
       - id: stage-3
 
         description: "Escape with Leia"

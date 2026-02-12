@@ -49,7 +49,7 @@ Example:
 
 1. **Create root structure**
 
-```
+```text
 data/static/setting_packs/core/star_wars_legends/periods/rebellion/
 ```
 

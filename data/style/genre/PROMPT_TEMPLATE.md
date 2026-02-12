@@ -22,7 +22,7 @@ IMPORTANT: This document must be ERA-AGNOSTIC. Do not reference specific eras, f
 
 SECTION STRUCTURE:
 
-# [Genre Name] Style Guide
+## [Genre Name] Style Guide
 
 Premise: [One sentence — the genre's core narrative mode stated as a storytelling approach, set in a "galaxy far, far away" context but not era-specific.]
 

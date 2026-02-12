@@ -35,7 +35,7 @@ LanceDB is an embedded columnar vector database (no server needed). Tables are s
 ### Tables
 
 | Table Name | Config Constant | Used By | Purpose |
-|-----------|----------------|---------|---------|
+| ----------- | ---------------- | --------- | --------- |
 | `lore_chunks` | `LORE_TABLE_NAME` (`config.py`) | Narrator, Director | Lore from novels, sourcebooks, adventure docs |
 | `style_chunks` | `STYLE_TABLE_NAME` (`config.py`) | Director (via layered retrieval) | Writing style/tone reference material (4-lane) |
 | `character_voice_chunks` | `CHARACTER_VOICE_TABLE_NAME` (`config.py`) | Narrator | Character-specific dialogue voice samples |
@@ -57,22 +57,25 @@ All retrieval and ingestion modules use these config values. Override via env: `
 To use a different embedding model, set env vars and rebuild LanceDB:
 
 | Model | EMBEDDING_MODEL | EMBEDDING_DIMENSION |
-|-------|-----------------|---------------------|
+| ------- | ------------------ | --------------------- |
 | Default (all-MiniLM-L6-v2) | `sentence-transformers/all-MiniLM-L6-v2` | 384 |
 | BGE-M3 (higher quality) | `BAAI/bge-m3` | 1024 |
 | Nomic Embed Text v1.5 | `nomic-ai/nomic-embed-text-v1.5` | 768 |
 
 **Steps:**
+
 1. Set env vars: `EMBEDDING_MODEL`, `EMBEDDING_DIMENSION` (see table above).
 2. Run rebuild script: `python scripts/rebuild_lancedb.py --db ./data/lancedb`
 3. Ensure `--lore-dir` and `--style-dir` point to your source docs (or use `LORE_DATA_DIR`, `STYLE_DATA_DIR`).
 
 **bge-m3 example:**
+
 ```bash
 EMBEDDING_MODEL=BAAI/bge-m3 EMBEDDING_DIMENSION=1024 python scripts/rebuild_lancedb.py --db ./data/lancedb
 ```
 
 **nomic-embed-text:v1.5 (sentence-transformers):**
+
 ```bash
 EMBEDDING_MODEL=nomic-ai/nomic-embed-text-v1.5 EMBEDDING_DIMENSION=768 python scripts/rebuild_lancedb.py --db ./data/lancedb
 ```
@@ -101,6 +104,7 @@ You can also override per-run with `storyteller ingest --ingest-root <path>`.
 ## Ingestion Pipeline
 
 **Available ingestion methods:**
+
 - **Hierarchical lore ingestion**: `python -m ingestion.ingest_lore ...` (supports PDF/EPUB/TXT with parent/child chunking)
 - **Flat lore ingestion**: `python -m ingestion.ingest ...` (TXT/EPUB only, simple chunking)
 - **Style ingestion**: `python -m backend.app.scripts.ingest_style ...` or `scripts/ingest_style.py`
@@ -117,6 +121,7 @@ storyteller build-style-pack --input <corpus_root> --output <style_root>
 ```
 
 This command:
+
 - performs deterministic extraction from your corpus,
 - generates base + era + top genre style docs,
 - optionally polishes output with an LLM (`--use-llm --llm-role ingestion_tagger`),
@@ -137,6 +142,7 @@ Recommended production flow: deterministic generation + optional cloud polish + 
 **Input:** Directory of `.txt` and `.md` files containing writing style examples.
 
 **Process:**
+
 1. Collect `.txt` and `.md` files recursively (`_collect_files()`, skipping `README` and `PROMPT_TEMPLATE` stems)
 2. For each file:
    - Read text content (UTF-8 with error replacement)
@@ -147,7 +153,8 @@ Recommended production flow: deterministic generation + optional cloud polish + 
 3. Each row stored with: `id`, `text`, `vector`, `source_title`, `source_type`, `tags_json`, `chunk_index`
 
 **Table schema** (PyArrow):
-```
+
+```text
 id: string
 text: string
 vector: list<float32>[384]
@@ -164,7 +171,8 @@ chunk_index: int32
 **Files:** `ingestion/ingest.py` (flat TXT/EPUB) and `ingestion/ingest_lore.py` (hierarchical PDF/EPUB/TXT). The lore retriever (`lore_retriever.py`) expects a LanceDB table with rich metadata columns populated by these scripts.
 
 **Expected lore table schema** (inferred from `lore_retriever.py` column access):
-```
+
+```text
 text: string            — chunk content
 vector: list<float32>   — embedding vector
 era: string             — time period / era
@@ -187,6 +195,7 @@ chunk_id: string        — unique chunk identifier
 **File:** `backend/app/rag/lore_retriever.py` — `retrieve_lore()`
 
 **Consumers:**
+
 - **Narrator** (via `graph.py:_make_narrator_node`): `doc_types=["novel", "sourcebook"]`, `section_kinds=["lore", "location", "faction"]`, `top_k=6`
 - **Director** (via `graph.py:_make_director_node`): `doc_type="adventure"`, `section_kind="hook"`, `top_k=4`
 
@@ -195,7 +204,7 @@ chunk_id: string        — unique chunk identifier
 **Filters available:**
 
 | Filter | Type | SQL Generation |
-|--------|------|---------------|
+| -------- | ------ | --------------- |
 | `era` | Exact match | `era = '{value}'` |
 | `time_period` | Exact match | `time_period = '{value}'` |
 | `planet` | Exact match | `planet = '{value}'` |
@@ -208,6 +217,7 @@ chunk_id: string        — unique chunk identifier
 | `characters` | Contains match | `characters_json LIKE '%"name"%'` or `list_contains(characters, 'name')` |
 
 **Output format:** List of dicts:
+
 ```python
 {
     "text": str,           # Chunk content
@@ -240,6 +250,7 @@ Pure vector similarity search with optional tag boosting. Results whose tags ove
 ### Are `data/style/base`, `data/style/era`, and `data/style/genre` deprecated?
 
 No — these are active in the current layered retrieval design:
+
 - `base/` = always-on Star Wars foundation lane
 - `era/` = era-specific lane
 - `genre/` = genre + archetype overlays
@@ -255,7 +266,7 @@ This reports active mapped files, ignored templates (`PROMPT_TEMPLATE`/`README`)
 4-lane retrieval system. Star Wars is always the foundation; genre and archetype modify but never replace it.
 
 | Lane | Condition | Source | Limit |
-|------|-----------|--------|-------|
+| ------ | ----------- | -------- | ------- |
 | **Lane 0 (ALWAYS)** | Always active | Base Star Wars style (`star_wars_base_style`) | 2 chunks |
 | **Lane 1** | When `era_id` is set | Era-specific style (e.g., `rebellion_style`) | `top_k` chunks |
 | **Lane 2** | When `genre` is set | Genre overlay (e.g., `noir_detective_style`) | `top_k / 2` chunks (min 2) |
@@ -270,7 +281,7 @@ Lanes query the `style_chunks` LanceDB table using `source_title` filters. Resul
 Static mappings from `source_title` (filename stem) to classification:
 
 | Map | Entries | Purpose |
-|-----|---------|---------|
+| ----- | --------- | --------- |
 | `BASE_STYLE_MAP` | 1 (`star_wars_base_style` -> BASE) | Always-on Star Wars prose foundation |
 | `ERA_STYLE_MAP` | 4 (REBELLION, LEGACY, NEW_REPUBLIC, NEW_JEDI_ORDER) | Era-specific tone |
 | `GENRE_STYLE_MAP` | 15 genres | Genre overlays (noir, samurai, cosmic horror, etc.) |
@@ -279,7 +290,8 @@ Static mappings from `source_title` (filename stem) to classification:
 **Genre list:** noir_detective, cosmic_horror, samurai_cinema, mythic_quest, survival_horror, political_thriller, military_tactical, heist_caper, gothic_romance, espionage_thriller, space_western, court_intrigue, post_apocalyptic, murder_mystery, epic_fantasy_quest.
 
 **Data directory structure:**
-```
+
+```text
 data/style/
   base/star_wars_base_style.md     # Lane 0: always-on foundation
   era/rebellion_style.md            # Lane 1: era-specific
@@ -302,6 +314,7 @@ Helper functions: `era_source_titles(era_id)`, `genre_source_title(genre_slug)`,
 **Status:** The retriever is functional but the feature is disabled by default. Character voice chunks must be ingested separately and the retriever's impact on output quality has not been extensively tested.
 
 **Unique behavior:** Era-scoped retrieval with fallback widening:
+
 1. Filter by `(character_id, era)` — if >= k/2 results, use those
 2. If < k/2: widen to `(character_id, any era)` — deduplicate by text
 3. If still not enough: return what's available (no guessing)
@@ -315,6 +328,7 @@ Helper functions: `era_source_titles(era_id)`, `genre_source_title(genre_slug)`,
 **File:** `backend/app/rag/kg_retriever.py` — `KGRetriever`
 
 **Consumers:**
+
 - Narrator node (`backend/app/core/nodes/narrator.py`)
 - Director path (when KG context is requested)
 
@@ -323,7 +337,7 @@ This retriever reads SQLite KG tables (`kg_entities`, `kg_triples`, `kg_summarie
 **Context blocks produced:**
 
 | Block | Method | Content |
-|-------|--------|---------|
+| ------- | -------- | --------- |
 | Character Relationships | `get_character_context()` | Named relationships, arc summaries (max 6 characters, max `KG_MAX_RELATIONSHIPS_PER_CHAR` per character) |
 | Faction Dynamics | `get_faction_dynamics()` | OPPOSES/ALLIED_WITH/NEUTRAL_TO relationships between factions (max 10) |
 | Location Context | `get_location_context()` | Location type, region, controlling faction, dossier summary |
@@ -346,13 +360,15 @@ python -m storyteller extract-knowledge --era rebellion --resume
 The `ContextBudget` manages token allocation for agents. Token estimation uses `max(len(text) // 4, len(text.split()) * 1.3)`.
 
 **Budget calculation:**
-```
+
+```text
 max_input_tokens = max_context_tokens - reserved_output_tokens
 system_tokens = estimate_tokens(system_prompt)
 max_user_tokens = max_input_tokens - system_tokens
 ```
 
 **Trimming order** (cascading, applied until under budget):
+
 1. Style chunks (drop lowest-scoring first)
 2. Voice snippets (when `ENABLE_CHARACTER_FACETS=1`)
 3. Lore chunks (drop lowest-scoring)
@@ -369,7 +385,7 @@ max_user_tokens = max_input_tokens - system_tokens
 **File:** `backend/app/rag/retrieval_bundles.py`
 
 | Constant | Value | Used By |
-|----------|-------|---------|
+| ---------- | ------- | --------- |
 | `NARRATOR_DOC_TYPES` | `["novel", "sourcebook"]` | Narrator lore retrieval |
 | `NARRATOR_SECTION_KINDS` | `["lore", "location", "faction"]` | Narrator lore retrieval |
 | `DIRECTOR_DOC_TYPE` | `"adventure"` | Director lore retrieval |
@@ -381,7 +397,7 @@ max_user_tokens = max_input_tokens - system_tokens
 
 All ingestion pipelines follow this sequence:
 
-```
+```text
 Extract → Chunk → (optional Tagger) → Embed → Upsert → Manifest
 ```
 
@@ -401,7 +417,7 @@ Extract → Chunk → (optional Tagger) → Embed → Upsert → Manifest
 **Output schema fields:**
 
 | Field | Type | Description |
-|-------|------|-------------|
+| ------- | ------ | ------------- |
 | `doc_type` | `str \| null` | Document classification (e.g., novel, sourcebook, adventure, rules) |
 | `section_kind` | `str \| null` | Section classification (e.g., lore, location, faction, hook, rules, gear) |
 | `entities.characters` | `list[str]` | Character names mentioned |

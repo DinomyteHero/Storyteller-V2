@@ -36,4 +36,4 @@ None currently open.
 ## Validation commands executed
 
 - `python - <<'PY' ...` (path/module existence checks for referenced commands and files)
-- `rg -n "setting_pack|rebellion.yaml|build_character_facets|data/style/rebellion_style\.md"`
+- `rg -n "setting_pack | rebellion.yaml | build_character_facets | data/style/rebellion_style\.md"`

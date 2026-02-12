@@ -20,7 +20,7 @@ Use the following section structure. Write in second person imperative ("Use..."
 
 SECTION STRUCTURE:
 
-# [Era Name] Era Style Guide
+## [Era Name] Era Style Guide
 
 Premise: [One sentence elevator pitch — the core dramatic tension of this era stated as a storytelling mode, not a plot summary.]
 

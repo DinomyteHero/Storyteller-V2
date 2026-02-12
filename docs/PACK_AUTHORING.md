@@ -10,7 +10,7 @@ Pick a stable `setting_id` and create it under one or more pack roots.
 
 Example (`lotr` in core root):
 
-```
+```text
 data/static/setting_packs/core/
   lotr/
     periods/
@@ -34,7 +34,7 @@ Minimum practical starting files:
 
 Create a new period directory:
 
-```
+```text
 data/static/setting_packs/core/lotr/periods/war_of_the_ring/
 ```
 
@@ -46,7 +46,7 @@ Layer additional content without modifying core files.
 
 ### Addon example
 
-```
+```text
 data/static/setting_packs/addons/lotr/periods/third_age/locations/rohan.yaml
 ```
 
@@ -59,9 +59,11 @@ This appends or merges location objects by `id`.
 
 npcs:
   templates:
+
     - id: npc_ranger_generic
 
       disabled: true
+
     - id: npc_ranger_veteran
 
       extends: npc_ranger_base

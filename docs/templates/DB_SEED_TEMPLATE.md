@@ -9,7 +9,7 @@ Storyteller AI uses SQLite with an event sourcing architecture. The schema is ma
 ### Migration Sequence
 
 | Migration | Purpose |
-|-----------|---------|
+| ----------- | --------- |
 | `0001_init.sql` | Core tables: campaigns, characters, inventory, turn_events |
 | `0002_add_rendered_turns.sql` | Turn narration cache |
 | `0003_add_credits.sql` | Character credits field |

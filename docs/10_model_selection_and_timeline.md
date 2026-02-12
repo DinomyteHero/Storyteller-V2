@@ -1,6 +1,7 @@
 # 10 — Model Selection, Overrides, and Timeline Planning
 
 This is the **single operations reference** for:
+
 - choosing local vs cloud models per role,
 - understanding env-var override precedence,
 - planning timeline pacing for canonical-era campaigns.
@@ -74,6 +75,7 @@ This prints the resolved per-role provider/model (including fallback chain if se
 Your concern is valid: if action-time accumulation is unconstrained, campaigns can drift too far in-world.
 
 Current safeguards:
+
 - deterministic action costs (minutes) in `backend/app/time_economy.py`
 - deterministic arc stages with min/max-turn guards in `backend/app/constants.py` + `arc_planner.py`
 - world tick cadence from `WORLD_TICK_INTERVAL_HOURS` (default 4h)
@@ -81,6 +83,7 @@ Current safeguards:
 ### Recommended canonical guardrails
 
 For a fixed historical window (example: 19 BBY):
+
 1. Define a **campaign calendar budget** at campaign start (e.g., 90 in-world days max).
 2. Track `world_time_minutes` progression per turn.
 3. Trigger warnings when crossing thresholds (75%, 90%, 100% of budget).
@@ -92,6 +95,7 @@ Using current action-time defaults (`TALK=8`, `INVESTIGATE=25`, `PERSUADE=20`, `
 a practical blended average for mixed play is ~22–30 minutes/turn.
 
 Arc min-turn baseline today:
+
 - SETUP 3
 - RISING 5
 - CLIMAX 5
@@ -101,7 +105,7 @@ Arc min-turn baseline today:
 ### Planning estimates
 
 | Size | Turn range (practical) | In-world elapsed (22–30 min/turn) |
-|---|---:|---:|
+| --- | ---: | ---: |
 | Short | 16–30 turns | ~6–15 hours |
 | Medium | 31–70 turns | ~11–35 hours (~0.5–1.5 days) |
 | Large | 71–140 turns | ~26–70 hours (~1–3 days) |
