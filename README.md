@@ -58,8 +58,6 @@ Era Packs are YAML-based content bundles that define a playable Star Wars Legend
 
 **Location:** `/data/static/era_packs/{era_id}/`
 
-See `/docs/SETTING_PACK_QUICK_REFERENCE.md` for complete documentation.
-
 ### Campaign Creation
 
 Campaigns are created via:
@@ -217,12 +215,6 @@ ollama serve
 
 ## Era Pack Authoring
 
-For detailed authoring guidance, see:
-
-- [`docs/SETTING_PACK_QUICK_REFERENCE.md`](docs/SETTING_PACK_QUICK_REFERENCE.md)
-- [`docs/era_pack_template.md`](docs/era_pack_template.md)
-- [`docs/era_pack_schema_reference.md`](docs/era_pack_schema_reference.md)
-
 ### Creating a New Era Pack
 
 1. Copy the template:
@@ -318,8 +310,6 @@ python scripts/smoke_test.py
   - Check port availability: `lsof -i :5173`
   - Clear cache: `rm -rf frontend/.svelte-kit`
 
-See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for operational details.
-
 ---
 
 ## Documentation
@@ -337,29 +327,7 @@ See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for operational details.
 - [`docs/08_alignment_checklist.md`](docs/08_alignment_checklist.md) - Architectural alignment
 - [`docs/09_call_graph.md`](docs/09_call_graph.md) - Call graph & dependencies
 
-For concrete runnable commands, prefer:
-
-- [`QUICKSTART.md`](QUICKSTART.md) for setup + launch
-- [`API_REFERENCE.md`](API_REFERENCE.md) for current endpoint coverage
-
-### Deep Dives
-
-- [`docs/architecture.md`](docs/architecture.md) - Complete system architecture
-- [`docs/user_guide.md`](docs/user_guide.md) - Player-facing documentation
-- [`docs/lore_pipeline_guide.md`](docs/lore_pipeline_guide.md) - Lore ingestion
-
-### Templates
-
-- [`docs/templates/CAMPAIGN_INIT_TEMPLATE.md`](docs/templates/CAMPAIGN_INIT_TEMPLATE.md) - Campaign creation
-- [`docs/templates/DB_SEED_TEMPLATE.md`](docs/templates/DB_SEED_TEMPLATE.md) - Database seeding
-- [`docs/SETTING_PACK_QUICK_REFERENCE.md`](docs/SETTING_PACK_QUICK_REFERENCE.md) - Era pack guide
-
-### Root Documentation
-
-- [`README.md`](README.md) - This file
-- [`CLAUDE.md`](CLAUDE.md) - Project constraints & coding standards
-- [`QUICKSTART.md`](QUICKSTART.md) - Quick start guide
-- [`API_REFERENCE.md`](API_REFERENCE.md) - API contract
+For concrete runnable commands, see [`QUICKSTART.md`](QUICKSTART.md) for setup and launch instructions.
 
 ---
 
@@ -372,8 +340,6 @@ For concrete runnable commands, prefer:
 - **Per-Role LLM Config:** Agent model selection via `STORYTELLER_{ROLE}_MODEL` env vars
 - **Ollama-Only:** No cloud LLM dependencies (OpenAI/Anthropic paths removed)
 - **RAG Token Budgeting:** `build_context()` manages retrieval budget across lore/style/voice/KG
-
-See [`CLAUDE.md`](CLAUDE.md) for complete architectural invariants and constraints.
 
 ---
 
