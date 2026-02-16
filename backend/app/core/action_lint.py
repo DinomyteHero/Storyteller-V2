@@ -17,7 +17,6 @@ from backend.app.models.state import (
     TONE_TAG_PARAGON,
     TONE_TAG_INVESTIGATE,
     TONE_TAG_RENEGADE,
-    TONE_TAG_NEUTRAL,
     ROUTER_ROUTE_TALK,
     ROUTER_ACTION_CLASS_DIALOGUE_ONLY,
 )
@@ -361,7 +360,7 @@ def _contextual_defaults(game_state: Any | None) -> list[ActionSuggestion]:
                 loc_name = f"the {cleaned}" if " " not in cleaned else cleaned
 
     social_label = f"Ask {npc_name} about the situation" if npc_name else "Talk to someone nearby"
-    social_intent = f"Say: 'What can you tell me about what's going on here?'" if npc_name else "Say: 'I'm looking for information. Can anyone help?'"
+    social_intent = "Say: 'What can you tell me about what's going on here?'" if npc_name else "Say: 'I'm looking for information. Can anyone help?'"
     return [
         # SOCIAL — contextual
         ActionSuggestion(

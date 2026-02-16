@@ -4,15 +4,14 @@ import sqlite3
 import sys
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
 
 _root = Path(__file__).resolve().parents[2]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from backend.app.core.projections import apply_projection
-from backend.app.models.events import Event
-from backend.app.models.state import GameState, CharacterSheet
+from backend.app.core.projections import apply_projection  # noqa: E402
+from backend.app.models.events import Event  # noqa: E402
+from backend.app.models.state import GameState, CharacterSheet  # noqa: E402
 
 
 def _create_in_memory_db() -> sqlite3.Connection:
@@ -164,7 +163,7 @@ class TestBackgroundNoLongerGrantsShip(unittest.TestCase):
 
     def test_rebellion_backgrounds_no_starting_ship(self):
         """All Rebellion backgrounds should have starting_starship: null."""
-        import yaml
+        import yaml  # noqa: E402
         bg_path = _root / "data" / "static" / "era_packs" / "rebellion" / "backgrounds.yaml"
         if not bg_path.exists():
             self.skipTest("Rebellion backgrounds.yaml not found")
@@ -179,7 +178,7 @@ class TestBackgroundNoLongerGrantsShip(unittest.TestCase):
 
     def test_new_republic_backgrounds_no_starting_ship(self):
         """All New Republic backgrounds should have starting_starship: null."""
-        import yaml
+        import yaml  # noqa: E402
         bg_path = _root / "data" / "static" / "era_packs" / "new_republic" / "backgrounds.yaml"
         if not bg_path.exists():
             self.skipTest("New Republic backgrounds.yaml not found")

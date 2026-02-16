@@ -7,10 +7,10 @@ _root = Path(__file__).resolve().parents[2]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from backend.app.core.ledger import update_ledger
-from backend.app.constants import LEDGER_MAX_FACTS
-from backend.app.models.state import GameState, MechanicOutput
-from backend.app.core.agents import narrator as narrator_mod
+from backend.app.core.ledger import update_ledger  # noqa: E402
+from backend.app.constants import LEDGER_MAX_FACTS  # noqa: E402
+from backend.app.models.state import GameState, MechanicOutput  # noqa: E402
+from backend.app.core.agents import narrator as narrator_mod  # noqa: E402
 
 
 class TestLedgerUpdate(unittest.TestCase):

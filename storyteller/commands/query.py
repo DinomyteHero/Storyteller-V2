@@ -27,7 +27,7 @@ def run(args) -> int:
     db_path = Path(args.db)
     if not db_path.exists():
         print(f"  ERROR: LanceDB not found at {db_path}")
-        print(f"         Run ingestion first: storyteller ingest --input ./data/lore")
+        print("         Run ingestion first: storyteller ingest --input ./data/lore")
         return 1
 
     # Dispatch to existing query module

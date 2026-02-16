@@ -6,7 +6,7 @@ _root = Path(__file__).resolve().parents[2]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from backend.app.rag.style_ingest import _extract_tags
+from backend.app.rag.style_ingest import _extract_tags  # noqa: E402
 
 
 class TestExtractTags:

@@ -8,7 +8,7 @@ _root = Path(__file__).resolve().parents[2]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from backend.app.core.context_budget import build_context
+from backend.app.core.context_budget import build_context  # noqa: E402
 
 
 def _make_parts():
@@ -159,8 +159,8 @@ class TestNarratorContextBudgetIntegration(unittest.TestCase):
     """Integration-ish test: Narrator uses ContextBudget and emits warning."""
 
     def test_narrator_warns_when_context_trimmed(self) -> None:
-        from backend.app.core.agents.narrator import NarratorAgent
-        from backend.app.models.state import GameState, MechanicOutput
+        from backend.app.core.agents.narrator import NarratorAgent  # noqa: E402
+        from backend.app.models.state import GameState, MechanicOutput  # noqa: E402
 
         old_env = os.environ.get("NARRATOR_MAX_INPUT_TOKENS")
         os.environ["NARRATOR_MAX_INPUT_TOKENS"] = "200"

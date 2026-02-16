@@ -1,7 +1,6 @@
 """Tests for the deterministic faction simulation engine."""
 from __future__ import annotations
 
-import pytest
 
 from backend.app.world.faction_engine import simulate_faction_tick, _primary_tag
 

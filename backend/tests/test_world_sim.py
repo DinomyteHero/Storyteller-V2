@@ -3,7 +3,7 @@ import json
 import os
 import tempfile
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from backend.app.db.migrate import apply_schema
 from backend.app.db.connection import get_connection

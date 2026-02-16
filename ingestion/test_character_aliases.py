@@ -9,7 +9,7 @@ _root = Path(__file__).resolve().parents[1]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from ingestion.character_aliases import extract_characters, reload_aliases
+from ingestion.character_aliases import extract_characters, reload_aliases  # noqa: E402
 
 
 class TestCharacterAliases(unittest.TestCase):
@@ -93,7 +93,7 @@ han_solo:
 
     def test_ingestion_chunk_gets_empty_characters_metadata(self) -> None:
         """Ingestion produces chunks with empty characters[] (facets feature removed)."""
-        from ingestion import ingest as ingest_module
+        from ingestion import ingest as ingest_module  # noqa: E402
 
         with tempfile.TemporaryDirectory() as tmp:
             txt = Path(tmp) / "test.txt"

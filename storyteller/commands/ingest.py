@@ -78,10 +78,10 @@ def _check_embedding_model() -> bool:
     try:
         model_name = os.environ.get("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
         print(f"  Checking embedding model: {model_name}")
-        print(f"  (First run will download the model — this may take a moment)")
+        print("  (First run will download the model — this may take a moment)")
         from sentence_transformers import SentenceTransformer
         _ = SentenceTransformer(model_name)
-        print(f"  Embedding model ready")
+        print("  Embedding model ready")
         return True
     except Exception as e:
         print(f"  ERROR: Embedding model failed to load: {e}")
@@ -94,16 +94,16 @@ def run(args) -> int:
         venv_python = _find_venv_python()
         if venv_python and not _is_in_venv():
             print()
-            print(f"  WARNING: Virtual environment found but not active!")
+            print("  WARNING: Virtual environment found but not active!")
             print(f"           Found: {venv_python.parent.parent.name}/")
             print(f"           Currently using: {sys.executable}")
             print()
-            print(f"  For best results, activate the venv first:")
+            print("  For best results, activate the venv first:")
             if sys.platform == "win32":
                 print(f"    .\\{venv_python.parent.parent.name}\\Scripts\\Activate.ps1")
             else:
                 print(f"    source {venv_python.parent.parent.name}/bin/activate")
-            print(f"  Then run: storyteller ingest ...")
+            print("  Then run: storyteller ingest ...")
             print()
             if not args.yes:
                 resp = input("  Continue anyway? [y/N]: ")
@@ -129,12 +129,12 @@ def run(args) -> int:
     # Validate input directory
     if not input_dir.is_dir():
         print(f"  ERROR: Input directory not found: {input_dir}")
-        print(f"         Create it and add your documents, or specify --input <path>")
+        print("         Create it and add your documents, or specify --input <path>")
         return 1
 
     if not _has_supported_files(input_dir):
         print(f"  ERROR: No supported files found in {input_dir}")
-        print(f"         Supported formats: .txt, .epub, .pdf")
+        print("         Supported formats: .txt, .epub, .pdf")
         return 1
 
     # Guardrail: legacy simple pipeline requires explicit opt-in
@@ -146,11 +146,11 @@ def run(args) -> int:
     # Guardrail: PDFs found but using simple pipeline
     if args.pipeline == "simple" and _has_pdfs(input_dir):
         print(f"  WARNING: PDF files detected in {input_dir}")
-        print(f"           The 'simple' pipeline does NOT support PDFs.")
-        print(f"           Use the 'lore' pipeline instead:")
-        print(f"")
+        print("           The 'simple' pipeline does NOT support PDFs.")
+        print("           Use the 'lore' pipeline instead:")
+        print("")
         print(f"             python -m storyteller ingest --pipeline lore --input {args._resolved_input}")
-        print(f"")
+        print("")
         if not args.yes:
             resp = input("  Continue with simple pipeline anyway? (PDFs will be skipped) [y/N]: ")
             if resp.strip().lower() != "y":
@@ -195,7 +195,7 @@ def _run_lore(args) -> int:
     if args._resolved_out_db:
         argv.extend(["--db", args._resolved_out_db])
 
-    print(f"\n  Running lore ingestion pipeline ...")
+    print("\n  Running lore ingestion pipeline ...")
     print(f"  Input: {args._resolved_input}")
     print()
 
@@ -228,7 +228,7 @@ def _run_simple(args) -> int:
     if args._resolved_out_db:
         argv.extend(["--db", args._resolved_out_db])
 
-    print(f"\n  Running simple ingestion pipeline ...")
+    print("\n  Running simple ingestion pipeline ...")
     print(f"  Input: {args._resolved_input}")
     print()
 

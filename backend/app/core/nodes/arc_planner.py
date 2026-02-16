@@ -25,11 +25,9 @@ from backend.app.constants import (
     SCALE_DOWN_SCORE_THRESHOLD,
     SCALE_ORDER,
     SCALE_SHIFT_COOLDOWN_TURNS,
-    SCALE_SHIFT_MIN_ARC_STAGE,
     SCALE_UP_SCORE_THRESHOLD,
 )
 from backend.app.core.ledger import weighted_thread_count
-from backend.app.core.nodes import dict_to_state
 
 logger = logging.getLogger(__name__)
 

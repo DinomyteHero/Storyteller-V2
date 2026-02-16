@@ -4,14 +4,12 @@
 import sys
 import yaml
 from pathlib import Path
-from collections import defaultdict
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from backend.app.content.repository import CONTENT_REPOSITORY
-from backend.app.world.era_pack_models import ALLOWED_SCENE_TYPES, ALLOWED_BYPASS_METHODS
+from backend.app.content.repository import CONTENT_REPOSITORY  # noqa: E402
 
 
 def audit_yaml_syntax(era_dir: Path) -> list[dict]:
@@ -79,15 +77,15 @@ def main():
             for issue in result["yaml_syntax_issues"]:
                 print(f"    - {issue['file']}: {issue['message'][:100]}")
         else:
-            print(f"  [OK] YAML syntax valid")
+            print("  [OK] YAML syntax valid")
 
         # Print load status
         if result["load_success"]:
-            print(f"  [OK] Loaded successfully")
+            print("  [OK] Loaded successfully")
             print(f"    - Backgrounds: {result['backgrounds_count']}")
             print(f"    - Locations: {result['locations_count']}")
         else:
-            print(f"  [X] Failed to load")
+            print("  [X] Failed to load")
             for err in result["validation_errors"]:
                 print(f"    - {err['type']}: {err['message'][:100]}")
 

@@ -11,8 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from backend.app.content.loader import default_setting_id, normalize_key, resolve_pack_roots
-from backend.app.content.repository import CONTENT_REPOSITORY
+from backend.app.content.loader import default_setting_id, normalize_key, resolve_pack_roots  # noqa: E402
+from backend.app.content.repository import CONTENT_REPOSITORY  # noqa: E402
 
 
 def _discover_targets() -> list[tuple[str, str]]:

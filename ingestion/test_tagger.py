@@ -7,7 +7,7 @@ _root = Path(__file__).resolve().parents[1]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from ingestion.tagger import apply_tagger_to_chunks, tag_chunk
+from ingestion.tagger import apply_tagger_to_chunks, tag_chunk  # noqa: E402
 
 
 class _DummyLLM:

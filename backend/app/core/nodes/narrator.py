@@ -8,7 +8,6 @@ from backend.app.core.agents import NarratorAgent
 from backend.app.core.agents.base import AgentLLM
 from backend.app.core.agents.narrator import _extract_npc_utterance
 from backend.app.core.nodes import dict_to_state
-from backend.app.rag.character_voice_retriever import get_voice_snippets
 from backend.app.rag.kg_retriever import KGRetriever
 from backend.app.rag.lore_retriever import retrieve_lore
 from backend.app.rag.retrieval_bundles import NARRATOR_DOC_TYPES, NARRATOR_SECTION_KINDS

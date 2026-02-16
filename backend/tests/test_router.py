@@ -1,9 +1,8 @@
 """Tests for Router: TALK vs MECHANIC routing and action-verb guardrail (security)."""
-import json
 import os
 import tempfile
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from backend.app.db.migrate import apply_schema
 from backend.app.db.connection import get_connection
@@ -11,7 +10,6 @@ from backend.app.core.state_loader import build_initial_gamestate
 from backend.app.core.graph import run_turn
 from backend.app.core.router import route, action_verb_guardrail_triggers
 from backend.app.models.state import (
-    RouterOutput,
     ROUTER_ROUTE_TALK,
     ROUTER_ROUTE_MECHANIC,
     ROUTER_ROUTE_META,

@@ -1,6 +1,5 @@
 """Unit tests for Narrator canon/voice guardrail: Hard Rules in prompt and post-processor for unsupported claims."""
 import unittest
-from unittest.mock import MagicMock
 
 from backend.app.core.agents.narrator import (
     _build_prompt,
@@ -8,9 +7,8 @@ from backend.app.core.agents.narrator import (
     _strip_structural_artifacts,
     _truncate_overlong_prose,
     _enforce_pov_consistency,
-    NarratorAgent,
 )
-from backend.app.models.state import GameState, MechanicOutput
+from backend.app.models.state import GameState
 
 
 class TestHardRulesInPrompt(unittest.TestCase):

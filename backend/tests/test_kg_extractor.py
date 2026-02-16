@@ -7,7 +7,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from backend.app.kg.extractor import (
-    ExtractionResult,
     _normalize_extraction,
     _validate_extraction,
     extract_from_chunks,

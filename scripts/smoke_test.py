@@ -29,15 +29,15 @@ if str(_root) not in sys.path:
 if "ENCOUNTER_SEED" not in os.environ:
     os.environ["ENCOUNTER_SEED"] = "42"
 
-from backend.app.config import DEFAULT_DB_PATH
-from backend.app.core.companions import build_initial_companion_state
-from backend.app.core.event_store import append_events, get_current_turn_number
-from backend.app.core.graph import run_turn
-from backend.app.core.state_loader import build_initial_gamestate, load_campaign
-from backend.app.core.transcript_store import get_rendered_turns
-from backend.app.db.connection import get_connection
-from backend.app.db.migrate import apply_schema
-from backend.app.models.events import Event
+from backend.app.config import DEFAULT_DB_PATH  # noqa: E402
+from backend.app.core.companions import build_initial_companion_state  # noqa: E402
+from backend.app.core.event_store import append_events, get_current_turn_number  # noqa: E402
+from backend.app.core.graph import run_turn  # noqa: E402
+from backend.app.core.state_loader import build_initial_gamestate  # noqa: E402
+from backend.app.core.transcript_store import get_rendered_turns  # noqa: E402
+from backend.app.db.connection import get_connection  # noqa: E402
+from backend.app.db.migrate import apply_schema  # noqa: E402
+from backend.app.models.events import Event  # noqa: E402
 
 
 DEFAULT_INPUTS = [
@@ -56,9 +56,8 @@ DEFAULT_INPUTS = [
 
 def _create_campaign_auto(conn, time_period: str | None = "rebellion") -> tuple[str, str]:
     """Create campaign via Architect + Biographer (auto setup). Returns (campaign_id, player_id)."""
-    import json
-    from backend.app.core.agents import CampaignArchitect, BiographerAgent
-    from backend.app.core.agents.base import AgentLLM
+    from backend.app.core.agents import CampaignArchitect, BiographerAgent  # noqa: E402
+    from backend.app.core.agents.base import AgentLLM  # noqa: E402
 
     try:
         arch = CampaignArchitect(llm=AgentLLM("architect"))
@@ -101,12 +100,12 @@ def _create_campaign_auto(conn, time_period: str | None = "rebellion") -> tuple[
         (player_id, campaign_id, name, "Player", starting_location, json.dumps(stats), hp_current, None, None),
     )
     # NPC cast from skeleton
-    from backend.app.api.v2_campaigns import _create_npc_cast_from_skeleton
+    from backend.app.api.v2_campaigns import _create_npc_cast_from_skeleton  # noqa: E402
     _create_npc_cast_from_skeleton(conn, campaign_id, skeleton, starting_location)
     conn.commit()
     initial_events = [Event(event_type="FLAG_SET", payload={"key": "campaign_started", "value": True})]
     append_events(conn, campaign_id, 1, initial_events)
-    from backend.app.core.projections import apply_projection
+    from backend.app.core.projections import apply_projection  # noqa: E402
     apply_projection(conn, campaign_id, initial_events)
     return campaign_id, player_id
 

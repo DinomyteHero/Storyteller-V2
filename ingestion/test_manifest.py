@@ -10,7 +10,7 @@ _root = Path(__file__).resolve().parents[1]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from ingestion.manifest import write_run_manifest
+from ingestion.manifest import write_run_manifest  # noqa: E402
 
 
 class TestIngestionManifest(unittest.TestCase):

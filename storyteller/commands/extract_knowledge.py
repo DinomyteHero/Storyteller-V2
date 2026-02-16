@@ -7,8 +7,6 @@ Supports resume via checkpoints.
 from __future__ import annotations
 
 import logging
-import math
-import sys
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +55,7 @@ def run(args) -> int:
     from backend.app.kg.extractor import extract_from_chunks, store_extraction_result
 
     era = args.era
-    print(f"\n  Knowledge Graph Extraction")
+    print("\n  Knowledge Graph Extraction")
     print(f"  Era: {era}")
     print(f"  Batch size: {args.batch_size}")
     print()
@@ -171,7 +169,7 @@ def run(args) -> int:
 
         books_processed += 1
 
-    print(f"\n  Phase 1 complete:")
+    print("\n  Phase 1 complete:")
     print(f"    Books processed: {books_processed}")
     print(f"    Chapters processed: {chapters_processed}")
     if chapters_skipped:

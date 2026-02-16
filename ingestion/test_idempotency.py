@@ -16,7 +16,7 @@ if str(_root) not in sys.path:
 # Use dummy embeddings for tests (fast, no model download)
 os.environ["STORYTELLER_DUMMY_EMBEDDINGS"] = "1"
 
-from ingestion.store import stable_chunk_id, file_doc_id, LanceStore
+from ingestion.store import stable_chunk_id, file_doc_id, LanceStore  # noqa: E402
 
 
 @pytest.fixture
@@ -205,7 +205,7 @@ class TestPdfSkipInSimpleIngest:
     """Test that simple ingest correctly skips PDF files."""
 
     def test_pdf_returns_empty(self, tmp_dir):
-        from ingestion.ingest import ingest_file
+        from ingestion.ingest import ingest_file  # noqa: E402
         pdf_file = tmp_dir / "test.pdf"
         pdf_file.write_bytes(b"%PDF-1.4 fake content")
         result = ingest_file(pdf_file, era="test", source_type="test")

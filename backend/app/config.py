@@ -11,12 +11,6 @@ import os
 from pathlib import Path
 
 from shared.config import (
-    EMBEDDING_DIMENSION,
-    EMBEDDING_MODEL,
-    ERA_PACK_DIR,
-    LORE_DATA_DIR,
-    MANIFESTS_DIR,
-    STYLE_DATA_DIR,
     _env_flag,
 )
 
@@ -180,7 +174,6 @@ ENABLE_SCALE_ADVISOR = _env_flag("ENABLE_SCALE_ADVISOR", default=False)
 
 # World simulation (V2.5): tick interval in hours (default 4 = 240 min)
 # Override via WORLD_TICK_INTERVAL_HOURS env. See backend.app.time_economy for action costs.
-from backend.app.time_economy import WORLD_TICK_INTERVAL_HOURS
 
 # Psychological profile defaults for characters (V2.5)
 PSYCH_PROFILE_DEFAULTS: dict[str, str | int | None] = {
@@ -193,7 +186,7 @@ PSYCH_PROFILE_DEFAULTS: dict[str, str | int | None] = {
 # Env overrides: STORYTELLER_{ROLE}_MAX_CONTEXT_TOKENS,
 #                STORYTELLER_{ROLE}_RESERVED_OUTPUT_TOKENS,
 #                STORYTELLER_{ROLE}_MAX_INPUT_TOKENS
-from backend.app.constants import ROLE_TOKEN_BUDGETS as _ROLE_TOKEN_BUDGETS
+from backend.app.constants import ROLE_TOKEN_BUDGETS as _ROLE_TOKEN_BUDGETS  # noqa: E402
 
 
 def _role_env_int(key: str, role: str) -> int | None:

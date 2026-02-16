@@ -1,5 +1,4 @@
 """Tests for character voice retriever: fallback logic, missing table."""
-import os
 import sys
 import tempfile
 import unittest
@@ -9,13 +8,12 @@ _root = Path(__file__).resolve().parents[2]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-import lancedb
-import pyarrow as pa
-from unittest.mock import patch
+import lancedb  # noqa: E402
+import pyarrow as pa  # noqa: E402
+from unittest.mock import patch  # noqa: E402
 
-from backend.app.rag.character_voice_retriever import (
+from backend.app.rag.character_voice_retriever import (  # noqa: E402
     get_voice_snippets,
-    VoiceSnippet,
 )
 
 TABLE_NAME = "character_voice_chunks"
@@ -29,7 +27,7 @@ def _make_voice_table(tmp_path: str, rows: list[dict]) -> None:
         for r in rows:
             if "vector" not in r:
                 r["vector"] = [0.0] * VECTOR_DIM
-        tbl = db.create_table(TABLE_NAME, data=rows, mode="overwrite")
+        db.create_table(TABLE_NAME, data=rows, mode="overwrite")
     else:
         schema = pa.schema([
             pa.field("character_id", pa.string()),
@@ -38,7 +36,7 @@ def _make_voice_table(tmp_path: str, rows: list[dict]) -> None:
             pa.field("chunk_id", pa.string()),
             pa.field("vector", pa.list_(pa.float32(), VECTOR_DIM)),
         ])
-        tbl = db.create_table(TABLE_NAME, schema=schema, mode="overwrite")
+        db.create_table(TABLE_NAME, schema=schema, mode="overwrite")
 
 
 class _DummyEncoder:
@@ -141,8 +139,8 @@ class TestNarratorWithVoiceRetriever(unittest.TestCase):
 
     def test_narrator_runs_when_voice_table_missing(self) -> None:
         """NarratorAgent.generate completes when voice retriever returns empty (missing table)."""
-        from backend.app.core.agents.narrator import NarratorAgent
-        from backend.app.models.state import GameState
+        from backend.app.core.agents.narrator import NarratorAgent  # noqa: E402
+        from backend.app.models.state import GameState  # noqa: E402
 
         def empty_voice_retriever(cids, era, k=6):
             return {cid: [] for cid in (cids or [])}
@@ -152,7 +150,7 @@ class TestNarratorWithVoiceRetriever(unittest.TestCase):
             lore_retriever=lambda q, top_k=6, era=None, related_npcs=None, **_kw: [],
             voice_retriever=empty_voice_retriever,
         )
-        from backend.app.models.state import MechanicOutput
+        from backend.app.models.state import MechanicOutput  # noqa: E402
 
         state = GameState(
             campaign_id="c1",

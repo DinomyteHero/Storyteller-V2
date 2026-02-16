@@ -1,5 +1,4 @@
 """Script to create a minimal test EPUB file."""
-import ebooklib
 from ebooklib import epub
 from pathlib import Path
 

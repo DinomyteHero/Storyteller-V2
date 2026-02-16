@@ -116,13 +116,13 @@ class AgentLLM:
         """
         try:
             client = self._get_client()
-        except Exception as e:
+        except Exception:
             logger.exception("AgentLLM %s: failed to initialize provider", self._role)
             raise
 
         try:
             raw = self._call_provider(client, user_prompt, system_prompt, json_mode=json_mode)
-        except Exception as e:
+        except Exception:
             # V3.0: Try fallback provider before giving up
             fallback = self._try_fallback_client()
             if fallback:
@@ -154,7 +154,7 @@ class AgentLLM:
         )
         try:
             raw2 = self._call_provider(client, user_prompt + "\n\n" + correction, system_prompt, json_mode=True)
-        except Exception as e:
+        except Exception:
             logger.exception("AgentLLM %s: LLM call failed on JSON repair", self._role)
             raise
         out = ensure_json(raw2)
@@ -181,13 +181,13 @@ class AgentLLM:
         """
         try:
             client = self._get_client()
-        except Exception as e:
+        except Exception:
             logger.exception("AgentLLM %s: failed to initialize provider for streaming", self._role)
             raise
 
         try:
             yield from self._stream_provider(client, user_prompt, system_prompt)
-        except Exception as e:
+        except Exception:
             logger.exception("AgentLLM %s: streaming LLM call failed", self._role)
             raise
 

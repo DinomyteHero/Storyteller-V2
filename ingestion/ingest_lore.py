@@ -27,18 +27,18 @@ _root = Path(__file__).resolve().parents[1]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from ingestion.chunking import chunk_text_by_tokens, count_tokens
-from ingestion.classify_document import classify_document
-from ingestion.era_aliases import load_era_aliases
-from ingestion.manifest import input_file_hashes, write_run_manifest, check_chunk_id_scheme
-from ingestion.npc_tagging import apply_npc_tags_to_chunks
-from ingestion.store import LanceStore, stable_chunk_id, file_doc_id, CHUNK_ID_SCHEME
-from ingestion.tagger import apply_tagger_to_chunks
-from ingestion.era_normalization import apply_era_mode, resolve_era_mode, infer_era_from_input_root
-from shared.lore_metadata import default_doc_type, default_section_kind, default_characters
-from shared.config import EMBEDDING_DIMENSION, EMBEDDING_MODEL
-from backend.app.content.repository import CONTENT_REPOSITORY
-from backend.app.content.loader import resolve_legacy_era
+from ingestion.chunking import chunk_text_by_tokens  # noqa: E402
+from ingestion.classify_document import classify_document  # noqa: E402
+from ingestion.era_aliases import load_era_aliases  # noqa: E402
+from ingestion.manifest import input_file_hashes, write_run_manifest, check_chunk_id_scheme  # noqa: E402
+from ingestion.npc_tagging import apply_npc_tags_to_chunks  # noqa: E402
+from ingestion.store import LanceStore, stable_chunk_id, file_doc_id, CHUNK_ID_SCHEME  # noqa: E402
+from ingestion.tagger import apply_tagger_to_chunks  # noqa: E402
+from ingestion.era_normalization import apply_era_mode, resolve_era_mode, infer_era_from_input_root  # noqa: E402
+from shared.lore_metadata import default_doc_type, default_section_kind, default_characters  # noqa: E402
+from shared.config import EMBEDDING_DIMENSION, EMBEDDING_MODEL  # noqa: E402
+from backend.app.content.repository import CONTENT_REPOSITORY  # noqa: E402
+from backend.app.content.loader import resolve_legacy_era  # noqa: E402
 
 PARENT_TOKENS = 1024
 CHILD_TOKENS = 256
@@ -53,7 +53,7 @@ def _read_txt(path: Path) -> str:
 
 
 def _read_epub(path: Path) -> tuple[str, str | None, list[tuple[str, str]]]:
-    from ingestion.epub_reader import read_epub as _read_epub_impl
+    from ingestion.epub_reader import read_epub as _read_epub_impl  # noqa: E402
     title, _author, _full, chapters = _read_epub_impl(path)
     return "\n\n".join(ch_text for _ch_title, ch_text in chapters), title, chapters
 
@@ -61,7 +61,7 @@ def _read_epub(path: Path) -> tuple[str, str | None, list[tuple[str, str]]]:
 def _read_pdf(path: Path) -> str:
     """Extract PDF to Markdown with layout preservation (tables, headers) via pymupdf4llm."""
     try:
-        import pymupdf4llm
+        import pymupdf4llm  # noqa: E402
         return pymupdf4llm.to_markdown(str(path)) or ""
     except Exception as e:
         logger.warning("PDF read failed %s: %s", path, e)
@@ -493,7 +493,7 @@ def main() -> int:
         },
     )
     # V2.5: Validate era values for retrieval compatibility
-    from ingestion.era_normalization import validate_era_for_retrieval
+    from ingestion.era_normalization import validate_era_for_retrieval  # noqa: E402
     era_values_seen: set[str] = set()
     for c in canonical:
         era_val = c.get("era") or c.get("time_period") or ""

@@ -34,8 +34,8 @@ from shared.lore_metadata import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-from shared.config import EMBEDDING_DIMENSION, EMBEDDING_MODEL
-from backend.app.content.repository import CONTENT_REPOSITORY
+from shared.config import EMBEDDING_DIMENSION, EMBEDDING_MODEL  # noqa: E402
+from backend.app.content.repository import CONTENT_REPOSITORY  # noqa: E402
 
 
 def read_txt(path: Path) -> str:
