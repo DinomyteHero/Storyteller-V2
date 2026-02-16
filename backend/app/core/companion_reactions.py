@@ -8,7 +8,6 @@ import random
 from backend.app.constants import (
     BANTER_MEMORY_POOL,
     BANTER_POOL,
-    COMPANION_ARC_ALLY_MIN,
     COMPANION_ARC_LOYAL_MIN,
     COMPANION_ARC_STRANGER_MAX,
     COMPANION_ARC_TRUSTED_MIN,
@@ -119,7 +118,7 @@ def compute_companion_reactions(
         return affinity_delta_map, reasons_map
 
     tone_tag = (mr.get("tone_tag") or TONE_TAG_NEUTRAL).strip().upper()
-    alignment_delta = mr.get("alignment_delta") or {}
+    mr.get("alignment_delta") or {}
     explicit_affinity = mr.get("companion_affinity_delta") or {}
     explicit_reasons = mr.get("companion_reaction_reason") or {}
 
@@ -346,7 +345,7 @@ def maybe_enqueue_news_banter(state: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(item, dict):
             continue
         related = list(item.get("related_factions") or [])
-        headline = (item.get("headline") or "").strip()
+        (item.get("headline") or "").strip()
         for cid in party:
             comp = get_companion_by_id(cid)
             if not comp:

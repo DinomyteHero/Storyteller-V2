@@ -17,7 +17,6 @@ from backend.app.models.state import (
     TONE_TAG_RENEGADE,
     TONE_TAG_INVESTIGATE,
     TONE_TAG_NEUTRAL,
-    MechanicOutput,
 )
 
 

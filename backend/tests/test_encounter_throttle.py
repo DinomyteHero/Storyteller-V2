@@ -8,19 +8,16 @@ import pytest
 
 from backend.app.db.migrate import apply_schema
 from backend.app.db.connection import get_connection
-from backend.app.core.state_loader import build_initial_gamestate, load_campaign
+from backend.app.core.state_loader import build_initial_gamestate
 from backend.app.core.graph import run_turn
 from backend.app.core.encounter_throttle import (
     can_introduce_new_npc,
-    record_npc_introduction,
     load_world_state,
     get_effective_location,
-    EARLY_GAME_WINDOW_MINUTES,
     EARLY_GAME_NPC_CAP,
 )
 from backend.app.models.state import MechanicOutput, ActionSuggestion
 from backend.app.models.narration import NarrationOutput
-from backend.app.models.events import Event
 
 
 @pytest.fixture
@@ -72,7 +69,7 @@ def test_early_game_repeated_turns_no_new_named_npcs_after_cap(throttle_db):
     with patch("backend.app.api.v2_campaigns.DEFAULT_DB_PATH", db_path):
         from backend.main import app
         from fastapi.testclient import TestClient
-        client = TestClient(app)
+        TestClient(app)
 
     # Force spawn_request when location empty; use IDLE with 5 min so we stay under 60
     with patch("backend.app.core.nodes.encounter.EncounterManager") as MockEnc:

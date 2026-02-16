@@ -18,15 +18,15 @@ from unittest.mock import patch
 
 logger = logging.getLogger(__name__)
 
-from backend.app.core.event_store import append_events, get_current_turn_number
-from backend.app.core.graph import run_turn
-from backend.app.core.state_loader import build_initial_gamestate
-from backend.app.db.connection import get_connection
-from backend.app.db.migrate import apply_schema
-from backend.app.constants import SUGGESTED_ACTIONS_TARGET
-from backend.app.models.events import Event
-from backend.app.models.narration import NarrationOutput
-from backend.app.models.state import ActionSuggestion, MechanicOutput
+from backend.app.core.event_store import append_events, get_current_turn_number  # noqa: E402
+from backend.app.core.graph import run_turn  # noqa: E402
+from backend.app.core.state_loader import build_initial_gamestate  # noqa: E402
+from backend.app.db.connection import get_connection  # noqa: E402
+from backend.app.db.migrate import apply_schema  # noqa: E402
+from backend.app.constants import SUGGESTED_ACTIONS_TARGET  # noqa: E402
+from backend.app.models.events import Event  # noqa: E402
+from backend.app.models.narration import NarrationOutput  # noqa: E402
+from backend.app.models.state import ActionSuggestion, MechanicOutput  # noqa: E402
 
 # Fixed inputs for deterministic runs (mix of TALK, ACTION, META)
 DETERMINISTIC_INPUTS = [
@@ -108,8 +108,8 @@ class TestDeterministicHarness(unittest.TestCase):
         self.campaign_id = "harness-campaign"
         self.player_id = "harness-player"
         # Minimal campaign + player (no NPCs needed for mocked agents)
-        import json
-        from backend.app.core.companions import build_initial_companion_state
+        import json  # noqa: E402
+        from backend.app.core.companions import build_initial_companion_state  # noqa: E402
         companion_state = build_initial_companion_state(world_time_minutes=0)
         world_state = {"active_factions": [], **companion_state}
         self.conn.execute(
@@ -160,7 +160,6 @@ class TestDeterministicHarness(unittest.TestCase):
         """Run 15 turns with mocked agents; assert commit count, no exceptions, JSON validated."""
         director_plan = self._make_mock_director_plan()
         turn_results: list = []
-        last_exception: Exception | None = None
         fail_turn: int | None = None
 
         def mock_director_plan(*args, **kwargs):

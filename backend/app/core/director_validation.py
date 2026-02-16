@@ -4,7 +4,6 @@ from __future__ import annotations
 import re
 
 from backend.app.constants import (
-    DIRECTOR_ENTITY_STOP_WORDS,
     INTENT_JACCARD_THRESHOLD,
     SUGGESTED_ACTIONS_MAX,
     SUGGESTED_ACTIONS_MIN,
@@ -78,7 +77,7 @@ def build_era_factions_companions_context(state: GameState) -> tuple[str, set[st
         aff = int(party_affinity.get(cid, 0))
         mood = "Warm" if aff >= 50 else "Hostile" if aff <= -50 else "Wary" if aff < 0 else "Neutral"
         traits = (party_traits.get(cid) or {})
-        archetype = traits.get("archetype", "") or traits.get("name", cid)
+        traits.get("archetype", "") or traits.get("name", cid)
         companion_lines.append(f"  - {cid}: {mood} (affinity {aff})")
     companions_block = "\n".join(companion_lines) if companion_lines else "  (none)"
 
@@ -739,11 +738,10 @@ def generate_suggestions(
 
     # V3.0: Memory-aware — if player is in a tone streak, subtly reference it
     # by adapting the labels to acknowledge or contrast the pattern.
-    streak_prefix = ""
     if tone_streak == TONE_TAG_PARAGON:
-        streak_prefix = "again, "  # "Show good faith again" — acknowledges pattern
+        pass  # "Show good faith again" — acknowledges pattern
     elif tone_streak == TONE_TAG_RENEGADE:
-        streak_prefix = "try a different approach — "
+        pass
 
     # PARAGON option — adapt based on player background
     if "Force" in player_background or "Jedi" in player_background:
@@ -756,7 +754,7 @@ def generate_suggestions(
     # V3.0: Return visit — adapt paragon to acknowledge familiarity
     if is_return_visit and npc_names:
         paragon_label = f"Reconnect with {first_npc}"
-        paragon_intent = f"Say: 'I've been here before. Things are different now — tell me what changed.'"
+        paragon_intent = "Say: 'I've been here before. Things are different now — tell me what changed.'"
     else:
         paragon_label = f"Show {first_npc} good faith"
 

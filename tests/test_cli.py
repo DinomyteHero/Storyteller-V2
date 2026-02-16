@@ -7,7 +7,6 @@ from __future__ import annotations
 import subprocess
 import sys
 
-import pytest
 
 
 def _run_cli(*args: str, timeout: int = 30) -> subprocess.CompletedProcess:

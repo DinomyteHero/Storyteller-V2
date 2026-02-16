@@ -1,6 +1,5 @@
 """Tests for lore chunk metadata: ingestion, retrieval, backward compat."""
 import json
-import os
 import sys
 import tempfile
 import unittest
@@ -11,11 +10,11 @@ _root = Path(__file__).resolve().parents[2]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-import lancedb
-import pyarrow as pa
+import lancedb  # noqa: E402
+import pyarrow as pa  # noqa: E402
 
-from backend.app.rag.lore_retriever import retrieve_lore
-from shared.lore_metadata import DOC_TYPE_NOVEL, SECTION_KIND_LORE, default_section_kind
+from backend.app.rag.lore_retriever import retrieve_lore  # noqa: E402
+from shared.lore_metadata import DOC_TYPE_NOVEL, SECTION_KIND_LORE, default_section_kind  # noqa: E402
 
 TABLE_NAME = "lore_chunks"
 VECTOR_DIM = 384
@@ -186,7 +185,7 @@ class TestLoreMetadataIngestion(unittest.TestCase):
 
     def test_lance_store_add_chunks_includes_new_fields(self) -> None:
         """LanceStore.add_chunks produces rows with doc_type, section_kind, characters_json."""
-        from ingestion.store import LanceStore
+        from ingestion.store import LanceStore  # noqa: E402
 
         with tempfile.TemporaryDirectory() as tmp:
             store = LanceStore(tmp)
@@ -222,8 +221,7 @@ class TestLoreMetadataIngestion(unittest.TestCase):
 
     def test_ingest_produces_default_metadata(self) -> None:
         """ingest.py produces chunks with default doc_type/section_kind when not set."""
-        from ingestion.ingest import ingest_txt
-        from ingestion.store import LanceStore
+        from ingestion.ingest import ingest_txt  # noqa: E402
 
         with tempfile.TemporaryDirectory() as tmp:
             txt_path = Path(tmp) / "sample.txt"

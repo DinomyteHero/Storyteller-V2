@@ -1,7 +1,6 @@
 """Tests for narrator style-chunk wiring: _build_prompt accepts and uses style chunks."""
 from __future__ import annotations
 
-import pytest
 
 from backend.app.models.state import GameState
 from backend.app.core.agents.narrator import _build_prompt, NarratorAgent
@@ -90,7 +89,8 @@ def test_build_prompt_without_style_chunks():
 
 def test_narrator_agent_init_accepts_style_retriever():
     """NarratorAgent can be constructed with a style_retriever callable."""
-    dummy_retriever = lambda q, top_k=3: []
+    def dummy_retriever(q, top_k=3):
+        return []
     agent = NarratorAgent(style_retriever=dummy_retriever)
     assert agent._style_retriever is not None
 

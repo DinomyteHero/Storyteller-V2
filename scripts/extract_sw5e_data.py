@@ -1,5 +1,4 @@
 import fitz  # pymupdf
-import sys
 from pathlib import Path
 
 def extract_content(pdf_path: Path, keywords: list[str]) -> str:

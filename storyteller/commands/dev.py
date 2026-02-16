@@ -8,7 +8,6 @@ If a virtual environment (venv/ or .venv/) exists, it will be used automatically
 from __future__ import annotations
 
 import os
-import signal
 import subprocess
 import sys
 import time
@@ -136,7 +135,7 @@ def run(args) -> int:
         venv_python = _find_venv_python()
         if venv_python and not _is_in_venv():
             print(f"\n  Found virtual environment: {venv_python.parent.parent.name}/")
-            print(f"  Using venv Python instead of system Python")
+            print("  Using venv Python instead of system Python")
             python_exe = str(venv_python)
         elif venv_python and _is_in_venv():
             print(f"  Using virtual environment: {Path(sys.prefix).name}/")
@@ -200,13 +199,13 @@ def run(args) -> int:
             print("  Nothing to start (both --backend-only and --ui-only specified)")
             return 1
 
-        print(f"\n  Storyteller dev server running!")
+        print("\n  Storyteller dev server running!")
         if not args.ui_only:
             print(f"    Backend:  http://localhost:{args.backend_port}")
             print(f"    API docs: http://localhost:{args.backend_port}/docs")
         if not args.backend_only:
             print(f"    UI:       http://localhost:{args.ui_port}")
-        print(f"\n  Press Ctrl+C to stop.\n")
+        print("\n  Press Ctrl+C to stop.\n")
 
         # Wait for any process to exit
         while True:

@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from backend.app.time_economy import (
+from backend.app.time_economy import (  # noqa: E402
     get_time_cost,
     WORLD_TICK_MINUTES,
     ACTION_TIME_COSTS,

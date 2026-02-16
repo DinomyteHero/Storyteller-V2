@@ -68,7 +68,7 @@ def _check_deps() -> list[str]:
             missing.append(mod)
     if missing:
         print(_fail(f"Missing packages: {', '.join(missing)}"))
-        print(f"         Run: pip install -e .")
+        print("         Run: pip install -e .")
     else:
         print(_ok(f"All {len(required)} required packages installed"))
     return missing
@@ -83,7 +83,7 @@ def _check_env_file() -> bool:
         return True
     if example.exists():
         print(_fail(".env missing — copy from .env.example:"))
-        print(f"         cp .env.example .env")
+        print("         cp .env.example .env")
     else:
         print(_fail(".env missing (no .env.example found either)"))
     return False
@@ -118,11 +118,11 @@ def _check_ollama() -> tuple[bool, str]:
             print(_ok(f"Ollama running at {base_url}"))
             return True, base_url
         print(_warn(f"Ollama installed but API returned {resp.status_code}"))
-        print(f"         Start it: ollama serve")
+        print("         Start it: ollama serve")
         return False, base_url
     except Exception:
         print(_warn("Ollama installed but not reachable"))
-        print(f"         Start it: ollama serve")
+        print("         Start it: ollama serve")
         return False, ""
 
 

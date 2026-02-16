@@ -7,8 +7,8 @@ _root = Path(__file__).resolve().parents[2]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from backend.app.core.action_lint import lint_actions
-from backend.app.models.state import (
+from backend.app.core.action_lint import lint_actions  # noqa: E402
+from backend.app.models.state import (  # noqa: E402
     ActionSuggestion,
     CharacterSheet,
     GameState,
@@ -79,7 +79,7 @@ class TestActionLint(unittest.TestCase):
             encounter_context={"in_combat": True},
         )
 
-        from backend.app.constants import SUGGESTED_ACTIONS_TARGET
+        from backend.app.constants import SUGGESTED_ACTIONS_TARGET  # noqa: E402
         self.assertEqual(len(linted), SUGGESTED_ACTIONS_TARGET)
         self.assertTrue(any("removed" in n for n in notes))
         # Valid talk action should survive in TALK-only mode

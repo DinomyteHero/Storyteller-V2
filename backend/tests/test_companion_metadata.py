@@ -13,9 +13,9 @@ _root = Path(__file__).resolve().parent.parent.parent
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from backend.app.core.companions import load_companions
-from backend.app.core.personality_profile import VOICE_TAG_SPEECH_PATTERNS
-from backend.app.constants import BANTER_POOL
+from backend.app.core.companions import load_companions  # noqa: E402
+from backend.app.core.personality_profile import VOICE_TAG_SPEECH_PATTERNS  # noqa: E402
+from backend.app.constants import BANTER_POOL  # noqa: E402
 
 
 def _all_companions() -> list[dict]:

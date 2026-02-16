@@ -15,7 +15,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from backend.app.rag.style_ingest import ingest_style_dir
+from backend.app.rag.style_ingest import ingest_style_dir  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO,
@@ -49,7 +49,7 @@ def main():
     input_dir = Path(args.input)
     if not input_dir.exists():
         logger.error(f"Input directory not found: {input_dir}")
-        logger.error(f"Create it and add style guides, or specify --input <path>")
+        logger.error("Create it and add style guides, or specify --input <path>")
         return 1
 
     logger.info("=" * 60)
@@ -69,7 +69,7 @@ def main():
         
         logger.info("")
         logger.info("=" * 60)
-        logger.info(f"✅ Style ingestion complete!")
+        logger.info("✅ Style ingestion complete!")
         logger.info(f"   Total chunks: {num_chunks}")
         logger.info("=" * 60)
         return 0

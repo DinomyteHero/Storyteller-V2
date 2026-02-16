@@ -142,7 +142,7 @@ def _arc_stage_bonus(npc: EraNpcEntry, arc_stage: str) -> int:
     """Return a small score bonus (0-1) based on whether this NPC type fits the arc stage."""
     npc_tags = set(npc.tags or [])
     archetype = (npc.archetype or "").lower()
-    role = (npc.role or "").lower()
+    (npc.role or "").lower()
 
     if arc_stage == "SETUP":
         # Prefer information sources, locals, allies — NPCs who create hooks
