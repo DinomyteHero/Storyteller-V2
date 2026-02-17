@@ -101,6 +101,11 @@ def format_ledger_for_prompt(ledger: dict | None) -> str:
     if themes:
         parts.append("Active themes:")
         parts.extend(_bullets(themes, limit=LEDGER_MAX_THEMES))
+    # V4.0: Consequence hints — active obligations, promises, deadlines
+    hints = ledger.get("consequence_hints") or []
+    if hints:
+        parts.append("Consequence hints (player obligations — Director must track):")
+        parts.extend(_bullets(hints, limit=5))
     return "\n".join(parts)
 
 

@@ -123,6 +123,26 @@ def make_commit_node():
                 events,
                 final_text or "",
             )
+            # V4.0: ContinuityAgent — LLM semantic pass on the ledger: prunes superseded
+            # facts, extracts narrative-weight facts, generates consequence hints.
+            # Runs after the deterministic update_ledger() so mechanical events are
+            # already present. Non-fatal: a LLM failure keeps the deterministic ledger.
+            try:
+                from backend.app.core.agents.continuity_agent import ContinuityAgent  # noqa: E402
+                if final_text and intent != "META":
+                    _cont_events = [
+                        {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
+                        for e in events
+                    ]
+                    ContinuityAgent().update(
+                        world_state=world_state,
+                        final_text=final_text,
+                        user_input=user_input,
+                        mechanic_result=mechanic_result,
+                        events=_cont_events,
+                    )
+            except Exception as _cont_err:
+                logger.warning("ContinuityAgent ledger update failed (non-fatal): %s", _cont_err)
             # V2.5: project stress changes to characters.psych_profile (authoritative).
             stress_delta = int(mechanic_result.get("stress_delta", 0))
             if stress_delta != 0:

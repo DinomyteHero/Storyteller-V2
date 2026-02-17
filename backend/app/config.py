@@ -58,6 +58,8 @@ def _model_config() -> dict[str, dict[str, str]]:
         "memory": {"provider": "ollama", "model": "qwen3:8b"},
         # V4.0: World Mind — contextual world simulation replacing faction engine
         "world_mind": {"provider": "ollama", "model": "qwen3:8b"},
+        # V4.0: Continuity — LLM-managed Truth Ledger (fact pruning + consequence hints)
+        "continuity": {"provider": "ollama", "model": "qwen3:4b"},
     }
     out = {}
     for role, cfg in base.items():
