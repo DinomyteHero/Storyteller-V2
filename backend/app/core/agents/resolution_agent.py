@@ -50,9 +50,23 @@ def _load_rule_system(rule_system_id: str) -> str:
 
 
 def _get_active_rule_system(state: GameState) -> str:
-    """Return the active rule system corpus text for this game state."""
-    # Era pack can specify a rule_system_id in setting_rules (future)
-    rule_system_id = os.environ.get("STORYTELLER_RULE_SYSTEM", "storyteller_core")
+    """Return the active rule system corpus text for this game state.
+
+    Priority:
+    1. Era pack setting_rules.rule_system_id (from world_state_json, set at campaign creation)
+    2. STORYTELLER_RULE_SYSTEM env var (per-deployment override)
+    3. "storyteller_core" (default)
+    """
+    from backend.app.core.setting_context import get_setting_rules  # noqa: E402
+
+    state_dict = (
+        state.model_dump(mode="json")
+        if hasattr(state, "model_dump")
+        else (state if isinstance(state, dict) else {})
+    )
+    era_rule_system_id = get_setting_rules(state_dict).rule_system_id  # "storyteller_core" default
+    env_override = os.environ.get("STORYTELLER_RULE_SYSTEM")
+    rule_system_id = env_override or era_rule_system_id or "storyteller_core"
     return _load_rule_system(rule_system_id)
 
 

@@ -1,6 +1,6 @@
 # STORYTELLER CORE — Game Master Resolution Rules
 
-Version: 1.0
+Version: 2.0
 System: Narrative Dice Resolution (setting-agnostic)
 
 ---
@@ -22,12 +22,61 @@ Then ask: is it mechanically justified? Both must be true.
 
 ---
 
+## STORYTELLER CORE STATS (Default Schema)
+
+The Storyteller Core system uses six stats. Stat names may vary by era pack — map
+the action's nature to the most relevant stat available on the character sheet.
+
+| Stat        | Governs                                                                              |
+|-------------|--------------------------------------------------------------------------------------|
+| Presence    | Persuasion, deception, charm, leadership, social maneuvering, intimidation           |
+| Cunning     | Stealth, infiltration, sleight of hand, tactics, street-smarts, scheming             |
+| Physique    | Combat, endurance, athletics, brute force, resisting physical harm                   |
+| Intellect   | Investigation, hacking, medicine, piloting, engineering, research, lore              |
+| Willpower   | Resisting fear/compulsion, Force use, focus under stress, mental fortitude           |
+| Force       | Force powers, sensing the living Force, lightsaber combat, Force-enhanced actions    |
+
+**Reading the character sheet:** Map the player's action to the stat it most logically
+exercises. Persuasion → Presence; hacking → Intellect; stealth → Cunning;
+combat → Physique; Force powers → Force.
+
+**Stat value interpretation:**
+- 0–1: Untrained. Increase difficulty by one band.
+- 2–4: Competent baseline.
+- 5–7: Skilled. Reduce difficulty by one band.
+- 8–10: Expert. Reduce difficulty by two bands (minimum Trivial).
+
+**If the era pack uses different stat names**, map by function:
+- "combat/fight/attack" stat → Physique role
+- "social/charm/speech" stat → Presence role
+- "stealth/sneak/shadow" stat → Cunning role
+- "tech/hack/science/medical" stat → Intellect role
+- "force/jedi/sith" stat → Force role
+- "general/survival" stat → minor universal modifier (+1 difficulty band benefit if 5+)
+
+---
+
+## FORCE SENSITIVITY (Optional Subsystem)
+
+Force-related actions (sensing danger, telekinesis, mind tricks, lightsaber combat,
+Force persuasion, healing) use the **Force** stat.
+
+**Force action rules:**
+- Force actions default to **Moderate** difficulty.
+- If Force stat is 0 or absent: Force actions are **invalid** unless an item grants access.
+- Dark-side actions (Force choke, rage, life drain) add: `alignment_delta: {"light_dark": -2}`,
+  `stress_delta: +1`, `tone_tag: "RENEGADE"`.
+- On **Despair** during a Force action: note dark side intrusion in `narrative_facts`
+  (e.g., "Dark side surge — character felt the pull of anger").
+
+---
+
 ## CHARACTER STATS
 
 Each player character has stats stored in their character sheet. The exact stat names
-vary by era pack (e.g., "Combat", "Stealth", "Charisma", "Tech", "General").
-Higher stats (5–10) represent genuine expertise. Average (2–4) is competent. Low (0–1)
-is unskilled. Stats directly inform how you set difficulty and interpret outcomes.
+vary by era pack. Higher stats (5–10) represent genuine expertise. Average (2–4) is
+competent. Low (0–1) is unskilled. Stats directly inform how you set difficulty and
+interpret outcomes.
 
 When a player has high relevant stat: reduce difficulty by one band.
 When a player has low or no relevant stat: increase difficulty by one band.
