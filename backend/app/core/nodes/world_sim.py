@@ -1,7 +1,8 @@
 """World simulation node factory.
 
-V2.8: Uses deterministic faction engine instead of LLM-based simulation.
-Eliminates model swap (qwen3:4b ↔ mistral-nemo) and runs in <100ms.
+V4.0: Uses WorldMindAgent (LLM) instead of the deterministic faction engine.
+The LLM reasons about world state + player action and generates contextually
+appropriate rumors, faction moves, and hidden events.
 """
 from __future__ import annotations
 
@@ -13,7 +14,6 @@ from typing import Any
 from backend.app.config import WORLD_TICK_INTERVAL_HOURS
 from backend.app.core.state_loader import load_campaign
 from backend.app.models.news import rumors_to_news_feed, NEWS_FEED_MAX
-from backend.app.world.faction_engine import simulate_faction_tick
 
 logger = logging.getLogger(__name__)
 
@@ -38,10 +38,12 @@ def _world_sim_travel_occurred(mechanic_result: dict[str, Any]) -> bool:
 
 
 def make_world_sim_node():
-    """WorldSimNode: deterministic simulation (no DB writes, no LLM calls).
+    """WorldSimNode: LLM-based world simulation (no DB writes).
 
     Reads conn from state['__runtime_conn'].
-    Uses deterministic faction engine instead of CampaignArchitect LLM.
+    Calls WorldMindAgent to generate contextual rumors, faction moves, and
+    hidden plot events that respond to the player's action. Falls back to
+    empty output on LLM failure so a world sim error never breaks a turn.
     """
     interval_minutes = WORLD_TICK_INTERVAL_HOURS * 60
 
@@ -86,21 +88,24 @@ def make_world_sim_node():
         arc_state = campaign_ws.get("arc_state") or {}
         arc_stage = arc_state.get("current_stage", "SETUP")
 
-        # Extract era ID for era pack lookup
-        era_id = campaign.get("time_period") or campaign.get("era") or "REBELLION"
+        # Build action summaries for the LLM
+        user_action_summary = (state.get("user_input") or "").strip()[:200]
 
-        # Build user action summary for context
-        user_action_summary = ""
-        if world_reaction_needed:
-            user_input = (state.get("user_input") or "").strip()
-            if user_input:
-                user_action_summary = user_input[:100]
+        mechanic_result = state.get("mechanic_result") or {}
+        mechanic_result_summary = str(
+            mechanic_result.get("outcome_summary") or ""
+        ).strip()[:300]
+        if not mechanic_result_summary:
+            dice = mechanic_result.get("dice_result", "")
+            action = mechanic_result.get("action_type", "")
+            if dice and action:
+                mechanic_result_summary = f"{action}: {dice}"
 
         # Load faction memory and NPC states from persisted world state
         faction_memory = campaign_ws.get("faction_memory") or {}
         npc_states = campaign_ws.get("npc_states") or {}
 
-        # 3.1: Load known NPCs from characters table (non-player characters)
+        # Load known NPCs from characters table for NPC context
         known_npcs: list[dict] = []
         if conn and campaign_id:
             try:
@@ -127,23 +132,40 @@ def make_world_sim_node():
                         "relationship_score": r[5],
                     })
             except Exception:
-                logger.debug("Failed to load known NPCs for NPC autonomy", exc_info=True)
+                logger.debug("Failed to load known NPCs for world sim", exc_info=True)
 
-        # V2.8: Deterministic faction simulation (no LLM, no model swap)
-        out = simulate_faction_tick(
-            active_factions=active_factions,
-            turn_number=int(state.get("turn_number") or 0),
-            player_location=state.get("current_location") or "loc-cantina",
-            arc_stage=arc_stage,
-            era_id=era_id,
-            world_time_minutes=t1,
-            travel_occurred=travel_occurred,
-            world_reaction_needed=world_reaction_needed,
-            user_action_summary=user_action_summary,
-            faction_memory=faction_memory,
-            npc_states=npc_states,
-            known_npcs=known_npcs,
-        )
+        # V4.0: LLM-based world simulation via WorldMindAgent
+        try:
+            from backend.app.core.agents.world_mind_agent import WorldMindAgent
+            out = WorldMindAgent().simulate(
+                active_factions=active_factions,
+                turn_number=int(state.get("turn_number") or 0),
+                player_location=state.get("current_location") or "loc-cantina",
+                arc_stage=arc_stage,
+                world_time_minutes=t1,
+                travel_occurred=travel_occurred,
+                world_reaction_needed=world_reaction_needed,
+                user_action_summary=user_action_summary,
+                mechanic_result_summary=mechanic_result_summary,
+                faction_memory=faction_memory,
+                npc_states=npc_states,
+                known_npcs=known_npcs,
+            )
+        except Exception as _wsim_err:
+            logger.warning(
+                "WorldMindAgent failed for campaign %s (non-fatal): %s",
+                campaign_id, _wsim_err,
+            )
+            from shared.schemas import WorldSimOutput as _WorldSimOutput
+            out = _WorldSimOutput(
+                elapsed_time_summary="Time passes quietly.",
+                faction_moves=[],
+                new_rumors=[],
+                hidden_events=[],
+                updated_factions=active_factions if active_factions else None,
+                faction_memory=faction_memory,
+                npc_states=npc_states,
+            )
 
         # --- Process output into events (same format as LLM-based version) ---
         rumor_events: list[dict] = []
