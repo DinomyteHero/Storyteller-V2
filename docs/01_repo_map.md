@@ -99,6 +99,14 @@ Storyteller AI/
     conftest.py                  # Test fixtures for ingestion tests
     __main__.py                  # `python -m ingestion <command>`
 
+
+  frontend/                      # SvelteKit UI
+    src/routes/+page.svelte      # Landing page
+    src/routes/create/+page.svelte # Campaign creation flow
+    src/routes/play/+page.svelte # Main gameplay view
+    src/lib/api/                 # HTTP + SSE client helpers
+    src/lib/stores/              # UI and gameplay stores
+
   storyteller/                   # Unified CLI dispatcher (installs `storyteller` script)
     cli.py                       # argparse + subcommand registration
     commands/                    # doctor, setup, dev, ingest, query, extract-knowledge
@@ -126,7 +134,10 @@ Storyteller AI/
     static/
       era_packs/                 # Era pack YAML files (deterministic world content)
         _template/               # Reference structure for authoring new packs
-        rebellion/               # Canonical example (Galactic Civil War 0 BBY - 4 ABY)
+        dark_times/              # Playable period pack
+        rebellion/               # Playable period pack
+        new_republic/            # Playable period pack
+        new_jedi_order/          # Playable period pack
           era.yaml, companions.yaml, quests.yaml, meters.yaml, npcs.yaml,
           namebanks.yaml, factions.yaml, events.yaml, locations.yaml,
           rumors.yaml, facts.yaml, backgrounds.yaml

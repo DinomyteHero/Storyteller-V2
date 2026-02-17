@@ -2,7 +2,7 @@
 
 ## What the System Does
 
-Storyteller AI V2.20 ("Living World") is a text-based RPG engine that runs a turn-by-turn narrative loop driven by a **LangGraph state-machine pipeline**. A player selects from KOTOR-style dialogue-wheel suggestions; the engine classifies the input, resolves mechanics, simulates off-screen world events, generates dramatic pacing instructions, and produces final prose narration — all in a single turn.
+Storyteller AI (current codebase, project version 0.1.0) is a text-based RPG engine that runs a turn-by-turn narrative loop driven by a **LangGraph state-machine pipeline**. A player selects from KOTOR-style dialogue-wheel suggestions; the engine classifies the input, resolves mechanics, simulates off-screen world events, generates dramatic pacing instructions, and produces final prose narration — all in a single turn.
 
 The "Living World" mechanic is the core differentiator: every player action costs in-game time (in minutes). When accumulated time crosses a configurable tick boundary (default 4 hours), a **WorldSim** node fires an LLM-driven faction simulation that moves NPC factions, generates rumors, and feeds a Mass Effect-style news briefing system — making the world feel alive even when the player isn't directly interacting with those factions.
 

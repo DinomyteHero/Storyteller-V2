@@ -2,7 +2,7 @@
 
 Storyteller AI is a local-first narrative RPG engine powered by a FastAPI backend, SvelteKit frontend, and deterministic world content loaded from YAML-based Era Packs.
 
-**Current System (V2.20):**
+**Current System (project version 0.1.0):**
 
 - Star Wars Legends narrative campaigns with LLM-powered storytelling
 - Era Pack system for deterministic world content (`/data/static/era_packs/`)
@@ -12,9 +12,9 @@ Storyteller AI is a local-first narrative RPG engine powered by a FastAPI backen
 
 **Repository Status:**
 
-- Streamlined to `_template` + `rebellion` era packs (others can be regenerated)
-- Removed legacy migration scripts and obsolete tooling
-- Consolidated documentation and templates
+- Active FastAPI + SvelteKit stack with unified launchers (`run_app.py`, `storyteller dev`)
+- Multiple playable era packs shipped in-repo under `data/static/era_packs/`
+- V2 API includes campaign setup, turn (sync + stream), content catalog, player profiles, and starship endpoints
 
 ---
 
@@ -51,10 +51,13 @@ Era Packs are YAML-based content bundles that define a playable Star Wars Legend
 - `backgrounds.yaml` - SWTOR-style character creation
 - `namebanks.yaml`, `meters.yaml`, `events.yaml`, `rumors.yaml`, `facts.yaml`
 
-**Current Era Packs:**
+**Current Era Packs in this repository:**
 
 - `_template` - Reference structure for authoring new packs
-- `rebellion` - Galactic Civil War (0 BBY - 4 ABY) - canonical example
+- `dark_times` - Late Republic collapse / Imperial rise period content
+- `rebellion` - Galactic Civil War focused content
+- `new_jedi_order` - Yuuzhan Vong war era content
+- `new_republic` - Post-Endor New Republic transition era content
 
 **Location:** `/data/static/era_packs/{era_id}/`
 
@@ -74,6 +77,7 @@ Each campaign includes:
 - Active factions from the era pack
 - Arc scaffold (themes, opening threads, climax question)
 - Generated world content (locations, NPCs, quests)
+- Campaign configuration controls: `campaign_mode`, `campaign_scale`, and `difficulty`
 
 ### Deterministic Systems
 
