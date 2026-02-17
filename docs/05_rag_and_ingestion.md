@@ -106,8 +106,7 @@ You can also override per-run with `storyteller ingest --ingest-root <path>`.
 **Available ingestion methods:**
 
 - **Hierarchical lore ingestion**: `python -m ingestion.ingest_lore ...` (supports PDF/EPUB/TXT with parent/child chunking)
-- **Flat lore ingestion**: `python -m ingestion.ingest ...` (TXT/EPUB only, simple chunking)
-- **Style ingestion**: `python -m backend.app.scripts.ingest_style ...` or `scripts/ingest_style.py`
+- **Style ingestion**: `python scripts/ingest_style.py`
 - **Verify/query**: `scripts/verify_lore_store.py`, `python -m ingestion query`
 
 ### Automated style-pack generation (Hybrid Option A)
@@ -400,7 +399,7 @@ Extract → Chunk → (optional Tagger) → Embed → Upsert → Manifest
 ```
 
 1. **Extract:** Read source files (TXT, EPUB via `epub_reader.py`, PDF via `pymupdf4llm`)
-2. **Chunk:** Split into token-aware chunks with overlap (`chunking.py`). Flat ingestion: ~600 tokens. Hierarchical: parent ~1024, child ~256 tokens
+2. **Chunk:** Split into token-aware chunks with overlap (`chunking.py`). Parent chunks: ~1024 tokens; child chunks: ~256 tokens.
 3. **Tagger (optional):** If `INGESTION_TAGGER_ENABLED=1`, each chunk is sent to a local LLM for metadata enrichment (see below)
 4. **Embed:** Encode chunks into vectors via `sentence-transformers` using `EMBEDDING_MODEL`
 5. **Upsert:** Write to LanceDB via `LanceStore.add_chunks()` (`ingestion/store.py`)
@@ -461,7 +460,7 @@ The last ingestion metadata is also tracked in `data/last_ingest.json`.
 
 **File:** `ingestion/epub_reader.py`
 
-Extracts chapters with metadata from EPUB files via `ebooklib`. Returns chapter texts with titles and ordering. Used by both flat (`ingest.py`) and hierarchical (`ingest_lore.py`) pipelines.
+Extracts chapters with metadata from EPUB files via `ebooklib`. Returns chapter texts with titles and ordering. Used by the hierarchical (`ingest_lore.py`) pipeline.
 
 ### Test Fixture Generation
 
