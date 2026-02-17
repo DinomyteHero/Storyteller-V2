@@ -565,7 +565,7 @@ def make_suggestion_refiner_node():
             if comp_hints:
                 companion_hint = ", ".join(comp_hints)
         except Exception:
-            pass  # Non-fatal; companion hint is optional
+            logger.debug("Non-fatal: companion hint building failed", exc_info=True)
 
         # V3.0: Build player history hint from recent inputs (no DB calls)
         player_history_hint = ""
@@ -577,7 +577,7 @@ def make_suggestion_refiner_node():
                 if streak:
                     player_history_hint = f"Player chose {streak} 3+ turns in a row"
         except Exception:
-            pass  # Non-fatal
+            logger.debug("Non-fatal: player history hint failed", exc_info=True)
 
         user_prompt = _build_user_prompt(
             final_text, loc_readable, npc_descriptions, mechanic_summary,

@@ -39,7 +39,7 @@ def get_facts(conn: sqlite3.Connection, campaign_id: str) -> dict[str, Any]:
     for row in rows:
         try:
             out[row["fact_key"]] = json.loads(row["fact_value_json"])
-        except Exception:
+        except (json.JSONDecodeError, TypeError, ValueError):
             out[row["fact_key"]] = row["fact_value_json"]
     return out
 
@@ -59,7 +59,7 @@ def ledger_summary(conn: sqlite3.Connection, campaign_id: str, limit: int = 12) 
         value = row["fact_value_json"]
         try:
             value = json.loads(value)
-        except Exception:
+        except (json.JSONDecodeError, TypeError, ValueError):
             pass
         summary.append(f"{row['fact_key']}: {value}")
     return summary

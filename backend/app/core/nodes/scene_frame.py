@@ -508,7 +508,7 @@ def scene_frame_node(state: dict[str, Any]) -> dict[str, Any]:
                     if scene_type not in allowed:
                         scene_type = str(allowed[0])
     except Exception:
-        pass
+        logger.debug("Non-fatal: scene type derivation failed", exc_info=True)
 
     user_input = state.get("user_input") or ""
     action_class = state.get("action_class")
@@ -574,6 +574,6 @@ def scene_frame_node(state: dict[str, Any]) -> dict[str, Any]:
         if banter:
             logger.debug("Banter injected: %s says: %s", banter.get("speaker"), banter.get("text", "")[:60])
     except Exception:
-        pass
+        logger.debug("Non-fatal: banter injection failed", exc_info=True)
 
     return updated

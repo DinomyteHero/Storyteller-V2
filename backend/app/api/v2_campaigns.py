@@ -699,7 +699,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         player_id = str(uuid.uuid4())
         title = skeleton.get("title", "New Campaign")
         time_period = skeleton.get("time_period")
-        
+
         # Extract character info early (needed for NPC generation)
         name = character_sheet.get("name", "Hero")
         stats = character_sheet.get("stats") or {}
@@ -732,7 +732,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                 if loc_obj and loc_obj.planet:
                     starting_planet = loc_obj.planet
                     character_sheet["starting_planet"] = starting_planet
-        
+
         # Persist world_state_json: active_factions from SetupOutput (top-level or world_state_json)
         active_factions = skeleton.get("active_factions")
         if not isinstance(active_factions, list):
@@ -1257,7 +1257,7 @@ def _active_objectives(conn, campaign_id: str) -> list[dict]:
         progress = {}
         try:
             progress = json.loads(r["progress_json"] or "{}")
-        except Exception:
+        except (json.JSONDecodeError, TypeError, ValueError):
             pass
         out.append({"objective_id": r["id"], "title": r["title"], "description": r["description"], "progress": progress, "status": r["status"]})
     return out
@@ -1391,7 +1391,7 @@ def post_turn(
                     import json as _json  # noqa: E402
                     try:
                         ws = _json.loads(ws)
-                    except Exception:
+                    except (_json.JSONDecodeError, TypeError, ValueError):
                         ws = {}
                 ps_raw = (ws or {}).get("party_state") if isinstance(ws, dict) else None
                 if ps_raw and isinstance(ps_raw, dict):
@@ -1701,6 +1701,7 @@ def post_turn_stream(
             try:
                 narrator_llm = AgentLLM("narrator")
             except Exception:
+                logger.warning("Narrator LLM init failed; falling back to None", exc_info=True)
                 narrator_llm = None
 
             narrator = NarratorAgent(

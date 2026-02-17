@@ -12,8 +12,12 @@ from pathlib import Path
 
 from shared.config import (
     _env_flag,
+    EMBEDDING_MODEL,  # noqa: F401
+    EMBEDDING_DIMENSION,  # noqa: F401
+    ERA_PACK_DIR,  # noqa: F401
 )
 
+from backend.app.time_economy import WORLD_TICK_INTERVAL_HOURS  # noqa: F401
 from shared.ingest_paths import lancedb_dir
 
 logger = logging.getLogger(__name__)
