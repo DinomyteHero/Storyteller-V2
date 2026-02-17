@@ -385,6 +385,91 @@ def make_commit_node():
             except Exception as _qw_err:
                 logger.warning("QuestWeaverAgent failed (non-fatal): %s", _qw_err)
 
+            # V4.0: ProgressionAgent — narrative stat growth every ~10 turns.
+            # Evaluates player history and awards stat improvements + new narrative
+            # abilities earned through story action. Writes stats_json to DB.
+            # Non-fatal: a LLM failure keeps current stats unchanged.
+            try:
+                from backend.app.core.agents.progression_agent import ProgressionAgent  # noqa: E402
+                if final_text and intent != "META" and next_turn_number % 10 == 0:
+                    _prog_player = state.get("player")
+                    _prog_stats: dict = {}
+                    _prog_psych: dict = {}
+                    _prog_bg = ""
+                    if isinstance(_prog_player, dict):
+                        _prog_stats = dict(_prog_player.get("stats") or {})
+                        _prog_psych = dict(_prog_player.get("psych_profile") or {})
+                        _prog_bg = str(_prog_player.get("background") or "")
+                    elif _prog_player is not None:
+                        _prog_stats = dict(getattr(_prog_player, "stats", None) or {})
+                        _prog_psych = dict(getattr(_prog_player, "psych_profile", None) or {})
+                        _prog_bg = str(getattr(_prog_player, "background", None) or "")
+                    _prog_narr = "\n".join((state.get("recent_narrative") or [])[-2:])[:600]
+                    _prog_notif = ProgressionAgent().advance(
+                        world_state=world_state,
+                        player_stats=_prog_stats,
+                        psych_profile=_prog_psych,
+                        background=_prog_bg,
+                        turn_number=next_turn_number,
+                        recent_narrative=_prog_narr,
+                        conn=conn,
+                        campaign_id=campaign_id,
+                        player_id=player_id,
+                    )
+                    if _prog_notif:
+                        _existing_warnings = list(state.get("warnings") or [])
+                        _existing_warnings.append(f"[PROGRESSION] {_prog_notif}")
+                        state["warnings"] = _existing_warnings
+            except Exception as _prog_err:
+                logger.warning("ProgressionAgent failed (non-fatal): %s", _prog_err)
+
+            # V4.0: PsychArchivistAgent — psychological arc update every ~5 turns.
+            # Evaluates the character's emotional state from narrative events and prose,
+            # producing a nuanced psych_profile and an emotional_arc_note for the Narrator.
+            # Writes psych_profile to DB and emotional_arc_note to world_state.
+            # Non-fatal: a LLM failure keeps the existing psych_profile.
+            try:
+                from backend.app.core.agents.psych_archivist_agent import PsychArchivistAgent  # noqa: E402
+                if final_text and intent != "META" and next_turn_number % 5 == 0:
+                    _psych_player = state.get("player")
+                    _psych_profile: dict = {}
+                    _psych_bg = ""
+                    if isinstance(_psych_player, dict):
+                        _psych_profile = dict(_psych_player.get("psych_profile") or {})
+                        _psych_bg = str(_psych_player.get("background") or "")
+                    elif _psych_player is not None:
+                        _psych_profile = dict(
+                            getattr(_psych_player, "psych_profile", None) or {}
+                        )
+                        _psych_bg = str(getattr(_psych_player, "background", None) or "")
+                    _psych_narr = "\n".join((state.get("recent_narrative") or [])[-2:])[:700]
+                    _psych_events = [
+                        {
+                            "event_type": ensure_event(e).event_type,
+                            "payload": ensure_event(e).payload or {},
+                        }
+                        for e in events
+                    ]
+                    _arc_stage = (
+                        arc_guidance.get("arc_stage")
+                        if isinstance(arc_guidance, dict)
+                        else None
+                    ) or "SETUP"
+                    PsychArchivistAgent().update(
+                        world_state=world_state,
+                        current_psych_profile=_psych_profile,
+                        background=_psych_bg,
+                        turn_number=next_turn_number,
+                        recent_narrative=_psych_narr,
+                        events=_psych_events,
+                        arc_stage=_arc_stage,
+                        conn=conn,
+                        campaign_id=campaign_id,
+                        player_id=player_id,
+                    )
+            except Exception as _psych_err:
+                logger.warning("PsychArchivistAgent failed (non-fatal): %s", _psych_err)
+
             # V2.21: NPC persistent memory — record NPC interactions from turn events
             try:
                 from backend.app.core.npc_memory import (  # noqa: E402

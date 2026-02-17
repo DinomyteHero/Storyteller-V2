@@ -62,6 +62,10 @@ def _model_config() -> dict[str, dict[str, str]]:
         "continuity": {"provider": "ollama", "model": "qwen3:4b"},
         # V4.0: Quest Weaver — dynamic quest generation and completion evaluation
         "quest_weaver": {"provider": "ollama", "model": "qwen3:8b"},
+        # V4.0: Progression — narrative stat growth and ability unlocking (~10 turns)
+        "progression": {"provider": "ollama", "model": "qwen3:4b"},
+        # V4.0: Psych Archivist — psychological arc + emotional_arc_note (~5 turns)
+        "psych_archivist": {"provider": "ollama", "model": "qwen3:4b"},
     }
     out = {}
     for role, cfg in base.items():

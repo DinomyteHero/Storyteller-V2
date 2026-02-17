@@ -246,7 +246,14 @@ def _build_story_state_summary(state: GameState) -> str:
         psych = state.player.psych_profile or {}
     current_mood = psych.get("current_mood", "neutral")
     stress_level = int(psych.get("stress_level", 0) or 0)
-    psych_block = f"current_mood: {current_mood}, stress_level: {stress_level}, active_trauma: {psych.get('active_trauma') or 'none'}"
+    psych_block = (
+        f"current_mood: {current_mood}, stress_level: {stress_level}, "
+        f"active_trauma: {psych.get('active_trauma') or 'none'}"
+    )
+    # V4.0: Inject emotional_arc_note from PsychArchivistAgent when available
+    _emotional_arc_note = ws.get("emotional_arc_note") if isinstance(ws, dict) else None
+    if _emotional_arc_note:
+        psych_block += f"\nDirector note: {_emotional_arc_note}"
 
     # V2.5: Active rumors (last 3 is_public_rumor events)
     active_rumors = getattr(state, "active_rumors", None) or []
