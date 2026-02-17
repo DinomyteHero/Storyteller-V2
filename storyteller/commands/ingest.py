@@ -1,8 +1,7 @@
 """``storyteller ingest`` — run ingestion with guardrails.
 
-Wraps ``ingestion.ingest`` (simple) and ``ingestion.ingest_lore`` (lore)
-with pre-flight checks: Ollama reachability, model availability,
-PDF file detection with pipeline guidance, and progress hints.
+Wraps ``ingestion.ingest_lore`` with pre-flight checks: Ollama
+reachability, model availability, and progress hints.
 
 If a virtual environment (venv/ or .venv/) exists, it will be used automatically.
 """
@@ -17,16 +16,12 @@ from shared.ingest_paths import ingest_root
 
 def register(subparsers) -> None:
     p = subparsers.add_parser("ingest", help="Ingest documents into the vector store")
-    p.add_argument(
-        "--pipeline", choices=["simple", "lore"], default="lore",
-        help="Ingestion pipeline: 'simple' (TXT/EPUB flat chunks) or 'lore' (PDF/EPUB/TXT enriched). Default: lore",
-    )
     p.add_argument("--input", type=str, default=None, help="Input directory (default: <ingest-root>/lore)")
     p.add_argument("--era", "--time-period", type=str, help="Era / time period label (e.g. LOTF)")
     p.add_argument("--source-type", type=str, help="Source type (e.g. novel, reference)")
-    p.add_argument("--planet", type=str, help="Planet filter (lore pipeline)")
-    p.add_argument("--faction", type=str, help="Faction filter (lore pipeline)")
-    p.add_argument("--collection", type=str, help="Collection name (lore pipeline)")
+    p.add_argument("--planet", type=str, help="Planet filter")
+    p.add_argument("--faction", type=str, help="Faction filter")
+    p.add_argument("--collection", type=str, help="Collection name")
     p.add_argument("--book-title", type=str, help="Book title override")
     p.add_argument("--out-db", type=str, default=None, help="LanceDB output path (default: <ingest-root>/lancedb)")
     p.add_argument("--era-pack", type=str, help="Era pack id for NPC tagging (defaults to --era)")
@@ -38,7 +33,6 @@ def register(subparsers) -> None:
     p.add_argument("--ingest-root", type=str, default=None, help="Portable ingestion root (uses <root>/lore + <root>/lancedb)")
     p.add_argument("--no-venv", action="store_true", help="Skip venv detection, use current Python")
     p.add_argument("--yes", "--non-interactive", dest="yes", action="store_true", help="Run non-interactively (auto-confirm prompts)")
-    p.add_argument("--allow-legacy", action="store_true", help="Allow deprecated simple ingestion pipeline")
     p.set_defaults(func=run)
 
 
@@ -62,10 +56,6 @@ def _is_in_venv() -> bool:
     return hasattr(sys, 'real_prefix') or (
         hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix
     )
-
-
-def _has_pdfs(input_dir: Path) -> bool:
-    return any(input_dir.glob("**/*.pdf"))
 
 
 def _has_supported_files(input_dir: Path) -> bool:
@@ -137,36 +127,12 @@ def run(args) -> int:
         print("         Supported formats: .txt, .epub, .pdf")
         return 1
 
-    # Guardrail: legacy simple pipeline requires explicit opt-in
-    if args.pipeline == "simple" and not args.allow_legacy:
-        print("  ERROR: The simple pipeline is deprecated and gated behind --allow-legacy")
-        print("         Use --pipeline lore (recommended) or re-run with --allow-legacy")
-        return 1
-
-    # Guardrail: PDFs found but using simple pipeline
-    if args.pipeline == "simple" and _has_pdfs(input_dir):
-        print(f"  WARNING: PDF files detected in {input_dir}")
-        print("           The 'simple' pipeline does NOT support PDFs.")
-        print("           Use the 'lore' pipeline instead:")
-        print("")
-        print(f"             python -m storyteller ingest --pipeline lore --input {args._resolved_input}")
-        print("")
-        if not args.yes:
-            resp = input("  Continue with simple pipeline anyway? (PDFs will be skipped) [y/N]: ")
-            if resp.strip().lower() != "y":
-                return 0
-        else:
-            print("  --yes supplied: continuing with simple pipeline")
-
     # Pre-flight checks (unless skipped)
     if not args.skip_checks:
         if not _check_embedding_model():
             return 1
 
-    # Build argv for the underlying ingestion module
-    if args.pipeline == "lore":
-        return _run_lore(args)
-    return _run_simple(args)
+    return _run_lore(args)
 
 
 def _run_lore(args) -> int:
@@ -205,38 +171,6 @@ def _run_lore(args) -> int:
     try:
         from ingestion.ingest_lore import main as lore_main
         rc = lore_main()
-        return int(rc or 0)
-    finally:
-        sys.argv = old_argv
-
-
-def _run_simple(args) -> int:
-    """Dispatch to ingestion.ingest.main()."""
-    argv = ["ingest", "--input_dir", str(args._resolved_input)]
-    if args.era:
-        argv.extend(["--era", args.era])
-    if args.source_type:
-        argv.extend(["--source_type", args.source_type])
-    if args.era_pack:
-        argv.extend(["--era-pack", args.era_pack])
-    if args.tag_npcs is True:
-        argv.append("--tag-npcs")
-    elif args.tag_npcs is False:
-        argv.append("--no-tag-npcs")
-    if args.npc_tagging_mode:
-        argv.extend(["--npc-tagging-mode", args.npc_tagging_mode])
-    if args._resolved_out_db:
-        argv.extend(["--db", args._resolved_out_db])
-
-    print("\n  Running simple ingestion pipeline ...")
-    print(f"  Input: {args._resolved_input}")
-    print()
-
-    old_argv = sys.argv
-    sys.argv = argv
-    try:
-        from ingestion.ingest import main as simple_main
-        rc = simple_main()
         return int(rc or 0)
     finally:
         sys.argv = old_argv

@@ -45,9 +45,14 @@ nul
 
 # Data variants (local vector DB)
 data/lancedb*/
+data/last_ingest.json
 
 # Node modules
 node_modules/
+
+# Linter / test caches
+.pytest_cache/
+.ruff_cache/
 
 # Backup files
 *.bak

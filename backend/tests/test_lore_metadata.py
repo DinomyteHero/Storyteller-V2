@@ -14,7 +14,7 @@ import lancedb  # noqa: E402
 import pyarrow as pa  # noqa: E402
 
 from backend.app.rag.lore_retriever import retrieve_lore  # noqa: E402
-from shared.lore_metadata import DOC_TYPE_NOVEL, SECTION_KIND_LORE, default_section_kind  # noqa: E402
+from shared.lore_metadata import DOC_TYPE_NOVEL, SECTION_KIND_LORE  # noqa: E402
 
 TABLE_NAME = "lore_chunks"
 VECTOR_DIM = 384
@@ -219,16 +219,3 @@ class TestLoreMetadataIngestion(unittest.TestCase):
             parsed = json.loads(d["characters_json"][0])
             self.assertEqual(parsed, ["Luke"])
 
-    def test_ingest_produces_default_metadata(self) -> None:
-        """ingest.py produces chunks with default doc_type/section_kind when not set."""
-        from ingestion.ingest import ingest_txt  # noqa: E402
-
-        with tempfile.TemporaryDirectory() as tmp:
-            txt_path = Path(tmp) / "sample.txt"
-            txt_path.write_text("Short sample text for ingestion.")
-            chunks = ingest_txt(txt_path, era="LOTF", source_type="novel")
-            self.assertGreaterEqual(len(chunks), 1)
-            m = chunks[0]["metadata"]
-            self.assertEqual(m["doc_type"], "novel")  # inferred from source_type
-            self.assertEqual(m["section_kind"], default_section_kind())  # default unknown
-            self.assertEqual(m["characters"], [])

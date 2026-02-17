@@ -100,8 +100,7 @@ graph TD
 **Windows (fastest):**
 
 ```powershell
-.\setup_dev.bat
-.\start_dev.bat
+.\start_app.bat
 ```
 
 **Cross-platform:**

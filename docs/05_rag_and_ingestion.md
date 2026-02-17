@@ -162,11 +162,11 @@ tags_json: string (JSON array)
 chunk_index: int32
 ```
 
-**CLI entry point:** `backend/app/scripts/ingest_style.py`
+**CLI entry point:** `scripts/ingest_style.py`
 
 ### Lore Ingestion
 
-**Files:** `ingestion/ingest.py` (flat TXT/EPUB) and `ingestion/ingest_lore.py` (hierarchical PDF/EPUB/TXT). The lore retriever (`lore_retriever.py`) expects a LanceDB table with rich metadata columns populated by these scripts.
+**File:** `ingestion/ingest_lore.py` (hierarchical PDF/EPUB/TXT). The lore retriever (`lore_retriever.py`) expects a LanceDB table with rich metadata columns populated by this pipeline.
 
 **Expected lore table schema** (inferred from `lore_retriever.py` column access):
 

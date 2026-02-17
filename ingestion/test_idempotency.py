@@ -201,17 +201,6 @@ class TestDedupDoesNotFullScan:
         assert "nonexistent" not in found
 
 
-class TestPdfSkipInSimpleIngest:
-    """Test that simple ingest correctly skips PDF files."""
-
-    def test_pdf_returns_empty(self, tmp_dir):
-        from ingestion.ingest import ingest_file  # noqa: E402
-        pdf_file = tmp_dir / "test.pdf"
-        pdf_file.write_bytes(b"%PDF-1.4 fake content")
-        result = ingest_file(pdf_file, era="test", source_type="test")
-        assert result == []
-
-
 class TestFileDocIdPortability:
     """file_doc_id should be stable, portable, and collision-resistant."""
 

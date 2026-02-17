@@ -10,7 +10,7 @@ if __name__ == "__main__":
     command = sys.argv[1]
 
     if command == "ingest":
-        from ingestion.ingest import main
+        from ingestion.ingest_lore import main
         sys.argv = sys.argv[1:]
         sys.exit(main())
     elif command == "query":

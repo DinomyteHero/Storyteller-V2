@@ -107,24 +107,18 @@ Storyteller AI/
     lore_metadata.py             # Lore metadata definitions
 
   scripts/                       # Dev/verification helpers
-    validate_era_pack.py         # Validate single era pack
-    validate_era_packs.py        # Validate all era packs
-    validate_setting_packs.py    # Validate setting packs (future)
-    audit_era_packs.py           # Audit era pack completeness
+    validate_era_packs.py        # Validate all era/setting packs
+    validate_setting_packs.py    # Setting pack validation (core)
     smoke_test.py                # Smoke test for backend
-    smoke_hybrid.py              # Hybrid mode smoke test
     run_deterministic_tests.py   # Run deterministic tests
     preflight.py                 # Preflight checks
-    extract_sw5e_data.py         # SW5e stat extraction
     ingest_style.py              # Style ingestion script
-    split_era_pack.py            # Era pack splitting utility
     rebuild_lancedb.py           # Rebuild vector DB
     verify_lore_store.py         # Verify lore storage
 
   data/                          # Default runtime data
     companions.yaml              # 108 companion definitions (species/voice_tags/motivation/speech_quirk)
     character_aliases.yml        # Character alias mappings
-    era_assignment.csv           # Era to campaign assignments
     static/
       era_packs/                 # Era pack YAML files (deterministic world content)
         _template/               # Reference structure for authoring new packs
