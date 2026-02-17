@@ -10,11 +10,11 @@ _root = Path(__file__).resolve().parents[2]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from backend.app.core.nodes.world_sim import make_world_sim_node
-from backend.app.core.projections import apply_projection
-from backend.app.db.migrate import apply_schema
-from backend.app.models.events import Event
-from shared.schemas import WorldSimOutput
+from backend.app.core.nodes.world_sim import make_world_sim_node  # noqa: E402
+from backend.app.core.projections import apply_projection  # noqa: E402
+from backend.app.db.migrate import apply_schema  # noqa: E402
+from backend.app.models.events import Event  # noqa: E402
+from shared.schemas import WorldSimOutput  # noqa: E402
 
 
 class TestWorldSimEvents(unittest.TestCase):

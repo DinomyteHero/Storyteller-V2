@@ -79,7 +79,7 @@ def persuasion_guardrail_triggers(user_input: str) -> bool:
     """True if dialogue attempts persuasion/intimidation/deception or materially changes NPC behavior (must go to Mechanic)."""
     if not user_input or not user_input.strip():
         return False
-    low = user_input.lower().strip()
+    user_input.lower().strip()
     tokens = _tokenize_for_verbs(user_input)
     if tokens & PERSUASION_VERBS:
         return True

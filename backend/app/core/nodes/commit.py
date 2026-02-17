@@ -8,27 +8,26 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-from backend.app.core.error_handling import log_error_with_context
-from backend.app.core.event_store import append_events, reserve_next_turn_number
-from backend.app.core.projections import apply_projection
-from backend.app.core.state_loader import build_initial_gamestate, load_turn_history
-from backend.app.core.transcript_store import write_rendered_turn
-from backend.app.core.ledger import update_ledger, update_era_summaries
-from backend.app.constants import MEMORY_COMPRESSION_CHUNK_SIZE
-from backend.app.core.story_position import advance_story_position
-from backend.app.core.encounter_throttle import (
+from backend.app.core.error_handling import log_error_with_context  # noqa: E402
+from backend.app.core.event_store import append_events, reserve_next_turn_number  # noqa: E402
+from backend.app.core.projections import apply_projection  # noqa: E402
+from backend.app.core.state_loader import build_initial_gamestate, load_turn_history  # noqa: E402
+from backend.app.core.transcript_store import write_rendered_turn  # noqa: E402
+from backend.app.core.ledger import update_ledger, update_era_summaries  # noqa: E402
+from backend.app.constants import MEMORY_COMPRESSION_CHUNK_SIZE  # noqa: E402
+from backend.app.core.story_position import advance_story_position  # noqa: E402
+from backend.app.core.encounter_throttle import (  # noqa: E402
     apply_last_location_update_from_event,
     apply_npc_introduction_from_event,
 )
-from backend.app.models.dialogue_turn import (
+from backend.app.models.dialogue_turn import (  # noqa: E402
     DialogueTurn,
     NPCUtterance,
     PlayerResponse,
     SceneFrame,
-    ValidationReport,
 )
-from backend.app.models.events import Event
-from backend.app.models.event_utils import ensure_event
+from backend.app.models.events import Event  # noqa: E402
+from backend.app.models.event_utils import ensure_event  # noqa: E402
 
 
 def make_commit_node():
@@ -136,7 +135,7 @@ def make_commit_node():
                 )
             # Compress old turns into era summaries (non-fatal on failure)
             try:
-                from backend.app.core.event_store import get_events as _get_events
+                from backend.app.core.event_store import get_events as _get_events  # noqa: E402
 
                 era_summaries = list(world_state.get("era_summaries") or [])
                 last_compressed_turn = len(era_summaries) * MEMORY_COMPRESSION_CHUNK_SIZE
@@ -197,7 +196,7 @@ def make_commit_node():
             # Era transition: execute if pending
             if isinstance(arc_guidance, dict) and arc_guidance.get("era_transition_pending"):
                 try:
-                    from backend.app.core.era_transition import get_next_era, execute_transition
+                    from backend.app.core.era_transition import get_next_era, execute_transition  # noqa: E402
                     current_era = camp.get("time_period") or camp.get("era") or ""
                     next_era = get_next_era(current_era) if current_era else None
                     if next_era:
@@ -226,13 +225,13 @@ def make_commit_node():
             # Persist companion memories (Phase 5: deep companion system)
             pending_moments = camp.get("pending_companion_moments") or []
             if pending_moments:
-                from backend.app.core.companion_reactions import record_companion_moment
+                from backend.app.core.companion_reactions import record_companion_moment  # noqa: E402
                 for moment in pending_moments:
                     if isinstance(moment, dict) and moment.get("companion_id") and moment.get("text"):
                         record_companion_moment(world_state, moment["companion_id"], moment["text"])
             # V2.20: Persist PartyState (sync legacy fields into party_state)
             try:
-                from backend.app.core.party_state import load_party_state, save_party_state
+                from backend.app.core.party_state import load_party_state, save_party_state  # noqa: E402
                 _ps = load_party_state(world_state)
                 save_party_state(world_state, _ps)
             except Exception as _ps_err:
@@ -248,7 +247,7 @@ def make_commit_node():
 
             # V3.0: Quest tracking — check entry/stage conditions after events committed
             try:
-                from backend.app.core.quest_tracker import process_quests_for_turn
+                from backend.app.core.quest_tracker import process_quests_for_turn  # noqa: E402
                 quest_era = str(camp.get("time_period") or camp.get("era") or "REBELLION").strip()
                 quest_events = [
                     {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
@@ -266,7 +265,7 @@ def make_commit_node():
                 # V2.21: Quest-to-ledger integration — feed quest events into narrative ledger
                 if quest_notifications:
                     try:
-                        quest_log = world_state.get("quest_log") or {}
+                        world_state.get("quest_log") or {}
                         ledger = world_state.get("narrative_ledger") or {}
                         facts = list(ledger.get("established_facts") or [])
                         threads = list(ledger.get("open_threads") or [])
@@ -291,7 +290,7 @@ def make_commit_node():
 
             # V2.21: NPC persistent memory — record NPC interactions from turn events
             try:
-                from backend.app.core.npc_memory import (
+                from backend.app.core.npc_memory import (  # noqa: E402
                     ensure_npc_memory_table,
                     extract_npc_memories_from_events,
                     record_npc_interaction,
@@ -359,7 +358,7 @@ def make_commit_node():
             )
             # Episodic memory: store turn summary for long-term recall
             try:
-                from backend.app.core.episodic_memory import EpisodicMemory
+                from backend.app.core.episodic_memory import EpisodicMemory  # noqa: E402
                 epi = EpisodicMemory(conn, campaign_id)
                 npcs_present = [
                     n.get("name", "") for n in (state.get("present_npcs") or [])
@@ -398,7 +397,7 @@ def make_commit_node():
                     prev_arc_stage=prev_arc,
                 )
                 # V3.1: Track pivotal events for scale advisor density scoring
-                from backend.app.core.episodic_memory import _is_pivotal
+                from backend.app.core.episodic_memory import _is_pivotal  # noqa: E402
                 if _is_pivotal(key_events_for_mem, cur_arc, prev_arc, stress_lvl):
                     piv_count = int(world_state.get("pivotal_event_count") or 0) + 1
                     world_state["pivotal_event_count"] = piv_count

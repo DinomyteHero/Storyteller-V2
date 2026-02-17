@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
 import yaml
 
 from ingestion.era_content_generator import (
@@ -183,7 +182,7 @@ class TestEndToEnd:
 
     def test_writes_valid_yaml(self, tmp_path: Path):
         output_dir = tmp_path / "era_output"
-        result = generate_era_content(
+        generate_era_content(
             era="REBELLION",
             output_dir=output_dir,
             num_quests=2,

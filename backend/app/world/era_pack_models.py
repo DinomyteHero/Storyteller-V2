@@ -715,7 +715,7 @@ class EraPack(BaseModel):
                 else:
                     raise ValueError(error_msg)
 
-        location_ids = {l.id for l in self.locations}
+        location_ids = {loc.id for loc in self.locations}
         faction_ids = {f.id for f in self.factions}
         template_ids = {t.id for t in (self.npcs.templates or [])}
         rumor_ids = {r.id for r in (self.rumors or [])}

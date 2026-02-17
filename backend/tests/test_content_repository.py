@@ -56,7 +56,7 @@ locations:
         with patch.dict(os.environ, {"SETTING_PACK_PATHS": f"{root / 'core'};{root / 'override'}"}, clear=False):
             pack = repo.get_content("star_wars_legends", "rebellion")
 
-        loc_ids = [l.id for l in pack.locations]
+        loc_ids = [loc.id for loc in pack.locations]
         assert loc_ids == ["loc_a", "loc_c"]
 
         template = next(t for t in pack.npcs.templates if t.id == "t_child")

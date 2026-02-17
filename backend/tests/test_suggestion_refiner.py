@@ -383,7 +383,7 @@ class TestSuggestionRefinerNode(unittest.TestCase):
 
         # Suggestions should come from LLM
         labels = [a["label"] for a in result["suggested_actions"]]
-        self.assertTrue(any("Kessa" in l for l in labels))
+        self.assertTrue(any("Kessa" in label for label in labels))
         self.assertFalse(_is_emergency_fallback(result))
 
     @patch("backend.app.core.nodes.suggestion_refiner.AgentLLM")
@@ -433,7 +433,7 @@ class TestSuggestionRefinerNode(unittest.TestCase):
         # Should succeed on retry
         self.assertFalse(_is_emergency_fallback(result))
         labels = [a["label"] for a in result["suggested_actions"]]
-        self.assertTrue(any("Kessa" in l for l in labels))
+        self.assertTrue(any("Kessa" in label for label in labels))
         self.assertEqual(mock_llm.complete.call_count, 2)
 
     @patch("backend.app.core.nodes.suggestion_refiner.AgentLLM")
@@ -512,7 +512,7 @@ class TestSuggestionRefinerNode(unittest.TestCase):
             "success": True,
             "outcome_summary": "Victory",
         })
-        result = node(state)
+        node(state)
 
         # Check that the LLM was called with mechanic context
         call_args = mock_llm.complete.call_args_list[0]
@@ -547,7 +547,7 @@ class TestSuggestionRefinerNode(unittest.TestCase):
         # Second call: AgentLLM init succeeds → refined suggestions
         result2 = node(state)
         labels = [a["label"] for a in result2["suggested_actions"]]
-        self.assertTrue(any("Kessa" in l for l in labels))
+        self.assertTrue(any("Kessa" in label for label in labels))
 
     @patch("backend.app.core.nodes.suggestion_refiner.ENABLE_SUGGESTION_REFINER", True)
     def test_emergency_fallback_has_correct_structure(self):

@@ -14,32 +14,32 @@ from pydantic import BaseModel, Field
 
 from backend.app.constants import SUGGESTED_ACTIONS_TARGET
 from backend.app.config import DEFAULT_DB_PATH, DEV_CONTEXT_STATS, ENABLE_BIBLE_CASTING
-from backend.app.core.error_handling import log_error_with_context, create_error_response
+from backend.app.core.error_handling import log_error_with_context
 from backend.app.core.text_utils import normalize_identifier
 from backend.app.content.repository import CONTENT_REPOSITORY
 
 logger = logging.getLogger(__name__)
-from backend.app.db.connection import get_connection
-from backend.app.core.state_loader import build_initial_gamestate, load_player_by_id, load_campaign
-from backend.app.core.companions import build_initial_companion_state, get_companion_by_id
-from backend.app.core.companion_reactions import affinity_to_mood_tag
-from backend.app.models.news import NEWS_FEED_MAX
-from backend.app.core.transcript_store import get_rendered_turns
-from backend.app.core.graph import run_turn
-from backend.app.core.event_store import append_events, get_recent_public_rumors
-from backend.app.core.projections import apply_projection
-from backend.app.models.state import GameState, ActionSuggestion
-from backend.app.models.turn_contract import Intent, TurnContract, TurnMeta, TurnDebug
-from backend.app.core.turn_contract import build_turn_contract
-from backend.app.core.truth_ledger import get_facts, ledger_summary, upsert_facts, record_event
-from backend.app.core.passages.engine import load_episode, render_template, build_choices, apply_choice
-from backend.app.models.events import Event
-from backend.app.core.agents import CampaignArchitect, BiographerAgent
-from backend.app.core.story_position import (
+from backend.app.db.connection import get_connection  # noqa: E402
+from backend.app.core.state_loader import build_initial_gamestate, load_player_by_id, load_campaign  # noqa: E402
+from backend.app.core.companions import build_initial_companion_state, get_companion_by_id  # noqa: E402
+from backend.app.core.companion_reactions import affinity_to_mood_tag  # noqa: E402
+from backend.app.models.news import NEWS_FEED_MAX  # noqa: E402
+from backend.app.core.transcript_store import get_rendered_turns  # noqa: E402
+from backend.app.core.graph import run_turn  # noqa: E402
+from backend.app.core.event_store import append_events, get_recent_public_rumors  # noqa: E402
+from backend.app.core.projections import apply_projection  # noqa: E402
+from backend.app.models.state import GameState, ActionSuggestion  # noqa: E402
+from backend.app.models.turn_contract import Intent, TurnContract, TurnMeta, TurnDebug  # noqa: E402
+from backend.app.core.turn_contract import build_turn_contract  # noqa: E402
+from backend.app.core.truth_ledger import get_facts, ledger_summary, upsert_facts, record_event  # noqa: E402
+from backend.app.core.passages.engine import load_episode, render_template, build_choices, apply_choice  # noqa: E402
+from backend.app.models.events import Event  # noqa: E402
+from backend.app.core.agents import CampaignArchitect, BiographerAgent  # noqa: E402
+from backend.app.core.story_position import (  # noqa: E402
     canonical_year_label_from_campaign,
     initialize_story_position,
 )
-from backend.app.prompts.registry import prompt_registry_snapshot
+from backend.app.prompts.registry import prompt_registry_snapshot  # noqa: E402
 
 router = APIRouter(prefix="/v2", tags=["v2-campaigns"])
 
@@ -429,7 +429,7 @@ def get_era_backgrounds(era_id: str) -> dict[str, Any]:
 @router.get("/era/{era_id}/companions")
 def get_era_companions(era_id: str) -> dict[str, Any]:
     """Return companion previews for character creation screen."""
-    from backend.app.core.companions import load_companions
+    from backend.app.core.companions import load_companions  # noqa: E402
     companions = load_companions(era=era_id)
     previews = []
     for c in companions[:5]:  # Max 5 companions per era
@@ -448,8 +448,8 @@ def get_era_companions(era_id: str) -> dict[str, Any]:
 @router.get("/debug/era-packs")
 def debug_era_packs() -> dict[str, Any]:
     """Debug endpoint showing loaded era packs and their backgrounds count."""
-    from shared.config import ERA_PACK_DIR
-    from pathlib import Path
+    from shared.config import ERA_PACK_DIR  # noqa: E402
+    from pathlib import Path  # noqa: E402
 
     pack_dir = Path(ERA_PACK_DIR)
     try:
@@ -491,11 +491,11 @@ def _is_safe_start_location(tags: list[str] | None, threat_level: str | None) ->
 
 def _pick_start_location_from_pack(pack, player_concept: str, *, safe_only: bool = True) -> str:
     """Pick a reasonable starting location from an EraPack (deterministic, concept-biased)."""
-    import re
+    import re  # noqa: E402
 
     locs = list(pack.locations or [])
     if safe_only:
-        safe = [l for l in locs if _is_safe_start_location(l.tags, l.threat_level)]
+        safe = [loc for loc in locs if _is_safe_start_location(loc.tags, loc.threat_level)]
         if safe:
             locs = safe
     if not locs:
@@ -578,7 +578,7 @@ def _generate_arc_seed(
     )
 
     try:
-        from backend.app.core.agents.base import AgentLLM
+        from backend.app.core.agents.base import AgentLLM  # noqa: E402
 
         llm = AgentLLM("architect")
         system_prompt = (
@@ -632,9 +632,9 @@ def _generate_arc_seed(
 @router.post("/setup/auto", response_model=SetupAutoResponse)
 def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
     """Create campaign via Architect + Biographer; return campaign_id, player_id, skeleton, character_sheet."""
-    from backend.app.core.agents.base import AgentLLM
+    from backend.app.core.agents.base import AgentLLM  # noqa: E402
     conn = _get_conn()
-    start_ts = time.perf_counter()
+    time.perf_counter()
     try:
         try:
             _arch = CampaignArchitect(llm=AgentLLM("architect"))
@@ -712,9 +712,9 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                 starting_location = body.starting_location
             elif body.randomize_starting_location:
                 safe_ids = [
-                    l.id for l in era_pack_for_setup.locations
-                    if _is_safe_start_location(l.tags, l.threat_level)
-                ] or [l.id for l in era_pack_for_setup.locations]
+                    loc.id for loc in era_pack_for_setup.locations
+                    if _is_safe_start_location(loc.tags, loc.threat_level)
+                ] or [loc.id for loc in era_pack_for_setup.locations]
                 starting_location = random.choice(safe_ids)
             else:
                 # Avoid very dangerous/prison starts unless explicitly requested.
@@ -773,7 +773,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
             world_state["genre"] = body.genre
         else:
             try:
-                from backend.app.core.genre_triggers import assign_initial_genre
+                from backend.app.core.genre_triggers import assign_initial_genre  # noqa: E402
                 loc_tags: list[str] = []
                 if era_pack_for_setup:
                     loc_obj = era_pack_for_setup.location_by_id(starting_location)
@@ -870,7 +870,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         world_state["act_outline"] = {
             "act_1_setup": f"Player discovers signs of {villain_name}'s operation. {informant_name} may hold key information. Alliances and enemies begin to form.",
             "act_2_rising": f"Escalating conflict with {villain_name}. {rival_name} complicates matters. Player's earlier choices shape available paths.",
-            "act_3_climax": f"Final confrontation. Player's relationships and decisions determine the outcome.",
+            "act_3_climax": "Final confrontation. Player's relationships and decisions determine the outcome.",
             "key_npcs": {
                 "villain": villain_name,
                 "rival": rival_name,
@@ -880,7 +880,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
 
         # V3.0: Per-campaign world generation — generate unique locations, NPCs, and quest hooks
         try:
-            from backend.app.core.campaign_init import initialize_campaign_world
+            from backend.app.core.campaign_init import initialize_campaign_world  # noqa: E402
             campaign_world = initialize_campaign_world(
                 campaign_id=campaign_id,
                 era=time_period,
@@ -915,12 +915,12 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
             world_state["setting_rules"] = era_pack_for_setup.setting_rules.model_dump(mode="json")
 
         # V3.2: Persist difficulty profile
-        from backend.app.constants import DIFFICULTY_PROFILES
+        from backend.app.constants import DIFFICULTY_PROFILES  # noqa: E402
         _difficulty = body.difficulty if body.difficulty in DIFFICULTY_PROFILES else "normal"
         world_state["difficulty_profile"] = DIFFICULTY_PROFILES[_difficulty]
 
         world_state_json_str = json.dumps(world_state)
-        from datetime import datetime, timezone
+        from datetime import datetime, timezone  # noqa: E402
         now_str = datetime.now(timezone.utc).isoformat()
         conn.execute(
             """INSERT INTO campaigns (id, title, time_period, world_state_json, created_at, updated_at)
@@ -1017,7 +1017,7 @@ def create_campaign(body: CreateCampaignRequest) -> dict[str, Any]:
         if body.genre:
             world_state["genre"] = body.genre
         world_state["campaign_scale"] = body.campaign_scale or "medium"
-        from datetime import datetime, timezone
+        from datetime import datetime, timezone  # noqa: E402
         now_str = datetime.now(timezone.utc).isoformat()
         conn.execute(
             """INSERT INTO campaigns (id, title, time_period, world_state_json, created_at, updated_at)
@@ -1110,7 +1110,7 @@ def get_campaign_state(
 ):
     """Return current GameState for the campaign (history populated via state_loader)."""
     conn = _get_conn()
-    start_ts = time.perf_counter()
+    time.perf_counter()
     try:
         _ensure_campaign_and_player(conn, campaign_id, player_id)
         state = build_initial_gamestate(conn, campaign_id, player_id)
@@ -1284,7 +1284,7 @@ def _pad_suggestions_for_ui(actions: list) -> list:
     """Pass through suggestions for the UI. SuggestionRefiner owns the 4-item contract."""
     if not actions:
         return []
-    from backend.app.core.action_lint import lint_actions
+    from backend.app.core.action_lint import lint_actions  # noqa: E402
 
     padded, _notes = lint_actions(actions or [])
     return padded[:SUGGESTED_ACTIONS_TARGET]
@@ -1388,7 +1388,7 @@ def post_turn(
                 # V2.20: Overlay PartyState data (influence, trust, respect, fear)
                 ws = camp.get("world_state_json")
                 if isinstance(ws, str):
-                    import json as _json
+                    import json as _json  # noqa: E402
                     try:
                         ws = _json.loads(ws)
                     except Exception:
@@ -1517,15 +1517,15 @@ def _run_pre_narrator_pipeline(conn, state: GameState) -> dict:
 
     Returns the state dict ready for Narrator input.
     """
-    from backend.app.core.nodes import state_to_dict
-    from backend.app.core.nodes.router import router_node, meta_node
-    from backend.app.core.nodes.mechanic import make_mechanic_node
-    from backend.app.core.nodes.encounter import make_encounter_node
-    from backend.app.core.nodes.world_sim import make_world_sim_node
-    from backend.app.core.nodes.companion import companion_reaction_node
-    from backend.app.core.nodes.arc_planner import arc_planner_node
-    from backend.app.core.nodes.scene_frame import scene_frame_node
-    from backend.app.core.nodes.director import make_director_node
+    from backend.app.core.nodes import state_to_dict  # noqa: E402
+    from backend.app.core.nodes.router import router_node  # noqa: E402
+    from backend.app.core.nodes.mechanic import make_mechanic_node  # noqa: E402
+    from backend.app.core.nodes.encounter import make_encounter_node  # noqa: E402
+    from backend.app.core.nodes.world_sim import make_world_sim_node  # noqa: E402
+    from backend.app.core.nodes.companion import companion_reaction_node  # noqa: E402
+    from backend.app.core.nodes.arc_planner import arc_planner_node  # noqa: E402
+    from backend.app.core.nodes.scene_frame import scene_frame_node  # noqa: E402
+    from backend.app.core.nodes.director import make_director_node  # noqa: E402
 
     s = state_to_dict(state)
     s["__runtime_conn"] = conn
@@ -1560,9 +1560,9 @@ def _run_pre_narrator_pipeline(conn, state: GameState) -> dict:
 
 def _run_post_narrator_pipeline(conn, state_dict: dict, final_text: str, lore_citations: list) -> dict:
     """Run narrative validation + suggestion refinement + commit after streaming completes."""
-    from backend.app.core.nodes.narrative_validator import narrative_validator_node
-    from backend.app.core.nodes.suggestion_refiner import make_suggestion_refiner_node
-    from backend.app.core.nodes.commit import make_commit_node
+    from backend.app.core.nodes.narrative_validator import narrative_validator_node  # noqa: E402
+    from backend.app.core.nodes.suggestion_refiner import make_suggestion_refiner_node  # noqa: E402
+    from backend.app.core.nodes.commit import make_commit_node  # noqa: E402
 
     state_dict["final_text"] = final_text
     state_dict["lore_citations"] = lore_citations
@@ -1611,18 +1611,17 @@ def post_turn_stream(
 
     def event_stream():
         try:
-            from backend.app.core.nodes import dict_to_state
-            from backend.app.core.agents.narrator import (
+            from backend.app.core.nodes import dict_to_state  # noqa: E402
+            from backend.app.core.agents.narrator import (  # noqa: E402
                 _strip_structural_artifacts,
                 _strip_embedded_suggestions,
                 _truncate_overlong_prose,
                 _enforce_pov_consistency,
             )
-            from backend.app.core.agents import NarratorAgent
-            from backend.app.core.agents.base import AgentLLM
-            from backend.app.core.nodes.narrator import _is_high_stakes_combat
-            from backend.app.rag.kg_retriever import KGRetriever
-            from backend.app.core.warnings import add_warning
+            from backend.app.core.agents import NarratorAgent  # noqa: E402
+            from backend.app.core.agents.base import AgentLLM  # noqa: E402
+            from backend.app.core.nodes.narrator import _is_high_stakes_combat  # noqa: E402
+            from backend.app.rag.kg_retriever import KGRetriever  # noqa: E402
 
             state = build_initial_gamestate(conn, campaign_id, player_id)
             if body.intent is not None:
@@ -1635,8 +1634,8 @@ def post_turn_stream(
 
             # Handle META shortcut (no streaming needed)
             if pre_state.get("intent") == "META":
-                from backend.app.core.nodes.router import meta_node
-                from backend.app.core.nodes.commit import make_commit_node
+                from backend.app.core.nodes.router import meta_node  # noqa: E402
+                from backend.app.core.nodes.commit import make_commit_node  # noqa: E402
                 pre_state = meta_node(pre_state)
                 commit_fn = make_commit_node()
                 result_dict = commit_fn(pre_state)
@@ -1669,7 +1668,7 @@ def post_turn_stream(
                 kg_context = (kg_context + "\n\n" + shared_mem_block) if kg_context else shared_mem_block
             else:
                 try:
-                    from backend.app.core.episodic_memory import EpisodicMemory
+                    from backend.app.core.episodic_memory import EpisodicMemory  # noqa: E402
                     epi = EpisodicMemory(conn, gs.campaign_id or "")
                     query_text = (gs.user_input or "") + " " + (gs.current_location or "")
                     npc_names = [n.get("name", "") for n in (gs.present_npcs or []) if n.get("name")]
@@ -1687,9 +1686,9 @@ def post_turn_stream(
                     pass
 
             # Create NarratorAgent for streaming
-            from backend.app.rag.lore_retriever import retrieve_lore
-            from backend.app.rag.retrieval_bundles import NARRATOR_DOC_TYPES, NARRATOR_SECTION_KINDS
-            from backend.app.rag.style_retriever import retrieve_style_layered
+            from backend.app.rag.lore_retriever import retrieve_lore  # noqa: E402
+            from backend.app.rag.retrieval_bundles import NARRATOR_DOC_TYPES, NARRATOR_SECTION_KINDS  # noqa: E402
+            from backend.app.rag.style_retriever import retrieve_style_layered  # noqa: E402
 
             def lore_retriever_fn(query, top_k=6, era=None, related_npcs=None):
                 return retrieve_lore(query, top_k=top_k, era=era, doc_types=NARRATOR_DOC_TYPES, section_kinds=NARRATOR_SECTION_KINDS, related_npcs=related_npcs)
@@ -1899,7 +1898,7 @@ def create_player_profile(body: CreatePlayerProfileRequest) -> PlayerProfileResp
     conn = _get_conn()
     try:
         profile_id = str(uuid.uuid4())
-        from datetime import datetime, timezone
+        from datetime import datetime, timezone  # noqa: E402
         now_str = datetime.now(timezone.utc).isoformat()
         conn.execute(
             "INSERT INTO player_profiles (id, display_name, created_at, updated_at) VALUES (?, ?, ?, ?)",
@@ -1957,7 +1956,7 @@ def get_player_legacy(player_profile_id: str) -> dict[str, Any]:
 @router.post("/campaigns/{campaign_id}/complete")
 def complete_campaign(campaign_id: str, body: CompleteCampaignRequest) -> dict[str, Any]:
     """Mark a campaign as completed and save legacy data for cross-campaign influence."""
-    from backend.app.constants import INTER_CAMPAIGN_SCALE_MAP
+    from backend.app.constants import INTER_CAMPAIGN_SCALE_MAP  # noqa: E402
     conn = _get_conn()
     try:
         campaign = load_campaign(conn, campaign_id)
@@ -1992,7 +1991,7 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest) -> dict[s
         dangling_hooks = conclusion_plan.get("dangling_hooks", []) if isinstance(conclusion_plan, dict) else []
         next_campaign_pitch = ""
         try:
-            from backend.app.core.agents.base import AgentLLM
+            from backend.app.core.agents.base import AgentLLM  # noqa: E402
             llm = AgentLLM("campaign_init")
             hooks_text = "; ".join(dangling_hooks[:5]) if dangling_hooks else "no unresolved threads"
             pitch_prompt = (
@@ -2030,7 +2029,7 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest) -> dict[s
         })
 
         legacy_id = str(uuid.uuid4())
-        from datetime import datetime, timezone
+        from datetime import datetime, timezone  # noqa: E402
         now_str = datetime.now(timezone.utc).isoformat()
         conn.execute(
             "INSERT INTO campaign_legacy (id, player_profile_id, campaign_id, era, background_id, genre, "

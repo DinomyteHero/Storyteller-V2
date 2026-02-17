@@ -6,7 +6,6 @@ valid and that the deterministic quest state machine handles all condition types
 """
 from __future__ import annotations
 
-import pytest
 
 from backend.app.core.quest_tracker import (
     QuestTracker,

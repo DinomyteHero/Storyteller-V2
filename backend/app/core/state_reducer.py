@@ -1,7 +1,6 @@
 """Deterministic state reducer for rehydrating state from events. No LLM calls."""
 
 import copy
-from typing import Any
 
 
 # Canonical state dict shape (for type hints / documentation)

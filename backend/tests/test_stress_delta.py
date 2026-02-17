@@ -6,12 +6,12 @@ _root = Path(__file__).resolve().parents[2]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from backend.app.core.agents.mechanic import (
+from backend.app.core.agents.mechanic import (  # noqa: E402
     _compute_stress_delta,
     _compute_critical_outcome,
     _compute_world_reaction_needed,
 )
-from backend.app.models.events import Event
+from backend.app.models.events import Event  # noqa: E402
 
 
 class TestComputeStressDelta:

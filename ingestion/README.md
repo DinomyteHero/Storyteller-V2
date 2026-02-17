@@ -17,8 +17,6 @@ Ingest TXT, EPUB, and PDF documents into a LanceDB vector store. Two pipelines a
 
 Put source files in any directory (e.g., `./data/lore/`, `./data/books/`, `sample_data/`). Use that path as `--input_dir` (flat) or `--input` (hierarchical) when ingesting.
 
-See `docs/lore_pipeline_guide.md` for recommended folder structure organized by era and doc_type.
-
 ## Commands
 
 ### Recommended Wrapper (Storyteller CLI)
@@ -156,7 +154,3 @@ python -m pytest ingestion/test_classify_document.py
 python -m pytest ingestion/test_manifest.py
 python -m pytest ingestion/test_tagger.py
 python -m pytest ingestion/test_tagger_pipeline.py
-
-- `docs/lore_pipeline_guide.md` — recommended folder structure, classification, multi-era characters
-- `docs/05_rag_and_ingestion.md` — full RAG architecture and retrieval details
-- `docs/user_guide.md` §7–8 — character aliases and voice facets user guide

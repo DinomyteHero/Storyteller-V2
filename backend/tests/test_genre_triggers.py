@@ -8,7 +8,7 @@ _root = Path(__file__).resolve().parents[2]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from backend.app.core.genre_triggers import (
+from backend.app.core.genre_triggers import (  # noqa: E402
     assign_initial_genre,
     detect_genre_shift,
     GENRE_SHIFT_COOLDOWN,

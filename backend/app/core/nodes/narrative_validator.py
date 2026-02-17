@@ -5,7 +5,6 @@ import logging
 import re
 from typing import Any
 
-from backend.app.core.warnings import add_warning
 
 logger = logging.getLogger(__name__)
 
@@ -167,7 +166,7 @@ def _check_dialogue_turn_validity(state: dict[str, Any]) -> tuple[list[str], lis
 
     # Check 11: NPC line count — max 4 lines
     if utt_text:
-        line_count = len([l for l in utt_text.strip().split("\n") if l.strip()])
+        line_count = len([line for line in utt_text.strip().split("\n") if line.strip()])
         if line_count > 4:
             warnings.append(f"NPC utterance has {line_count} lines (max 4)")
 
@@ -194,7 +193,7 @@ def narrative_validator_node(state: dict[str, Any]) -> dict[str, Any]:
     ledger = ws.get("ledger") if isinstance(ws, dict) else {}
     if not isinstance(ledger, dict):
         ledger = {}
-    constraints = ledger.get("constraints") or []
+    ledger.get("constraints") or []
 
     validation_warnings: list[str] = []
 

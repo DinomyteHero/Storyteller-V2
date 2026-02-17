@@ -110,8 +110,6 @@ You can also override per-run with `storyteller ingest --ingest-root <path>`.
 - **Style ingestion**: `python -m backend.app.scripts.ingest_style ...` or `scripts/ingest_style.py`
 - **Verify/query**: `scripts/verify_lore_store.py`, `python -m ingestion query`
 
-For detailed ingestion workflows, see `/docs/lore_pipeline_guide.md`.
-
 ### Automated style-pack generation (Hybrid Option A)
 
 You can reduce manual style authoring with:

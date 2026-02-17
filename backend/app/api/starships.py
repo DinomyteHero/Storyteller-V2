@@ -21,8 +21,8 @@ from backend.app.models.starship import (
 )
 
 logger = logging.getLogger(__name__)
-from backend.app.db.connection import get_db
-from backend.app.config import DATA_ROOT
+from backend.app.db.connection import get_db  # noqa: E402
+from backend.app.config import DATA_ROOT  # noqa: E402
 
 router = APIRouter(prefix="/starships", tags=["starships"])
 

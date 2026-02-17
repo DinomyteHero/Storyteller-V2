@@ -8,10 +8,10 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field  # noqa: E402
 
-from backend.app.config import NPC_RENDER_ENABLED
-from backend.app.core.agents.base import AgentLLM, ensure_json
+from backend.app.config import NPC_RENDER_ENABLED  # noqa: E402
+from backend.app.core.agents.base import AgentLLM, ensure_json  # noqa: E402
 
 
 class NpcRenderOutput(BaseModel):

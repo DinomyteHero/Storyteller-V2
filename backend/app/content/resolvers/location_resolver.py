@@ -41,7 +41,7 @@ class LocationResolver:
             tags=tuple(loc.get("tags", [])),
             services=tuple(loc.get("services", [])),
             scene_types=tuple(loc.get("scene_types", [])),
-            travel_links=tuple(TravelLink(**l) for l in loc.get("travel_links", [])),
+            travel_links=tuple(TravelLink(**link) for link in loc.get("travel_links", [])),
             metadata=loc.get("metadata", {}),
         )
 
@@ -59,7 +59,7 @@ class LocationResolver:
                 svc_hits &= set(indices.services_to_locations.get(svc, []))
             ids = [i for i in ids if i in svc_hits]
         if near:
-            reachable = {l.id for l in self.get_reachable_locations(near, max_hops=1)}
+            reachable = {loc.id for loc in self.get_reachable_locations(near, max_hops=1)}
             ids = [i for i in ids if i in reachable]
         return [self.get_location(i) for i in ids[:limit] if self.get_location(i)]
 

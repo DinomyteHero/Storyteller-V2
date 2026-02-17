@@ -6,9 +6,9 @@ _root = Path(__file__).resolve().parents[1]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-import pytest
+import pytest  # noqa: E402
 
-from ingestion.store import LanceStore
+from ingestion.store import LanceStore  # noqa: E402
 
 
 class TestDeleteByFilterValidation:
@@ -28,7 +28,7 @@ class TestDeleteByFilterValidation:
         # Create a mock table that has the needed methods
         class MockTable:
             def to_pandas(self, columns=None):
-                import pandas as pd
+                import pandas as pd  # noqa: E402
                 return pd.DataFrame({"id": []})
             def delete(self, where):
                 pass
@@ -42,7 +42,7 @@ class TestDeleteByFilterValidation:
         store = LanceStore.__new__(LanceStore)
         class MockTable:
             def to_pandas(self, columns=None):
-                import pandas as pd
+                import pandas as pd  # noqa: E402
                 return pd.DataFrame({"id": []})
             def delete(self, where):
                 pass
@@ -55,7 +55,7 @@ class TestDeleteByFilterValidation:
         store = LanceStore.__new__(LanceStore)
         class MockTable:
             def to_pandas(self, columns=None):
-                import pandas as pd
+                import pandas as pd  # noqa: E402
                 return pd.DataFrame({"id": []})
             def delete(self, where):
                 pass
@@ -68,7 +68,7 @@ class TestDeleteByFilterValidation:
         store = LanceStore.__new__(LanceStore)
         class MockTable:
             def to_pandas(self, columns=None):
-                import pandas as pd
+                import pandas as pd  # noqa: E402
                 return pd.DataFrame({"id": []})
             def delete(self, where):
                 pass
@@ -84,7 +84,7 @@ class TestDeleteByFilterValidation:
             def __init__(self):
                 self.last_where = None
             def to_pandas(self, columns=None):
-                import pandas as pd
+                import pandas as pd  # noqa: E402
                 return pd.DataFrame({"id": []})
             def delete(self, where):
                 self.last_where = where

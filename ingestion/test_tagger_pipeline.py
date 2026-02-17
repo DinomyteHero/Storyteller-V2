@@ -9,9 +9,9 @@ _root = Path(__file__).resolve().parents[1]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from shared.config import EMBEDDING_DIMENSION
-from ingestion.store import LanceStore
-from ingestion.tagger import apply_tagger_to_chunks
+from shared.config import EMBEDDING_DIMENSION  # noqa: E402
+from ingestion.store import LanceStore  # noqa: E402
+from ingestion.tagger import apply_tagger_to_chunks  # noqa: E402
 
 
 class _DummyLLM:

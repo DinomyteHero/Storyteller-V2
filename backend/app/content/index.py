@@ -24,7 +24,7 @@ class ContentIndices:
 
 
 def build_indices(pack: EraPack) -> ContentIndices:
-    locations_by_id = {l.id: l.model_dump(mode="json") for l in pack.locations}
+    locations_by_id = {loc.id: loc.model_dump(mode="json") for loc in pack.locations}
     locations_by_tag: dict[str, list[str]] = {}
     services_to_locations: dict[str, list[str]] = {}
     travel_graph: dict[str, list[str]] = {}

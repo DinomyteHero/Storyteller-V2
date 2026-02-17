@@ -5,6 +5,7 @@ import time as _time
 from collections import defaultdict as _defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -252,9 +253,8 @@ async def rate_limit_middleware(request: Request, call_next):
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     """Handle HTTPExceptions with structured error responses."""
-    campaign_id = None
     if hasattr(request, "path_params") and "campaign_id" in request.path_params:
-        campaign_id = request.path_params.get("campaign_id")
+        request.path_params.get("campaign_id")
     
     node = "api"
     if "/turn" in request.url.path:

@@ -4,15 +4,13 @@ import sqlite3
 import sys
 import unittest
 from pathlib import Path
-from unittest.mock import patch
 
 _root = Path(__file__).resolve().parents[2]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from backend.app.core.state_loader import load_campaign, _default_companion_state
-from backend.app.core.projections import apply_projection
-from backend.app.models.events import Event
+from backend.app.core.state_loader import load_campaign, _default_companion_state  # noqa: E402
+from backend.app.core.projections import apply_projection  # noqa: E402
 
 
 def _create_in_memory_db() -> sqlite3.Connection:
@@ -139,7 +137,7 @@ class TestProjectionNullGuard(unittest.TestCase):
 
     def test_none_event_type_does_not_crash(self):
         """An event-like object with event_type=None should be skipped without crashing."""
-        from types import SimpleNamespace
+        from types import SimpleNamespace  # noqa: E402
 
         conn = _create_in_memory_db()
         conn.execute(
@@ -153,7 +151,7 @@ class TestProjectionNullGuard(unittest.TestCase):
 
     def test_empty_string_event_type_does_not_crash(self):
         """An event-like object with event_type='' should be skipped without crashing."""
-        from types import SimpleNamespace
+        from types import SimpleNamespace  # noqa: E402
 
         conn = _create_in_memory_db()
         conn.execute(
@@ -169,7 +167,7 @@ class TestCompanionNodeResilience(unittest.TestCase):
 
     def test_node_survives_bad_mechanic_result(self):
         """companion_reaction_node should not crash on malformed mechanic_result."""
-        from backend.app.core.nodes.companion import companion_reaction_node
+        from backend.app.core.nodes.companion import companion_reaction_node  # noqa: E402
 
         # Simulate a state with a malformed mechanic_result
         state = {
@@ -188,7 +186,7 @@ class TestCompanionNodeResilience(unittest.TestCase):
 
     def test_node_returns_state_on_missing_campaign(self):
         """companion_reaction_node returns state unchanged when campaign is missing."""
-        from backend.app.core.nodes.companion import companion_reaction_node
+        from backend.app.core.nodes.companion import companion_reaction_node  # noqa: E402
 
         state = {
             "campaign_id": "c1",

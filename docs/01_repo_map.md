@@ -147,27 +147,9 @@ Storyteller AI/
 
   README.md                      # Main overview + setup + usage
   QUICKSTART.md                  # Quick setup path
-  API_REFERENCE.md               # Canonical request/response shapes
-  CLAUDE.md                      # AI constraints + coding standards
 
   docs/                          # All reference documentation
-    architecture.md              # Living World architecture write-up
-    user_guide.md                # Player/host guide (time, psychology, tone)
-    lore_pipeline_guide.md       # Lore folder structure + ingestion workflow
     00_overview.md – 09_call_graph.md  # Internal design docs (sequential learning path)
-    era_pack_template.md         # Comprehensive era pack template
-    era_pack_schema_reference.md # Era pack schema validation rules
-    era_pack_generation_prompt.md# LLM prompt for automated era pack generation
-    SETTING_PACK_QUICK_REFERENCE.md  # Quick reference for setting packs
-    PACK_AUTHORING.md            # Pack creation guide
-    MIGRATION_FROM_ERA_PACKS.md  # Migration guide (future setting packs)
-    CONTENT_SYSTEM.md            # Content loading system
-    IMPLEMENTATION_PLAN.md       # Implementation roadmap
-    RUNBOOK.md                   # Operations runbook
-    archive/                     # Archived historical documentation (V1, V2.9, V2.20)
-    templates/                   # Template documentation
-      CAMPAIGN_INIT_TEMPLATE.md  # Campaign creation guide
-      DB_SEED_TEMPLATE.md        # Database seeding guide
 ```
 
 ## Entry Points
