@@ -1,6 +1,6 @@
 # 08 — Alignment Checklist
 
-Use this checklist to validate whether the implementation matches the intended Storyteller AI V2.15 design goals.
+Use this checklist to validate whether the implementation matches the intended Storyteller AI V2.20 design goals.
 
 Legend:
 
@@ -74,7 +74,7 @@ Legend:
 | --- | ------ | -------- | ---------- |
 | C1 | Party seeding + trait storage | ✅ | `backend/app/core/companions.py` (`build_initial_companion_state`) |
 | C2 | Affinity + loyalty progression | ✅ | `backend/app/core/companion_reactions.py` |
-| C3 | Banter queue (rate-limited, 17 banter styles) | ✅ | `backend/app/core/companion_reactions.py` + `backend/app/constants.py` (BANTER_POOL) |
+| C3 | Banter queue (rate-limited, 17 banter styles) | ✅ | `backend/app/core/companion_reactions.py` + `backend/app/banter_pool.py` (BANTER_POOL) |
 | C4 | Alignment + faction reputation tracking | ✅ | `backend/app/core/companion_reactions.py` |
 | C5 | Companion-initiated events (REQUEST, QUEST, CONFRONTATION) | ✅ | `backend/app/core/companion_reactions.py` |
 | C6 | Inter-party tensions (opposing reactions trigger tension context) | ✅ | `backend/app/core/companion_reactions.py:compute_inter_party_tensions()` |
@@ -82,14 +82,14 @@ Legend:
 
 ---
 
-## Director + Narrator (V2.15)
+## Director + Narrator
 
 | # | Goal | Status | Evidence |
 | --- | ------ | -------- | ---------- |
-| D1 | KOTOR dialogue wheel (4 deterministic suggestions per turn) | ✅ | `backend/app/core/agents/director.py:generate_suggestions()`, `backend/app/core/action_lint.py` |
+| D1 | KOTOR dialogue wheel (4 deterministic suggestions per turn) | ✅ | `backend/app/core/suggestion_engine.py:generate_suggestions()`, `backend/app/core/action_lint.py` |
 | D2 | Prose-only Narrator (no embedded suggestions) | ✅ | `backend/app/core/agents/narrator.py` (`embedded_suggestions=None` always) |
-| D3 | Narrator prose: 5-8 sentences, max 250 words | ✅ | `backend/app/core/agents/narrator.py:_truncate_overlong_prose()` |
-| D4 | Post-processing strips structural artifacts | ✅ | `backend/app/core/agents/narrator.py:_strip_structural_artifacts()` |
+| D3 | Narrator prose: 5-8 sentences, max 250 words | ✅ | `backend/app/core/agents/narrator_postprocess.py:_truncate_overlong_prose()` |
+| D4 | Post-processing strips structural artifacts | ✅ | `backend/app/core/agents/narrator_postprocess.py:_strip_structural_artifacts()` |
 | D5 | Gender/pronoun system | ✅ | `backend/app/core/pronouns.py`, `backend/app/db/migrations/0015_add_gender.sql` |
 
 ---
@@ -120,7 +120,6 @@ Legend:
 | # | Goal | Status | Evidence |
 | --- | ------ | -------- | ---------- |
 | I1 | Hierarchical parent/child chunking (PDF/EPUB/TXT) | ✅ | `ingestion/ingest_lore.py` |
-| I2 | Flat chunking (TXT/EPUB) | ✅ | `ingestion/ingest.py` |
 | I3 | Optional ingestion tagger (LLM enrichment) | ✅ | `ingestion/tagger.py` (guarded by `INGESTION_TAGGER_ENABLED`) |
 | I4 | Run manifest per ingest | ✅ | `ingestion/manifest.py` + `data/manifests/` |
 

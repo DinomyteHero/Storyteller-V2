@@ -9,16 +9,21 @@ Storyteller AI/
     llm_client.py                # Ollama HTTP client (LLMClient)
     app/
       api/
-        v2_campaigns.py          # V2 REST API: setup/create/state/turn/transcript/rumors
+        v2_campaigns.py          # V2 REST API: content/era/campaign/player/turn endpoints
+        campaign_models.py       # Pydantic request/response models for campaign API
+        campaign_setup.py        # Campaign initialization and auto-setup logic
         starships.py             # Starship acquisition endpoints
       config.py                  # Per-role LLM config + env flags + paths
-      constants.py               # Tuning constants (retries, thresholds, ledger caps, banter pools)
+      constants.py               # Tuning constants (retries, thresholds, ledger caps)
+      banter_pool.py             # Banter dialogue pool definitions (17 banter styles)
       time_economy.py            # Time costs + WORLD_TICK_INTERVAL_HOURS
       core/
         graph.py                 # LangGraph topology + run_turn()
         nodes/                   # Node implementations (router/mechanic/encounter/world_sim/companion/arc_planner/director/narrator/narrative_validator/suggestion_refiner/commit)
         agents/                  # Director/Narrator/Architect/Casting/Biographer/Mechanic agents
           director_helpers.py    # Director prompt construction helpers
+          narrator_prompt.py     # Narrator system prompt and template construction
+          narrator_postprocess.py  # Narrator output post-processing (_strip_structural_artifacts, _truncate_overlong_prose, _enforce_pov_consistency, _flag_unknown_entities)
         agent_utils.py           # Shared agent utilities
         state_loader.py          # Build GameState from SQLite
         event_store.py           # Event append/query helpers
@@ -26,7 +31,10 @@ Storyteller AI/
         transcript_store.py      # Rendered turn persistence
         ledger.py                # Narrative ledger (prompt grounding)
         warnings.py              # Warning collection helpers
-        director_validation.py   # generate_suggestions() + classify_suggestion() + ensure_tone_diversity()
+        director_validation.py   # Re-export hub for suggestion pipeline (delegates to suggestion_engine.py + director_context.py)
+        director_context.py      # Context builders, validation helpers, and similarity functions for Director
+        suggestion_engine.py     # generate_suggestions() + classify_suggestion() + ensure_tone_diversity() (deterministic)
+        banter_manager.py        # Banter pool manager for companion dialogue
         action_lint.py           # Suggestion linting (NPC/item/travel validation)
         companions.py            # Companion lookup + party management
         companion_reactions.py   # Companion reaction computation + inter-party tensions
@@ -83,11 +91,7 @@ Storyteller AI/
         store.py                 # KG SQLite persistence
         entity_resolution.py     # Entity deduplication + resolution
         synthesis.py             # KG summary synthesis
-      scripts/
-        ingest_style.py          # CLI: ingest `data/style/` into style index
-
-  ingestion/                     # Offline ingestion pipelines (flat + hierarchical)
-    ingest.py                    # TXT/EPUB -> lore_chunks (flat ~600 tokens)
+  ingestion/                     # Offline lore ingestion pipeline
     ingest_lore.py               # PDF/EPUB/TXT -> lore_chunks (parent/child chunks)
     store.py                     # LanceDB store + stable chunk IDs
     tagger.py                    # Optional LLM metadata enrichment (off by default)
@@ -156,7 +160,6 @@ Storyteller AI/
 | **Health check** | `python -m storyteller doctor` | Verify Python/venv/deps/.env/data dirs/Ollama/LanceDB |
 | **API server** | `uvicorn backend.main:app` | Start FastAPI backend |
 | **SvelteKit UI** | `npm run dev` (in `frontend/`) | Player-facing UI |
-| **Flat ingestion** | `python -m ingestion.ingest ...` | TXT/EPUB ingestion (no PDF) |
 | **Hierarchical ingestion** | `python -m ingestion.ingest_lore ...` | PDF/EPUB/TXT parent/child ingestion |
 | **KG extraction** | `python -m storyteller extract-knowledge ...` | Build SQLite KG tables from ingested lore |
 | **Style ingestion** | `python scripts/ingest_style.py ...` | Ingest `data/style/` docs |

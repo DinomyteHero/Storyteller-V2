@@ -21,7 +21,8 @@ flowchart TD
     ENCOUNTER --> WORLDSIM[WorldSim Node]
     WORLDSIM --> COMPANION[Companion Reaction Node]
     COMPANION --> ARCPLAN[Arc Planner Node]
-    ARCPLAN --> DIRECTOR[Director Node]
+    ARCPLAN --> SCENEFRAME[Scene Frame Node]
+    SCENEFRAME --> DIRECTOR[Director Node]
     DIRECTOR --> NARRATOR[Narrator Node]
     NARRATOR --> VALIDATOR[Narrative Validator Node]
     VALIDATOR --> REFINER[Suggestion Refiner Node]
@@ -173,7 +174,7 @@ The Director generates **text-only scene instructions** for the Narrator. No JSO
 - Uses `personality_profile` blocks for NPC characterization in scene instructions.
 - Uses episodic memories (`shared_episodic_memories`) for narrative continuity.
 - Uses `known_npcs` for per-NPC naming (name if known, descriptive role if not).
-- **Deterministic suggestions:** Calls `generate_suggestions(state, mechanic_result)` from `director_validation.py`:
+- **Deterministic suggestions:** Calls `generate_suggestions(state, mechanic_result)` from `suggestion_engine.py` (re-exported via `director_validation.py`):
   - Produces exactly 4 KOTOR-style options based on game state, mechanic results, present NPCs, and scene context.
   - Post-combat: success/failure branches. Post-stealth: success/failure branches.
   - Exploration suggestions (`_exploration_suggestions()`) for no-NPC scenes.
@@ -189,7 +190,7 @@ The Director generates **text-only scene instructions** for the Narrator. No JSO
 
 ### 7) Narrator
 
-**File:** `backend/app/core/nodes/narrator.py` (agent in `backend/app/core/agents/narrator.py`)
+**File:** `backend/app/core/nodes/narrator.py` (agent in `backend/app/core/agents/narrator.py`; prompt construction in `narrator_prompt.py`; output post-processing in `narrator_postprocess.py`)
 
 **Purpose:** Final prose narration (prose-only, no suggestions).
 
@@ -202,7 +203,7 @@ The Narrator writes **only prose** (5-8 sentences, max 250 words). `embedded_sug
 - Uses companion reactions summary and inter-party tension context from Companion Reaction node.
 - Appends one queued banter line if not in high-stakes combat.
 - Applies a deterministic canon/voice guardrail that softens risky "new fact" claims when unsupported.
-- **Post-processing pipeline:**
+- **Post-processing pipeline** (implemented in `backend/app/core/agents/narrator_postprocess.py`):
   - `_strip_structural_artifacts()` catches 12+ patterns:
     - "Option N (Tone):" inline choice blocks
     - Meta-game sections: Scene Continuation, Potential Complications, Next Steps, Stress Level Monitoring
@@ -283,7 +284,7 @@ Most fields are defined in `backend/app/models/state.py`.
 | `campaign.party_*`, `campaign.alignment`, `campaign.faction_reputation`, `campaign.banter_queue` | Companion Reaction | Pure; includes inter-party tensions |
 | `director_instructions`, `suggested_actions` | Director | Deterministic; linted/padded to 4; may add warnings |
 | `final_text`, `lore_citations` | Narrator | Prose-only; may append banter; may add warnings |
-| `embedded_suggestions` | Narrator | Always `None` in V2.15 (suggestions are deterministic via Director) |
+| `embedded_suggestions` | Narrator | Always `None` (suggestions are deterministic via Director/SuggestionRefiner) |
 | `player_starship` | State Loader / Commit | `dict` or `None`; earned in-story (V2.10) |
 | `known_npcs` | State Loader / Commit | `list[str]` of NPC IDs the player has encountered |
 | `shared_kg_*` | Director | KG context retrieved for prompt grounding |

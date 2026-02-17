@@ -32,8 +32,8 @@ It intentionally avoids line numbers (they go stale quickly). Use file paths + f
 ### Ingestion
 
 - **Entry:** `python -m ingestion <command>` (see `ingestion/__main__.py`)
-  - `ingest` (flat TXT/EPUB)
   - `query`
+- **Lore ingestion:** `python -m ingestion.ingest_lore ...` (PDF/EPUB/TXT parent/child chunking)
 
 ---
 
@@ -66,8 +66,9 @@ The graph is built once (lazy singleton via `_get_compiled_graph()`) and invoked
 ### Branching (Router)
 
 - **META**: `router -> meta -> commit -> END`
-- **TALK** (dialogue-only): `router -> encounter -> world_sim -> companion_reaction -> arc_planner -> director -> narrator -> narrative_validator -> commit -> END`
-- **ACTION**: `router -> mechanic -> encounter -> world_sim -> companion_reaction -> arc_planner -> director -> narrator -> narrative_validator -> commit -> END`
+- **META**: `router -> meta -> commit -> END`
+- **TALK** (dialogue-only): `router -> encounter -> world_sim -> companion_reaction -> arc_planner -> scene_frame -> director -> narrator -> narrative_validator -> suggestion_refiner -> commit -> END`
+- **ACTION**: `router -> mechanic -> encounter -> world_sim -> companion_reaction -> arc_planner -> scene_frame -> director -> narrator -> narrative_validator -> suggestion_refiner -> commit -> END`
 
 ### Topology Diagram
 
@@ -77,8 +78,8 @@ flowchart LR
   router --> | TALK| encounter[encounter]
   router --> | ACTION| mechanic[mechanic] --> encounter
   encounter --> world_sim[world_sim] --> companion[companion_reaction]
-  companion --> arc[arc_planner] --> director[director] --> narrator[narrator]
-  narrator --> validator[narrative_validator] --> commit
+  companion --> arc[arc_planner] --> scene_frame[scene_frame] --> director[director] --> narrator[narrator]
+  narrator --> validator[narrative_validator] --> refiner[suggestion_refiner] --> commit
 ```
 
 ---
@@ -151,7 +152,7 @@ All nodes live under `backend/app/core/nodes/`. The LangGraph state is a `dict` 
 - **Writes:** `director_instructions`, `suggested_actions` (4), `warnings`, `shared_kg_character_context`, `shared_episodic_memories`
 - **Calls into:**
   - `backend/app/core/agents/director.py:DirectorAgent.plan()` (LLM for text-only scene instructions; no JSON schema, no retries for suggestions)
-  - `backend/app/core/agents/director.py:generate_suggestions(state, mechanic_result)` (100% deterministic: uses NPCs, arc stage, mechanic result, tone for pure-Python suggestion generation)
+  - `backend/app/core/suggestion_engine.py:generate_suggestions(state, mechanic_result)` (100% deterministic: uses NPCs, arc stage, mechanic result, tone for pure-Python suggestion generation; re-exported via `director_validation.py`)
   - `backend/app/rag/style_retriever.py:retrieve_style_layered()` (4-lane: Base SW + Era + Genre + Archetype)
   - `backend/app/rag/lore_retriever.py:retrieve_lore()` (director lane filters via `backend/app/rag/retrieval_bundles.py`)
   - `backend/app/rag/kg_retriever.py:KGRetriever.get_context_for_narrator()` (shared KG character context, passed to Narrator)
@@ -166,8 +167,8 @@ All nodes live under `backend/app/core/nodes/`. The LangGraph state is a `dict` 
 - **Prose-only:** Narrator generates 5-8 sentences of narrative prose, max 250 words. No suggestion generation — `embedded_suggestions=None` always. Uses shared RAG data (KG context, episodic memories) from Director node to avoid duplicate retrieval.
 - **Calls into:**
   - `backend/app/core/agents/narrator.py:NarratorAgent.generate()` (LLM with deterministic fallback)
-  - `backend/app/core/agents/narrator.py:_strip_structural_artifacts()` (post-processing: strips option blocks, meta-game sections, character sheet fields)
-  - `backend/app/core/agents/narrator.py:_truncate_overlong_prose()` (caps at 250 words, breaks at sentence boundary)
+  - `backend/app/core/agents/narrator_postprocess.py:_strip_structural_artifacts()` (post-processing: strips option blocks, meta-game sections, character sheet fields)
+  - `backend/app/core/agents/narrator_postprocess.py:_truncate_overlong_prose()` (caps at 250 words, breaks at sentence boundary)
   - `backend/app/rag/lore_retriever.py:retrieve_lore()` (narrator lane filters via `backend/app/rag/retrieval_bundles.py`)
 
 ### Narrative Validator (`backend/app/core/nodes/narrative_validator.py`)

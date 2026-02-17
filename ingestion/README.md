@@ -1,21 +1,18 @@
 # Ingestion Module
 
-Ingest TXT, EPUB, and PDF documents into a LanceDB vector store. Two pipelines are available:
-
-- **Flat ingestion** (`ingest.py`): TXT/EPUB → ~600-token chunks with ~10% overlap
-- **Hierarchical ingestion** (`ingest_lore.py`): PDF/EPUB/TXT → parent (~1024 tokens) + child (~256 tokens) chunks with parent-child relationships
+Ingest TXT, EPUB, and PDF documents into a LanceDB vector store using the hierarchical ingestion pipeline (`ingest_lore.py`).
 
 ## Supported Formats
 
-| Format | Flat (`ingest.py`) | Hierarchical (`ingest_lore.py`) | Notes |
-| ------ | ------------------ | -------------------------------- | ----- |
-| **TXT** | ✅ | ✅ | Book title from filename |
-| **EPUB** | ✅ | ✅ | Title from metadata; chapters from spine/nav |
-| **PDF** | ❌ (skipped with warning) | ✅ | Uses `pymupdf4llm` for layout-preserving extraction |
+| Format | Hierarchical (`ingest_lore.py`) | Notes |
+| ------ | -------------------------------- | ----- |
+| **TXT** | ✅ | Book title from filename |
+| **EPUB** | ✅ | Title from metadata; chapters from spine/nav |
+| **PDF** | ✅ | Uses `pymupdf4llm` for layout-preserving extraction |
 
 ## Where to Put Data
 
-Put source files in any directory (e.g., `./data/lore/`, `./data/books/`, `sample_data/`). Use that path as `--input_dir` (flat) or `--input` (hierarchical) when ingesting.
+Put source files in any directory (e.g., `./data/lore/`, `./data/books/`). Use that path as `--input` when ingesting.
 
 ## Commands
 
@@ -25,26 +22,7 @@ Put source files in any directory (e.g., `./data/lore/`, `./data/books/`, `sampl
 python -m storyteller ingest --input ./data/lore --pipeline lore
 ```
 
-The wrapper adds guardrails (input validation, embedding-model preflight, PDF warning when `--pipeline simple`) and then dispatches to `ingestion.ingest` or `ingestion.ingest_lore`.
-
-### Flat Lore Ingestion
-
-```powershell
-python -m ingestion.ingest --input_dir <directory> --era LOTF --source_type novel --out_db ./data/lancedb
-```
-
-- `--input_dir`: Directory containing .txt and .epub files (required)
-- `--era`: Era tag (default: LOTF)
-- `--source_type`: Source type (default: novel)
-- `--out_db`: LanceDB output path (default: ./data/lancedb)
-- `--book_title`: Override book title for EPUB only; TXT always uses filename
-- `--recursive`: Recurse into subfolders
-- `--era-aliases`: JSON file mapping folder names to eras (e.g., `{"Legacy Era":"LOTF"}`)
-- `--era-mode`: `legacy` (default), `ui` (canonicalize to standard era keys), or `folder` (use top-level folder names as eras)
-- `--era auto`: Infer era from folder names (uses aliases + path segments)
-- `--era-pack`: Era pack id for deterministic NPC tagging (defaults to `--era`)
-- `--tag-npcs` / `--no-tag-npcs`: Enable or disable NPC tagging
-- `--npc-tagging-mode`: `strict` (default) or `lenient`
+The wrapper adds guardrails (input validation, embedding-model preflight) and then dispatches to `ingestion.ingest_lore`.
 
 ### Hierarchical Lore Ingestion
 
@@ -112,12 +90,6 @@ python -m ingestion.query --query "ISB tactics" --k 5 --era REBELLION --db ./dat
 ```text
 
 ## Chunking and Metadata
-
-### Flat Pipeline
-
-- ~600-token chunks with ~10% overlap; chunks do not cross chapter boundaries
-- Per-chunk metadata: `era`, `source_type`, `book_title`, `chapter_title`, `chapter_index`, `chunk_id`, `chunk_index`
-- Optional: `related_npcs` (from Era Pack tagging)
 
 ### Hierarchical Pipeline
 

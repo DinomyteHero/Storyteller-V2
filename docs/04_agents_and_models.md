@@ -13,7 +13,7 @@
 | **PersonalityProfile** | `backend/app/core/personality_profile.py` | Yes | No | Prompt blocks (speech patterns, behavior notes) | Always deterministic |
 | **CampaignArchitect** | `backend/app/core/agents/architect.py` | No | Yes (Ollama) | `SetupOutput` + `WorldSimOutput` | Deterministic skeleton / no-op WorldSim output |
 | **DirectorAgent** | `backend/app/core/agents/director.py` | No | Yes (Ollama) | `director_instructions` (text-only scene guidance) | Deterministic fallback + warnings |
-| **NarratorAgent** | `backend/app/core/agents/narrator.py` | No | Yes (Ollama) | Prose (5-8 sentences, max 250 words). `embedded_suggestions` always `None`. | Deterministic narration fallback + warnings |
+| **NarratorAgent** | `backend/app/core/agents/narrator.py` (+ `narrator_prompt.py`, `narrator_postprocess.py`) | No | Yes (Ollama) | Prose (5-8 sentences, max 250 words). `embedded_suggestions` always `None`. | Deterministic narration fallback + warnings |
 | **NarrativeValidatorNode** | `backend/app/core/nodes/narrative_validator.py` | Yes | No | `validation_notes` + warnings | Always deterministic, non-blocking |
 | **SuggestionRefinerNode** | `backend/app/core/nodes/suggestion_refiner.py` | No | Yes (Ollama) | 4 scene-aware KOTOR suggestions | Deterministic suggestions from Director (fallback) |
 | **BiographerAgent** | `backend/app/core/agents/biographer.py` | No | Yes (Ollama) | character sheet dict | Static default character sheet |
@@ -22,8 +22,8 @@
 Notes:
 
 - **CastingAgent is legacy-only** in normal gameplay: the default encounter path introduces NPCs via Era Packs and/or deterministic procedural generation (`ENABLE_BIBLE_CASTING=1`, `ENABLE_PROCEDURAL_NPCS=1`). LLM casting is only used when both flags are off.
-- **DirectorAgent** no longer generates JSON suggestions. It produces text-only scene instructions (pacing, beat, NPC emphasis). All player-facing suggestions are generated deterministically via `generate_suggestions()` in `backend/app/core/director_validation.py`.
-- **NarratorAgent** (V2.15) writes prose only. The `_suggestion_request` prompt block was replaced with `_prose_stop_rule` — strict "STOP after last sentence" instructions. The `_extract_embedded_suggestions()` function is no longer called; `embedded_suggestions` is always `None`. Post-processing is hardened with `_strip_structural_artifacts()`, `_truncate_overlong_prose()` (max 250 words, sentence boundary), and `_enforce_pov_consistency()`.
+- **DirectorAgent** no longer generates JSON suggestions. It produces text-only scene instructions (pacing, beat, NPC emphasis). All player-facing suggestions are generated deterministically via `generate_suggestions()` in `backend/app/core/suggestion_engine.py` (re-exported via `director_validation.py`).
+- **NarratorAgent** writes prose only. The `_suggestion_request` prompt block was replaced with `_prose_stop_rule` — strict "STOP after last sentence" instructions. The `_extract_embedded_suggestions()` function is no longer called; `embedded_suggestions` is always `None`. Post-processing is hardened with `_strip_structural_artifacts()`, `_truncate_overlong_prose()` (max 250 words, sentence boundary), and `_enforce_pov_consistency()` — all implemented in `backend/app/core/agents/narrator_postprocess.py`. Prompt construction lives in `narrator_prompt.py`.
 - **FactionEngine** runs during WorldSim to advance faction plans, generate news events, and shift NPC dispositions. Fully deterministic (seeded RNG).
 - **NpcGenerator** creates procedural NPCs from era pack name banks and templates. Uses seeded RNG (`derive_seed()`) for deterministic generation.
 - **PersonalityProfile** transforms NPC data (voice_tags, traits, archetype, motivation, speech_quirk) into structured prompt blocks injected into Director and Narrator context.
@@ -112,9 +112,9 @@ If `DEV_CONTEXT_STATS=1`, Narrator records a JSON `context_stats` report on the 
 
 ## Action Validation + Suggestion Generation
 
-### Deterministic Suggestion Generation (V2.15)
+### Deterministic Suggestion Generation
 
-**File:** `backend/app/core/director_validation.py` — `generate_suggestions()`
+**File:** `backend/app/core/suggestion_engine.py` — `generate_suggestions()` (re-exported via `director_validation.py`)
 
 Player-facing suggestions are 100% deterministic (no LLM). The `generate_suggestions()` function uses scene context to produce exactly `SUGGESTED_ACTIONS_TARGET` (4) action choices.
 
@@ -138,7 +138,7 @@ Player-facing suggestions are 100% deterministic (no LLM). The `generate_suggest
 
 ### Suggestion Classification
 
-**File:** `backend/app/core/director_validation.py` — `classify_suggestion()`
+**File:** `backend/app/core/suggestion_engine.py` — `classify_suggestion()` (re-exported via `director_validation.py`)
 
 Classifies raw suggestion text into a full `ActionSuggestion` using deterministic keyword analysis:
 
@@ -149,7 +149,7 @@ Classifies raw suggestion text into a full `ActionSuggestion` using deterministi
 
 ### Tone Diversity
 
-**File:** `backend/app/core/director_validation.py` — `ensure_tone_diversity()`
+**File:** `backend/app/core/suggestion_engine.py` — `ensure_tone_diversity()` (re-exported via `director_validation.py`)
 
 Guarantees KOTOR tone spread: at least one each of PARAGON, INVESTIGATE, RENEGADE if possible. Re-tags NEUTRAL suggestions to fill gaps. Also ensures at least one ALTERNATIVE strategy tag.
 
@@ -195,7 +195,7 @@ The mechanic result's `tone_tag` is scored against each companion's traits to pr
 
 ### Banter System
 
-**Pool:** 17 banter styles (`BANTER_POOL` in `backend/app/constants.py`): stoic, warm, snarky, defensive, wise, calculating, terse, academic, gruff, apologetic, weary, earnest, diplomatic, beeps, analytical, mystical, formal.
+**Pool:** 17 banter styles (`BANTER_POOL` in `backend/app/banter_pool.py`): stoic, warm, snarky, defensive, wise, calculating, terse, academic, gruff, apologetic, weary, earnest, diplomatic, beeps, analytical, mystical, formal.
 
 Banter is rate-limited to one line per `BANTER_COOLDOWN_TURNS` (3) turns. Selection uses seeded RNG (`derive_seed()`) for determinism. At TRUSTED/LOYAL arc stages with memories, banter references companion memories via `BANTER_MEMORY_POOL`.
 

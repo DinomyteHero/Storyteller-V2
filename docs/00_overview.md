@@ -2,7 +2,7 @@
 
 ## What the System Does
 
-Storyteller AI V2.15 ("Living World") is a text-based RPG engine that runs a turn-by-turn narrative loop driven by a **LangGraph state-machine pipeline**. A player selects from KOTOR-style dialogue-wheel suggestions; the engine classifies the input, resolves mechanics, simulates off-screen world events, generates dramatic pacing instructions, and produces final prose narration — all in a single turn.
+Storyteller AI V2.20 ("Living World") is a text-based RPG engine that runs a turn-by-turn narrative loop driven by a **LangGraph state-machine pipeline**. A player selects from KOTOR-style dialogue-wheel suggestions; the engine classifies the input, resolves mechanics, simulates off-screen world events, generates dramatic pacing instructions, and produces final prose narration — all in a single turn.
 
 The "Living World" mechanic is the core differentiator: every player action costs in-game time (in minutes). When accumulated time crosses a configurable tick boundary (default 4 hours), a **WorldSim** node fires an LLM-driven faction simulation that moves NPC factions, generates rumors, and feeds a Mass Effect-style news briefing system — making the world feel alive even when the player isn't directly interacting with those factions.
 
@@ -13,7 +13,7 @@ The "Living World" mechanic is the core differentiator: every player action cost
 | **Local-First** | Default provider is Ollama (local LLMs). No cloud dependency required. |
 | **Single Transaction Boundary** | Only `CommitNode` (the last pipeline node) writes to the database. All preceding nodes are pure functions that pass state forward. This prevents partial-write corruption. |
 | **Deterministic Mechanic** | The `MechanicAgent` uses zero LLM calls. All dice rolls, DC computation, time costs, and event generation are pure Python. This guarantees reproducible gameplay mechanics regardless of model quality. |
-| **Deterministic Suggestions** | Suggestions are 100% deterministic (no LLM). `generate_suggestions()` in `director_validation.py` produces exactly 4 KOTOR-style options based on game state, mechanic results, present NPCs, and scene context. |
+| **Deterministic Suggestions** | Suggestions are 100% deterministic (no LLM). `generate_suggestions()` in `suggestion_engine.py` produces exactly 4 KOTOR-style options based on game state, mechanic results, present NPCs, and scene context. |
 | **Event Sourcing** | The source of truth is an append-only event log (`turn_events` table). Normalized tables (`characters`, `inventory`, `campaigns.world_state_json`) are projections derived from events via `apply_projection()`. |
 | **Per-Role LLM Config** | Agent configuration is per-role via environment variables (`STORYTELLER_{ROLE}_MODEL`). Multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:4b` for lightweight roles (Architect, Casting, Biographer, KG). |
 | **Graceful Degradation** | Every LLM-dependent agent has a deterministic fallback. If the LLM is down or returns garbage, the game continues with safe defaults. |
@@ -55,10 +55,12 @@ graph TD
         ENC --> WS[WorldSim Node]
         WS --> CR[Companion Reaction Node]
         CR --> ARC[Arc Planner Node]
-        ARC --> DIR[Director Node]
+        ARC --> SF[Scene Frame Node]
+        SF --> DIR[Director Node]
         DIR --> NAR[Narrator Node]
         NAR --> VAL[Narrative Validator Node]
-        VAL --> COMMIT[Commit Node]
+        VAL --> REF[Suggestion Refiner Node]
+        REF --> COMMIT[Commit Node]
         META --> COMMIT
         COMMIT --> END_NODE[END]
     end
