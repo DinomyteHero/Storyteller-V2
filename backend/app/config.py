@@ -263,3 +263,9 @@ NARRATOR_MAX_INPUT_TOKENS = get_role_max_input_tokens("narrator")
 
 # Ingestion tagger (local LLM) flag: optional, off by default.
 INGESTION_TAGGER_ENABLED = os.environ.get("INGESTION_TAGGER_ENABLED", "").strip().lower() in ("1", "true", "yes")
+
+# V4.0: Rule system configuration
+# STORYTELLER_RULE_SYSTEM: id of the active rule system (filename without .md in data/static/rule_systems/)
+# Override to "ffg_star_wars", "dnd_5e_simplified", "stargate_d20", etc.
+DEFAULT_RULE_SYSTEM = os.environ.get("STORYTELLER_RULE_SYSTEM", "storyteller_core")
+RULE_SYSTEMS_DIR = DATA_ROOT / "static" / "rule_systems"

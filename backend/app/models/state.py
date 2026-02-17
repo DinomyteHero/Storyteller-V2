@@ -127,6 +127,9 @@ class MechanicOutput(BaseModel):
     critical_outcome: str | None = None
     # V2.5: True when event demands immediate world-sim response
     world_reaction_needed: bool = False
+    # V4.0: Narrative dice resolution fields (ResolutionAgent LLM output)
+    dice_result: str | None = None   # Triumph|Success+Advantage|Success|Success+Threat|Failure+Advantage|Failure|Failure+Threat|Despair
+    difficulty: str | None = None    # Trivial|Easy|Moderate|Hard|Formidable|Extreme
 
 
 # --- Game state packet ---
