@@ -255,7 +255,7 @@ def simulate_faction_tick(
         try:
             era_pack = CONTENT_REPOSITORY.get_pack(era_id)
         except Exception:
-            pass
+            logger.debug("Non-fatal: era pack load failed for %s", era_id, exc_info=True)
     era_factions = era_pack.factions if era_pack else None
 
     # --- Determine how many outputs based on arc stage and triggers ---

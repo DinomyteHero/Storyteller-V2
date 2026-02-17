@@ -1,6 +1,7 @@
 """Encounter manager: checks which NPCs are present at a location (Bible + procedural, deterministic)."""
 from __future__ import annotations
 
+import logging
 import os
 import random
 import sqlite3
@@ -12,6 +13,8 @@ from backend.app.content.repository import CONTENT_REPOSITORY
 from backend.app.world.era_pack_models import EraPack, EraNpcEntry
 from backend.app.world.npc_generator import generate_npc, derive_seed
 from backend.app.world.npc_renderer import render_npc
+
+logger = logging.getLogger(__name__)
 
 
 MAX_PRESENT_NPCS = 2
@@ -185,7 +188,7 @@ def _get_pack_background_figures(era_id: str) -> dict[str, list[str]]:
         if pack and pack.background_figures:
             return dict(pack.background_figures)
     except Exception:
-        pass
+        logger.debug("Non-fatal: background figures load failed", exc_info=True)
     return {}
 
 

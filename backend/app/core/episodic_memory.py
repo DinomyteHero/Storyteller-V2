@@ -156,7 +156,7 @@ class EpisodicMemory:
             cursor = self._conn.execute("PRAGMA table_info(episodic_memories)")
             columns = {row[1] for row in cursor.fetchall()}
             return "embedding_json" in columns
-        except Exception:
+        except (OSError, Exception):
             return False
 
     def store(
@@ -305,7 +305,7 @@ class EpisodicMemory:
             mem_npcs = set()
             try:
                 mem_npcs = set(n.lower() for n in json.loads(npcs_json or "[]"))
-            except Exception:
+            except (json.JSONDecodeError, TypeError, ValueError):
                 pass
 
             # Score calculation
@@ -317,7 +317,7 @@ class EpisodicMemory:
                     mem_embedding = json.loads(emb_json)
                     sim = _cosine_similarity(query_embedding, mem_embedding)
                     score += max(0.0, sim) * 5.0  # Scale to make it dominant signal
-                except Exception:
+                except (json.JSONDecodeError, TypeError, ValueError):
                     pass
 
             # Keyword overlap (secondary signal)
@@ -349,7 +349,7 @@ class EpisodicMemory:
 
             try:
                 events = json.loads(events_json or "[]")
-            except Exception:
+            except (json.JSONDecodeError, TypeError, ValueError):
                 events = []
 
             scored.append((score, {
