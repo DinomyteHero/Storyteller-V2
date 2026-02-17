@@ -91,15 +91,3 @@ han_solo:
                 os.environ.pop("CHARACTER_ALIASES_PATH", None)
             reload_aliases()
 
-    def test_ingestion_chunk_gets_empty_characters_metadata(self) -> None:
-        """Ingestion produces chunks with empty characters[] (facets feature removed)."""
-        from ingestion import ingest as ingest_module  # noqa: E402
-
-        with tempfile.TemporaryDirectory() as tmp:
-            txt = Path(tmp) / "test.txt"
-            txt.write_text("Luke met Leia in the corridor. Lukewarm tea was served.")
-            chunks = ingest_module.ingest_txt(txt, era="LOTF", source_type="novel")
-            self.assertGreaterEqual(len(chunks), 1)
-            m = chunks[0]["metadata"]
-            # Character facets feature removed - characters[] is always empty
-            self.assertEqual(m["characters"], [])

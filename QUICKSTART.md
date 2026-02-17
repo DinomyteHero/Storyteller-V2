@@ -157,19 +157,10 @@ Direct lore ingestion (advanced):
 python -m ingestion.ingest_lore --input ./data/lore/rebellion --db ./data/lancedb --setting-id star_wars_legends --period-id rebellion --time-period REBELLION --era-mode ui --recursive
 ```
 
-Legacy simple pipeline (deprecated, explicit opt-in):
-
-```bash
-python -m storyteller ingest --pipeline simple --allow-legacy --input sample_data --out-db ./data/lancedb
-```
-
 Style ingestion:
 
 ```bash
 python scripts/ingest_style.py --dir ./data/style --db ./data/lancedb
-
-# Playability quality gates (content + lore coverage)
-python scripts/check_period_playability.py --db ./data/lancedb
 ```
 
 ---

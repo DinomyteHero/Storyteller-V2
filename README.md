@@ -111,8 +111,7 @@ python -m storyteller setup --skip-deps
 
 Ingestion note:
 
-- `storyteller ingest --pipeline lore` is the recommended/default path.
-- Deprecated simple pipeline now requires explicit opt-in: `--pipeline simple --allow-legacy`.
+- `storyteller ingest` uses the lore pipeline (PDF/EPUB/TXT enriched ingestion).
 - For CI/automation use `--yes` to run non-interactively.
 
 One-command bootstrap (new machine):
@@ -230,7 +229,7 @@ ollama serve
 4. Validate the pack:
 
    ```bash
-   python scripts/validate_era_pack.py kotor
+   python scripts/validate_era_packs.py kotor
    ```
 
 ### Directory Structure
@@ -264,10 +263,7 @@ data/static/era_packs/
 python scripts/validate_era_packs.py
 
 # Validate single pack
-python scripts/validate_era_pack.py rebellion
-
-# Audit pack completeness
-python scripts/audit_era_packs.py
+python scripts/validate_era_packs.py rebellion
 ```
 
 ### Run Tests
@@ -293,7 +289,7 @@ python scripts/smoke_test.py
 - **`Era pack not found for era_id='...'`**
   - Confirm `ERA_PACK_DIR` points to `/data/static/era_packs`
   - Verify the era_id directory exists and contains all 12 YAML files
-  - Check YAML syntax: `python scripts/validate_era_pack.py {era_id}`
+  - Check YAML syntax: `python scripts/validate_era_packs.py {era_id}`
 
 - **LLM connection failures**
   - Ensure Ollama is running: `ollama serve`
