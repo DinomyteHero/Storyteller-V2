@@ -1,4 +1,4 @@
-"""Agent layer: architect, biographer, mechanic, encounter, director, narrator, casting, resolution, memory, world_mind, continuity."""
+"""Agent layer: architect, biographer, mechanic, encounter, director, narrator, casting, resolution, memory, world_mind, continuity, quest_weaver."""
 from backend.app.core.agents.base import (
     AgentLLM,
     LLMProvider,
@@ -16,6 +16,7 @@ from backend.app.core.agents.resolution_agent import ResolutionAgent
 from backend.app.core.agents.memory_agent import MemoryAgent
 from backend.app.core.agents.world_mind_agent import WorldMindAgent
 from backend.app.core.agents.continuity_agent import ContinuityAgent
+from backend.app.core.agents.quest_weaver_agent import QuestWeaverAgent
 
 __all__ = [
     "AgentLLM",
@@ -33,4 +34,5 @@ __all__ = [
     "MemoryAgent",
     "WorldMindAgent",
     "ContinuityAgent",
+    "QuestWeaverAgent",
 ]

@@ -329,6 +329,62 @@ def make_commit_node():
             except Exception as _quest_err:
                 logger.warning("Quest tracking failed (non-fatal): %s", _quest_err)
 
+            # V4.0: QuestWeaverAgent — dynamic quest generation + completion evaluation
+            # evaluate_completion: every turn if active dynamic quests exist
+            # generate: every 10 turns or when < TARGET_ACTIVE_QUESTS are running
+            try:
+                from backend.app.core.agents.quest_weaver_agent import QuestWeaverAgent  # noqa: E402
+                if final_text and intent != "META":
+                    _qw_events = [
+                        {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
+                        for e in events
+                    ]
+                    _qw = QuestWeaverAgent()
+                    # Evaluate active dynamic quests against this turn's prose
+                    _dq = world_state.get("dynamic_quests") or []
+                    _active_dq = [q for q in _dq if q.get("status") == "active"]
+                    if _active_dq:
+                        _dq_notifications = _qw.evaluate_completion(
+                            world_state=world_state,
+                            final_text=final_text,
+                            events=_qw_events,
+                        )
+                        if _dq_notifications:
+                            _existing_warnings = list(state.get("warnings") or [])
+                            for _dqn in _dq_notifications:
+                                _existing_warnings.append(f"[QUEST] {_dqn}")
+                            state["warnings"] = _existing_warnings
+                    # Generate new dynamic quests when the active count is low
+                    _active_count = sum(
+                        1 for q in (world_state.get("dynamic_quests") or [])
+                        if q.get("status") == "active"
+                    )
+                    _should_gen = (
+                        next_turn_number % 10 == 0
+                        or _active_count == 0
+                    )
+                    if _should_gen:
+                        _campaign_ws = (state.get("campaign") or {}).get("world_state_json") or {}
+                        _arc = (_campaign_ws.get("arc_state") or {}).get("current_stage", "SETUP")
+                        _recent_narr = ""
+                        _recent_list = state.get("recent_narrative") or []
+                        if _recent_list:
+                            _recent_narr = "\n".join(_recent_list[-2:])[:600]
+                        _new_quests = _qw.generate(
+                            world_state=world_state,
+                            arc_stage=_arc,
+                            player_location=state.get("current_location") or "",
+                            turn_number=next_turn_number,
+                            recent_narrative=_recent_narr,
+                        )
+                        if _new_quests:
+                            _existing_warnings = list(state.get("warnings") or [])
+                            for _nq in _new_quests:
+                                _existing_warnings.append(f"[QUEST] New quest: {_nq.get('title', '?')}")
+                            state["warnings"] = _existing_warnings
+            except Exception as _qw_err:
+                logger.warning("QuestWeaverAgent failed (non-fatal): %s", _qw_err)
+
             # V2.21: NPC persistent memory — record NPC interactions from turn events
             try:
                 from backend.app.core.npc_memory import (  # noqa: E402

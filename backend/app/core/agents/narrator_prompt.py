@@ -259,6 +259,14 @@ def _build_story_state_summary(state: GameState) -> str:
         ledger = ws.get("ledger") or {}
     ledger_block = format_ledger_for_prompt(ledger)
 
+    # V4.0: Dynamic quest hooks — surface active dynamic quests to Director/Narrator
+    dynamic_quests_block = ""
+    if isinstance(ws, dict):
+        _dq = ws.get("dynamic_quests") or []
+        if _dq:
+            from backend.app.core.agents.quest_weaver_agent import format_dynamic_quests_for_prompt  # noqa: E402
+            dynamic_quests_block = format_dynamic_quests_for_prompt(_dq)
+
     # V2.5: Open threads for narrative continuity
     open_threads = ledger.get("open_threads") or []
     if open_threads:
@@ -355,7 +363,8 @@ def _build_story_state_summary(state: GameState) -> str:
         f"If you are unsure about a fact, phrase it as rumor/speculation. Never contradict established facts.\n\n"
         f"## Open threads (reference 1-2 subtly to maintain continuity)\n"
         f"{threads_block}\n\n"
-        f"## Character psych_profile (use for tone)\n"
+        + (f"{dynamic_quests_block}\n\n" if dynamic_quests_block else "")
+        + f"## Character psych_profile (use for tone)\n"
         f"{psych_block}\n\n"
         f"## Present NPCs (ONLY these characters exist in this scene)\n"
         f"{npc_block}\n\n"

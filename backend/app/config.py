@@ -60,6 +60,8 @@ def _model_config() -> dict[str, dict[str, str]]:
         "world_mind": {"provider": "ollama", "model": "qwen3:8b"},
         # V4.0: Continuity — LLM-managed Truth Ledger (fact pruning + consequence hints)
         "continuity": {"provider": "ollama", "model": "qwen3:4b"},
+        # V4.0: Quest Weaver — dynamic quest generation and completion evaluation
+        "quest_weaver": {"provider": "ollama", "model": "qwen3:8b"},
     }
     out = {}
     for role, cfg in base.items():
