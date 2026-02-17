@@ -180,8 +180,30 @@ def _build_story_state_summary(state: GameState) -> str:
     loc = _humanize_location(state.current_location) or "the scene"
     campaign_id = state.campaign_id or ""
     npcs = state.present_npcs or []
-    npc_lines = [f"- {n.get('name', 'Unknown')} ({n.get('role', '')})" for n in npcs if n.get("name")]
     npc_names_list = [n.get("name") for n in npcs if n.get("name")]
+
+    # V4.0: Load NPC narrative memory from world_state_json["npc_states"]
+    campaign = state.campaign or {}
+    ws = campaign.get("world_state_json") if isinstance(campaign, dict) else {}
+    npc_states: dict = (ws.get("npc_states") or {}) if isinstance(ws, dict) else {}
+
+    # Build per-NPC lines with narrative memory injected
+    from backend.app.core.agents.memory_agent import format_npc_memory_for_narrator
+    npc_lines = []
+    for n in npcs:
+        name = n.get("name")
+        if not name:
+            continue
+        role = n.get("role") or ""
+        npc_id = n.get("id") or name.lower().replace(" ", "-")
+        line = f"- {name} ({role})"
+        # Inject narrative memory if available (try by id, then by name)
+        mem_block = format_npc_memory_for_narrator(npc_id, npc_states) or \
+                    format_npc_memory_for_narrator(name, npc_states)
+        if mem_block:
+            line = line + "\n" + mem_block
+        npc_lines.append(line)
+
     if npc_lines:
         allowed_names_str = ", ".join(npc_names_list)
         npc_block = (

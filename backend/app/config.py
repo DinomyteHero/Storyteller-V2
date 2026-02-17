@@ -54,6 +54,8 @@ def _model_config() -> dict[str, dict[str, str]]:
         # V3.1: Dedicated campaign init role — defaults to architect config.
         # In production, override to cloud: STORYTELLER_CAMPAIGN_INIT_PROVIDER=anthropic
         "campaign_init": {"provider": "ollama", "model": "qwen3:4b"},
+        # V4.0: NPC narrative memory — lightweight, runs post-turn
+        "memory": {"provider": "ollama", "model": "qwen3:8b"},
     }
     out = {}
     for role, cfg in base.items():

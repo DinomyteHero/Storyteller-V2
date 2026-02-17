@@ -245,6 +245,27 @@ def make_commit_node():
                     _known.add(npc_name)
             world_state["known_npcs"] = sorted(_known)
 
+            # V4.0: NPC narrative memory — LLM updates per-NPC emotional state, memories,
+            # agenda, and next_move in world_state["npc_states"] (pre-commit, atomic)
+            try:
+                from backend.app.core.agents.memory_agent import MemoryAgent  # noqa: E402
+                _present_npcs = state.get("present_npcs") or []
+                if _present_npcs and final_text:
+                    _mem_events = [
+                        {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
+                        for e in events
+                    ]
+                    _memory_agent = MemoryAgent()
+                    _memory_agent.update(
+                        world_state=world_state,
+                        final_text=final_text,
+                        turn_number=next_turn_number,
+                        present_npcs=_present_npcs,
+                        events=_mem_events,
+                    )
+            except Exception as _mem_err:
+                logger.warning("NPC MemoryAgent update failed (non-fatal): %s", _mem_err)
+
             # V3.0: Quest tracking — check entry/stage conditions after events committed
             try:
                 from backend.app.core.quest_tracker import process_quests_for_turn  # noqa: E402

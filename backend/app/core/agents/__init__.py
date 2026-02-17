@@ -13,6 +13,7 @@ from backend.app.core.agents.mechanic import MechanicAgent
 from backend.app.core.agents.narrator import NarratorAgent
 from backend.app.core.agents.casting import CastingAgent
 from backend.app.core.agents.resolution_agent import ResolutionAgent
+from backend.app.core.agents.memory_agent import MemoryAgent
 
 __all__ = [
     "AgentLLM",
@@ -27,4 +28,5 @@ __all__ = [
     "NarratorAgent",
     "CastingAgent",
     "ResolutionAgent",
+    "MemoryAgent",
 ]
