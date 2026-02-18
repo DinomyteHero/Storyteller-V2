@@ -1387,7 +1387,509 @@ series that gets better as it goes because the author has more history to draw f
 
 ---
 
-## Part 9: The BioWare Question — DnD Mechanics + Deep Narrative
+## Part 9: Era Progression — Characters Aging Through the Timeline
+
+### The Vision: A Character's Life, Not Just Their Adventures
+
+A campaign doesn't just span multiple arcs — it spans multiple **eras**. The character
+ages through the timeline. The galaxy changes around them. A Padawan in the Clone Wars
+survives Order 66, becomes a hunted exile in the Dark Times, emerges as a Rebellion
+leader, ages into a New Republic advisor, and fights in the Yuuzhan Vong War as a
+seasoned Master. That is one career. One character. Multiple lifetimes of story.
+
+**The reference points:**
+- **Star Wars (Legends):** A character progresses through Clone Wars → Dark Times →
+  Rebellion → New Republic → New Jedi Order → Legacy. As realistic as possible — the
+  character ages, the galaxy shifts, old allies die and new ones appear.
+- **Harry Potter:** Year 1 through Year 7, each year its own era with its own tone,
+  threats, and stakes. The character grows up. The world darkens. By Year 7, the
+  wide-eyed 11-year-old is leading a resistance.
+- **Star Trek:** A character rises through the ranks within one timeline. They don't
+  suddenly jump from TOS to Next Generation — they age through their era naturally.
+
+The eras don't change because the player selects them from a menu. They change because
+**the character has lived long enough to witness the galaxy shift beneath their feet.**
+
+### The Life Stages Model
+
+A character has four life stages. Life stage is not a player choice — it is an emergent
+property of how long the career has run, derived from the character's species and
+elapsed in-world years (tracked by `story_position.py`'s year calculation).
+
+```yaml
+life_stages:
+  - id: youth
+    label: "Youth / Apprentice"
+    age_range_human: "16-25"
+    narrative_role: "Learning, making mistakes, proving themselves"
+    examples:
+      star_wars: "Clone Wars Padawan, Academy recruit"
+      harry_potter: "Years 1-3 at Hogwarts"
+      star_trek: "Ensign, fresh from Starfleet Academy"
+    gameplay_effects:
+      stat_ceiling: low         # stats capped at lower maximum
+      mentor_available: true    # system can assign mentor NPCs
+      tone_bias: coming_of_age  # arc generator favors discovery/training arcs
+      failure_forgiveness: high # consequences are educational, not catastrophic
+
+  - id: prime
+    label: "Prime / Professional"
+    age_range_human: "25-45"
+    narrative_role: "At the height of their powers, facing real stakes"
+    examples:
+      star_wars: "Dark Times survivor, Rebellion operative"
+      harry_potter: "Years 4-6, the war heats up"
+      star_trek: "Lieutenant to Commander, taking command"
+    gameplay_effects:
+      stat_ceiling: high
+      mentor_available: false   # YOU are the competent one now
+      tone_bias: thriller       # stakes are real, consequences are permanent
+      failure_forgiveness: low
+
+  - id: veteran
+    label: "Veteran / Master"
+    age_range_human: "45-65"
+    narrative_role: "Leadership, mentorship, legacy-building"
+    examples:
+      star_wars: "New Republic general, Jedi Master training students"
+      harry_potter: "Year 7, post-Hogwarts leader"
+      star_trek: "Captain, Admiral"
+    gameplay_effects:
+      stat_ceiling: peak         # highest possible, but recovery is slower
+      mentee_available: true     # can take on an apprentice NPC
+      tone_bias: legacy          # arcs about protecting what was built
+      influence_multiplier: 1.5  # faction/reputation actions carry more weight
+
+  - id: elder
+    label: "Elder / Legend"
+    age_range_human: "65+"
+    narrative_role: "Wisdom, sacrifice, passing the torch"
+    examples:
+      star_wars: "Yoda on Dagobah, old Ben Kenobi on Tatooine"
+      harry_potter: "Dumbledore-era wisdom and burden"
+      star_trek: "Admiral Kirk in the films — 'I don't like to lose.'"
+    gameplay_effects:
+      stat_ceiling: declining    # physical stats drift down; mental stats stay
+      legacy_weight: maximum     # choices echo furthest into the future
+      tone_bias: mythic          # arcs feel like final chapters
+      death_stakes: real         # permanent death becomes a narrative possibility
+```
+
+### Species Lifespan
+
+Not every character can span the same number of eras. A human who starts in the Clone
+Wars can realistically reach the New Republic era. A Wookiee can go further. Yoda's
+species could theoretically span the entire Legends timeline.
+
+The species catalog from Part 2 gains lifespan data:
+
+```yaml
+species:
+  - id: human
+    name: Human
+    lifespan:
+      average_years: 80
+      max_years: 120
+      life_stage_thresholds:
+        youth_ends: 25
+        prime_ends: 45
+        veteran_ends: 65
+        # elder: 65+
+      era_span_realistic: 2-3  # e.g., Dark Times -> Rebellion -> New Republic
+      era_span_maximum: 3
+
+  - id: twilek
+    name: Twi'lek
+    lifespan:
+      average_years: 80
+      max_years: 100
+      life_stage_thresholds:
+        youth_ends: 22
+        prime_ends: 42
+        veteran_ends: 60
+      era_span_realistic: 2-3
+      era_span_maximum: 3
+
+  - id: wookiee
+    name: Wookiee
+    lifespan:
+      average_years: 400
+      max_years: 600
+      life_stage_thresholds:
+        youth_ends: 60
+        prime_ends: 200
+        veteran_ends: 400
+      era_span_realistic: 4-5
+      era_span_maximum: 5
+
+  - id: yodas_species
+    name: "Yoda's Species"
+    lifespan:
+      average_years: 800
+      max_years: 900+
+      life_stage_thresholds:
+        youth_ends: 100
+        prime_ends: 400
+        veteran_ends: 700
+      era_span_realistic: 5-6
+      era_span_maximum: 6  # could span the entire Legends timeline
+```
+
+When a character approaches their species' `era_span_maximum`, the arc generator
+begins shifting toward "final chapter" tones — legacy arcs, passing the torch, one
+last mission. The character doesn't die automatically, but the narrative weight shifts
+toward endings. If they're an Elder Wookiee at 380 years old, the system knows this
+is the twilight of a long career.
+
+### Aging Pace: 1000+ Turns Before Old Age
+
+The current `story_position.py` advances time mechanically: 1 chapter = 240 in-world
+minutes, 8 chapters = 1 year. This is way too fast for career-spanning play. A human
+character starting at 19 would reach Elder status (65+) after only ~46 in-world years,
+and if years tick by at the chapter rate, they'd be elderly after a few hundred turns.
+
+**The target: a human character should play 1000+ turns before reaching old age.**
+
+Time should advance based on **narrative events, not a rigid clock**:
+
+```
+How In-World Time Advances:
+
+WITHIN an arc (35-50 turns):
+├→ Time advances slowly — days to weeks pass per arc
+├→ An arc is one "mission" or "novel" — it happens in compressed narrative time
+├→ A typical arc might span 1-4 weeks of in-world time
+└→ Aging effect: negligible (fractions of a year)
+
+BETWEEN arcs (hub/downtime interlude):
+├→ Time skip: weeks to months pass between arcs
+├→ This is where most in-world time accumulates
+├→ The gap is narratively motivated: recovery, travel, planning
+└→ Aging effect: months per interlude
+
+BETWEEN eras (era transition interstitial):
+├→ Time skip: years pass (the big jumps)
+├→ This is where decades can pass — "Five years after Endor..."
+├→ The gap matches the era timeline
+│   (Dark Times → Rebellion = ~19 years)
+│   (Rebellion → New Republic = ~5 years)
+└→ Aging effect: significant — this is where life stages shift
+```
+
+**The math for a human career:**
+
+```
+Target: 1000+ turns before Elder stage (age 65, starting at 19)
+= 46 years of in-world time across 1000+ turns
+
+Assuming:
+- ~40 turns per arc (average)
+- ~3-5 arcs per era
+- ~2-3 eras for a human career
+- 6-15 arcs total
+
+That's 240-600 turns in actual arcs.
+The remaining 400-760 turns come from hub interludes,
+downtime, and the turns WITHIN the transition interstitials.
+
+Time budget across a human career:
+├→ Within arcs: ~6-15 arcs × 2 weeks = ~3-7 months
+├→ Between arcs: ~5-14 interludes × 2-6 months = ~1-7 years
+├→ Between eras: ~1-2 transitions × 5-19 years = ~5-38 years
+└→ Total: ~6-46 years — tunable to fill the character's lifespan
+```
+
+The key insight: **most aging happens in the gaps, not during gameplay**. The player
+plays 40 turns of intense action (which spans a few weeks of story time), then the
+system says "three months pass" during the interlude, then they play another arc.
+The era transitions are where the big jumps happen — "Five years after the Battle
+of Endor..." — and those can be calibrated to fill the timeline gap between eras.
+
+This means a character doesn't feel like they're aging during play. They feel like
+they're aging between chapters — which is exactly how it works in a book series.
+Harry doesn't age during Philosopher's Stone; he ages over the summer.
+
+### Natural Era Transitions: The Core Mechanic
+
+The existing `era_transition.py` handles the mechanics: adjacency validation,
+forward-only enforcement, carry-over logic. What it needs is a **trigger model** —
+how and why an era transition happens naturally during a career.
+
+```
+The Era Transition Trigger Model:
+
+1. ARC COMPLETION CHECK (already implemented: can_transition())
+   └→ Current arc reaches RESOLUTION stage
+   └→ At least 2 turns in resolution (existing requirement)
+
+2. TIMELINE PROXIMITY CHECK (new)
+   └→ canonical_year_label is approaching the next era's start year
+       (e.g., character is at 3 BBY and the Rebellion era starts at 0 ABY)
+   └→ Character has spent minimum 2 arcs in the current era
+       (no rushing through — each era should feel lived-in)
+
+3. CHARACTER READINESS CHECK (new)
+   └→ Character's life stage supports the transition
+       (a Youth shouldn't transition into an era where they'd be an Elder)
+   └→ Species lifespan can bridge to the next era
+   └→ If era gap is large (e.g., NJO → Legacy = 100 years),
+       species must have sufficient remaining lifespan
+
+4. NARRATIVE TRIGGER (new)
+   └→ The transition is delivered as a story beat, not a menu selection:
+       "Order 66 happens around you. The clones turn."
+       "The Death Star is destroyed at Yavin. The war has begun."
+       "The Yuuzhan Vong have come. The Force cannot sense them."
+   └→ Uses the ADJACENT_TRANSITIONS narrative bridge text from
+       era_transition.py as source material
+```
+
+**What carries over, resets, and transforms:**
+
+```
+CARRIES OVER (already implemented in execute_transition):
+├→ Player sheet (stats, abilities, alignment)
+├→ Companions (if species-appropriate for the time gap)
+├→ Career file (all arc history, NPC relationships, world mutations)
+├→ Era summaries (compressed memory of previous eras)
+└→ Campaign mode (historical/sandbox)
+
+CARRIES OVER (new with era progression):
+├→ Character age and life stage (updated for time gap between eras)
+├→ Long-lived NPC relationships (species-gated — a Wookiee ally survives
+│   the 20-year gap; a human mentor may not)
+├→ Open threads that span eras (mentor's unfinished mission, nemesis
+│   still hunting you, family debt unpaid)
+└→ Character's reputation trajectory (veteran of previous era events)
+
+RESETS (already implemented):
+├→ Active factions (loaded from new era pack)
+├→ NPC cast (new era = mostly new faces)
+├→ Arc state (resets to SETUP)
+└→ News feed
+
+TRANSFORMS (new — not carried or reset, but evolved):
+├→ Character's role in the world
+│   (Padawan → hunted survivor → Rebellion leader → Jedi Master)
+├→ Character's mechanical profile (life stage effects apply)
+├→ Companion roster (some companions age out or die between eras;
+│   new era-appropriate companions become available)
+└→ Character's narrative voice (younger characters speak differently
+    than older ones; the narrator adjusts)
+```
+
+### Timeline Guards: The Hard Rules
+
+Three hard rules govern era progression. These are non-negotiable.
+
+**Rule 1: Forward Only.** Time moves in one direction. A Rebellion-era character cannot
+go back to the Dark Times. Already enforced by `validate_era_transition()`.
+
+**Rule 2: Adjacent Only.** No skipping eras. A Dark Times character cannot jump to the
+New Jedi Order — they must pass through the Rebellion and New Republic eras first.
+Already enforced by the `ADJACENT_TRANSITIONS` dict and `is_adjacent()` function.
+
+**Rule 3: Player-Caused Exceptions.** If the player causes a timeline anomaly through
+gameplay — a transporter accident, a Force vision, cryo-freeze, a Rakatan time-
+displacement device — the system CAN allow non-adjacent transitions. But this must be
+**earned through gameplay**, not offered as a menu option.
+
+```yaml
+# Example: Player-caused timeline exception
+timeline_exception:
+  trigger: "Player activated a Rakatan time-displacement device"
+  type: cryo_freeze        # force_vision | cryo_freeze | time_travel | other
+  from_era: DARK_TIMES
+  to_era: LEGACY
+  narrative_justification: >
+    The device hurls you forward. When you wake, the galaxy has changed
+    beyond recognition. The Empire you fled is ancient history. A new
+    Sith Order rules from Coruscant. You are a relic — but the Force
+    endures.
+  mechanical_effects:
+    character_age_skip: true    # character does NOT age through gap
+    era_gap_penalty: true       # all NPC relationships severed
+    knowledge_gap: true         # character knows nothing of intervening events
+    thread_severance: all       # all open threads from old era are closed
+    life_stage: unchanged       # still a Prime, even though 100 years passed
+  rarity: legendary             # should be extremely rare
+```
+
+These exceptions are like legendary items — they exist, but encountering one is a
+major story event that reshapes the entire career, not a routine gameplay feature.
+The consequences should be severe enough that the player *feels* the displacement:
+everyone they knew is dead, the galaxy is unrecognizable, they have no contacts or
+connections. They're Captain America waking up in the 21st century.
+
+### Career File: The Timeline Dimension
+
+The career file from Part 8 gains timeline tracking. These fields let the arc generator
+know where the character sits in both their personal and galactic timeline:
+
+```yaml
+# Extensions to the career file from Part 8
+career_file:
+  character:
+    name: "Kira Voss"
+    species: twilek
+    species_lifespan: 100             # from species catalog
+    starting_age: 19                  # set during character creation
+    current_age: 38                   # derived from starting_age + elapsed years
+    life_stage: prime                 # derived from age + species thresholds
+    starting_era: DARK_TIMES          # which era the career began in
+    current_era: REBELLION            # which era the character is in now
+    eras_spanned: 2                   # how many eras lived through
+    arcs_in_current_era: 3            # arcs completed in this era
+
+  # Era transition history
+  era_transitions:
+    - from_era: DARK_TIMES
+      to_era: REBELLION
+      transition_arc: 4
+      character_age_at_transition: 32
+      life_stage_at_transition: prime
+      narrative_bridge: >
+        Years of hiding and survival have hardened you. The scattered
+        whispers of resistance have grown into a true Rebellion. The
+        Alliance to Restore the Republic needs every fighter it can get.
+      key_carryovers:
+        - "Renn Voss (mentor, alive — also Twi'lek, long-lived)"
+        - "Lt. Kael (nemesis, now Commander Kael)"
+        - "Force sensitivity (growing, still untrained)"
+      key_losses:
+        - "Safe house network (burned by Imperial raids)"
+        - "Three contacts from the Underground (dead or scattered)"
+
+  # Aging milestones — narrative moments when life stage shifts
+  aging_milestones:
+    - age: 22
+      life_stage_transition: "youth -> prime"
+      narrative_note: >
+        The recklessness fades. Kira doesn't rush into cantinas looking for
+        trouble anymore. She plans. She watches exits. The Dark Times taught
+        her that survival is the first skill.
+      mechanical_effect: "stat_ceiling raised; mentor_available removed"
+```
+
+### Era Transition as Narrative Event
+
+When the trigger model signals that an era transition is approaching, it's not a
+menu — it's a three-beat narrative sequence:
+
+**Beat 1: The final arc of the current era incorporates the macro event.** If the
+character is in the Dark Times and the Rebellion era approaches, the last Dark Times
+arc should involve the stirrings of organized resistance — perhaps culminating in the
+character witnessing or participating in the founding of the Alliance. The arc generator
+receives `transition_approaching: true` and uses the `ADJACENT_TRANSITIONS` bridge
+text as narrative fuel for the screenplay.
+
+**Beat 2: The transition interstitial.** Between the last arc of one era and the
+first arc of the next, the player experiences a brief scene (3-5 turns, structured
+like a mini-prologue: constrained scope, focused cast). This dramatizes the passage
+of time.
+
+> *"Five years pass. The Empire crumbles at Endor. You hear the cheering on the
+> holonet from a cantina on the Outer Rim. Someone buys you a drink and asks if
+> you fought in the war. You did. More than they'll ever know."*
+
+**Beat 3: The first arc of the new era acknowledges the character's history.** The
+opening crawl references their previous era. NPCs react to them as a veteran, not a
+newcomer. The arc generator receives the full era transition history from the career
+file and uses it to seed relationships, reputation, and narrative callbacks.
+
+This is what makes era progression feel like a saga rather than a sequence of
+disconnected campaigns. The character is the through-line; the galaxy grows old
+around them.
+
+### The Harry Potter Model: Proving Universe Portability
+
+To show this isn't Star-Wars-specific, apply era progression to Harry Potter:
+
+```
+Harry Potter Era Progression:
+
+Era Pack: "Year 1" (Philosopher's Stone)
+  Life stage: Youth (age 11)
+  Tone: Wonder, discovery, first friendships
+  Threats: Low-stakes (troll, Fluffy, Quirrell)
+  Key NPCs: Hagrid (mentor), Dumbledore (distant authority), Draco (rival)
+      ↓
+  Transition: "The Hogwarts Express pulls away. Summer at Privet Drive."
+      ↓
+Era Pack: "Year 2" (Chamber of Secrets)
+  Life stage: Youth (age 12)
+  Tone: Mystery, growing confidence
+  Threats: Medium (basilisk, diary Horcrux, prejudice against Muggle-borns)
+      ↓
+  ... Years 3-5 follow the same pattern, escalating ...
+      ↓
+Era Pack: "Year 6" (Half-Blood Prince)
+  Life stage: Youth → Prime transition (age 16)
+  Tone: War preparation, loss, romance
+  Threats: High (Death Eaters infiltrating, Dumbledore's death)
+      ↓
+  Transition: "Dumbledore falls. The Ministry falls. Everything changes."
+      ↓
+Era Pack: "Year 7" (Deathly Hallows)
+  Life stage: Prime (age 17)
+  Tone: War, sacrifice, the hero's burden
+  Threats: Maximum (Voldemort controls everything, Horcrux hunt)
+      ↓
+  Transition: "The Battle of Hogwarts. It ends here."
+      ↓
+Era Pack: "Post-Hogwarts"
+  Life stage: Prime (age 18+)
+  Tone: Rebuilding, what comes after war, finding normalcy
+  Threats: New (remnant Death Eaters, political reconstruction)
+```
+
+Each "year" functions as an era with its own pack: year-specific NPCs (new professors,
+new threats), locations (new areas of Hogwarts unlocked), and tone. The character ages
+through them naturally. The transition between years is the end-of-term feast, the
+train ride home, the summer that changes everything. **Same system, different universe.**
+
+### The NJO-to-Legacy Problem: Legacy Characters
+
+One edge case deserves explicit treatment: the ~100-year gap between the New Jedi Order
+era (25-29 ABY) and the Legacy era (130-138 ABY). No human can span this gap. Even
+most Wookiees would be ancient.
+
+Three options when a character's lifespan can't bridge the gap:
+
+**Option 1: Retire the character.** Their story is complete. The career file is archived
+as a finished saga. This is the natural ending for most careers — and a satisfying one.
+Not every series needs to run forever.
+
+**Option 2: Play a descendant.** Create a new character who inherits part of the
+original's legacy — family name, inherited items, faction connections, reputation echoes.
+The career file gets a `legacy_link` referencing the parent career.
+
+```yaml
+legacy_character:
+  parent_career_id: "career-kira-voss-001"
+  parent_character: "Kira Voss"
+  relationship: grandchild
+  inherited:
+    family_name: true
+    faction_reputation_fraction: 0.3  # 30% of parent's rep
+    inherited_items: [lightsaber_of_kira_voss]
+    legacy_threads:
+      - "The Voss family is respected in New Republic veteran circles"
+      - "Kira's lightsaber carries echoes of its previous owner in the Force"
+    npc_connections:
+      - npc_id: npc-long_lived_ally  # if still alive
+        relationship: "Knew your grandmother. Owes her a debt."
+```
+
+**Option 3: Narratively justify the gap.** Carbonite freezing, Force stasis, a time
+anomaly. This falls under the Player-Caused Exception rule — it must be earned through
+gameplay, and the consequences are severe (everyone you knew is dead, the galaxy is
+unrecognizable). You're Rip Van Winkle. You're Captain America. The story of
+displacement IS the next era's central tension.
+
+---
+
+## Part 10: The BioWare Question — DnD Mechanics + Deep Narrative
 
 ### My Honest Assessment
 
@@ -1522,7 +2024,7 @@ Mass Effect's codex or Dragon Age's journal.
 
 ---
 
-## Part 10: Enriching the Era Pack — Proposed Schema V3
+## Part 11: Enriching the Era Pack — Proposed Schema V3
 
 ### New Files to Add
 
@@ -1615,7 +2117,7 @@ items:
 
 ---
 
-## Part 11: Implementation Roadmap
+## Part 12: Implementation Roadmap
 
 ### Phase 0: Character Creation & Prologue System (The First Impression)
 
@@ -1664,6 +2166,29 @@ Use a Cloud LLM to regenerate/enrich existing era packs with the V3 schema:
 **Effort:** ~1-2 weeks. This is the signature feature — what makes every playthrough
 feel like a movie.
 
+### Phase 2.5: Era Progression (Characters Aging Through the Timeline)
+
+Depends on: Phase 0 (species catalog) + Phase 2 (arc screenplay generator + career file).
+
+1. Add lifespan data (`average_years`, `max_years`, `life_stage_thresholds`,
+   `era_span_realistic`) to species catalog schema
+2. Add life stage calculation to `story_position.py` — derive `current_age` and
+   `life_stage` from starting age + elapsed in-world years + species thresholds
+3. Extend career file schema with era tracking fields (`starting_era`, `current_era`,
+   `eras_spanned`, `era_transitions[]`, `aging_milestones[]`)
+4. Add era transition trigger logic to arc planner — check timeline proximity +
+   character readiness alongside existing `can_transition()` check
+5. Build era transition interstitial scene generator — reuses prologue mini-arc
+   structure (3-5 turns, constrained scope, dramatizes time passage)
+6. Update arc generator to accept `transition_approaching` and `life_stage` inputs
+   so it can adjust tone, stakes, and narrative role per life stage
+7. Tune time progression so aging feels right (see "Aging Pace" note in Part 9 —
+   ~1000+ turns before reaching old age, not 100)
+
+**Effort:** ~1 week. Builds on existing `era_transition.py` adjacency/validation
+code and `story_position.py` year tracking. The interstitial generator reuses the
+prologue mini-arc structure from Phase 0.
+
 ### Phase 3: Ingestion Simplification
 
 1. Remove entity extraction ambitions from ingestion pipeline
@@ -1696,7 +2221,7 @@ feel like a movie.
 
 ---
 
-## Part 12: Setting Up a New Universe — The Full Flow
+## Part 13: Setting Up a New Universe — The Full Flow
 
 With the hybrid approach, spinning up a new universe looks like this:
 
@@ -1827,7 +2352,7 @@ author accumulates lore.
 
 ---
 
-## Part 13: Final Opinion
+## Part 14: Final Opinion
 
 ### Where You Are
 
