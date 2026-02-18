@@ -1,0 +1,65 @@
+era_id: FORGOTTEN_REALMS
+style_ref: ""
+file_index:
+  era: era.yaml
+  locations: locations.yaml
+  npcs: npcs.yaml
+  factions: factions.yaml
+  backgrounds: backgrounds.yaml
+  quests: quests.yaml
+schema_version: 3
+start_location_pool:
+  - loc-sword_coast_inn
+  - loc-bazaar_waterdeep
+  - loc-adventurers_guild
+global_event_templates: []
+travel_graph: []
+default_scene_pacing: {}
+metadata:
+  display_name: Forgotten Realms
+  time_period: 1492 DR (Year of Three Ships Sailing)
+  calendar_note: "The Dale Reckoning calendar. The present era spans the aftermath of the Sundering."
+  summary: >
+    The continent of Faerûn, a land of ancient magic and forgotten gods, where the mundane
+    and magical are inseparable. The great city of Waterdeep anchors the Sword Coast, while
+    the Underdark churns beneath and the Far Realm presses against reality's edges.
+    Adventurers fill the void left by gods and empires. Every ruin holds treasure; every
+    treasure holds a curse.
+  tone: High fantasy; ancient mysteries; heroic adventure with dark undertones.
+  key_conflicts:
+    - The Lords' Alliance vs. threats from the north and east.
+    - Ancient evils stirring in ruins and forgotten temples.
+    - Arcane guilds and thieves' guilds competing for power in Waterdeep.
+  themes:
+    - Power and its corrupting influence.
+    - The weight of prophecy versus free will.
+    - Redemption and the cost of heroism.
+setting_rules:
+  setting_name: Forgotten Realms
+  setting_genre: high fantasy
+  biographer_role: a chronicler of heroes for a Forgotten Realms narrative RPG
+  architect_role: the Dungeon Master for a Forgotten Realms narrative RPG
+  director_role: the Director for an interactive Forgotten Realms story engine
+  suggestion_style: a D&D 5e Forgotten Realms-style game
+  rule_system_id: dnd_5e_simplified
+  common_species:
+    - Human
+    - Elf
+    - Dwarf
+    - Halfling
+    - Half-Elf
+    - Tiefling
+    - Gnome
+  example_factions:
+    - Lords' Alliance
+    - Harpers
+    - Zhentarim
+    - Order of the Gauntlet
+    - Emerald Enclave
+  historical_lore_label: established Forgotten Realms lore
+  bypass_methods:
+    - magic
+    - persuasion
+    - arcane_lock
+    - pick_lock
+  fallback_background: An adventurer seeking fame and fortune on the Sword Coast.

@@ -2,7 +2,7 @@
  * Era pack API endpoints.
  */
 import { apiFetch } from './client';
-import type { EraBackground, EraLocation } from './types';
+import type { EraBackground, EraLocation, EraSpecies } from './types';
 
 export async function getEraBackgrounds(
   eraId: string
@@ -14,4 +14,11 @@ export async function getEraLocations(
   eraId: string
 ): Promise<{ era_id: string; locations: EraLocation[] }> {
   return apiFetch(`/v2/era/${encodeURIComponent(eraId)}/locations`);
+}
+
+/** Phase 0.7: Fetch playable species for the species selection step. */
+export async function getEraSpecies(
+  eraId: string
+): Promise<{ era_id: string; species: EraSpecies[] }> {
+  return apiFetch(`/v2/era/${encodeURIComponent(eraId)}/species`);
 }

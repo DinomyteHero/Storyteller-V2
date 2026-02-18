@@ -1,0 +1,183 @@
+- id: loc-sword_coast_inn
+  name: The Yawning Portal Inn
+  description: >
+    A legendary inn in Waterdeep built over the entrance to Undermountain. The circular stone well
+    in the common room descends into the deadliest dungeon on the Sword Coast. Adventurers gather
+    here to drink, boast, and hire out before descending to their fates.
+  tags:
+    - social
+    - hub
+    - safe
+    - tavern
+  services:
+    - hub
+    - inn
+    - cantina
+  scene_types:
+    - dialogue
+    - social_contract
+  security:
+    patrol_intensity: none
+    security_level: 10
+  access_points:
+    - id: ap-yawning-portal-well
+      type: door
+      visibility: public
+      bypass_methods:
+        - violence
+        - magic
+  metadata:
+    atmosphere: warm, smoky, adventurous
+
+- id: loc-bazaar_waterdeep
+  name: Waterdeep Market District
+  description: >
+    The crowded commercial heart of the City of Splendors. Merchants hawk everything from
+    exotic spices to enchanted trinkets. Pickpockets work the crowd while Watch patrols
+    maintain uneasy order.
+  tags:
+    - commercial
+    - crowded
+    - urban
+    - public
+  services:
+    - market
+    - transport
+  scene_types:
+    - dialogue
+    - stealth
+    - investigation
+  security:
+    patrol_intensity: medium
+    security_level: 50
+  access_points:
+    - id: ap-market-gate
+      type: door
+      visibility: public
+      bypass_methods:
+        - credential
+        - bribe
+        - charm
+  metadata:
+    atmosphere: busy, mercantile, cosmopolitan
+
+- id: loc-adventurers_guild
+  name: Adventurers' Guild Hall
+  description: >
+    A fortified building near the docks where licensed adventuring companies register, take
+    contracts, and receive healing. The noticeboard is covered in job postings; the bar
+    serves questionable ale.
+  tags:
+    - guild
+    - hub
+    - safe
+    - quest_hub
+  services:
+    - guild_hall
+    - hub
+    - briefing_room
+  scene_types:
+    - dialogue
+    - investigation
+  security:
+    patrol_intensity: low
+    security_level: 30
+  access_points:
+    - id: ap-guild-front-desk
+      type: door
+      visibility: public
+      bypass_methods:
+        - credential
+        - charm
+  metadata:
+    atmosphere: professional, competitive, hierarchical
+
+- id: loc-temple_tyr
+  name: Temple of Tyr
+  description: >
+    A stern stone temple dedicated to the God of Justice. Paladins and clerics attend the
+    sick and dispense judgment. The inner sanctum holds powerful relics under divine ward.
+  tags:
+    - religious
+    - safe
+    - healing
+  services:
+    - temple
+    - hub
+  scene_types:
+    - dialogue
+    - ritual
+    - meditation
+  security:
+    patrol_intensity: constant
+    security_level: 80
+  access_points:
+    - id: ap-temple-inner-sanctum
+      type: door
+      visibility: restricted
+      bypass_methods:
+        - magic
+        - credential
+  metadata:
+    atmosphere: solemn, divine, protective
+
+- id: loc-ruins_netheril
+  name: Ruins of the Netherese Outpost
+  description: >
+    Crumbling stone towers from the ancient Netherese empire. Magic still crackles in the
+    walls. Undead patrol the outer ruins; something older sleeps in the depths.
+  tags:
+    - dungeon
+    - dangerous
+    - ancient
+    - magic
+  services: []
+  scene_types:
+    - combat
+    - exploration
+    - ritual
+    - investigation
+  security:
+    patrol_intensity: high
+    security_level: 75
+  access_points:
+    - id: ap-ruins-outer-gate
+      type: door
+      visibility: public
+      bypass_methods:
+        - violence
+        - magic
+        - stealth
+  metadata:
+    atmosphere: eerie, ancient, dangerous
+
+- id: loc-underdark_outpost
+  name: Underdark Border Post
+  description: >
+    A fortified outpost on the edge of the Underdark, where surface traders deal cautiously
+    with Drow merchants. Mushroom forests glow in the distance; the smell of sulfur is constant.
+  tags:
+    - dangerous
+    - exotic
+    - underground
+    - trade
+  services:
+    - market
+    - arms_dealer
+  scene_types:
+    - dialogue
+    - stealth
+    - combat
+  security:
+    patrol_intensity: high
+    security_level: 70
+  access_points:
+    - id: ap-underdark-crossing
+      type: door
+      visibility: restricted
+      bypass_methods:
+        - bribe
+        - intimidate
+        - stealth
+  metadata:
+    atmosphere: tense, alien, treacherous

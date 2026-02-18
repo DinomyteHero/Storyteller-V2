@@ -4,7 +4,7 @@
  * Memory only — discarded after campaign setup completes.
  */
 import { writable, derived } from 'svelte/store';
-import type { EraBackground } from '$lib/api/types';
+import type { EraBackground, EraSpecies } from '$lib/api/types';
 
 /** Current wizard step index. */
 export const creationStep = writable(0);
@@ -23,6 +23,15 @@ export const charSettingId = writable<string | null>(null);
 
 /** Selected period ID (dynamic catalog). */
 export const charPeriodId = writable<string | null>(null);
+
+/** Phase 0.7: Selected species ID. */
+export const charSpecies = writable<string | null>(null);
+
+/** Phase 0.7: Available era species (fetched from API). */
+export const eraSpecies = writable<EraSpecies[]>([]);
+
+/** Phase 0.7: Whether species list is loading. */
+export const loadingSpecies = writable(false);
 
 /** Selected background (from era pack). */
 export const selectedBackground = writable<EraBackground | null>(null);
@@ -56,6 +65,9 @@ export function resetCreation(): void {
   charEra.set('REBELLION');
   charSettingId.set(null);
   charPeriodId.set(null);
+  charSpecies.set(null);
+  eraSpecies.set([]);
+  loadingSpecies.set(false);
   selectedBackground.set(null);
   backgroundAnswers.set({});
   cyoaAnswers.set({});

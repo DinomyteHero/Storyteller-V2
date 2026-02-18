@@ -85,3 +85,106 @@ class TurnEvent(BaseModel):
     is_public_rumor: bool = False
     timestamp: Optional[datetime] = None
 
+
+# ---------------------------------------------------------------------------
+# Phase 0.4 — Prologue Screenplay
+# ---------------------------------------------------------------------------
+
+class PrologueNpc(BaseModel):
+    """An NPC in the prologue cast."""
+
+    name: str
+    role: str = Field(..., description="Brief role, e.g. 'mentor', 'antagonist', 'bystander'")
+    motivation: str = ""
+    location_id: str | None = None
+
+
+class PrologueScreenplay(BaseModel):
+    """PrologueScreenplayAgent output: sets up the opening scene before Arc 1.
+
+    This is generated once at campaign creation and stored in
+    ``world_state_json["prologue_screenplay"]``. The prologue turn loop
+    reads it to constrain and colour the first 3-5 turns.
+    """
+
+    prologue_title: str = Field(..., description="Short evocative title for the prologue chapter")
+    opening_location_id: str = Field(..., description="Location ID where the prologue begins")
+    npc_cast: List[PrologueNpc] = Field(
+        default_factory=list,
+        description="2-4 NPCs who appear in the prologue",
+    )
+    inciting_moment: str = Field(
+        ...,
+        description="One-sentence description of the event that kicks off the story",
+    )
+    opening_narration: str = Field(
+        default="",
+        description="2-3 sentence atmospheric opening narration injected as the first scene",
+    )
+    departure_trigger: str = Field(
+        ...,
+        description="Condition that ends the prologue and hands off to Arc 1",
+    )
+    tone: str = Field(default="gritty", description="Overall tone: gritty, heroic, noir, etc.")
+    origin_context: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Handoff data written to world_state_json['origin_context'] at prologue end",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Phase 2.1 — Arc Screenplay
+# ---------------------------------------------------------------------------
+
+class ArcAct(BaseModel):
+    """A single act in an arc's three-act structure."""
+
+    summary: str = ""
+    key_scenes: List[str] = Field(default_factory=list)
+    must_include_npcs: List[str] = Field(default_factory=list)
+    must_include_locations: List[str] = Field(default_factory=list)
+
+
+class ArcScreenplay(BaseModel):
+    """ArcScreenplayAgent output: per-arc narrative blueprint.
+
+    Generated (optionally via cloud LLM) at campaign setup and stored in
+    ``world_state_json["arc_screenplay"]``. The Director and ArcWeaver use
+    it as a loose structural guide; player choices always override it.
+    """
+
+    title: str = Field(..., description="Arc title, e.g. 'Shadows of the Empire'")
+    tone: str = Field(default="gritty", description="Arc tone: gritty, heroic, political, etc.")
+    opening_crawl: str = Field(
+        default="",
+        description="Star Wars-style opening crawl text (2-4 sentences). Shown once at campaign start.",
+    )
+    act_structure: Dict[str, ArcAct] = Field(
+        default_factory=dict,
+        description="Keys: 'act_1', 'act_2', 'act_3'. Each act has summary + key_scenes.",
+    )
+    cast: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Named characters: name, role, motivation",
+    )
+    locations: List[str] = Field(
+        default_factory=list,
+        description="Location IDs that should feature prominently",
+    )
+    quests: List[str] = Field(
+        default_factory=list,
+        description="Quest IDs that should be available or seeded",
+    )
+    moments: List[str] = Field(
+        default_factory=list,
+        description="Moment IDs that should fire during this arc",
+    )
+    climax_question: str = Field(
+        default="",
+        description="The central dramatic question that the arc resolves",
+    )
+    resolution_hooks: List[str] = Field(
+        default_factory=list,
+        description="Seeds / dangling threads that feed into Arc 2",
+    )
+

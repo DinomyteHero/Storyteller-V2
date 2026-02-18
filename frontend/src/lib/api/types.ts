@@ -203,6 +203,8 @@ export interface SetupAutoRequest {
   campaign_mode?: string;
   // V3.2: Difficulty selection
   difficulty?: string;
+  // Phase 0.7: Species selection
+  species_id?: string | null;
 }
 
 export interface SetupAutoResponse {
@@ -286,4 +288,45 @@ export interface EraLocation {
   name: string;
   description: string;
   planet_id: string;
+}
+
+// Phase 0.7: Species selection
+export interface EraSpeciesLifespan {
+  average_years: number;
+  max_years: number;
+  life_stage_thresholds: Record<string, number>;
+}
+
+export interface EraSpecies {
+  id: string;
+  name: string;
+  description: string;
+  cultural_notes?: string;
+  common_homeworlds: string[];
+  typical_traits: string[];
+  stat_bonus: Record<string, number>;
+  narrative_hooks?: string[];
+  appearance_traits?: Record<string, string[]>;
+  lifespan?: EraSpeciesLifespan | null;
+  lore_tags: string[];
+  metadata?: Record<string, unknown>;
+}
+
+// Phase 0.6: Prologue
+export interface PrologueNpc {
+  name: string;
+  role: string;
+  motivation?: string;
+  location_id?: string | null;
+}
+
+export interface PrologueScreenplay {
+  prologue_title: string;
+  opening_location_id: string;
+  npc_cast: PrologueNpc[];
+  inciting_moment: string;
+  opening_narration?: string;
+  departure_trigger: string;
+  tone: string;
+  origin_context: Record<string, unknown>;
 }

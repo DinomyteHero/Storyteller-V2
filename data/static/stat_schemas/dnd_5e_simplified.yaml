@@ -1,0 +1,81 @@
+schema_id: dnd_5e_simplified
+display_name: "D&D 5e Simplified"
+description: >
+  Simplified adaptation of D&D 5th Edition ability scores for Storyteller-V2.
+  Uses the six classic ability scores with modifiers derived from the standard
+  5e formula ((score - 10) / 2, rounded down). Designed for Forgotten Realms
+  and similar high-fantasy settings.
+stats:
+  - id: Strength
+    display_name: "Strength"
+    description: "Physical power, melee attacks, carrying capacity, and feats of brawn."
+    min: 3
+    max: 20
+    default: 10
+    tags: [physical, offensive]
+    narrative_label: "physical strength"
+    modifier_formula: "floor((score - 10) / 2)"
+
+  - id: Dexterity
+    display_name: "Dexterity"
+    description: "Agility, reflexes, ranged attacks, stealth, and sleight of hand."
+    min: 3
+    max: 20
+    default: 10
+    tags: [physical, covert]
+    narrative_label: "agility"
+    modifier_formula: "floor((score - 10) / 2)"
+
+  - id: Constitution
+    display_name: "Constitution"
+    description: "Endurance, hit points, resistance to poison and disease."
+    min: 3
+    max: 20
+    default: 10
+    tags: [physical]
+    narrative_label: "stamina"
+    modifier_formula: "floor((score - 10) / 2)"
+
+  - id: Intelligence
+    display_name: "Intelligence"
+    description: "Reasoning, memory, arcane knowledge, and investigation."
+    min: 3
+    max: 20
+    default: 10
+    tags: [mental, technical]
+    narrative_label: "intellect"
+    modifier_formula: "floor((score - 10) / 2)"
+
+  - id: Wisdom
+    display_name: "Wisdom"
+    description: "Perception, insight, survival instinct, and divine connection."
+    min: 3
+    max: 20
+    default: 10
+    tags: [mental, social]
+    narrative_label: "wisdom"
+    modifier_formula: "floor((score - 10) / 2)"
+
+  - id: Charisma
+    display_name: "Charisma"
+    description: "Force of personality, persuasion, deception, and performance."
+    min: 3
+    max: 20
+    default: 10
+    tags: [social]
+    narrative_label: "presence"
+    modifier_formula: "floor((score - 10) / 2)"
+
+check_mechanics:
+  base_difficulty: 15
+  stat_scale: 1
+  # Roll formula: d20 + modifier vs DC. Modifier = floor((score-10)/2)
+  roll_hint: "d20 + modifier vs DC"
+  difficulty_labels:
+    trivial: 5
+    easy: 10
+    standard: 15
+    hard: 20
+    very_hard: 25
+    legendary: 30
+  proficiency_bonus: 2

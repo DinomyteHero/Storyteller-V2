@@ -1,0 +1,35 @@
+- id: quest-undermountain-level1
+  title: Into the Undermountain
+  description: >
+    The first level of Halaster's mad dungeon awaits. Durnan has posted a bounty
+    for proof of what lies in the passage discovered last tenday — something has
+    been emerging from the depths.
+  stages:
+    - stage_id: stage-enter
+      objective: Enter Undermountain via the Yawning Portal and explore the first level.
+    - stage_id: stage-report
+      objective: Return to Durnan with findings about what has been emerging.
+
+- id: quest-harpers-package
+  title: A Harper Errand
+  description: >
+    Reiya needs a package delivered to a contact in the Market District without
+    attracting Zhentarim attention. Simple enough — unless the package is what she
+    thinks it is.
+  stages:
+    - stage_id: stage-accept
+      objective: Receive the sealed silver box from Reiya at the guild hall.
+    - stage_id: stage-deliver
+      objective: Navigate Zhentarim surveillance and complete the handoff.
+
+- id: quest-netheril-relic
+  title: The Sleeping Relic
+  description: >
+    A scholar has located a Netherese artifact buried in the ruins east of Waterdeep.
+    The Order of the Gauntlet wants it destroyed. The Harpers want it studied.
+    A third party wants it stolen.
+  stages:
+    - stage_id: stage-locate
+      objective: Navigate the Netherese ruins and find the artifact.
+    - stage_id: stage-decide
+      objective: Choose between destroying, preserving, or selling the relic.

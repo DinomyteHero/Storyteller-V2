@@ -52,6 +52,8 @@ class SetupAutoRequest(BaseModel):
     campaign_scale: str = "medium"  # small | medium | large | epic
     # V3.2: Difficulty — affects DC, damage, and HP modifiers
     difficulty: str = "normal"  # easy | normal | hard
+    # Phase 0.7: Species selection (written to world_state_json["species_id"])
+    species_id: str | None = None
 
 
 class SetupAutoResponse(BaseModel):

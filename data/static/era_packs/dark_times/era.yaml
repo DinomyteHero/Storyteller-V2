@@ -1,6 +1,5 @@
 era_id: DARK_TIMES
 style_ref: data/style/era/dark_times_style.md
-schema_version: 2
 file_index:
   era: era.yaml
   locations: locations.yaml
@@ -14,6 +13,11 @@ file_index:
   meters: meters.yaml
   facts: facts.yaml
   companions: companions.yaml
+  species: species.yaml
+  items: items.yaml
+  moments: moments.yaml
+  codex: codex.yaml
+schema_version: 3
 start_location_pool:
 - loc-cantina
 - loc-bazaar_market

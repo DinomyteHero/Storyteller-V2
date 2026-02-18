@@ -76,6 +76,12 @@ def _model_config() -> dict[str, dict[str, str]]:
         "progression": {"provider": "ollama", "model": "qwen3:4b"},
         # V4.0: Psych Archivist — psychological arc + emotional_arc_note (~5 turns)
         "psych_archivist": {"provider": "ollama", "model": "qwen3:4b"},
+        # Phase 0.4: Prologue Screenplay — generates opening scene blueprint at campaign creation.
+        # Override to cloud for quality: STORYTELLER_PROLOGUE_PROVIDER=anthropic
+        "prologue": {"provider": "ollama", "model": "qwen3:8b"},
+        # Phase 2.1: Arc Screenplay — generates per-arc narrative blueprint.
+        # Override to cloud for quality: STORYTELLER_ARC_SCREENPLAY_PROVIDER=anthropic
+        "arc_screenplay": {"provider": "ollama", "model": "qwen3:8b"},
     }
     out = {}
     for role, cfg in base.items():

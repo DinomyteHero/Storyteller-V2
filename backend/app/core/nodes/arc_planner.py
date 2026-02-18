@@ -329,11 +329,27 @@ def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
     """Deterministic arc planner: reads ledger + turn_number, writes arc_guidance.
 
     V2.5: Content-aware transitions + thematic guidance.
+    Phase 0.5: Prologue branch — when prologue_mode is active in world_state_json,
+    use the constrained PROLOGUE_STAGES loop instead of SETUP→RESOLUTION.
     """
     turn_number = int(state.get("turn_number") or 0)
     campaign = state.get("campaign") or {}
     ws = campaign.get("world_state_json") if isinstance(campaign, dict) else {}
     ws = ws if isinstance(ws, dict) else {}
+
+    # ── Prologue branch ────────────────────────────────────────────────
+    if ws.get("prologue_mode"):
+        try:
+            from backend.app.core.prologue_engine import build_prologue_arc_guidance
+            arc_guidance = build_prologue_arc_guidance(ws, turn_number)
+            return {**state, "arc_guidance": arc_guidance}
+        except Exception as _prologue_err:
+            logger.warning(
+                "Prologue arc_guidance failed (non-fatal), falling back to normal arc: %s",
+                _prologue_err,
+            )
+            # Fall through to normal arc planner
+
     ledger = ws.get("ledger") if isinstance(ws, dict) else {}
     if not isinstance(ledger, dict):
         ledger = {}

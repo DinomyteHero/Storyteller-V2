@@ -3,15 +3,17 @@
   import { onMount } from 'svelte';
   import { setupAuto, getEraCompanions } from '$lib/api/campaigns';
   import type { CompanionPreview } from '$lib/api/campaigns';
-  import { getEraBackgrounds } from '$lib/api/eras';
+  import { getEraBackgrounds, getEraSpecies } from '$lib/api/eras';
   import { getContentCatalog, getContentDefault, type ContentCatalogEntry } from '$lib/api/content';
   import { streamTurn } from '$lib/api/sse';
   import { runTurn } from '$lib/api/campaigns';
   import {
     creationStep, charName, charGender, charEra, charSettingId, charPeriodId,
+    charSpecies, eraSpecies, loadingSpecies,
     selectedBackground, eraBackgrounds, loadingBackgrounds,
     backgroundAnswers, resetCreation
   } from '$lib/stores/creation';
+  import SpeciesCard from '$lib/components/creation/SpeciesCard.svelte';
   import { campaignId, playerId, lastTurnResponse } from '$lib/stores/game';
   import {
     startStreaming, appendToken, finishStreaming, failStreaming, resetStreaming
@@ -20,7 +22,7 @@
   import { ERA_LABELS, CYOA_QUESTIONS, TONE_ICONS } from '$lib/utils/constants';
   import { randomName, getActiveBackgroundQuestions, ERA_DESCRIPTIONS } from '$lib/utils/creation';
   import { saveCampaign } from '$lib/stores/campaigns';
-  import type { EraBackground, SetupAutoRequest, BackgroundQuestion } from '$lib/api/types';
+  import type { EraBackground, EraSpecies, SetupAutoRequest, BackgroundQuestion } from '$lib/api/types';
 
   let contentCatalog = $state<ContentCatalogEntry[]>([]);
 
@@ -65,12 +67,13 @@
     }
   });
 
-  // Load backgrounds when era changes
+  // Load backgrounds and species when era changes
   $effect(() => {
     const era = $charEra;
     if (era && era !== 'ERA_AGNOSTIC') {
       const period = era.toLowerCase();
       charPeriodId.set(period);
+
       loadingBackgrounds.set(true);
       getEraBackgrounds(era)
         .then((result) => {
@@ -82,8 +85,22 @@
         .finally(() => {
           loadingBackgrounds.set(false);
         });
+
+      // Phase 0.7: load species list for species selection step
+      loadingSpecies.set(true);
+      getEraSpecies(era)
+        .then((result) => {
+          eraSpecies.set(result.species ?? []);
+        })
+        .catch(() => {
+          eraSpecies.set([]);
+        })
+        .finally(() => {
+          loadingSpecies.set(false);
+        });
     } else {
       eraBackgrounds.set([]);
+      eraSpecies.set([]);
     }
   });
 
@@ -117,16 +134,25 @@
     return getActiveBackgroundQuestions(bg, $backgroundAnswers);
   });
 
+  // Whether species step should be shown (era has species data)
+  let hasSpecies = $derived($eraSpecies.length > 0);
+
   // Calculate total steps dynamically
+  // Steps: 0=name/era, [1=species if hasSpecies], N=background, N+1..M=bg questions, last=review
   let totalSteps = $derived.by(() => {
+    const speciesStep = hasSpecies ? 1 : 0;
     if (useBackgrounds && $selectedBackground) {
-      return 3 + activeQuestions.length; // 0: name, 1: background, 2..N: bg questions, last: review
+      return 3 + speciesStep + activeQuestions.length;
     }
     if (useBackgrounds) {
-      return 4; // name, background, at least 1 question placeholder, review
+      return 4 + speciesStep;
     }
-    return 2 + CYOA_QUESTIONS.length; // 0: name, 1..4: generic CYOA, last: review
+    return 2 + speciesStep + CYOA_QUESTIONS.length;
   });
+
+  // Step index helpers that account for the optional species step
+  let speciesStepIdx = $derived(hasSpecies ? 1 : -1);
+  let backgroundStepIdx = $derived(hasSpecies ? 2 : 1);
 
   function nextStep() {
     creationStep.update((s) => s + 1);
@@ -207,6 +233,7 @@
         background_answers: bgAnswersForApi,
         player_gender: $charGender,
         difficulty: selectedDifficulty,
+        species_id: $charSpecies ?? null,
       };
 
       const result = await setupAuto(request);
@@ -360,8 +387,40 @@
         </div>
       </div>
 
-    <!-- ====================== STEP 1: Background Selection (if era has them) ====================== -->
-    {:else if $creationStep === 1 && useBackgrounds}
+    <!-- ====================== STEP 1: Species Selection (Phase 0.7 — when era has species) ====================== -->
+    {:else if $creationStep === speciesStepIdx && hasSpecies}
+      <div class="step fade-in">
+        <h2>Choose Your Species</h2>
+        <p class="step-subtitle">Your species shapes your abilities, appearance, and how the galaxy sees you</p>
+
+        {#if $loadingSpecies}
+          <div class="loading-indicator">
+            <div class="loading-spinner"></div>
+            <span>Loading species...</span>
+          </div>
+        {:else}
+          <div class="species-grid">
+            {#each $eraSpecies as sp}
+              <SpeciesCard
+                species={sp}
+                selected={$charSpecies === sp.id}
+                onclick={() => charSpecies.set(sp.id)}
+              />
+            {/each}
+          </div>
+        {/if}
+
+        <div class="step-actions">
+          <button class="btn" onclick={prevStep}>Back</button>
+          <button
+            class="btn btn-primary"
+            onclick={nextStep}
+          >Continue{$charSpecies ? '' : ' (skip)'}</button>
+        </div>
+      </div>
+
+    <!-- ====================== Background Selection (if era has them) ====================== -->
+    {:else if $creationStep === backgroundStepIdx && useBackgrounds}
       <div class="step fade-in">
         <h2>Choose Your Background</h2>
         <p class="step-subtitle">Your background shapes your starting position, skills, and story</p>
@@ -401,9 +460,9 @@
         </div>
       </div>
 
-    <!-- ====================== STEP 2+: Background Questions (dynamic branching) ====================== -->
-    {:else if useBackgrounds && $selectedBackground && $creationStep >= 2 && $creationStep < 2 + activeQuestions.length}
-      {@const qIdx = $creationStep - 2}
+    <!-- ====================== Background Questions (dynamic branching) ====================== -->
+    {:else if useBackgrounds && $selectedBackground && $creationStep > backgroundStepIdx && $creationStep < backgroundStepIdx + 1 + activeQuestions.length}
+      {@const qIdx = $creationStep - backgroundStepIdx - 1}
       {@const question = activeQuestions[qIdx]}
       {#if question}
         <div class="step fade-in">
@@ -441,8 +500,8 @@
       {/if}
 
     <!-- ====================== Generic CYOA Questions (fallback when no backgrounds) ====================== -->
-    {:else if !useBackgrounds && $creationStep >= 1 && $creationStep <= CYOA_QUESTIONS.length}
-      {@const questionIdx = $creationStep - 1}
+    {:else if !useBackgrounds && $creationStep >= 1 && $creationStep <= CYOA_QUESTIONS.length + (hasSpecies ? 1 : 0)}
+      {@const questionIdx = $creationStep - 1 - (hasSpecies ? 1 : 0)}
       {@const question = CYOA_QUESTIONS[questionIdx]}
       <div class="step fade-in">
         <h2>{question.title}</h2>
@@ -737,6 +796,16 @@
   }
 
   /* Background cards */
+  /* Phase 0.7: Species selection grid */
+  .species-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+    max-height: 420px;
+    overflow-y: auto;
+  }
+
   .background-cards {
     display: flex;
     flex-direction: column;
