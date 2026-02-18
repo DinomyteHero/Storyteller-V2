@@ -77,7 +77,12 @@
             </span>
           {/if}
         </div>
-        {#if moodText}
+        <!-- V4.1: Prefer LLM-generated spoken reaction; fall back to mood description -->
+        {#if companion.spoken_reaction}
+          <div class="companion-reaction spoken" aria-label="{companion.name} says: {companion.spoken_reaction}">
+            "{companion.spoken_reaction}"
+          </div>
+        {:else if moodText}
           <div class="companion-reaction">{companion.name} {moodText}</div>
         {/if}
       </div>
@@ -151,6 +156,13 @@
     font-style: italic;
     color: var(--color-muted, #9ca3af);
     margin-top: 0.25rem;
+  }
+
+  /* V4.1: Spoken reaction (LLM voice) — slightly more prominent */
+  .companion-reaction.spoken {
+    color: var(--text-secondary, #a0aec0);
+    font-style: italic;
+    line-height: 1.35;
   }
 
   /* Mobile: collapse to bottom strip */

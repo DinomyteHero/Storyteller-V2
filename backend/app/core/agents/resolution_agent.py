@@ -334,6 +334,19 @@ def _normalize_output(raw: dict, state: GameState) -> MechanicOutput:
 
     difficulty = str(raw.get("difficulty", "Moderate"))
 
+    # V4.1: Derive consequence_type for frontend dramatic moments
+    hp_current = (state.player.hp_current if state.player else None)
+    if dice_result == "Triumph":
+        consequence_type = "TRIUMPH"
+    elif dice_result == "Despair":
+        consequence_type = "DESPAIR"
+    elif hp_current is not None and hp_current <= 3:
+        consequence_type = "HP_CRITICAL"
+    elif critical_outcome in ("CRITICAL_SUCCESS", "CRITICAL_FAILURE"):
+        consequence_type = "TURNING_POINT"
+    else:
+        consequence_type = "NORMAL"
+
     return MechanicOutput(
         action_type=action_type,
         time_cost_minutes=time_cost,
@@ -350,9 +363,11 @@ def _normalize_output(raw: dict, state: GameState) -> MechanicOutput:
         critical_outcome=critical_outcome,
         world_reaction_needed=world_reaction_needed,
         invalid_action=invalid_action,
-        # New narrative dice fields
+        # Narrative dice fields (V4.0)
         dice_result=dice_result,
         difficulty=difficulty,
+        # Dramatic moment type (V4.1)
+        consequence_type=consequence_type,
     )
 
 

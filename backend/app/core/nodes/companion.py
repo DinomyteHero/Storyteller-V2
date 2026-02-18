@@ -53,6 +53,36 @@ def companion_reaction_node(state: dict[str, Any]) -> dict[str, Any]:
                 campaign["inter_party_tensions_director"] = format_inter_party_tensions_for_director(tensions)
             state = {**state, "campaign": campaign}
             state, _banter_line = maybe_enqueue_banter(state, mechanic_result)
+
+            # V4.1: Generate LLM spoken reactions for each companion (non-fatal)
+            try:
+                from backend.app.core.agents.companion_voice_agent import generate_spoken_reactions
+                from backend.app.world.companion_bible import get_companion_by_id
+                campaign = dict(state.get("campaign") or {})
+                affinity_map = campaign.get("party_affinity") or {}
+                spoken_reactions = generate_spoken_reactions(
+                    party=party,
+                    party_traits=party_traits,
+                    affinity_map=affinity_map,
+                    affinity_deltas=affinity_deltas,
+                    mechanic_result=mechanic_result,
+                    companion_getter=get_companion_by_id,
+                )
+                if spoken_reactions:
+                    ws = campaign.get("world_state_json") or {}
+                    if isinstance(ws, str):
+                        import json as _json_voice
+                        try:
+                            ws = _json_voice.loads(ws)
+                        except Exception:
+                            ws = {}
+                    ws = dict(ws)
+                    ws["companion_spoken_reactions"] = spoken_reactions
+                    campaign["world_state_json"] = ws
+                    state = {**state, "campaign": campaign}
+            except Exception:
+                logger.debug("CompanionVoiceAgent skipped", exc_info=True)
+
         # V2.20: Apply influence deltas from PartyState (meaning_tag + intent triggers)
         try:
             from backend.app.core.party_state import (

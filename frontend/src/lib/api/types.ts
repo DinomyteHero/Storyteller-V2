@@ -127,6 +127,17 @@ export interface PartyStatusItem {
   trust: number | null;
   respect: number | null;
   fear: number | null;
+  // V4.1: LLM-generated spoken reaction in companion voice
+  spoken_reaction: string | null;
+}
+
+export interface NpcContext {
+  id: string;
+  name: string;
+  role: string;
+  emotional_state: string;
+  agenda: string;
+  next_move: string;
 }
 
 export interface NewsFeedItem {
@@ -155,6 +166,9 @@ export interface TurnResponse {
   turn_contract?: TurnContract | null;
   // V3.2: Alignment data from backend
   alignment?: { light_dark: number; paragon_renegade: number } | null;
+  // V4.1: Dramatic moment type and active NPC contexts
+  consequence_type?: string | null;
+  active_npc_contexts?: NpcContext[] | null;
 }
 
 export interface TurnContract {
