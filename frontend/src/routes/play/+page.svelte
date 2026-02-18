@@ -35,6 +35,9 @@
   import ApproachCards from '$lib/components/choices/ApproachCards.svelte';
   import NpcIdentityStrip from '$lib/components/narrative/NpcIdentityStrip.svelte';
   import ConsequenceOverlay from '$lib/components/game/ConsequenceOverlay.svelte';
+  // Phase 2.4: Opening crawl
+  import OpeningCrawl from '$lib/components/narrative/OpeningCrawl.svelte';
+  import { apiFetch } from '$lib/api/client';
 
   let isSendingTurn = $state(false);
   let narrativeEl: HTMLDivElement | undefined = $state();
@@ -67,19 +70,45 @@
   // Focus trap cleanup for drawer
   let cleanupTrap: (() => void) | null = null;
 
+  // Phase 2.4: Opening crawl state
+  let showOpeningCrawl = $state(false);
+  let openingCrawlText = $state('');
+  let openingCrawlTitle = $state('Episode I');
+
   // Redirect to menu if no active game
-  onMount(() => {
+  onMount(async () => {
     if (!$isGameActive) {
       goto('/');
       return;
     }
     // Ensure streaming state is clean when play page mounts
-    // (guards against stale isStreaming=true from create page race condition)
     if ($isStreaming) {
       finishStreaming();
     }
     fetchTranscript();
     announce('Game loaded. Use number keys 1 through 4 to select choices.');
+
+    // Phase 2.4: Check for opening crawl in world state (shown once per campaign)
+    const cid = $campaignId;
+    if (cid) {
+      const crawlKey = `crawl_shown_${cid}`;
+      const alreadyShown = (() => { try { return !!localStorage.getItem(crawlKey); } catch { return false; } })();
+      if (!alreadyShown) {
+        try {
+          const resp = await apiFetch<{ world_state: Record<string, unknown> }>(`/v2/campaigns/${cid}/world_state`);
+          const ws = resp.world_state ?? {};
+          const arcScreenplay = ws.arc_screenplay as Record<string, unknown> | undefined;
+          const crawl = arcScreenplay?.opening_crawl as string | undefined;
+          if (crawl && crawl.trim()) {
+            openingCrawlText = crawl.trim();
+            openingCrawlTitle = (arcScreenplay?.title as string | undefined) ?? 'Episode I';
+            showOpeningCrawl = true;
+          }
+        } catch {
+          // Non-critical — just don't show the crawl
+        }
+      }
+    }
   });
 
   async function fetchTranscript() {
@@ -391,6 +420,15 @@
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
+
+{#if showOpeningCrawl}
+  <OpeningCrawl
+    crawlText={openingCrawlText}
+    campaignId={$campaignId ?? ''}
+    title={openingCrawlTitle}
+    ondone={() => { showOpeningCrawl = false; }}
+  />
+{/if}
 
 {#if $isGameActive}
 <div class="gameplay-layout" role="main">

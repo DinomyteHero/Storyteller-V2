@@ -1,0 +1,249 @@
+- id: bg-folk_hero
+  name: Folk Hero
+  description: >
+    You come from a humble background, but destiny set you apart. Your community
+    remembers what you did for them, and that reputation follows you — for good or ill.
+  story_archetype: hero
+  narrative_tone: heroic
+  tagline: "Champion of the common folk, enemy of tyrants."
+  starting_abilities:
+    - Rustic Hospitality
+    - Animal Handling
+  prologue_scenario: >
+    Your village faces a crisis — a monster, a corrupt lord, or a catastrophe. You
+    step forward when others could not. This is the moment that made you an adventurer.
+  questions:
+    - id: q-folk-origin
+      title: What act of courage first earned you the title of folk hero?
+      choices:
+        - label: Monster Slayer
+          concept: I slew a monster that terrorized my village.
+          tone: PARAGON
+          effects:
+            stat_bonus:
+              Strength: 2
+              Constitution: 1
+            alignment_nudge:
+              light_dark: 3
+              paragon_renegade: 2
+            quest_seed: A monster hunter's past catches up with them.
+        - label: Tax Resistor
+          concept: I stood against a corrupt lord's tax collectors.
+          tone: PARAGON
+          effects:
+            stat_bonus:
+              Charisma: 2
+              Wisdom: 1
+            alignment_nudge:
+              light_dark: 4
+              paragon_renegade: -1
+            reputation_bonus:
+              lords_alliance: -10
+              harpers: 15
+        - label: Flood Survivor
+          concept: I led survivors through a catastrophic flood.
+          tone: NEUTRAL
+          effects:
+            stat_bonus:
+              Wisdom: 2
+              Constitution: 1
+            alignment_nudge:
+              light_dark: 3
+              paragon_renegade: 1
+    - id: q-folk-motivation
+      title: What drives you to leave home and seek adventure?
+      choices:
+        - label: Hunt the Threat
+          concept: The threat that endangered my village still exists somewhere.
+          tone: PARAGON
+          effects:
+            stat_bonus:
+              Strength: 1
+            alignment_nudge:
+              paragon_renegade: 2
+            quest_seed: The original threat has evolved into something larger.
+        - label: Grow Stronger
+          concept: I want to become powerful enough to protect everyone.
+          tone: PARAGON
+          effects:
+            stat_bonus:
+              Charisma: 1
+            alignment_nudge:
+              light_dark: 2
+              paragon_renegade: 3
+        - label: Live Up to the Legend
+          concept: My reputation has outgrown my village — I need to live up to it.
+          tone: NEUTRAL
+          effects:
+            stat_bonus:
+              Charisma: 1
+              Intelligence: 1
+            alignment_nudge:
+              paragon_renegade: 1
+
+- id: bg-criminal
+  name: Criminal
+  description: >
+    You have a history you'd rather not broadcast. Whether you were a thief, a
+    fence, or something darker, you know how the underworld works and who to avoid.
+    Or not avoid, depending on the job.
+  story_archetype: rogue
+  narrative_tone: gritty
+  tagline: "Everyone has a price. You know who to ask."
+  starting_abilities:
+    - Thieves' Tools
+    - Criminal Contact
+  prologue_scenario: >
+    One last job goes wrong. Either someone betrayed you, the mark wasn't who you
+    thought, or the authorities have finally caught up. You need to run, and fast.
+  questions:
+    - id: q-criminal-type
+      title: What was your specialty in your criminal career?
+      choices:
+        - label: Burglar
+          concept: Burglary and pickpocketing — I have light fingers and quick feet.
+          tone: RENEGADE
+          effects:
+            stat_bonus:
+              Dexterity: 3
+            alignment_nudge:
+              light_dark: -1
+              paragon_renegade: -2
+        - label: Information Broker
+          concept: Information brokering — I know everyone's secrets.
+          tone: RENEGADE
+          effects:
+            stat_bonus:
+              Intelligence: 2
+              Charisma: 1
+            alignment_nudge:
+              paragon_renegade: -1
+            reputation_bonus:
+              zhentarim: 10
+        - label: Enforcer
+          concept: Muscle for hire — I kept people in line.
+          tone: RENEGADE
+          effects:
+            stat_bonus:
+              Strength: 2
+              Constitution: 1
+            alignment_nudge:
+              light_dark: -2
+              paragon_renegade: -3
+    - id: q-criminal-now
+      title: Why are you trying to go straight (or at least straighter)?
+      choices:
+        - label: Redemption
+          concept: I saw what my crimes did to innocent people. Never again.
+          tone: PARAGON
+          effects:
+            stat_bonus:
+              Wisdom: 1
+            alignment_nudge:
+              light_dark: 4
+              paragon_renegade: 3
+            quest_seed: Someone from the old life needs a favor. One last job.
+        - label: Escape the Past
+          concept: My old boss has something on me. I need to get out from under it.
+          tone: NEUTRAL
+          effects:
+            stat_bonus:
+              Charisma: 1
+            alignment_nudge:
+              paragon_renegade: -1
+            npc_seed:
+              role: crime_boss
+              relationship: employer_turned_enemy
+              faction: zhentarim
+        - label: Better Pay
+          concept: Adventuring pays better and the law doesn't usually shoot back.
+          tone: RENEGADE
+          effects:
+            stat_bonus:
+              Dexterity: 1
+            alignment_nudge:
+              light_dark: -1
+
+- id: bg-sage
+  name: Sage
+  description: >
+    You spent years studying ancient texts and obscure lore. You know things
+    most people have forgotten — and a few things people wish had stayed forgotten.
+    Libraries and ruins call to you equally.
+  story_archetype: scholar
+  narrative_tone: contemplative
+  tagline: "Knowledge is the most dangerous magic of all."
+  starting_abilities:
+    - Arcana
+    - Research
+  prologue_scenario: >
+    Your research has led you to a discovery — a reference to a place, a person,
+    or an artifact that shouldn't exist. Following that thread will take you far
+    from the safety of the academy.
+  questions:
+    - id: q-sage-specialty
+      title: What field of study consumed your early years?
+      choices:
+        - label: Arcane Theory
+          concept: Arcane theory — the mathematics of magic and planar cosmology.
+          tone: NEUTRAL
+          effects:
+            stat_bonus:
+              Intelligence: 3
+            alignment_nudge:
+              light_dark: 1
+            quest_seed: A discovered spell could reshape reality. Others want it.
+        - label: Ancient History
+          concept: Ancient history — the fallen empires of Netheril and Myth Drannor.
+          tone: NEUTRAL
+          effects:
+            stat_bonus:
+              Intelligence: 2
+              Wisdom: 1
+            alignment_nudge:
+              light_dark: 2
+        - label: Divine Theology
+          concept: Divine theology — the nature of the gods and the meaning of the Sundering.
+          tone: PARAGON
+          effects:
+            stat_bonus:
+              Wisdom: 3
+            alignment_nudge:
+              light_dark: 3
+            reputation_bonus:
+              order_gauntlet: 10
+    - id: q-sage-why-leave
+      title: What drove you out of the library and into the field?
+      choices:
+        - label: Follow the Evidence
+          concept: A discovery that could only be verified by going to the source.
+          tone: NEUTRAL
+          effects:
+            stat_bonus:
+              Intelligence: 1
+            alignment_nudge:
+              light_dark: 1
+        - label: Expelled
+          concept: I was expelled for pursuing forbidden research.
+          tone: RENEGADE
+          effects:
+            stat_bonus:
+              Intelligence: 1
+            alignment_nudge:
+              light_dark: -1
+              paragon_renegade: -2
+            psych_seed:
+              active_trauma: academic_exile
+              stress_level: 15
+        - label: Hired
+          concept: A patron hired me to authenticate something valuable.
+          tone: NEUTRAL
+          effects:
+            stat_bonus:
+              Charisma: 1
+            alignment_nudge:
+              paragon_renegade: 1
+            npc_seed:
+              role: patron
+              relationship: employer
+              faction: lords_alliance

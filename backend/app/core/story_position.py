@@ -142,6 +142,77 @@ def advance_story_position(
     return current
 
 
+def calculate_life_stage(
+    species_id: str | None,
+    era_pack: Any | None,
+    world_time_minutes: int = 0,
+    start_age: int | None = None,
+) -> dict[str, Any]:
+    """Calculate the player character's current life stage.
+
+    Phase 2.5.1 — Uses EraSpecies.lifespan data from the era pack to derive
+    a life stage (youth/prime/veteran/elder) and approximate current age.
+
+    Args:
+        species_id: The species ID (e.g. "human", "wookiee").
+        era_pack: EraPack instance with .species list.
+        world_time_minutes: In-world time elapsed (for aging estimate).
+        start_age: Character's starting age (optional — defaults to species prime threshold).
+    Returns:
+        Dict with life_stage, current_age_years, next_threshold_years, species_id.
+    """
+    # Default thresholds (human-like fallback)
+    default_thresholds = {"youth": 18, "prime": 35, "veteran": 55, "elder": 75}
+    default_avg = 80
+
+    # Resolve species lifespan from era pack
+    thresholds = default_thresholds
+    if era_pack and species_id:
+        species_list = getattr(era_pack, "species", None) or []
+        for sp in species_list:
+            sp_id = getattr(sp, "id", None) or (sp.get("id") if isinstance(sp, dict) else None)
+            if sp_id == species_id:
+                lifespan = getattr(sp, "lifespan", None) or (sp.get("lifespan") if isinstance(sp, dict) else None)
+                if lifespan:
+                    raw_t = getattr(lifespan, "life_stage_thresholds", None) or (
+                        lifespan.get("life_stage_thresholds") if isinstance(lifespan, dict) else None
+                    )
+                    if isinstance(raw_t, dict):
+                        thresholds = {k: int(v) for k, v in raw_t.items()}
+                break
+
+    # Derive age: start_age defaults to the "prime" threshold if not given
+    base_age = start_age if start_age is not None else thresholds.get("prime", 30)
+    # Each CHAPTER_PROGRESS_MINUTES represents roughly 1 month of in-world time
+    months_elapsed = _parse_int(world_time_minutes, 0) // CHAPTER_PROGRESS_MINUTES
+    current_age = base_age + (months_elapsed // 12)
+
+    # Determine life stage
+    life_stage = "elder"
+    next_threshold_years: int | None = None
+    stage_order = [
+        ("youth", thresholds.get("youth", 18)),
+        ("prime", thresholds.get("prime", 35)),
+        ("veteran", thresholds.get("veteran", 55)),
+        ("elder", thresholds.get("elder", 75)),
+    ]
+    for i, (stage, threshold) in enumerate(stage_order):
+        if current_age < threshold:
+            life_stage = stage_order[i - 1][0] if i > 0 else "youth"
+            next_threshold_years = threshold
+            break
+    else:
+        life_stage = "elder"
+        next_threshold_years = None
+
+    return {
+        "species_id": species_id or "human",
+        "life_stage": life_stage,
+        "current_age_years": current_age,
+        "next_threshold_years": next_threshold_years,
+    }
+
+
 def canonical_year_label_from_campaign(
     *,
     campaign: dict[str, Any] | None,

@@ -120,6 +120,21 @@ def get_era_locations(era_id: str) -> dict[str, Any]:
     }
 
 
+@router.get("/era/{era_id}/species")
+def get_era_species(era_id: str) -> dict[str, Any]:
+    """Return playable species for the given era (Phase 0.7: species selection step)."""
+    try:
+        pack = CONTENT_REPOSITORY.get_pack(era_id) if era_id else None
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Era pack not found")
+    if not pack:
+        raise HTTPException(status_code=404, detail="Era pack not found")
+    return {
+        "era_id": pack.era_id,
+        "species": [s.model_dump(mode="json") for s in (pack.species or [])],
+    }
+
+
 @router.get("/era/{era_id}/backgrounds")
 def get_era_backgrounds(era_id: str) -> dict[str, Any]:
     """Return available backgrounds and their question chains for the given era."""
@@ -481,6 +496,40 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         from backend.app.constants import DIFFICULTY_PROFILES  # noqa: E402
         _difficulty = body.difficulty if body.difficulty in DIFFICULTY_PROFILES else "normal"
         world_state["difficulty_profile"] = DIFFICULTY_PROFILES[_difficulty]
+
+        # Phase 0.7: Persist species selection
+        if body.species_id:
+            world_state["species_id"] = body.species_id
+
+        # Phase 2.5.2: Initialize career file
+        try:
+            from backend.app.core.era_transition import initialize_career_file  # noqa: E402
+            world_state["career_file"] = initialize_career_file(
+                time_period or body.time_period or "unknown"
+            )
+        except Exception as _cf_err:
+            logger.warning("Career file initialization failed (non-fatal): %s", _cf_err)
+
+        # Phase 2.1: Generate ArcScreenplay when ENABLE_CLOUD_BLUEPRINT=true
+        try:
+            from backend.app.core.agents.arc_screenplay_agent import ArcScreenplayAgent  # noqa: E402
+            _arc_agent = ArcScreenplayAgent()
+            _arc_screenplay = _arc_agent.generate(
+                era_pack=era_pack_for_setup,
+                player_concept=body.player_concept or "",
+                background_id=body.background_id,
+                origin_context=world_state.get("origin_context"),
+                setting_rules=era_pack_for_setup.setting_rules if era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules") else None,
+            )
+            world_state["arc_screenplay"] = _arc_screenplay
+            # Populate arc_seed from screenplay for ArcPlanner compatibility
+            if _arc_screenplay.get("opening_crawl"):
+                arc_seed = world_state.get("arc_seed") if isinstance(world_state.get("arc_seed"), dict) else {}
+                arc_seed["opening_crawl"] = _arc_screenplay["opening_crawl"]
+                arc_seed["climax_question"] = _arc_screenplay.get("climax_question", "")
+                world_state["arc_seed"] = arc_seed
+        except Exception as _arc_err:
+            logger.warning("ArcScreenplayAgent failed (non-fatal): %s", _arc_err)
 
         world_state_json_str = json.dumps(world_state)
         from datetime import datetime, timezone  # noqa: E402
@@ -1807,5 +1856,264 @@ def choose_passage(campaign_id: str, body: ChooseRequest) -> dict[str, Any]:
         )
         logger.info("passage_choose node=choose campaign_id=%s turn_id=%s latency_ms=%s", campaign_id, turn.turn_id, int((time.perf_counter()-start_ts)*1000))
         return {"turn_contract": turn.model_dump(mode="json")}
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Phase 2.5.4 — Era transition interstitial endpoint
+# ---------------------------------------------------------------------------
+
+class EraTransitionRequest(BaseModel):
+    to_era: str
+    player_id: str | None = None
+
+
+@router.post("/campaigns/{campaign_id}/era_transition")
+def era_transition(campaign_id: str, body: EraTransitionRequest) -> dict[str, Any]:
+    """Execute an era transition and generate a bridge interstitial scene.
+
+    Validates adjacency, calls execute_transition() to carry over ledger/
+    companions, then runs EraTransitionSceneAgent to produce a short
+    3-5 turn recap scene (PrologueScreenplay-shaped).
+
+    Returns:
+        transition_scene: PrologueScreenplay dict for the interstitial
+        career_file: Updated career file snapshot
+        new_era: The era the campaign has transitioned to
+    """
+    from backend.app.core.era_transition import execute_transition, ADJACENT_TRANSITIONS
+    from backend.app.core.agents.era_transition_scene_agent import EraTransitionSceneAgent
+    from backend.app.core.arc_consequence_tracker import capture as capture_consequences
+
+    conn = _get_conn()
+    try:
+        campaign = load_campaign(conn, campaign_id)
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+
+        ws = campaign.get("world_state_json")
+        if isinstance(ws, str):
+            try:
+                ws = json.loads(ws)
+            except json.JSONDecodeError:
+                ws = {}
+        ws = ws if isinstance(ws, dict) else {}
+
+        current_era = ws.get("era_id") or ws.get("era") or ""
+        to_era = body.to_era.upper().strip()
+
+        # Execute the transition (validates adjacency, updates world_state)
+        try:
+            new_ws = execute_transition(ws, current_era, to_era)
+        except ValueError as ve:
+            raise HTTPException(status_code=400, detail=str(ve))
+
+        # Load player for context
+        player_id = body.player_id or campaign.get("player_id") or ""
+        player: dict[str, Any] = {}
+        if player_id:
+            try:
+                player = load_player_by_id(conn, player_id) or {}
+            except Exception:
+                pass
+
+        # Capture arc consequences for transition scene context
+        arc_consequences = capture_consequences(ws, player, [], [])
+
+        # Load new era pack to get available locations
+        available_locations: list[str] = []
+        try:
+            era_pack = CONTENT_REPOSITORY.get_era_pack(to_era.lower())
+            if era_pack and era_pack.locations:
+                available_locations = [loc.id for loc in era_pack.locations]
+        except Exception:
+            pass
+
+        # Narrative bridge text from adjacency map
+        transition_bridge = ""
+        try:
+            transition_bridge = ADJACENT_TRANSITIONS.get(
+                (current_era.upper(), to_era.upper()), ""
+            ) or f"The galaxy shifts from {current_era} to {to_era}."
+        except Exception:
+            pass
+
+        # Load setting rules for the new era
+        setting_rules = None
+        try:
+            era_pack_obj = CONTENT_REPOSITORY.get_era_pack(to_era.lower())
+            if era_pack_obj:
+                setting_rules = era_pack_obj.setting_rules
+        except Exception:
+            pass
+
+        # Generate interstitial scene
+        agent = EraTransitionSceneAgent()
+        transition_scene = agent.generate(
+            from_era=current_era,
+            to_era=to_era,
+            arc_consequences=arc_consequences,
+            player=player,
+            setting_rules=setting_rules,
+            transition_bridge=transition_bridge,
+            available_locations=available_locations,
+        )
+
+        # Persist updated world state (era now changed)
+        new_ws["era_id"] = to_era
+        new_ws["era"] = to_era
+        new_ws["transition_scene"] = transition_scene
+
+        conn.execute(
+            "UPDATE campaigns SET world_state_json = ? WHERE id = ?",
+            (json.dumps(new_ws), campaign_id),
+        )
+        conn.commit()
+
+        logger.info(
+            "era_transition campaign_id=%s from=%s to=%s",
+            campaign_id, current_era, to_era,
+        )
+        return {
+            "campaign_id": campaign_id,
+            "from_era": current_era,
+            "new_era": to_era,
+            "transition_scene": transition_scene,
+            "career_file": new_ws.get("career_file", {}),
+        }
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Phase 0.6 — Prologue completion endpoint
+# ---------------------------------------------------------------------------
+
+class CompletePrologueRequest(BaseModel):
+    player_id: str | None = None
+
+
+@router.post("/campaigns/{campaign_id}/prologue/complete")
+def complete_prologue(campaign_id: str, body: CompletePrologueRequest | None = None) -> dict[str, Any]:
+    """Mark the prologue as complete and build the origin_context manifest.
+
+    Clears ``prologue_mode`` from world_state_json, writes ``origin_context``
+    and ``prologue_completed`` flags. The Director reads origin_context for
+    the first ~5 Arc 1 turns to maintain narrative continuity.
+    """
+    from backend.app.core.prologue_engine import build_origin_context_manifest  # noqa: E402
+    conn = _get_conn()
+    try:
+        campaign = load_campaign(conn, campaign_id)
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+
+        ws = campaign.get("world_state_json")
+        if isinstance(ws, str):
+            try:
+                ws = json.loads(ws)
+            except json.JSONDecodeError:
+                ws = {}
+        ws = ws if isinstance(ws, dict) else {}
+
+        if not ws.get("prologue_mode"):
+            return {
+                "campaign_id": campaign_id,
+                "status": "already_completed",
+                "message": "Prologue was not active or already completed.",
+                "origin_context": ws.get("origin_context", {}),
+            }
+
+        # Load player for context
+        player_id = (body.player_id if body else None) or campaign.get("player_id") or ""
+        player: dict[str, Any] = {}
+        if player_id:
+            try:
+                player = load_player_by_id(conn, player_id) or {}
+            except Exception:
+                pass
+
+        # Build origin context from prologue state
+        origin_context = build_origin_context_manifest(ws, player)
+
+        # Update world_state
+        ws["origin_context"] = origin_context
+        ws["prologue_mode"] = False
+        ws["prologue_completed"] = True
+
+        conn.execute(
+            "UPDATE campaigns SET world_state_json = ? WHERE id = ?",
+            (json.dumps(ws), campaign_id),
+        )
+        conn.commit()
+
+        logger.info(
+            "prologue_complete campaign_id=%s background=%s species=%s",
+            campaign_id,
+            origin_context.get("background_id", "unknown"),
+            origin_context.get("species_id", "unknown"),
+        )
+        return {
+            "campaign_id": campaign_id,
+            "status": "completed",
+            "origin_context": origin_context,
+        }
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Phase 4.2 — Codex discovery endpoint
+# ---------------------------------------------------------------------------
+
+@router.get("/campaigns/{campaign_id}/codex")
+def get_campaign_codex(campaign_id: str) -> dict[str, Any]:
+    """Return unlocked codex entries for a campaign.
+
+    Codex entries are unlocked automatically during play when lore citations
+    match their ``lore_chunk_tags``. This endpoint returns the full content of
+    all unlocked entries for display in the UI.
+
+    Returns:
+        unlocked: List of unlocked codex entry dicts.
+        total_available: Total codex entries in the era pack.
+        unlocked_count: Number of unlocked entries.
+    """
+    from backend.app.core.codex_discovery import get_unlocked_codex_entries
+
+    conn = _get_conn()
+    try:
+        campaign = load_campaign(conn, campaign_id)
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+
+        ws = campaign.get("world_state_json")
+        if isinstance(ws, str):
+            try:
+                ws = json.loads(ws)
+            except json.JSONDecodeError:
+                ws = {}
+        ws = ws if isinstance(ws, dict) else {}
+
+        era_id = (campaign.get("time_period") or ws.get("era_id") or "").strip()
+        era_pack = None
+        total_available = 0
+        if era_id:
+            try:
+                era_pack = CONTENT_REPOSITORY.get_pack(era_id)
+                if era_pack:
+                    total_available = len(era_pack.codex or [])
+            except Exception:
+                pass
+
+        unlocked = get_unlocked_codex_entries(ws, era_pack)
+
+        return {
+            "campaign_id": campaign_id,
+            "unlocked": unlocked,
+            "unlocked_count": len(unlocked),
+            "total_available": total_available,
+        }
     finally:
         conn.close()

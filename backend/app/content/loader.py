@@ -219,7 +219,11 @@ def _load_period_dir(period_dir: Path) -> dict[str, Any]:
     if not base:
         raise FileNotFoundError(f"No manifest/era/pack file found in {period_dir}")
 
-    for section in ("factions", "locations", "backgrounds", "quests", "events", "rumors", "facts", "companions"):
+    for section in (
+        "factions", "locations", "backgrounds", "quests", "events", "rumors", "facts", "companions",
+        # Phase 0.1, 1.4, 1.5, 1.6: new era pack sections
+        "species", "items", "moments", "codex",
+    ):
         current = [x for x in _coerce_list(base.get(section)) if isinstance(x, dict)]
         current.extend(_load_list_section(period_dir, section))
         if current:

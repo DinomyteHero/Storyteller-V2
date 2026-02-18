@@ -172,6 +172,19 @@ def make_director_node():
         except Exception as _pers_err:
             logger.debug("Personality profile build failed (non-fatal): %s", _pers_err)
 
+        # --- Phase 4.1: Hub/Downtime System ---
+        try:
+            from backend.app.core.hub_system import is_hub_location, get_hub_options, build_hub_system_prompt_injection
+            era_pack_for_hub = CONTENT_REPOSITORY.get_pack(era) if era else None
+            if is_hub_location(campaign_ws, era_pack_for_hub):
+                party_ids = (campaign.get("party") or []) if isinstance(campaign, dict) else []
+                hub_options = get_hub_options(campaign_ws, party_ids=party_ids)
+                hub_ctx = build_hub_system_prompt_injection(campaign_ws, hub_options)
+                kg_context = (kg_context + "\n\n" + hub_ctx) if kg_context else hub_ctx
+                logger.debug("Hub mode active at location: %s", campaign_ws.get("current_location"))
+        except Exception as _hub_err:
+            logger.debug("Hub system check failed (non-fatal): %s", _hub_err)
+
         arc_guidance = state.get("arc_guidance") or {}
         instructions, _plan_suggestions = director.plan(gs, kg_context=kg_context, arc_guidance=arc_guidance)
 

@@ -1,0 +1,155 @@
+moments:
+  # -----------------------------------------------------------------------
+  # Companion loyalty milestones
+  # -----------------------------------------------------------------------
+  - id: moment-companion-first-trust
+    title: "First Real Trust"
+    description: >
+      A companion decides, consciously or not, to trust the player for the
+      first time. This isn't gratitude — it's the moment they stop waiting
+      for the other shoe to drop.
+    trigger:
+      affinity_threshold: 25
+      arc_stage: RISING
+    narrative_beat: >
+      Your companion does something they wouldn't have done two arcs ago —
+      they tell you something true. Not a deflection, not a performance. A
+      real thing. They may not acknowledge it directly, but you both know
+      something shifted.
+    once_only: true
+    companion_reaction: "opens up slightly; shares a piece of their history unprompted"
+    alignment_delta:
+      light_dark: 1
+    tags: [companion, loyalty, trust]
+
+  - id: moment-companion-loyalty-test
+    title: "The Loyalty Test"
+    description: >
+      Something happens that forces a companion to choose between their own
+      interests and the player's. This is the moment that defines the
+      relationship going forward.
+    trigger:
+      affinity_threshold: 50
+      arc_stage: CLIMAX
+    narrative_beat: >
+      The companion faces a moment where they could walk away — where staying
+      costs them something real. How they respond now tells the player
+      everything they need to know about what this relationship actually is.
+      The Director should make this choice visible and consequential.
+    once_only: true
+    tags: [companion, loyalty, climax, relationship_defining]
+
+  - id: moment-companion-breaking-point
+    title: "At The Breaking Point"
+    description: >
+      A companion who has been through too much reaches their limit. This
+      isn't anger — it's exhaustion. They need something from the player
+      right now, even if they can't articulate what.
+    trigger:
+      affinity_threshold: 20
+      arc_stage: RISING
+      turn_number_min: 15
+    narrative_beat: >
+      The companion is holding something in that they can't hold much longer.
+      Watch for it in the quiet moments — the pause before they answer, the
+      way they don't quite make eye contact. The Director should give the
+      player a chance to notice and reach out. Or not.
+    once_only: true
+    companion_reaction: "withdrawn, shorter responses, hints at something unspoken"
+    tags: [companion, stress, emotional_beat, check_in]
+
+  # -----------------------------------------------------------------------
+  # Arc-stage narrative beats
+  # -----------------------------------------------------------------------
+  - id: moment-setup-foreshadow
+    title: "The Shadow Before the Storm"
+    description: >
+      Early in a new arc, something small hints at the larger danger to come.
+      A conversation overheard, a face seen twice in different locations, a
+      rumor that shouldn't be easy to confirm. The world is already moving
+      around the player — they just don't know it yet.
+    trigger:
+      arc_stage: SETUP
+      turn_number_min: 3
+    narrative_beat: >
+      Weave in a detail that won't make full sense until Act 2. Not a clue —
+      an impression. A name mentioned in passing. A uniform that doesn't
+      quite fit the garrison patch. Something that a paranoid person would
+      notice and a trusting person would file away as nothing.
+    once_only: true
+    tags: [foreshadowing, setup, atmosphere]
+
+  - id: moment-rising-stakes
+    title: "The Personal Cost Becomes Clear"
+    description: >
+      Mid-arc, the player realizes what success will actually require them to
+      sacrifice. It's not just danger — it's something specific that matters
+      to them. The stakes become personal.
+    trigger:
+      arc_stage: RISING
+      turn_number_min: 8
+    narrative_beat: >
+      Identify what the player has been trying to protect or achieve, and
+      show them clearly what that will cost. This is the moment where a
+      hero's journey becomes real — not "this quest is dangerous" but "to
+      finish this, I will have to give up X." Make it specific. Make it hurt.
+    once_only: true
+    tags: [stakes, rising_action, character]
+
+  - id: moment-empire-reminder
+    title: "The Empire's True Face"
+    description: >
+      A scene that reminds the player — viscerally, not abstractly — what the
+      Empire actually does. Not a battle. Something quiet. Something that
+      makes its horror ordinary.
+    trigger:
+      arc_stage: null
+      turn_number_min: 5
+      location_tags_any: [imperial_controlled, garrison, occupied]
+    narrative_beat: >
+      Show the Empire's cruelty in an indirect or mundane way. A family
+      separated at a checkpoint. A business owner quietly paying protection.
+      A former clone trooper discarded by the institution he gave everything
+      to. The horror of the Empire is that it happens in the background,
+      bureaucratically, every day. Let the player see it happen.
+    once_only: false
+    tags: [empire, atmosphere, worldbuilding, dark_times_specific]
+
+  # -----------------------------------------------------------------------
+  # Quest completion beats
+  # -----------------------------------------------------------------------
+  - id: moment-first-quest-complete
+    title: "First Real Win"
+    description: >
+      The player completes their first significant quest. This moment matters
+      not for the reward but for what it proves — that they can do this.
+    trigger:
+      arc_stage: RISING
+      turn_number_min: 6
+    narrative_beat: >
+      Don't rush past this. The quest is done, but something else happened
+      here too — the player did something they weren't sure they could do.
+      Acknowledge it. Let the world reflect it, even briefly. A contact
+      treats them differently. A companion is quieter in a good way.
+    once_only: true
+    tags: [quest, milestone, character_growth]
+
+  - id: moment-force-awakening
+    title: "The Force Stirs"
+    description: >
+      For Force-sensitive characters, a moment where the Force makes itself
+      undeniably known — not as a power to be controlled but as something
+      that exists whether they want it to or not.
+    trigger:
+      arc_stage: RISING
+      location_tags_any: [force_nexus, jedi_ruins, ancient_site]
+    narrative_beat: >
+      Something happens that the player can't explain through skill or luck.
+      A warning they couldn't have logically received. An action that
+      shouldn't have worked. The Force is not subtle when it wants to be
+      noticed. The Director should make this feel like a door opening, not
+      a power unlocking — vast, strange, and slightly frightening.
+    once_only: true
+    alignment_delta:
+      light_dark: 2
+    tags: [force, revelation, force_sensitive_only]

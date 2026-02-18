@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import re
 import sys
 from pathlib import Path
@@ -355,6 +356,29 @@ def main() -> int:
             "is provided and this flag is omitted."
         ),
     )
+    # Phase 3: Entity extraction control
+    _ee_default = not (os.environ.get("INGESTION_ENTITY_EXTRACTION", "true").lower() in ("false", "0", "no"))
+    ap.add_argument(
+        "--skip-entity-extraction",
+        dest="skip_entity_extraction",
+        action="store_true",
+        default=not _ee_default,
+        help=(
+            "Skip LLM-based entity extraction (tagger). Defaults to True when "
+            "INGESTION_ENTITY_EXTRACTION=false. Use this flag for faster ingestion "
+            "when entities will be enriched later via --cloud-enrich."
+        ),
+    )
+    ap.add_argument(
+        "--cloud-enrich",
+        dest="cloud_enrich",
+        action="store_true",
+        default=False,
+        help=(
+            "After ingestion, run CloudMetadataEnricher to add narrative_role, "
+            "spoiler_tier, and canon_weight fields to each chunk via cloud LLM."
+        ),
+    )
     args = ap.parse_args()
 
     # V2.5: Bulk delete mode (early exit)
@@ -481,7 +505,12 @@ def main() -> int:
     )
     if npc_tag_stats.get("collision_report_path"):
         logger.info("NPC collision report written: %s", npc_tag_stats["collision_report_path"])
-    canonical, tagger_stats = apply_tagger_to_chunks(canonical)
+    # Phase 3: skip entity extraction if --skip-entity-extraction or INGESTION_ENTITY_EXTRACTION=false
+    if args.skip_entity_extraction:
+        logger.info("Entity extraction skipped (--skip-entity-extraction flag or INGESTION_ENTITY_EXTRACTION=false)")
+        tagger_stats: dict = {"enabled": False, "model": "", "failed": 0}
+    else:
+        canonical, tagger_stats = apply_tagger_to_chunks(canonical)
     npc_linkage = _npc_linkage_stats(canonical)
     logger.info("NPC linkage coverage: %.2f%% (%d/%d chunks), unique NPCs=%d",
         npc_linkage["related_npc_coverage_ratio"] * 100.0,
@@ -537,6 +566,21 @@ def main() -> int:
         valid, warn_msg = validate_era_for_retrieval(ev, era_mode)
         if not valid:
             logger.warning("Era validation: %s", warn_msg)
+
+    # Phase 3: Cloud enrichment (--cloud-enrich flag)
+    if args.cloud_enrich:
+        try:
+            from ingestion.cloud_enricher import CloudMetadataEnricher  # noqa: E402
+            enricher = CloudMetadataEnricher(db_path=args.db)
+            enriched_count = enricher.enrich_chunks(
+                filter_context={
+                    "setting_id": setting_id,
+                    "period_id": period_id,
+                }
+            )
+            logger.info("Cloud enrichment complete: %d chunks enriched with narrative_role/spoiler_tier/canon_weight", enriched_count)
+        except Exception as _ce:
+            logger.warning("Cloud enrichment failed (non-fatal): %s", _ce)
 
     logger.info(
         "Lore ingestion complete for %s/%s: %d chunks total, %d added, %d skipped (dedup), %d file failures",

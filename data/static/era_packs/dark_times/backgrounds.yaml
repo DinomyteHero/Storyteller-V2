@@ -1,396 +1,662 @@
-# Rebellion Era Backgrounds — Age of Rebellion (0-4 ABY)
-# SWTOR-style branching character backgrounds for the Galactic Civil War.
+# Dark Times Era Backgrounds — The Dark Times (19-0 BBY)
+# Schema V3: class/archetype elevation with prologue scenarios and enriched choice effects.
+# Note: smuggler and bounty_hunter are the V2.9 expanded versions with full question chains.
 
 backgrounds:
-  - id: imperial_officer
-    name: "Imperial Officer"
-    description: "You serve the Galactic Empire. Discipline, duty, and the iron fist of order."
-    icon: "imperial"
-    starting_stats:
-      Combat: 2
-      Stealth: 1
-      Charisma: 3
-      Tech: 2
-      General: 2
-    questions:
-      - id: loyalty
-        title: "Where does your loyalty truly lie?"
-        subtitle: "This determines your faction alignment and starting position"
-        choices:
-          - label: "The Empire is civilization. Without it, the galaxy burns."
-            concept: "a true believer in Imperial order"
-            tone: NEUTRAL
-            effects:
-              faction_hint: galactic_empire
-              location_hint: loc-imperial_garrison
-              thread_seed: "Command has flagged unusual comm traffic from a nearby system. You are ordered to investigate — and silence — the source."
-          - label: "I have seen what the Empire does to the innocent. Something must change."
-            concept: "an Imperial officer harboring rebellious sympathies"
-            tone: PARAGON
-            effects:
-              faction_hint: rebel_alliance
-              location_hint: loc-cantina
-              thread_seed: "A Rebel operative has made contact through a dead drop. Trusting them could be fatal — but so is doing nothing."
-          - label: "Loyalty is for fools. The uniform gives me access. Access gives me power."
-            concept: "a self-serving opportunist wearing Imperial grey"
-            tone: RENEGADE
-            effects:
-              faction_hint: underworld
-              location_hint: loc-cargo_docks
-              thread_seed: "A smuggler has offered credits for classified patrol routes. The risk is enormous — but so is the payout."
-      - id: catalyst_loyal
-        title: "What hardened your conviction?"
-        subtitle: "This shapes your opening arc"
-        condition: "loyalty.tone == NEUTRAL"
-        choices:
-          - label: "I watched the Rebellion bomb a civilian transport. Order must be maintained."
-            concept: "driven by a need to protect the innocent through Imperial law"
-            tone: PARAGON
-            effects:
-              thread_seed: "Reports suggest the bombing was actually an Imperial false flag. The truth could shake everything you believe."
-          - label: "My homeworld thrived under Imperial protection. The Rebels would destroy that."
-            concept: "fiercely loyal to the Empire that protected their world"
-            tone: NEUTRAL
-            effects:
-              thread_seed: "An old friend from home has sent a coded message — your world is being strip-mined by the Empire. Was it all a lie?"
-          - label: "Weakness disgusts me. The strong should rule."
-            concept: "an ambitious officer who craves power through the Imperial machine"
-            tone: RENEGADE
-            effects:
-              thread_seed: "Your commanding officer is incompetent but connected. Removing them would advance your career — and the Empire."
-      - id: catalyst_rebel
-        title: "What pushed you toward the Alliance?"
-        subtitle: "This seeds your opening arc"
-        condition: "loyalty.tone == PARAGON"
-        choices:
-          - label: "I saw an officer execute civilians on Lothal. I cannot serve this."
-            concept: "haunted by Imperial atrocities witnessed firsthand"
-            tone: PARAGON
-            effects:
-              thread_seed: "The officer who gave the execution order has been promoted. They are now hunting for the informant who leaked the incident — you."
-          - label: "My family was relocated to a labor camp. I still have their access codes."
-            concept: "driven by personal loss under the Empire"
-            tone: RENEGADE
-            effects:
-              thread_seed: "Your family is in an Imperial labor facility on the Outer Rim. You have the security codes — but using them means burning your cover forever."
 
-  - id: rebel_operative
-    name: "Rebel Operative"
-    description: "You fight for freedom. The Alliance needs every hand — spy, soldier, or saboteur."
-    icon: "rebel"
-    starting_stats:
-      Combat: 2
-      Stealth: 3
-      Charisma: 2
-      Tech: 1
-      General: 2
-    questions:
-      - id: role
-        title: "What is your role in the Alliance?"
-        subtitle: "This determines your specialty and starting location"
-        choices:
-          - label: "Intelligence — I gather secrets and turn agents behind enemy lines."
-            concept: "an Alliance intelligence operative working in the shadows"
-            tone: INVESTIGATE
-            effects:
-              faction_hint: rebel_alliance
-              location_hint: loc-safe_house
-              thread_seed: "Your latest asset inside the ISB has gone silent. Either they have been compromised — or they have turned."
-          - label: "Starfighter corps — I fly and fight for the Rebellion."
-            concept: "a Rebel pilot who lives in the cockpit"
-            tone: NEUTRAL
-            effects:
-              faction_hint: rebel_alliance
-              location_hint: loc-yavin_base
-              thread_seed: "Your squadron has been reassigned to a remote sector. The briefing was thin — something about this mission does not add up."
-          - label: "Ground forces — I lead boots on the ground against Imperial occupation."
-            concept: "a frontline Rebel soldier who has seen too many friends die"
-            tone: RENEGADE
-            effects:
-              faction_hint: rebel_alliance
-              location_hint: loc-hoth_base
-              thread_seed: "The base has received intel that an Imperial assault force is inbound. You have twelve hours to prepare — or evacuate."
-          - label: "Diplomat — I convince systems to join the Alliance."
-            concept: "a Rebel diplomat who wins worlds with words"
-            tone: PARAGON
-            effects:
-              faction_hint: rebel_alliance
-              location_hint: loc-home_one
-              thread_seed: "A neutral system has offered to shelter Alliance refugees — but the local governor is playing both sides."
-      - id: history
-        title: "Why did you join the fight?"
-        subtitle: "This shapes your personal stakes"
-        choices:
-          - label: "My world was destroyed by the Death Star. I have nothing left to lose."
-            concept: "an Alderaanian survivor driven by grief and purpose"
-            tone: PARAGON
-            effects:
-              thread_seed: "A fellow survivor has information about Alderaanian relics hidden before the planet's destruction. But someone else is hunting for them too."
-          - label: "I was conscripted into the Imperial military and deserted."
-            concept: "a defector who turned their training against the Empire"
-            tone: NEUTRAL
-            effects:
-              thread_seed: "Imperial Intelligence has flagged your file. A bounty hunter with your dossier was spotted on the station."
-          - label: "I grew up in the Rebellion. My parents were founding members."
-            concept: "born into the fight, carrying the legacy of the original rebels"
-            tone: INVESTIGATE
-            effects:
-              thread_seed: "Your mother's old contacts have surfaced with intelligence about a secret Imperial project. She died protecting this information."
-
+  # ===========================================================================
+  # SMUGGLER — Showcase background: 5 deep questions, full effect enrichment
+  # ===========================================================================
   - id: smuggler
     name: "Smuggler"
-    description: "Credits, cargo, and staying one jump ahead of trouble. The galaxy is your marketplace."
-    icon: "scoundrel"
-    starting_stats:
-      Combat: 2
-      Stealth: 2
-      Charisma: 3
-      Tech: 2
-      General: 1
-    questions:
-      - id: allegiance
-        title: "Who do you work for?"
-        subtitle: "This determines your contacts and entanglements"
-        choices:
-          - label: "Jabba the Hutt — the biggest crime lord in the Outer Rim."
-            concept: "a Hutt cartel smuggler running cargo for Jabba"
-            tone: RENEGADE
-            effects:
-              faction_hint: hutt_cartel
-              location_hint: loc-jabbas_palace
-              thread_seed: "Jabba wants a cargo run that reeks of a setup. Refusing means a bounty on your head. Accepting means trusting the Hutts."
-          - label: "The Alliance — they need supply runs and I need credits."
-            concept: "a smuggler who supplies the Rebellion for profit and principle"
-            tone: PARAGON
-            effects:
-              faction_hint: rebel_alliance
-              location_hint: loc-cargo_docks
-              thread_seed: "The Alliance needs a shipment of thermal detonators delivered through an Imperial blockade. The pay is good — the odds are not."
-          - label: "Myself — I work for whoever pays, no questions asked."
-            concept: "a freelance smuggler loyal only to credits"
-            tone: NEUTRAL
-            effects:
-              faction_hint: underworld
-              location_hint: loc-cantina
-              thread_seed: "Two clients want the same cargo delivered to two different systems. Both are paying well. Both will kill you if you double-cross them."
-      - id: complication
-        title: "What is the one thing you cannot outrun?"
-        subtitle: "Every smuggler has a debt"
-        choices:
-          - label: "A bounty so large that every hunter in the sector knows my face."
-            concept: "wanted dead or alive across the Outer Rim"
-            tone: RENEGADE
-            effects:
-              thread_seed: "The bounty just doubled. Someone powerful wants you found — and they are not interested in bringing you in alive."
-          - label: "A partner I betrayed who swore to find me."
-            concept: "haunted by a betrayal that cannot be undone"
-            tone: NEUTRAL
-            effects:
-              thread_seed: "Your old partner has surfaced on the same station. They are not alone — and they have not forgotten."
-          - label: "A cargo I was supposed to deliver but lost. The client does not forgive."
-            concept: "carrying the weight of a failed delivery and a furious client"
-            tone: INVESTIGATE
-            effects:
-              thread_seed: "The lost cargo was not what you thought. Someone has found it — and what was inside changes everything."
-
-  - id: bounty_hunter
-    name: "Bounty Hunter"
-    description: "The galaxy's most dangerous profession. You find people — for a price."
-    icon: "hunter"
-    starting_stats:
-      Combat: 3
-      Stealth: 2
-      Charisma: 1
-      Tech: 2
-      General: 2
-    questions:
-      - id: code
-        title: "What code do you follow?"
-        subtitle: "Every hunter has rules — or a lack of them"
-        choices:
-          - label: "The Bounty Hunter's Creed. No disintegrations. The Guild's word is law."
-            concept: "a principled hunter who follows the Creed"
-            tone: NEUTRAL
-            effects:
-              faction_hint: underworld
-              location_hint: loc-cantina
-              thread_seed: "The Guild has posted a contract that violates the Creed. Refusing it means exile. Accepting it means betraying your principles."
-          - label: "I hunt for justice. I take bounties on the worst the galaxy has to offer."
-            concept: "a hunter who uses the trade to bring the guilty to justice"
-            tone: PARAGON
-            effects:
-              faction_hint: underworld
-              location_hint: loc-occupied_street
-              thread_seed: "Your latest target is an Imperial war criminal hiding in plain sight. The Empire wants them protected. The families of the dead want them found."
-          - label: "Highest bidder. No exceptions. No mercy."
-            concept: "a ruthless mercenary who hunts for credits alone"
-            tone: RENEGADE
-            effects:
-              faction_hint: underworld
-              location_hint: loc-smuggler_den
-              thread_seed: "Darth Vader himself has contracted you through intermediaries. The target is a Rebel agent. The pay is enough to retire on — if you survive."
-      - id: quarry
-        title: "Who was your most dangerous mark?"
-        subtitle: "Your reputation follows you"
-        choices:
-          - label: "A Jedi survivor — one of the last. I tracked them across five systems."
-            concept: "a hunter who has stalked Force-sensitives"
-            tone: INVESTIGATE
-            effects:
-              thread_seed: "The Jedi you tracked escaped. They left behind a holocron — and a warning that something far worse than the Empire is coming."
-          - label: "An Imperial Moff who embezzled millions. The Empire covered it up."
-            concept: "a hunter who has seen the Empire's corruption firsthand"
-            tone: NEUTRAL
-            effects:
-              thread_seed: "The Moff you caught has escaped custody. They know you collected the evidence — and they have powerful friends."
-          - label: "A Rebel hero. It was the hardest job I ever took."
-            concept: "a hunter carrying the weight of a morally grey contract"
-            tone: PARAGON
-            effects:
-              thread_seed: "The Rebel you captured was released in a prisoner exchange. They want to meet. Not for revenge — they say they need your help."
-
-  - id: force_sensitive
-    name: "Force-Sensitive Exile"
-    description: "The Force flows through you, but the Jedi are gone and the Empire hunts your kind."
-    icon: "force"
-    starting_stats:
-      Combat: 2
-      Stealth: 2
-      Charisma: 2
-      Tech: 1
-      General: 3
-    questions:
-      - id: training
-        title: "What do you know of the Force?"
-        subtitle: "This shapes your connection to the Jedi legacy"
-        choices:
-          - label: "I was trained by a Jedi in hiding — fragments of a lost tradition."
-            concept: "partially trained by a surviving Jedi Master"
-            tone: PARAGON
-            effects:
-              faction_hint: local_resistance
-              location_hint: loc-safe_house
-              thread_seed: "Your master has disappeared. Their last message spoke of a Jedi archive hidden from the Empire — and a Sith presence stirring near it."
-          - label: "I discovered it on my own — raw power I barely control."
-            concept: "a self-taught Force wielder struggling to master their abilities"
-            tone: RENEGADE
-            effects:
-              faction_hint: underworld
-              location_hint: loc-cantina
-              thread_seed: "Your powers are growing — and so is the attention. An Inquisitor has been dispatched to your sector. They can sense what you are."
-          - label: "I inherited a holocron from a fallen Jedi. It teaches me when I listen."
-            concept: "guided by a Jedi holocron and the echoes of a dead master"
-            tone: INVESTIGATE
-            effects:
-              faction_hint: local_resistance
-              location_hint: loc-bazaar_market
-              thread_seed: "The holocron has begun showing you visions of a planet strong in the Force. But the visions also show the Empire — already there, already digging."
-      - id: alignment
-        title: "How do you feel about the dark side?"
-        subtitle: "The Force has two faces"
-        choices:
-          - label: "The dark side is corruption. I will follow the light, no matter the cost."
-            concept: "devoted to the light side of the Force"
-            tone: PARAGON
-            effects:
-              thread_seed: "A vision shows you a choice: save a friend, or protect a secret that could rebuild the Jedi Order. You cannot do both."
-          - label: "Power is power. The Force does not care about light or dark."
-            concept: "a pragmatist who draws from both sides of the Force"
-            tone: NEUTRAL
-            effects:
-              thread_seed: "The holocron has shown you a dark side technique that could save lives. Using it would change you — but refusing it may cost everything."
-          - label: "I feel the pull of the dark side. It is stronger. It is honest."
-            concept: "tempted by the dark side and the power it offers"
-            tone: RENEGADE
-            effects:
-              thread_seed: "A voice in the Force has been whispering to you — not the holocron, something older, something from the deep places of the galaxy."
-
-  # ============================================================
-  # V2.9 EXPANSION — New backgrounds with starship options
-  # ============================================================
-
-  - id: smuggler
-    name: "Smuggler"
-    description: "You run the blockades. Cargo, refugees, contraband — no questions, no loyalties, just credits and hyperspace."
+    tagline: "Fast ship, faster mouth, flexible morals."
+    description: >
+      You run the blockades. Cargo, refugees, contraband — no questions asked, no
+      loyalties declared, just credits and hyperspace. The Empire cracking down made
+      the work harder and the pay better. That's fine. You've always thrived in chaos.
     icon: "smuggler"
-    starting_starship: null  # V2.10: ships earned in-story, not granted at start (was: ship-reb-yt1300)
+    story_archetype: trickster
+    narrative_tone: gritty
+    prologue_scenario: >
+      A routine cargo run goes sideways when Imperial patrols triple overnight.
+      The fixer who gave you the job is pressuring you to complete the delivery while
+      a suspicious customs officer keeps circling back to your ship. Five turns to
+      decide: run, bluff, fight, or dump the cargo and cut your losses.
     starting_stats:
       Combat: 2
       Stealth: 3
       Charisma: 3
       Tech: 2
       General: 0
+    starting_abilities:
+      - fast_talk
+      - spacers_luck
     starting_reputation:
       rebel_alliance: 10
       galactic_empire: -30
       underworld: 40
       hutt_cartel: 20
     questions:
-      - id: cargo
-        title: "What do you smuggle?"
-        subtitle: "This defines your connections and enemies"
+      - id: motivation
+        title: "Why do you fly?"
+        subtitle: "Everyone who risks their neck in hyperspace has a reason."
         choices:
-          - label: "Refugees and dissidents — people the Empire wants dead."
-            concept: "a smuggler with a conscience, running an underground railroad"
+          - label: "To help people who can't help themselves — refugees, dissidents, the desperate."
+            concept: "a smuggler with a conscience who runs an underground railroad"
             tone: PARAGON
             effects:
               faction_hint: rebel_alliance
               location_hint: loc-smuggler_den
+              alignment_nudge:
+                light_dark: 5
+                paragon_renegade: 3
+              thread_seed: "A Bothan spy has paid you to extract a high-value defector from an Imperial black site. The payout is enormous — so is the Imperial heat."
               companion_affinity_bonus:
                 - comp-reb-mercy: 20
                 - comp-reb-senna: 15
-              thread_seed: "A Bothan spy has paid you to extract a high-value defector from an Imperial black site. The payout is huge — but so is the Imperial heat."
-          - label: "Whatever pays — spice, weapons, Imperial secrets."
-            concept: "a profit-focused smuggler who follows the credits"
+
+          - label: "Credits. Pure and simple. Politics are for people who can afford principles."
+            concept: "a profit-focused smuggler who follows the credits wherever they lead"
             tone: NEUTRAL
             effects:
               faction_hint: underworld
               location_hint: loc-cargo_docks
+              thread_seed: "A Hutt crime lord has hired you to smuggle a mysterious cargo to Ord Mantell. You don't know what's in the crates — and maybe you don't want to."
               companion_affinity_bonus:
                 - comp-reb-jax: 15
                 - comp-reb-vex-korin: 20
-              thread_seed: "A Hutt crime lord has hired you to smuggle a mysterious cargo to Ord Mantell. You don't know what's in the crates — and maybe you don't want to."
-          - label: "Imperial classified tech — straight from their own shipyards."
-            concept: "a daring thief who steals from the Empire and sells to the highest bidder"
+
+          - label: "Because the Empire took everything else. This is how I fight back."
+            concept: "a smuggler with a vendetta, using the black market as a weapon"
             tone: RENEGADE
             effects:
               faction_hint: underworld
               location_hint: loc-coruscant_underworld
+              alignment_nudge:
+                paragon_renegade: -3
+              psych_seed:
+                active_trauma: loss_of_home
+                stress_level: 10
+              thread_seed: "You've stolen Imperial hyperdrive prototypes. The ISB wants them back. The Rebellion wants to buy them. Black Sun wants to kill you and take them."
               companion_affinity_bonus:
                 - comp-reb-shade: 20
                 - comp-reb-kael: 15
-              thread_seed: "You've stolen Imperial hyperdrive prototypes. The ISB wants them back. The Rebellion wants to buy them. Black Sun wants to kill you and take them."
-      - id: debt
-        title: "Who wants you dead?"
-        subtitle: "Every smuggler has enemies"
+
+      - id: left_behind
+        title: "Who did you leave behind?"
+        subtitle: "The cockpit is lonely. Someone's face haunts the quiet moments."
         choices:
-          - label: "The ISB has my face on every wanted list in the Core."
-            concept: "a wanted criminal with an Imperial bounty"
-            tone: RENEGADE
-            effects:
-              thread_seed: "An Imperial Interdictor has pulled you out of hyperspace. They know your ship. They know your route. Someone sold you out."
-          - label: "A Hutt put a price on my head after a job went sideways."
-            concept: "a smuggler who crossed the wrong crime lord"
+          - label: "A sibling who chose the Empire — we haven't spoken in years."
+            concept: "estranged from family over the greatest ideological divide in the galaxy"
             tone: NEUTRAL
             effects:
-              thread_seed: "Boba Fett has been spotted asking about you in Mos Eisley. The bounty is 50,000 credits. You have three days before he finds you."
-          - label: "I doublecrossed a rival smuggler. Now their entire crew wants revenge."
-            concept: "a smuggler with underworld enemies and a reputation for betrayal"
+              npc_seed:
+                role: rival
+                relationship: estranged_family
+                faction: galactic_empire
+              thread_seed: "Your sibling is rising through Imperial ranks. You've started seeing their name in patrol reports."
+
+          - label: "A mentor who taught me everything, then vanished without explanation."
+            concept: "searching for answers about a skilled teacher who disappeared"
+            tone: INVESTIGATE
+            effects:
+              npc_seed:
+                role: mentor
+                relationship: complicated
+              thread_seed: "Rumours of your mentor surface on Nar Shaddaa — a description that matches them, working for someone dangerous."
+
+          - label: "No one. That's the point. Attachments get people killed in this business."
+            concept: "a loner who burns bridges before anyone can betray them"
             tone: RENEGADE
             effects:
-              thread_seed: "Your old partner survived the job you left them on. They've found you — and they brought friends."
+              psych_seed:
+                stress_level: -5
+              stat_bonus:
+                Stealth: 1
+              alignment_nudge:
+                paragon_renegade: -2
 
+      - id: the_run
+        title: "What do you smuggle?"
+        subtitle: "There are different kinds of 'flexible morals.'"
+        choices:
+          - label: "Medical supplies and food to worlds under Imperial blockade."
+            concept: "using the smuggling network for something that actually matters"
+            tone: PARAGON
+            effects:
+              faction_hint: rebel_alliance
+              alignment_nudge:
+                light_dark: 5
+                paragon_renegade: 3
+              thread_seed: "The blockaded planet is running out of time. One more run could save thousands — or be your last."
+
+          - label: "Whatever pays — spice, weapons, information, people."
+            concept: "a true mercenary with no preference for cargo type"
+            tone: NEUTRAL
+            effects:
+              faction_hint: underworld
+              stat_bonus:
+                Tech: 1
+              thread_seed: "A package in your hidden compartment turned out to be a encrypted Imperial comm device. It's still transmitting."
+
+          - label: "Imperial classified tech — straight from their shipyards and research stations."
+            concept: "a thief who steals from the Empire and enjoys the symbolism"
+            tone: RENEGADE
+            effects:
+              faction_hint: underworld
+              item_seed:
+                id: item-stolen-imperial-intel
+                type: document
+              alignment_nudge:
+                paragon_renegade: -2
+              thread_seed: "The tech you stole had tracking code built into it. Someone is already en route."
+
+      - id: the_price
+        title: "What is the one thing you cannot outrun?"
+        subtitle: "Every smuggler has a debt they can't settle."
+        choices:
+          - label: "A bounty large enough that every hunter in three sectors knows my face."
+            concept: "wanted dead or alive with a price that only grows"
+            tone: RENEGADE
+            effects:
+              thread_seed: "The bounty just doubled. Someone powerful wants you found — and 'alive' is optional."
+              psych_seed:
+                stress_level: 10
+
+          - label: "A partner I sold out to save my own skin. They swore they'd find me."
+            concept: "carrying the weight of a betrayal that cannot be undone"
+            tone: NEUTRAL
+            effects:
+              npc_seed:
+                role: enemy
+                relationship: betrayed_partner
+              thread_seed: "Your old partner just got out. Word travels fast in the underworld. They know where you are."
+
+          - label: "Debt to a Hutt that keeps growing no matter how much I pay."
+            concept: "trapped in a cycle of obligation to one of the galaxy's most dangerous creditors"
+            tone: RENEGADE
+            effects:
+              faction_hint: hutt_cartel
+              thread_seed: "The Hutt has decided to collect personally. They've dispatched their best enforcer with a simple message: pay everything, or pay with your life."
+              psych_seed:
+                stress_level: 5
+
+      - id: cargo_right_now
+        title: "What's in the hidden compartment right now?"
+        subtitle: "Every good smuggler's ship has a secret hold. Yours isn't empty."
+        choices:
+          - label: "Stolen Imperial intelligence — I don't even know what it says."
+            concept: "sitting on data that both sides of the war would kill for"
+            tone: INVESTIGATE
+            effects:
+              item_seed:
+                id: item-stolen-imperial-intel
+                type: key
+              thread_seed: "The data chip has a dead man's switch — someone built it to self-destruct if the wrong person reads it. You might be the wrong person."
+              quest_seed: q-first-contact
+
+          - label: "A family — refugees from a world the Empire just garrisoned."
+            concept: "mid-run with real people depending on you, not just cargo"
+            tone: PARAGON
+            effects:
+              alignment_nudge:
+                light_dark: 8
+              thread_seed: "One of the 'refugees' isn't who they claimed to be. They're carrying something the Empire wants — and they haven't told you."
+
+          - label: "Something the fixer told me not to look at. I looked. I shouldn't have."
+            concept: "accidentally complicit in something much bigger and darker than expected"
+            tone: NEUTRAL
+            effects:
+              psych_seed:
+                active_trauma: know_too_much
+                stress_level: 15
+              thread_seed: "What you saw means someone is going to come looking. The question is whether the fixer sent them — or someone the fixer is scared of."
+
+  # ===========================================================================
+  # FORCE-SENSITIVE EXILE — Showcase background: 5 deep questions
+  # ===========================================================================
+  - id: force_sensitive
+    name: "Force-Sensitive Exile"
+    tagline: "The Force is strong in you. The Empire noticed."
+    description: >
+      You feel things others cannot — a tremor in the air before danger,
+      a whisper of possibility in moments of despair. The Jedi are gone, hunted
+      to near-extinction, and the Inquisitors hunt anyone who might replace them.
+      You have learned to hide what you are. You have not always succeeded.
+    icon: "force"
+    story_archetype: reluctant_hero
+    narrative_tone: contemplative
+    prologue_scenario: >
+      While trying to lay low, the Force speaks without warning in a crowd —
+      a vision, a premonition, something that reveals you to anyone watching.
+      An Inquisitor was watching. Two turns to get away before they close the trap.
+      What you do and who you trust in those two turns defines who you'll become.
+    starting_stats:
+      Combat: 2
+      Stealth: 2
+      Charisma: 2
+      Tech: 1
+      General: 3
+    starting_abilities:
+      - force_sense
+      - danger_precognition
+    starting_reputation:
+      galactic_empire: -40
+      inquisitorius: -60
+    questions:
+      - id: training
+        title: "What do you know of the Force?"
+        subtitle: "The Jedi are gone. What remains of their teaching?"
+        choices:
+          - label: "Fragments — a Jedi in hiding trained me for months before they disappeared."
+            concept: "partially trained by a surviving Jedi Master who may still be alive"
+            tone: PARAGON
+            effects:
+              faction_hint: local_resistance
+              location_hint: loc-safe_house
+              npc_seed:
+                role: mentor
+                relationship: missing
+              alignment_nudge:
+                light_dark: 5
+              thread_seed: "Your master's last message spoke of a Jedi archive hidden from the Empire — and a Sith presence already closing in on it."
+
+          - label: "Nothing formal — only what I've discovered alone, one painful lesson at a time."
+            concept: "a self-taught Force wielder who learned by surviving"
+            tone: RENEGADE
+            effects:
+              faction_hint: underworld
+              location_hint: loc-cantina
+              psych_seed:
+                stress_level: 10
+              thread_seed: "Your powers are growing faster than your control. An Inquisitor has been dispatched to your sector. They felt the surge."
+
+          - label: "A holocron found in the ruins of a Jedi temple teaches me when I listen."
+            concept: "guided by the echoes of a Jedi Master preserved in crystal"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: local_resistance
+              location_hint: loc-bazaar_market
+              item_seed:
+                id: item-jedi-holocron-fragment
+                type: key
+              thread_seed: "The holocron has begun showing visions of a planet strong in the Force. The visions also show the Empire — already there, already digging."
+
+      - id: the_purge
+        title: "Where were you when Order 66 happened?"
+        subtitle: "The galaxy changed in a day. Your life changed with it."
+        choices:
+          - label: "I was a Padawan at the Temple. I survived by running. I still run."
+            concept: "a Jedi Order survivor carrying survivor's guilt and a lost purpose"
+            tone: PARAGON
+            effects:
+              psych_seed:
+                active_trauma: order_66_survivor
+                stress_level: 15
+              alignment_nudge:
+                light_dark: 5
+              thread_seed: "Another Padawan you knew survived. They've found a different path — one you might not be able to follow."
+
+          - label: "Far from it. I didn't know I was Force-sensitive until years later."
+            concept: "someone the Force found late, untouched by the Jedi's fall"
+            tone: NEUTRAL
+            effects:
+              stat_bonus:
+                General: 1
+              thread_seed: "The Force has been trying to tell you something since you discovered your ability. The visions are getting clearer — and more urgent."
+
+          - label: "At the edge of it. I saw what they did. I made choices I'm not proud of to survive."
+            concept: "a survivor who crossed moral lines to live through the darkest day"
+            tone: RENEGADE
+            effects:
+              psych_seed:
+                active_trauma: survival_cost
+                stress_level: 20
+              alignment_nudge:
+                light_dark: -3
+                paragon_renegade: -3
+              thread_seed: "Someone who saw what you did during the purge is still alive. They're looking for you — for reasons you can't be certain of."
+
+      - id: the_dark_side
+        title: "How do you feel about the dark side?"
+        subtitle: "The Force has two faces. You've felt both."
+        choices:
+          - label: "The dark side is corruption. I will follow the light, whatever the cost."
+            concept: "devoted to the light side of the Force with conviction, not naivety"
+            tone: PARAGON
+            effects:
+              alignment_nudge:
+                light_dark: 8
+                paragon_renegade: 5
+              thread_seed: "A vision shows you a choice: save someone you care about, or protect a secret that could rebuild the Jedi Order. You cannot do both."
+
+          - label: "Power is power. The Force does not judge — only the people using it do."
+            concept: "a pragmatist who draws from both sides and pays the price for it"
+            tone: NEUTRAL
+            effects:
+              stat_bonus:
+                General: 1
+              thread_seed: "The holocron has shown you a dark side technique that could save lives. Using it would change you. Refusing could cost everything."
+
+          - label: "The dark side is stronger. Faster. More honest about what the galaxy actually is."
+            concept: "drawn toward the dark side with open eyes and genuine conviction"
+            tone: RENEGADE
+            effects:
+              alignment_nudge:
+                light_dark: -8
+                paragon_renegade: -5
+              psych_seed:
+                active_trauma: dark_side_pull
+              thread_seed: "A voice in the Force has been whispering — not the holocron, something older. Something that knows your name."
+
+      - id: hiding
+        title: "How have you hidden your ability?"
+        subtitle: "Survival requires discipline. Or luck. Usually both."
+        choices:
+          - label: "I bury it completely. I refuse to use it, no matter what."
+            concept: "suppressing the Force through will and fear, at enormous cost"
+            tone: NEUTRAL
+            effects:
+              psych_seed:
+                stress_level: 20
+              thread_seed: "The suppression is failing. The Force breaks through at the worst moments — and you can feel something else beginning to notice the cracks."
+
+          - label: "I use it only when no one is watching. Small things. Careful."
+            concept: "using the Force sparingly with extraordinary caution"
+            tone: PARAGON
+            effects:
+              stat_bonus:
+                Stealth: 1
+              thread_seed: "Someone saw. They haven't reported it yet. You don't know what they're waiting for."
+
+          - label: "I don't bother hiding it from allies. The people I trust know what I am."
+            concept: "honest about their ability with a small, trusted circle"
+            tone: INVESTIGATE
+            effects:
+              alignment_nudge:
+                light_dark: 2
+              npc_seed:
+                role: ally
+                relationship: trusted_secret_keeper
+              thread_seed: "One of the people who knows has been taken by the ISB for questioning. Whether they talked is the question that determines the next 48 hours."
+
+      - id: purpose
+        title: "What do you believe the Force wants from you?"
+        subtitle: "Every Force-sensitive in the galaxy right now is asking this question."
+        choices:
+          - label: "To rebuild the Jedi Order — however long that takes, whatever it costs."
+            concept: "driven by a sense of destiny to carry the Jedi tradition forward"
+            tone: PARAGON
+            effects:
+              alignment_nudge:
+                light_dark: 5
+              quest_seed: q-force-awakening
+              thread_seed: "A dying Jedi left you coordinates and one instruction: 'Find the others.' The coordinates lead to an active Inquisitor hunting ground."
+
+          - label: "To survive. The Force doesn't have purpose — it has gravity."
+            concept: "pragmatic, existentially honest, not ready for grand destiny"
+            tone: NEUTRAL
+            effects:
+              stat_bonus:
+                General: 1
+              thread_seed: "You've been surviving so long you've forgotten what you were surviving toward. A chance encounter suggests the galaxy isn't done with you."
+
+          - label: "I don't believe the Force 'wants' anything. I use what I have for my own reasons."
+            concept: "rejecting the Jedi framework entirely while keeping the ability"
+            tone: RENEGADE
+            effects:
+              alignment_nudge:
+                paragon_renegade: -3
+              psych_seed:
+                active_trauma: faith_collapse
+              thread_seed: "The Force disagrees with your assessment. The visions that begin now are not about what you want — they're about what's coming whether you want it or not."
+
+  # ===========================================================================
+  # IMPERIAL OFFICER — 3 focused questions + enriched effects
+  # ===========================================================================
+  - id: imperial_officer
+    name: "Imperial Officer"
+    tagline: "Discipline, duty, and the iron fist of order."
+    description: >
+      You serve the Galactic Empire. You believed in something — order, protection,
+      civilization against chaos. The question every Imperial officer eventually faces
+      is whether what they serve is worth the cost. You are beginning to face it.
+    icon: "imperial"
+    story_archetype: fallen_champion
+    narrative_tone: gritty
+    prologue_scenario: >
+      A routine inspection of a civilian settlement goes wrong when you discover your
+      commanding officer has ordered something that cannot be justified by any military
+      doctrine. You have the authority to countermand it — or to look away. The choice
+      you make in the next three turns determines who you are.
+    starting_stats:
+      Combat: 2
+      Stealth: 1
+      Charisma: 3
+      Tech: 2
+      General: 2
+    starting_abilities:
+      - command_presence
+      - imperial_codes
+    starting_reputation:
+      galactic_empire: 60
+      rebel_alliance: -30
+      imperial_navy: 50
+    questions:
+      - id: loyalty
+        title: "Where does your loyalty truly lie?"
+        subtitle: "The uniform demands an answer. Your conscience has a different one."
+        choices:
+          - label: "The Empire is civilization. Without it, the galaxy burns."
+            concept: "a true believer in Imperial order, not yet broken by what it does"
+            tone: NEUTRAL
+            effects:
+              faction_hint: galactic_empire
+              location_hint: loc-imperial_garrison
+              thread_seed: "Command has flagged unusual comm traffic from a nearby system. You are ordered to investigate — and silence — the source."
+
+          - label: "I have seen what the Empire does to the innocent. Something has to change."
+            concept: "an Imperial officer harboring rebellious sympathies and a breaking faith"
+            tone: PARAGON
+            effects:
+              faction_hint: rebel_alliance
+              location_hint: loc-cantina
+              alignment_nudge:
+                light_dark: 5
+                paragon_renegade: 5
+              thread_seed: "A Rebel operative has made contact through a dead drop. Trusting them could be fatal — but so is doing nothing."
+
+          - label: "Loyalty is for fools. The uniform gives me access. Access gives me power."
+            concept: "a self-serving opportunist wearing Imperial grey"
+            tone: RENEGADE
+            effects:
+              faction_hint: underworld
+              location_hint: loc-cargo_docks
+              alignment_nudge:
+                paragon_renegade: -5
+              thread_seed: "A smuggler has offered serious credits for classified patrol routes. The risk is enormous — but so is the payout."
+
+      - id: catalyst_loyal
+        title: "What hardened your conviction?"
+        subtitle: "Every officer reaches a moment that defines them."
+        condition: "loyalty.tone == NEUTRAL"
+        choices:
+          - label: "I watched the Rebellion bomb a civilian transport. Order must be maintained."
+            concept: "driven by horror at Rebel violence toward civilians"
+            tone: PARAGON
+            effects:
+              thread_seed: "Evidence suggests the bombing was an Imperial false flag. The truth could shake everything you believe — and someone is trying to keep you from finding it."
+
+          - label: "My homeworld thrived under Imperial protection. The Rebels would destroy that."
+            concept: "fiercely loyal to the Empire that built their world"
+            tone: NEUTRAL
+            effects:
+              thread_seed: "An old friend from home has sent a coded message. Your world is being strip-mined. Everything the Empire 'built' was built on what it was taking."
+
+          - label: "Weakness disgusts me. The strong should shape the galaxy."
+            concept: "an ambitious officer who believes in Imperial ideology as power"
+            tone: RENEGADE
+            effects:
+              alignment_nudge:
+                paragon_renegade: -3
+              thread_seed: "Your commanding officer is incompetent but connected. Removing them would advance your career — and arguably improve the Empire."
+
+      - id: catalyst_rebel
+        title: "What pushed you toward the Alliance?"
+        subtitle: "This seeds your opening arc."
+        condition: "loyalty.tone == PARAGON"
+        choices:
+          - label: "I watched an officer execute civilians on Lothal. I cannot serve this."
+            concept: "haunted by Imperial atrocities witnessed firsthand"
+            tone: PARAGON
+            effects:
+              psych_seed:
+                active_trauma: witnessed_atrocity
+              alignment_nudge:
+                light_dark: 5
+              thread_seed: "The officer who gave the execution order has been promoted. They are hunting the informant who leaked the incident — you."
+
+          - label: "My family was relocated to a labor camp. I still have their access codes."
+            concept: "driven by personal loss — what the Empire took cannot be reclaimed"
+            tone: RENEGADE
+            effects:
+              npc_seed:
+                role: family_member
+                relationship: imprisoned
+                faction: galactic_empire
+              thread_seed: "Your family is in an Imperial labor facility. You have the security codes — but using them burns your cover forever."
+
+  # ===========================================================================
+  # REBEL OPERATIVE — 2 focused questions + enriched effects
+  # ===========================================================================
+  - id: rebel_operative
+    name: "Rebel Operative"
+    tagline: "You fight for freedom. The Alliance needs every hand."
+    description: >
+      You have chosen a side. The Rebellion is outgunned, outmanned, and will need
+      every advantage — which means every skill, every connection, and every person
+      willing to bleed for something larger than themselves. You've decided to be
+      one of those people. Some days you believe it's enough.
+    icon: "rebel"
+    story_archetype: hero
+    narrative_tone: heroic
+    prologue_scenario: >
+      Your first real mission: extract a defector from an Imperial facility before
+      the morning shift change. Everything was planned. Nothing went as planned.
+      Now you have five turns to improvise, and the defector isn't who they told you
+      they were.
+    starting_stats:
+      Combat: 2
+      Stealth: 3
+      Charisma: 2
+      Tech: 1
+      General: 2
+    starting_abilities:
+      - field_improvisation
+      - rebel_contacts
+    starting_reputation:
+      rebel_alliance: 60
+      galactic_empire: -50
+    questions:
+      - id: role
+        title: "What is your role in the Alliance?"
+        subtitle: "The Rebellion needs specialists. What do you bring?"
+        choices:
+          - label: "Intelligence — I gather secrets and run agents behind enemy lines."
+            concept: "an Alliance intelligence operative working in shadows and whispers"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: rebel_alliance
+              location_hint: loc-safe_house
+              thread_seed: "Your latest asset inside the ISB has gone silent. Either they've been compromised — or they've turned."
+
+          - label: "Starfighter corps — I fly and fight."
+            concept: "a Rebel pilot who lives and dies in the cockpit"
+            tone: NEUTRAL
+            effects:
+              faction_hint: rebel_alliance
+              location_hint: loc-yavin_base
+              thread_seed: "Your squadron has been reassigned to a remote sector. The briefing was thin — something about this mission doesn't add up."
+
+          - label: "Ground forces — I lead boots on the ground."
+            concept: "a frontline Rebel soldier who has seen too many friends die"
+            tone: RENEGADE
+            effects:
+              faction_hint: rebel_alliance
+              location_hint: loc-hoth_base
+              psych_seed:
+                active_trauma: combat_loss
+                stress_level: 10
+              thread_seed: "The base has received intel that an Imperial assault force is inbound. Twelve hours to prepare — or evacuate."
+
+          - label: "Diplomat — I convince systems to join the Alliance with words."
+            concept: "a Rebel diplomat who wins wars without firing a shot"
+            tone: PARAGON
+            effects:
+              faction_hint: rebel_alliance
+              location_hint: loc-home_one
+              alignment_nudge:
+                paragon_renegade: 5
+              thread_seed: "A neutral system has offered to shelter Alliance refugees. The local governor is playing both sides."
+
+      - id: history
+        title: "Why did you join the fight?"
+        subtitle: "The Rebellion is full of people with different reasons. What's yours?"
+        choices:
+          - label: "My world was destroyed by the Death Star. I have nothing left to lose."
+            concept: "an Alderaanian survivor — grief as fuel, vengeance as direction"
+            tone: PARAGON
+            effects:
+              psych_seed:
+                active_trauma: alderaanian_loss
+                stress_level: 15
+              alignment_nudge:
+                light_dark: 5
+              thread_seed: "A fellow survivor has information about Alderaanian relics hidden before the destruction. Someone else is already hunting for them."
+
+          - label: "I was conscripted into the Imperial military and deserted."
+            concept: "a defector who turned their training against the institution that made them"
+            tone: NEUTRAL
+            effects:
+              thread_seed: "Imperial Intelligence has flagged your file. A bounty hunter with your dossier was spotted on the station."
+
+          - label: "I grew up in the Rebellion. My parents were founding members."
+            concept: "born into the fight, carrying the legacy of the original rebels"
+            tone: INVESTIGATE
+            effects:
+              npc_seed:
+                role: mentor
+                relationship: deceased_parent
+              thread_seed: "Your mother's old contacts have surfaced with intelligence about a secret Imperial project. She died protecting this information."
+
+  # ===========================================================================
+  # BOUNTY HUNTER — 2 focused questions + enriched effects
+  # ===========================================================================
   - id: bounty_hunter
     name: "Bounty Hunter"
-    description: "You hunt for credits. Imperial warrants, Hutt contracts, Rebel fugitives — the target doesn't matter. Only the payout."
+    tagline: "The galaxy's most dangerous profession. You find people."
+    description: >
+      You hunt for credits. Imperial warrants, Hutt contracts, Rebel fugitives —
+      the target doesn't matter. Only the payout. And your reputation, which is
+      all a hunter really has. You've learned to keep your moral arithmetic very
+      simple, because complicated math tends to get hunters killed.
     icon: "bounty_hunter"
-    starting_starship: null  # V2.10: ships earned in-story, not granted at start (was: ship-reb-firespray)
+    story_archetype: rogue
+    narrative_tone: gritty
+    prologue_scenario: >
+      You've tracked your mark to a safehouse. The bounty says 'alive if possible.'
+      When you breach the door, you find your mark protecting three children from
+      an unrelated threat that arrived moments before you. The bounty doesn't mention
+      the children. The next two turns will tell you what kind of hunter you really are.
     starting_stats:
       Combat: 4
       Stealth: 2
       Charisma: 1
       Tech: 2
       General: 1
+    starting_abilities:
+      - tracker
+      - interrogation_sense
     starting_reputation:
       rebel_alliance: -20
       galactic_empire: 10
@@ -399,69 +665,107 @@ backgrounds:
     questions:
       - id: code
         title: "Do you follow the Bounty Hunter's Code?"
-        subtitle: "This defines your honor and methods"
+        subtitle: "Every hunter has rules — or a principled lack of them."
         choices:
-          - label: "I follow the Code. No disintegrations. No innocents. Honor above profit."
-            concept: "an honorable bounty hunter who follows the Guild's rules"
+          - label: "I follow the Code. No disintegrations. No innocents. The Guild's word is law."
+            concept: "an honorable hunter who follows the Creed — and means it"
             tone: PARAGON
             effects:
               faction_hint: bounty_hunter_guild
               location_hint: loc-ord_mantell
+              alignment_nudge:
+                light_dark: 3
+                paragon_renegade: 5
               companion_affinity_bonus:
                 - comp-reb-rok: 25
                 - comp-reb-orynn: 20
-              thread_seed: "A Hutt has hired you to capture a Rebel spy. The contract is legal — but the spy is protecting refugee children. The Code says take the bounty. Your conscience says otherwise."
-          - label: "The Code is for fools. I take the bounty, no matter the cost."
-            concept: "a ruthless hunter who cares only for credits"
-            tone: RENEGADE
-            effects:
-              faction_hint: underworld
-              location_hint: loc-ord_mantell
-              companion_affinity_bonus:
-                - comp-reb-breaker: 15
-                - comp-reb-cerra: -15
-              thread_seed: "An Imperial officer has offered double pay for a Rebel target — but only if you bring them in alive for interrogation. The screams will haunt you. Will you take the deal?"
+              thread_seed: "The Guild has posted a contract that violates the Creed. Refusing means exile. Accepting means betraying the only principles you have."
+
           - label: "I pick my contracts carefully. Some targets deserve what's coming."
-            concept: "a selective hunter who chooses targets with moral judgment"
+            concept: "a selective hunter with moral judgment and a list of worthy targets"
             tone: INVESTIGATE
             effects:
               faction_hint: local_resistance
               location_hint: loc-cantina
-              companion_affinity_bonus:
-                - comp-reb-wedge: 10
-                - comp-reb-winter: 15
-              thread_seed: "You've been hired to hunt an Imperial war criminal who escaped justice after Alderaan. The Empire wants them back — alive. The Rebels want them dead. Your choice."
-      - id: rival
-        title: "Who is your greatest rival?"
-        subtitle: "Every hunter has competition"
-        choices:
-          - label: "Boba Fett. He's the best — and I'm going to prove I'm better."
-            concept: "an ambitious hunter obsessed with surpassing Fett"
+              thread_seed: "You've been hired to hunt an Imperial war criminal hiding in plain sight. The Empire wants them back. The families of their victims want them dead."
+
+          - label: "Highest bidder. No exceptions. No mercy. It's cleaner that way."
+            concept: "a ruthless mercenary for whom credits are the only honest language"
             tone: RENEGADE
             effects:
-              thread_seed: "You and Fett are both after the same high-value target. Winner takes the bounty — and the reputation. Loser might not survive."
-          - label: "IG-88. That droid took a contract I was working. I owe it pain."
-            concept: "a hunter with a grudge against the assassin droid"
+              faction_hint: underworld
+              location_hint: loc-smuggler_den
+              alignment_nudge:
+                light_dark: -3
+                paragon_renegade: -5
+              companion_affinity_bonus:
+                - comp-reb-breaker: 15
+                - comp-reb-cerra: -15
+              thread_seed: "Darth Vader himself has contracted you through intermediaries. The target is a Rebel agent. The pay is enough to retire on — if you survive."
+
+      - id: rival
+        title: "Who is your greatest rival?"
+        subtitle: "Every hunter's reputation is defined by competition."
+        choices:
+          - label: "Boba Fett. He's the best. I intend to prove I'm better."
+            concept: "driven by the need to surpass the galaxy's most feared hunter"
+            tone: RENEGADE
+            effects:
+              npc_seed:
+                role: rival
+                relationship: competitive_enemy
+              thread_seed: "You and Fett are both tracking the same high-value mark. Winner takes the bounty and the reputation."
+
+          - label: "IG-88. That droid took a contract I was working. It owes me."
+            concept: "a hunter with a specific, personal grudge against an assassin droid"
             tone: NEUTRAL
             effects:
-              thread_seed: "IG-88 has been systematically eliminating your clients. You need to stop it — or join forces and split the bounties."
-          - label: "A former partner who betrayed me and stole my ship."
-            concept: "a hunter seeking revenge on a backstabbing ex-partner"
+              npc_seed:
+                role: rival
+                relationship: grudge
+              thread_seed: "IG-88 has been systematically targeting your clients. You need to stop it — or find a way to work together."
+
+          - label: "A former partner who betrayed me and took my ship."
+            concept: "a hunter seeking everything they lost and the person who took it"
             tone: PARAGON
             effects:
-              thread_seed: "Your old partner has resurfaced — flying your ship, using your contacts, stealing your contracts. Time to take back what's yours."
+              npc_seed:
+                role: enemy
+                relationship: betrayed_partner
+              psych_seed:
+                active_trauma: betrayal
+              thread_seed: "Your old partner has resurfaced — flying your ship, using your contacts, stealing your contracts."
 
+  # ===========================================================================
+  # IMPERIAL DEFECTOR — 2 focused questions + enriched effects
+  # ===========================================================================
   - id: imperial_defector
     name: "Imperial Defector"
-    description: "You wore the uniform. You served the machine. Now you've seen the truth — and there's no going back."
+    tagline: "You wore the uniform. You've seen the truth. There's no going back."
+    description: >
+      You served the Empire. You were good at it. And then — through one moment, or
+      through years of mounting evidence, or through something you cannot unsee — you
+      left. That decision has a price. The Empire does not forgive defectors, and
+      the Rebellion has not yet decided to trust you. You are alone in the middle,
+      and both sides are watching.
     icon: "defector"
-    starting_starship: null  # V2.10: ships earned in-story, not granted at start (was: ship-reb-hwk290)
+    story_archetype: redeemer
+    narrative_tone: gritty
+    prologue_scenario: >
+      Your defection is hours old. You have stolen something the Empire wants back.
+      The contact who was supposed to meet you hasn't arrived. You have the knowledge,
+      the stolen data, and the distinct feeling that someone on the Rebel side
+      has already sold you out to confirm you were worth the risk. Three turns
+      to determine if you trust anyone at all — and who.
     starting_stats:
       Combat: 3
       Stealth: 2
       Charisma: 2
       Tech: 2
       General: 1
+    starting_abilities:
+      - imperial_protocols
+      - threat_assessment
     starting_reputation:
       rebel_alliance: 30
       galactic_empire: -70
@@ -470,30 +774,40 @@ backgrounds:
     questions:
       - id: rank
         title: "What was your Imperial role?"
-        subtitle: "This defines your skills and Imperial enemies"
+        subtitle: "What you did defines what you know — and what follows you."
         choices:
-          - label: "Intelligence agent — I know their secrets, their codes, their faces."
-            concept: "a former ISB agent with classified intel and a death mark"
+          - label: "Intelligence agent — I know their secrets, codes, and faces."
+            concept: "a former ISB agent carrying classified intelligence and a death mark"
             tone: INVESTIGATE
             effects:
               faction_hint: rebel_alliance
               location_hint: loc-safe_house
+              item_seed:
+                id: item-stolen-imperial-intel
+                type: document
               companion_affinity_bonus:
                 - comp-reb-cerra: 25
                 - comp-reb-winter: 20
-              thread_seed: "You have the encryption codes for the Imperial comm network — but the ISB knows you took them. Ysanne Isard herself has put a black ops team on your trail."
+              thread_seed: "You have encryption codes for the Imperial comm network — but the ISB knows you took them. Ysanne Isard has put a black ops team on your trail."
+
           - label: "Stormtrooper — I pulled the trigger. I saw what we were ordered to do."
-            concept: "a former stormtrooper haunted by war crimes"
+            concept: "a former stormtrooper carrying the weight of orders followed"
             tone: PARAGON
             effects:
               faction_hint: local_resistance
               location_hint: loc-cantina
+              psych_seed:
+                active_trauma: war_crimes_complicity
+                stress_level: 20
+              alignment_nudge:
+                light_dark: 5
               companion_affinity_bonus:
                 - comp-reb-katarn: 25
                 - comp-reb-vex: 20
               thread_seed: "Your old unit has been deployed to your home sector. You know their tactics. You know their weaknesses. Will you use that knowledge to stop them?"
-          - label: "Naval officer — I commanded a Star Destroyer, and I know how to destroy one."
-            concept: "a former Imperial captain with tactical expertise"
+
+          - label: "Naval officer — I commanded a Star Destroyer. I know how to destroy one."
+            concept: "a former Imperial captain with tactical expertise and bitter clarity"
             tone: NEUTRAL
             effects:
               faction_hint: rebel_alliance
@@ -501,23 +815,41 @@ backgrounds:
               companion_affinity_bonus:
                 - comp-reb-wedge: 20
                 - comp-reb-sentinel: 15
-              thread_seed: "The Rebel fleet is planning an assault on an Imperial convoy. They need your tactical knowledge — but your former executive officer commands the lead Star Destroyer."
+              thread_seed: "The Rebel fleet needs your tactical knowledge for an assault on an Imperial convoy. Your former executive officer commands the lead Star Destroyer."
+
       - id: catalyst
         title: "Why did you defect?"
-        subtitle: "This shapes your motivation and opening arc"
+        subtitle: "The moment everything changed."
         choices:
           - label: "I was ordered to execute civilians. I refused and ran."
-            concept: "driven by conscience and horror at Imperial atrocities"
+            concept: "a soldier driven by conscience when orders crossed an uncrossable line"
             tone: PARAGON
             effects:
-              thread_seed: "The officer who gave the execution order has been promoted. They're hunting for the defector who exposed them — you. And they're using your family as bait."
-          - label: "The Empire destroyed my homeworld. I want revenge."
-            concept: "fueled by loss and a burning need for vengeance"
+              alignment_nudge:
+                light_dark: 8
+                paragon_renegade: 5
+              psych_seed:
+                active_trauma: refused_order
+              thread_seed: "The officer who gave the execution order has been promoted. They're hunting the defector who exposed them — and using your family as bait."
+
+          - label: "The Empire destroyed my homeworld. I want to see it burn in return."
+            concept: "fueled by loss and a vendetta that could consume everything"
             tone: RENEGADE
             effects:
-              thread_seed: "You've tracked down the admiral who ordered the bombardment of your world. They're attending a gala on Coruscant. One shot. One chance. Will you take it — and damn the consequences?"
+              alignment_nudge:
+                paragon_renegade: -5
+              psych_seed:
+                active_trauma: homeworld_loss
+                stress_level: 15
+              thread_seed: "You've tracked the admiral who ordered the bombardment of your world. They're attending a gala on Coruscant. One shot. One chance."
+
           - label: "I discovered the Empire's true plans. Someone has to stop them."
-            concept: "driven by knowledge of a terrible Imperial conspiracy"
+            concept: "driven by knowledge of something so terrible it could not be ignored"
             tone: INVESTIGATE
             effects:
-              thread_seed: "You stole classified files about a superweapon project. The Empire calls it the 'Death Star.' The Rebellion doesn't believe you. But the plans in your datapad prove it's real."
+              item_seed:
+                id: item-stolen-imperial-intel
+                type: document
+              alignment_nudge:
+                light_dark: 3
+              thread_seed: "You stole classified files about a superweapon project. The Rebellion doesn't believe you yet. But the plans in your datapad prove it's real."

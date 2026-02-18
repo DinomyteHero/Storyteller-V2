@@ -1,0 +1,83 @@
+schema_id: storyteller_core
+display_name: "Storyteller Core Stats"
+description: >
+  Default stat system for Storyteller-V2. Five broad competency areas
+  that cover combat effectiveness, social influence, technical skill,
+  covert capability, and general aptitude. Used by the Star Wars Legends
+  and similar action-adventure settings.
+stats:
+  - id: Combat
+    display_name: "Combat"
+    description: "Proficiency with weapons, fighting technique, and tactical awareness."
+    min: 1
+    max: 10
+    default: 2
+    tags: [physical, offensive]
+    narrative_label: "fighting skill"
+
+  - id: Stealth
+    display_name: "Stealth"
+    description: "Ability to move unseen, operate covertly, and avoid detection."
+    min: 1
+    max: 10
+    default: 2
+    tags: [physical, covert]
+    narrative_label: "sneaking ability"
+
+  - id: Charisma
+    display_name: "Charisma"
+    description: "Social influence, persuasion, deception, and emotional intelligence."
+    min: 1
+    max: 10
+    default: 2
+    tags: [social]
+    narrative_label: "social grace"
+
+  - id: Tech
+    display_name: "Tech"
+    description: "Technical aptitude: slicing, mechanics, medicine, and systems operation."
+    min: 1
+    max: 10
+    default: 2
+    tags: [technical]
+    narrative_label: "technical skill"
+
+  - id: General
+    display_name: "General"
+    description: "Catch-all for actions that don't fall neatly into other categories: survival, knowledge, endurance, willpower."
+    min: 1
+    max: 10
+    default: 2
+    tags: [mental, physical]
+    narrative_label: "general aptitude"
+
+  - id: Willpower
+    display_name: "Willpower"
+    description: "Mental fortitude, resistance to fear and coercion, and Force-adjacent resolve."
+    min: 1
+    max: 10
+    default: 2
+    tags: [mental]
+    narrative_label: "inner strength"
+
+  - id: Cunning
+    display_name: "Cunning"
+    description: "Strategic thinking, read-the-room awareness, and finding non-obvious solutions."
+    min: 1
+    max: 10
+    default: 2
+    tags: [mental, social]
+    narrative_label: "cunning"
+
+check_mechanics:
+  base_difficulty: 12
+  stat_scale: 1
+  # Roll formula hint for the Director LLM: roll 2d6 + stat vs difficulty
+  roll_hint: "2d6 + stat vs difficulty"
+  difficulty_labels:
+    trivial: 6
+    easy: 8
+    standard: 12
+    hard: 15
+    very_hard: 18
+    legendary: 22

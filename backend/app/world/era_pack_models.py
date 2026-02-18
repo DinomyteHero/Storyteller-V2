@@ -26,6 +26,10 @@ ALLOWED_SCENE_TYPES: set[str] = {
     "survival",
     "exploration",
     "training",
+    # Phase 5: multi-universe scene types
+    "ritual",
+    "tracking",
+    "social_contract",
 }
 ALLOWED_PATROL_INTENSITY: set[str] = {"low", "medium", "high", "constant", "none"}
 ALLOWED_SERVICES: set[str] = {
@@ -39,6 +43,17 @@ ALLOWED_SERVICES: set[str] = {
     # Extended services (V2.20+)
     "market",
     "cantina",
+    # Phase 4: hub/downtime system
+    "hub",
+    # Phase 5: multi-universe services (fantasy)
+    "inn",
+    "smithy",
+    "guild_hall",
+    "temple",
+    # Phase 5: multi-universe services (cyberpunk)
+    "ripperdoc",
+    "fixer",
+    "netrunner_den",
 }
 _CORE_BYPASS_METHODS: set[str] = {
     # Physical
@@ -59,6 +74,14 @@ _CORE_BYPASS_METHODS: set[str] = {
     "disable",
     # Generic special
     "logic_puzzle",
+    # Phase 5: multi-universe bypass methods (fantasy)
+    "magic",
+    "persuasion",
+    "arcane_lock",
+    "pick_lock",
+    # Phase 5: multi-universe bypass methods (cyberpunk)
+    "netrun",
+    "cyberware",
 }
 
 
@@ -103,6 +126,226 @@ class EraFaction(BaseModel):
     hostility_matrix: Dict[str, int | str] | None = None
     # Flexible extension point: store additional structured metadata without changing the schema.
     metadata: Dict[str, object] = Field(default_factory=dict)
+
+
+# ---------------------------------------------------------------------------
+# Phase 0.1: Species models
+# ---------------------------------------------------------------------------
+
+class EraSpeciesLifespan(BaseModel):
+    """Lifespan data for a species, used by era progression (Phase 2.5)."""
+    model_config = ConfigDict(extra="forbid")
+
+    average_years: int = 80
+    max_years: int = 120
+    life_stage_thresholds: Dict[str, int] = Field(
+        default_factory=lambda: {"youth": 18, "prime": 35, "veteran": 55, "elder": 75}
+    )
+
+
+class EraSpecies(BaseModel):
+    """A playable species/race in an era pack."""
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    name: str
+    description: str = ""
+    cultural_notes: str = ""
+    common_homeworlds: List[str] = Field(default_factory=list)
+    typical_traits: List[str] = Field(default_factory=list)
+    stat_bonus: Dict[str, int] = Field(default_factory=dict)
+    narrative_hooks: List[str] = Field(default_factory=list)
+    appearance_traits: Dict[str, List[str]] = Field(default_factory=dict)
+    lifespan: EraSpeciesLifespan | None = None
+    lore_tags: List[str] = Field(default_factory=list)
+    metadata: Dict[str, object] = Field(default_factory=dict)
+
+
+# ---------------------------------------------------------------------------
+# Phase 1.1: Location atmosphere / time variant / points of interest
+# ---------------------------------------------------------------------------
+
+class LocationAtmosphere(BaseModel):
+    """Sensory/environmental atmosphere for a location."""
+    model_config = ConfigDict(extra="forbid")
+
+    lighting: str | None = None           # "dim", "bright", "neon", "firelit", "flickering"
+    ambient_sounds: List[str] = Field(default_factory=list)
+    smell: str | None = None
+    crowd_density: str | None = None      # "empty", "sparse", "busy", "packed"
+    mood: str | None = None               # "tense", "festive", "mournful", "hostile"
+
+
+class LocationTimeVariant(BaseModel):
+    """How a location differs at different times of day."""
+    model_config = ConfigDict(extra="forbid")
+
+    time_of_day: str                      # "dawn", "day", "dusk", "night"
+    description_override: str = ""
+    security_modifier: int = 0            # added to security.security_level
+    services_override: List[str] = Field(default_factory=list)
+
+
+class LocationPointOfInterest(BaseModel):
+    """A notable interactive element within a location."""
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    name: str
+    description: str = ""
+    interaction_tags: List[str] = Field(default_factory=list)  # "loot", "info", "hazard", "quest"
+
+
+# ---------------------------------------------------------------------------
+# Phase 1.2: Quest path consequences
+# ---------------------------------------------------------------------------
+
+class QuestPathConsequence(BaseModel):
+    """Consequences for a specific resolution path through a quest."""
+    model_config = ConfigDict(extra="allow")
+
+    path_id: str                                    # e.g. "paragon_path", "renegade_path"
+    reputation_delta: Dict[str, int] = Field(default_factory=dict)
+    alignment_delta: Dict[str, int] = Field(default_factory=dict)   # light_dark, paragon_renegade
+    world_mutation: str | None = None               # free text: e.g. "Cantina destroyed"
+    companion_reactions: Dict[str, str] = Field(default_factory=dict)  # comp_id -> "approves|disapproves|neutral"
+    unlocked_quest_ids: List[str] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Phase 1.3: NPC relationship webs
+# ---------------------------------------------------------------------------
+
+class NpcRelationship(BaseModel):
+    """A directional relationship between two NPCs."""
+    model_config = ConfigDict(extra="forbid")
+
+    target_npc_id: str
+    relationship_type: str   # "ally", "rival", "family", "employer", "employee", "enemy", "contact"
+    strength: int = 50       # 0-100
+    notes: str = ""
+
+
+# ---------------------------------------------------------------------------
+# Phase 1.4: Item models
+# ---------------------------------------------------------------------------
+
+class EraItemMechanics(BaseModel):
+    """Mechanical effects of an item."""
+    model_config = ConfigDict(extra="forbid")
+
+    difficulty_modifier: int = 0          # shifts check DC when item is used
+    stat_bonus: Dict[str, int] = Field(default_factory=dict)
+    weight_class: str = "light"           # "light", "medium", "heavy"
+    consumable: bool = False
+    uses: int | None = None               # None = unlimited
+    skill_requirement: str | None = None  # e.g. "Tech >= 3"
+
+
+class EraItem(BaseModel):
+    """An item that can appear in player inventory or world loot."""
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    name: str
+    description: str = ""
+    type: str                              # "weapon", "armor", "tool", "consumable", "document", "key"
+    rarity: str = "common"                # "common", "uncommon", "rare", "legendary"
+    mechanics: EraItemMechanics = Field(default_factory=EraItemMechanics)
+    value: int = 0                         # credits / gold
+    tags: List[str] = Field(default_factory=list)
+    discoverable_at: List[str] = Field(default_factory=list)  # location_ids
+    metadata: Dict[str, object] = Field(default_factory=dict)
+
+
+# ---------------------------------------------------------------------------
+# Phase 1.5: Moment models (BioWare-style narrative beats)
+# ---------------------------------------------------------------------------
+
+class EraMomentTrigger(BaseModel):
+    """Conditions that must be met for a moment to fire."""
+    model_config = ConfigDict(extra="forbid")
+
+    companion_id: str | None = None
+    affinity_threshold: int | None = None        # companion affinity >= this
+    arc_stage: str | None = None                  # "SETUP", "RISING", "CLIMAX", "RESOLUTION"
+    turn_number_min: int | None = None
+    location_tags_any: List[str] = Field(default_factory=list)
+    quest_id_completed: str | None = None
+    alignment_min: Dict[str, int] = Field(default_factory=dict)   # e.g. {"light_dark": 5}
+
+
+class EraMoment(BaseModel):
+    """A triggered narrative beat — companion conversation, callback, emotional scene."""
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    title: str
+    description: str = ""
+    trigger: EraMomentTrigger = Field(default_factory=EraMomentTrigger)
+    narrative_beat: str = ""       # injected into Director's instructions when fired
+    once_only: bool = True         # default: fire at most once per campaign
+    companion_reaction: str | None = None
+    alignment_delta: Dict[str, int] = Field(default_factory=dict)
+    tags: List[str] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Phase 1.6: Codex entry models
+# ---------------------------------------------------------------------------
+
+class EraCodexEntry(BaseModel):
+    """A discoverable lore entry — unlocked as players encounter relevant content."""
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    title: str
+    category: str        # "person", "place", "faction", "event", "technology", "force", "history"
+    body: str            # 1-3 paragraph lore text
+    spoiler_tier: int = 0              # 0=always visible, 1-3=progressive unlock
+    unlock_conditions: str | None = None  # e.g. "arc_stage >= RISING" or "quest:q-ghosts:resolved"
+    related_npc_ids: List[str] = Field(default_factory=list)
+    related_location_ids: List[str] = Field(default_factory=list)
+    lore_chunk_tags: List[str] = Field(default_factory=list)    # match RAG chunk tags for auto-unlock
+    canon_weight: float = 1.0                                    # 0.0-1.0; used in Phase 3 enrichment
+    metadata: Dict[str, object] = Field(default_factory=dict)
+
+
+# ---------------------------------------------------------------------------
+# Phase 0.3: BackgroundChoiceEffect sub-models
+# ---------------------------------------------------------------------------
+
+class AlignmentNudge(BaseModel):
+    """Alignment adjustment from a background question choice."""
+    model_config = ConfigDict(extra="forbid")
+
+    light_dark: int = 0         # positive = light side, negative = dark side
+    paragon_renegade: int = 0   # positive = paragon, negative = renegade
+
+
+class PsychSeed(BaseModel):
+    """Psychological state seeds from character creation."""
+    model_config = ConfigDict(extra="forbid")
+
+    active_trauma: str | None = None   # e.g. "loss_of_home", "collateral_guilt"
+    stress_level: int = 0              # -10 to +10 delta (negative = calmer start)
+
+
+class NpcSeed(BaseModel):
+    """An NPC to introduce based on background choice."""
+    model_config = ConfigDict(extra="forbid")
+
+    role: str               # "mentor", "rival", "ally", "contact", "enemy"
+    relationship: str       # "trusted", "antagonistic", "complicated", "distant"
+    faction: str | None = None
+
+
+class ItemSeed(BaseModel):
+    """An item to add to starting inventory based on background choice."""
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    type: str               # "weapon", "tool", "document", "key"
 
 
 class EraLocationSecurity(BaseModel):
@@ -195,7 +438,11 @@ class EraLocation(BaseModel):
     encounter_table: List[EraEncounterEntry] = Field(default_factory=list)
     keywords: List[str] = Field(default_factory=list)
     travel_links: List[EraTravelLink] = Field(default_factory=list)
-    # Flexible extension point: e.g., coordinates, population, economy, points_of_interest.
+    # Phase 1.1: atmosphere, time variants, points of interest
+    atmosphere: LocationAtmosphere | None = None
+    time_variants: List[LocationTimeVariant] = Field(default_factory=list)
+    points_of_interest: List[LocationPointOfInterest] = Field(default_factory=list)
+    # Flexible extension point: e.g., coordinates, population, economy.
     metadata: Dict[str, object] = Field(default_factory=dict)
 
     @field_validator("travel_links", mode="before")
@@ -377,6 +624,8 @@ class EraNpcEntry(BaseModel):
     levers: NpcLevers = Field(default_factory=NpcLevers)
     authority: NpcAuthority = Field(default_factory=NpcAuthority)
     knowledge: NpcKnowledge = Field(default_factory=NpcKnowledge)
+    # Phase 1.3: NPC relationship webs
+    relationships: List[NpcRelationship] = Field(default_factory=list)
     metadata: Dict[str, object] = Field(default_factory=dict)
 
 
@@ -414,10 +663,19 @@ class BackgroundChoiceEffect(BaseModel):
     """Effects applied when a background question choice is selected."""
     model_config = ConfigDict(extra="allow")
 
+    # Existing fields (V2)
     faction_hint: str | None = None
     location_hint: str | None = None
     thread_seed: str | None = None
     stat_bonus: Dict[str, int] = Field(default_factory=dict)
+    # Phase 0.3: enriched effect fields
+    alignment_nudge: AlignmentNudge | None = None
+    psych_seed: PsychSeed | None = None
+    npc_seed: NpcSeed | None = None
+    item_seed: ItemSeed | None = None
+    quest_seed: str | None = None                                  # quest_id to activate at start
+    companion_affinity_bonus: List[Dict[str, Any]] = Field(default_factory=list)  # [{comp_id: delta}]
+    reputation_bonus: Dict[str, int] = Field(default_factory=dict)
 
 
 class BackgroundChoice(BaseModel):
@@ -442,7 +700,7 @@ class BackgroundQuestion(BaseModel):
 
 
 class EraBackground(BaseModel):
-    """A selectable character background within an era pack."""
+    """A selectable character background / class-archetype within an era pack."""
     model_config = ConfigDict(extra="forbid")
 
     id: str
@@ -455,6 +713,12 @@ class EraBackground(BaseModel):
     starting_starship: str | None = None
     # V2.10: Optional starting faction reputation modifiers
     starting_reputation: Dict[str, int] = Field(default_factory=dict)
+    # Phase 0.2: class/archetype elevation fields
+    tagline: str | None = None             # short flavor line for UI, e.g. "Fast ship, faster mouth"
+    starting_abilities: List[str] = Field(default_factory=list)    # e.g. ["force_sense", "fast_talk"]
+    story_archetype: str | None = None     # "hero", "rogue", "scholar", "trickster", "reluctant_hero"
+    prologue_scenario: str | None = None   # seed description for PrologueScreenplayAgent
+    narrative_tone: str | None = None      # "gritty", "heroic", "noir", "contemplative"
 
 
 class EraMetersBounds(BaseModel):
@@ -514,7 +778,9 @@ class EraQuest(BaseModel):
     description: str = ""
     entry_conditions: Any | None = None
     stages: List[EraQuestStage] = Field(default_factory=list)
-    consequences: Any | None = None
+    consequences: Any | None = None                                         # legacy
+    # Phase 1.2: per-path consequences
+    path_consequences: List[QuestPathConsequence] = Field(default_factory=list)
 
 
 class EraEvent(BaseModel):
@@ -682,6 +948,14 @@ class EraPack(BaseModel):
     setting_name: str | None = None
     # V3.2: Universe rules — all setting-specific text for agent prompts
     setting_rules: SettingRules = Field(default_factory=SettingRules)
+    # Phase 0.1: species catalog
+    species: List[EraSpecies] = Field(default_factory=list)
+    # Phase 1.4: item catalog
+    items: List[EraItem] = Field(default_factory=list)
+    # Phase 1.5: moments (BioWare-style narrative beats)
+    moments: List[EraMoment] = Field(default_factory=list)
+    # Phase 1.6: codex (discoverable lore entries)
+    codex: List[EraCodexEntry] = Field(default_factory=list)
     metadata: Dict[str, object] = Field(default_factory=dict)
 
     def all_npcs(self) -> List[EraNpcEntry]:
@@ -818,6 +1092,26 @@ class EraPack(BaseModel):
                 for fid in t.knowledge.secrets or []:
                     if fid not in fact_ids:
                         _check_ref(False, f"npc_template[{t.id}].knowledge.secrets references missing fact id: {fid}")
+
+        # Phase 1.3: NPC relationship target refs (warn only — target may be in another pack)
+        all_npc_ids = {npc.id for npc in self.all_npcs()}
+        for npc in self.all_npcs():
+            for rel in npc.relationships or []:
+                if rel.target_npc_id not in all_npc_ids:
+                    import logging
+                    logging.getLogger(__name__).warning(
+                        f"npc[{npc.id}].relationships references npc id not in pack: {rel.target_npc_id}"
+                    )
+
+        # Phase 1.5: moment companion refs (warn only)
+        companion_ids = {c.id for c in self.companions or []}
+        for moment in self.moments or []:
+            if moment.trigger and moment.trigger.companion_id:
+                if moment.trigger.companion_id not in companion_ids:
+                    import logging
+                    logging.getLogger(__name__).warning(
+                        f"moment[{moment.id}].trigger.companion_id references unknown companion: {moment.trigger.companion_id}"
+                    )
 
         return self
 

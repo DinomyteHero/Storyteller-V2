@@ -1,0 +1,78 @@
+- id: lords_alliance
+  name: Lords' Alliance
+  tags:
+    - political
+    - lawful
+    - city
+  goals:
+    - Maintain stability and the political order of the Sword Coast.
+    - Coordinate defense of major cities against external threats.
+  metadata:
+    description: >
+      A coalition of rulers from Faerûn's major cities united by mutual self-interest.
+      They maintain order on the Sword Coast and sponsor adventurers to deal with threats
+      they prefer not to address openly.
+    headquarters: Waterdeep
+
+- id: harpers
+  name: The Harpers
+  tags:
+    - secret
+    - neutral
+    - magical
+  goals:
+    - Preserve balance of power; protect the innocent from tyranny.
+    - Gather and preserve knowledge against future catastrophes.
+  metadata:
+    description: >
+      A secretive network of spellcasters and spies who work to preserve knowledge and
+      prevent any single power from dominating Faerûn.
+    headquarters: Twilight Hall, Berdusk
+
+- id: zhentarim
+  name: Zhentarim
+  tags:
+    - criminal
+    - mercenary
+    - chaotic
+  goals:
+    - Expand influence and monopolize trade across Faerûn.
+    - Eliminate rivals; acquire power and wealth by any means.
+  hostility_matrix:
+    harpers: -80
+    order_gauntlet: -60
+  metadata:
+    description: >
+      A mercenary organization that presents itself as a legitimate merchant company,
+      while operating a shadow network of smugglers, assassins, and agents.
+    headquarters: Zhentil Keep (historical); scattered safe houses
+
+- id: order_gauntlet
+  name: Order of the Gauntlet
+  tags:
+    - religious
+    - lawful
+    - military
+  goals:
+    - Destroy evil wherever it is found.
+    - Protect the innocent; honor the gods of justice and good.
+  metadata:
+    description: >
+      A devout order of paladins and clerics dedicated to smiting evil and protecting
+      the innocent. They act decisively without much patience for politics or subtlety.
+    headquarters: Elturgard
+
+- id: emerald_enclave
+  name: Emerald Enclave
+  tags:
+    - nature
+    - druidic
+    - neutral
+  goals:
+    - Preserve the natural order and balance of wild places.
+    - Combat undead and planar intrusions that corrupt nature.
+  metadata:
+    description: >
+      A widespread group of wilderness druids and rangers who maintain the balance
+      between civilization and the natural world.
+    headquarters: Scattered groves and wilderness strongholds

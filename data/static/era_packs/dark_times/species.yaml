@@ -1,0 +1,222 @@
+species:
+  - id: human
+    name: Human
+    description: >
+      The galaxy's most adaptable species. Found on every world, in every faction,
+      on every side of every conflict. What humans lack in natural ability they make
+      up for in sheer stubbornness and ambition.
+    cultural_notes: >
+      Humans dominate the Empire and form the backbone of the Rebellion. Core
+      Worlders tend toward formality and Imperial sympathies; Outer Rim humans are
+      rougher, more independent, and less likely to trust authority.
+    common_homeworlds:
+      - Coruscant
+      - Corellia
+      - Tatooine
+      - Alderaan
+    typical_traits:
+      - adaptable
+      - ambitious
+      - stubborn
+    stat_bonus: {}
+    narrative_hooks:
+      - "Easily blends into any crowd — no species prejudice works against them, or for them"
+      - "The Empire's preference for humans makes them invisible in Imperial space"
+    appearance_traits:
+      hair: [black, brown, blonde, red, gray, white, bald]
+      build: [slight, average, stocky, tall, imposing]
+      skin: [pale, tan, brown, dark]
+    lifespan:
+      average_years: 80
+      max_years: 120
+      life_stage_thresholds:
+        youth: 18
+        prime: 35
+        veteran: 55
+        elder: 75
+    lore_tags: [humanoid, imperial_species, common]
+
+  - id: twi_lek
+    name: "Twi'lek"
+    description: >
+      Graceful, colorful, and survivors above all else. Centuries of enslavement
+      and exploitation have made Twi'leks resourceful, charming, and deeply
+      distrustful of promises. Many are far from home — by choice or by force.
+    cultural_notes: >
+      Ryloth's clan-based society values community and survival. Many Twi'leks
+      in the wider galaxy carry the weight of discrimination while masking it
+      with charm. Their lekku communicate emotions non-verbally — a hidden
+      language most humans never learn to read.
+    common_homeworlds:
+      - Ryloth
+    typical_traits:
+      - charismatic
+      - resilient
+      - perceptive
+    stat_bonus:
+      Charisma: 1
+    narrative_hooks:
+      - "Lekku body language adds unspoken subtext to every conversation"
+      - "Other species underestimate Twi'leks — a useful weapon in negotiation"
+      - "Imperial 'comfort industry' makes many Twi'leks objects of suspicion or pity"
+    appearance_traits:
+      skin_color: [blue, green, red, orange, pale, purple, yellow, pink]
+      lekku_style: [draped, wrapped, adorned, short, long]
+    lifespan:
+      average_years: 90
+      max_years: 140
+      life_stage_thresholds:
+        youth: 18
+        prime: 30
+        veteran: 55
+        elder: 75
+    lore_tags: [humanoid, alien, ryloth, common]
+
+  - id: wookiee
+    name: Wookiee
+    description: >
+      Seven feet of loyalty, rage, and mechanical genius. Wookiees remember
+      every debt and every wrong — sometimes for centuries. The Imperial
+      enslavement of Kashyyyk has turned their species' quiet fury into
+      something dangerous and justified.
+    cultural_notes: >
+      Kashyyyk's wroshyr-tree cities bred a species that values honor above
+      life. A Wookiee life debt is absolute. Most other species can't understand
+      Shyriiwook — a translator, or patience, is required. The Empire's
+      enslavement of their homeworld makes every stormtrooper a personal enemy.
+    common_homeworlds:
+      - Kashyyyk
+    typical_traits:
+      - loyal
+      - fierce
+      - mechanically gifted
+      - long memory
+    stat_bonus:
+      Combat: 1
+    narrative_hooks:
+      - "Most species can't understand Shyriiwook without a translator"
+      - "Imperial enslavement of Kashyyyk is a constant, personal wound"
+      - "A Wookiee life debt reshapes every relationship it touches"
+    appearance_traits:
+      fur_color: [brown, black, auburn, gray, white, silver]
+      height: [tall, very_tall, towering]
+    lifespan:
+      average_years: 400
+      max_years: 600
+      life_stage_thresholds:
+        youth: 30
+        prime: 80
+        veteran: 200
+        elder: 350
+    lore_tags: [humanoid, alien, kashyyyk, enslaved_species]
+
+  - id: zabrak
+    name: Zabrak
+    description: >
+      Horned, tattooed, and iron-willed. Zabrak were among the first to resist
+      Imperial occupation of their homeworld Iridonia. They carry physical and
+      cultural scarification as marks of identity and endurance. Dathomir's
+      Zabrak branch is steeped in dark side tradition.
+    cultural_notes: >
+      Zabraks view pain as a teacher. Facial tattoos mark life milestones;
+      the pattern tells their story. They are fiercely independent — the
+      Empire's attempts to domesticate them have consistently failed.
+    common_homeworlds:
+      - Iridonia
+      - Dathomir
+    typical_traits:
+      - determined
+      - pain-resistant
+      - independent
+    stat_bonus:
+      Willpower: 1
+    narrative_hooks:
+      - "Facial tattoos mark their history — each pattern tells a story"
+      - "Renowned for refusing to submit, even when submission would be wiser"
+    appearance_traits:
+      horn_pattern: [single_crown, dual_row, scattered, minimal]
+      tattoo_style: [geometric, tribal, minimal, full_face]
+      skin: [tan, brown, pale, reddish, dark]
+    lifespan:
+      average_years: 80
+      max_years: 110
+      life_stage_thresholds:
+        youth: 16
+        prime: 30
+        veteran: 55
+        elder: 70
+    lore_tags: [humanoid, alien, iridonia, dathomir]
+
+  - id: rodian
+    name: Rodian
+    description: >
+      Green-skinned, multi-eyed hunters from Rodia. Rodians have a cultural
+      obsession with the hunt that translates naturally to bounty hunting,
+      tracking, and survival skills. They are common throughout the Outer Rim's
+      criminal ecosystem — both as operators and as prey.
+    cultural_notes: >
+      Rodian society glorifies the hunt above all else. Status is measured in
+      kills and captures, not credits. Many Rodians who leave Rodia find that
+      their instincts translate well to the galaxy's many violent professions,
+      though others struggle with the ethics of what they were raised to do.
+    common_homeworlds:
+      - Rodia
+    typical_traits:
+      - perceptive
+      - patient
+      - hunter's instinct
+    stat_bonus:
+      Stealth: 1
+    narrative_hooks:
+      - "Multi-faceted eyes give exceptional peripheral vision and tracking ability"
+      - "Cultural hunter's ethic creates tension when prey deserves mercy"
+    appearance_traits:
+      skin_color: [green, blue-green, teal, lime]
+      eye_color: [black, orange, yellow, red]
+      snout_style: [short, elongated, flat]
+    lifespan:
+      average_years: 75
+      max_years: 100
+      life_stage_thresholds:
+        youth: 15
+        prime: 28
+        veteran: 50
+        elder: 65
+    lore_tags: [humanoid, alien, rodia, outer_rim]
+
+  - id: bothan
+    name: Bothan
+    description: >
+      Short, fur-covered intelligence brokers whose fur ripples involuntarily
+      with emotion — a gift for reading rooms, a curse for keeping secrets.
+      Bothans run the most sophisticated spy network in the galaxy. Information
+      is their currency, their weapon, and their religion.
+    cultural_notes: >
+      Bothan politics are a bloodsport of shifting alliances, whispered deals,
+      and strategic leaks. "Many Bothans died" is no mere expression — their
+      spy network sends operatives on missions with explicit acknowledgement
+      that survival is secondary to the intelligence. They back both sides of
+      conflicts, ensuring they're essential to whoever wins.
+    common_homeworlds:
+      - Bothawui
+    typical_traits:
+      - cunning
+      - information-hungry
+      - politically adept
+    stat_bonus:
+      Cunning: 1
+    narrative_hooks:
+      - "Fur ripples betray emotion involuntarily — readable by those who know the signs"
+      - "Bothan Spynet has contacts everywhere; the question is what they want in return"
+    appearance_traits:
+      fur_color: [gray, brown, tan, black, mixed]
+      build: [slight, wiry, average]
+    lifespan:
+      average_years: 85
+      max_years: 110
+      life_stage_thresholds:
+        youth: 16
+        prime: 30
+        veteran: 55
+        elder: 72
+    lore_tags: [humanoid, alien, bothawui, intelligence, spy_network]

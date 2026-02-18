@@ -1,0 +1,235 @@
+codex:
+  # -----------------------------------------------------------------------
+  # Always-visible foundational lore (spoiler_tier: 0)
+  # -----------------------------------------------------------------------
+  - id: codex-order-66
+    title: "Order 66"
+    category: event
+    body: >
+      Order 66 was a preprogrammed command embedded in the inhibitor chips of
+      every clone trooper. When Chancellor Palpatine issued the order on the
+      day the Republic died, clone troopers across the galaxy turned on their
+      Jedi commanders mid-battle with no warning and no hesitation.
+
+
+      Of the ten thousand Jedi in the Order, fewer than a hundred are believed
+      to have survived. Most died within hours — cut down by soldiers they had
+      fought beside for years, in the field, in their temples, in the middle
+      of sentences.
+
+
+      The Order 66 survivors live with a specific kind of grief: not just
+      loss, but betrayal by people who had no choice. The clones were victims
+      too. That knowledge doesn't make the grief smaller.
+    spoiler_tier: 0
+    unlock_conditions: null
+    related_npc_ids: []
+    related_location_ids: []
+    lore_chunk_tags: [order_66, jedi_purge, clone_wars, empire_founding]
+    canon_weight: 1.0
+
+  - id: codex-the-empire
+    title: "The Galactic Empire"
+    category: faction
+    body: >
+      The Galactic Empire was born from the ruins of the Republic in 19 BBY,
+      when Supreme Chancellor Sheev Palpatine — secretly the Sith Lord Darth
+      Sidious — declared a New Order before the Senate to thunderous applause.
+      Senator Padme Amidala's words were prophetic: "So this is how liberty
+      dies — with thunderous applause."
+
+
+      The Empire rules through fear, bureaucracy, and selective brutality.
+      Its military presence is felt everywhere: Star Destroyers patrol
+      hyperspace lanes, stormtroopers garrison occupied worlds, and the
+      Imperial Security Bureau monitors dissent with merciless efficiency.
+      Alien species face systematic discrimination; many are enslaved.
+
+
+      The Emperor himself is rarely seen. His will is enforced through
+      regional Moffs, the Imperial military hierarchy, and the Inquisitors —
+      former Jedi twisted to serve the dark side. The dark times are the
+      Empire's most confident years: opposition is fragmented, the Jedi are
+      gone, and most citizens have accepted that this is simply how things are.
+    spoiler_tier: 0
+    unlock_conditions: null
+    related_npc_ids: []
+    related_location_ids: [loc-imperial_garrison]
+    lore_chunk_tags: [galactic_empire, imperial_rule, palpatine, new_order]
+    canon_weight: 1.0
+
+  - id: codex-inquisitors
+    title: "The Inquisitorius"
+    category: faction
+    body: >
+      The Inquisitorius is the Emperor's specialized Jedi-hunting division,
+      commanded by Darth Vader. Its members — simply called "Inquisitors" —
+      are former Jedi who survived Order 66, were captured, and were broken
+      and remade to serve the Empire's will. They use the dark side as a
+      weapon rather than a philosophy.
+
+
+      Inquisitors are identifiable by their red lightsabers, their distinctive
+      armor, and the spinning disc-hilts that allow their weapons to function
+      as gyroscopes. They operate with near-total authority — local Imperial
+      commanders stand aside for them.
+
+
+      An Inquisitor's appearance means someone in the area is Force-sensitive.
+      It means someone is going to be taken, turned, or killed. The wise
+      choice, when an Inquisitor arrives, is to be very far away and to have
+      never existed.
+    spoiler_tier: 0
+    unlock_conditions: null
+    related_npc_ids: []
+    related_location_ids: []
+    lore_chunk_tags: [inquisitors, jedi_hunters, dark_side, vader, empire]
+    canon_weight: 1.0
+
+  # -----------------------------------------------------------------------
+  # Tier 1: Unlocked through early play
+  # -----------------------------------------------------------------------
+  - id: codex-darth-vader
+    title: "Darth Vader"
+    category: person
+    body: >
+      Darth Vader is the Emperor's enforcer — the dark side's arm made flesh
+      and metal. Behind the mask is Anakin Skywalker, once the Jedi Order's
+      most gifted Knight and the Chosen One of prophecy. What remains of
+      Anakin Skywalker is unclear. What is certain is that Darth Vader serves
+      the Emperor with absolute dedication.
+
+
+      Vader is not simply a military commander. He is a statement: what happens
+      to those who challenge the Emperor's order. He crushed the Jedi leadership
+      personally. He hunts Force-sensitives with a focus that the Inquisitors
+      mimic but cannot match. His presence in a sector means someone powerful
+      has decided that sector requires personal attention.
+
+
+      Those who have felt Vader's Force presence describe it as pressure — cold
+      and absolute, like the galaxy itself is leaning on you.
+    spoiler_tier: 1
+    unlock_conditions: "arc_stage >= RISING"
+    related_npc_ids: []
+    related_location_ids: []
+    lore_chunk_tags: [darth_vader, anakin_skywalker, sith, empire, force_user]
+    canon_weight: 1.0
+
+  - id: codex-imperial-security-bureau
+    title: "Imperial Security Bureau (ISB)"
+    category: faction
+    body: >
+      The Imperial Security Bureau is the Empire's internal intelligence
+      organization — the one that watches the watchers. Where regular Imperial
+      Intelligence handles external threats, the ISB monitors the Empire
+      itself: dissent within the military, civilian sedition, and ideological
+      deviation.
+
+
+      ISB agents operate across the galaxy with civilian cover identities,
+      embedded in communities, businesses, and even other Imperial branches.
+      They report directly to ISB command, bypassing local military authority.
+      Arrest authority is absolute; due process is a courtesy they extend only
+      when it's useful.
+
+
+      The ISB's most feared tool isn't interrogation — it's the dossier. Once
+      the ISB has a file on someone, that file doesn't close. They are patient,
+      thorough, and almost impossible to permanently deceive. They don't arrest
+      everyone they suspect. They wait. They accumulate evidence. Then they act
+      all at once.
+    spoiler_tier: 1
+    unlock_conditions: "turn_number >= 5"
+    related_npc_ids: []
+    related_location_ids: [loc-imperial_garrison]
+    lore_chunk_tags: [isb, imperial_intelligence, surveillance, empire]
+    canon_weight: 1.0
+
+  - id: codex-the-force
+    title: "The Force"
+    category: force
+    body: >
+      The Force is an energy field generated by all living things, binding
+      the galaxy together. Jedi and Sith traditions disagree about its nature —
+      whether it is a tool, a relationship, a living entity, or a path. What
+      is agreed: it is real, it is vast, and most people will never feel it.
+
+
+      With the Jedi Order destroyed, knowledge of the Force is fragmented.
+      What remains is myth, rumor, fear, and the occasional surviving Force
+      user trying to understand what they carry without a teacher. The dark
+      side is seductive because it is immediate — pain, anger, and fear
+      translate directly into power. The light side asks for patience,
+      restraint, and connection. In the dark times, the light side asks for
+      a lot.
+
+
+      Force-sensitive individuals in this era face a choice the old Order
+      never anticipated: learn in secret without guidance, risk seeking out
+      dangerous remnants of the old traditions, or bury the ability and hope
+      the Inquisitors never notice.
+    spoiler_tier: 1
+    unlock_conditions: "background_id == force_sensitive_exile"
+    related_npc_ids: []
+    related_location_ids: []
+    lore_chunk_tags: [the_force, jedi, sith, force_sensitive, dark_times]
+    canon_weight: 1.0
+
+  # -----------------------------------------------------------------------
+  # Tier 2: Unlocked through specific quests or locations
+  # -----------------------------------------------------------------------
+  - id: codex-bothan-spynet
+    title: "The Bothan Spynet"
+    category: faction
+    body: >
+      The Bothan Spynet is the galaxy's most sophisticated independent
+      intelligence network — officially neutral, profoundly mercenary, and
+      genuinely excellent at what they do. Bothans sell information to anyone
+      who can pay: the Rebellion, the Empire, crime syndicates, individual
+      operatives. Their only true loyalty is to the network itself.
+
+
+      Access to Spynet intelligence requires either significant payment or
+      something valuable to trade. Bothans are not impressed by threats or
+      flattery — they've seen everything. They respond to leverage: information
+      the network doesn't have, access they can't otherwise buy, or a
+      sufficiently interesting problem.
+
+
+      What they won't do is lie about what they have. A Bothan intelligence
+      broker who gives you wrong information loses their reputation; reputation
+      is the currency the entire network runs on.
+    spoiler_tier: 2
+    unlock_conditions: "quest:q-first-contact:completed"
+    related_npc_ids: []
+    related_location_ids: []
+    lore_chunk_tags: [bothan_spynet, intelligence, rebellion, neutral_parties]
+    canon_weight: 1.0
+
+  - id: codex-jedi-ruins
+    title: "Jedi Order Ruins"
+    category: place
+    body: >
+      In the first years of the Empire, Imperial forces systematically
+      destroyed Jedi temples, training facilities, and archives — not just
+      to eliminate survivors, but to erase the Order from cultural memory.
+      Some were burned. Some were repurposed as Imperial facilities. Some
+      were simply sealed and left as monuments to Imperial power.
+
+
+      What remains in the ruins varies. Holocrons survived in sealed chambers.
+      Artifacts were hidden by fleeing Jedi who never returned. Force-sensitive
+      locations — where the light side of the Force runs deep — cannot be
+      destroyed by blasters or fire; they only grow quieter.
+
+
+      Visiting Jedi ruins is dangerous. The Empire watches known sites.
+      Locals avoid them. And sometimes, something in the ruins responds to
+      someone who can feel the Force — whether they want it to or not.
+    spoiler_tier: 2
+    unlock_conditions: "location_visited:jedi_ruins"
+    related_npc_ids: []
+    related_location_ids: []
+    lore_chunk_tags: [jedi_ruins, force_nexus, jedi_order, empire_suppression]
+    canon_weight: 1.0

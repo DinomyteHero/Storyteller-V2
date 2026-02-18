@@ -467,7 +467,52 @@ def execute_transition(
     era_summaries.append(summary_text)
     new_ws["era_summaries"] = era_summaries
 
+    # Phase 2.5.2: Update career file
+    career_file = dict(new_ws.get("career_file") or {})
+    if not career_file:
+        career_file = {
+            "starting_era": current_era,
+            "current_era": next_era,
+            "eras_spanned": [current_era],
+            "era_transitions": [],
+            "aging_milestones": [],
+        }
+    else:
+        career_file["current_era"] = next_era
+        eras_spanned = list(career_file.get("eras_spanned") or [])
+        if next_era not in eras_spanned:
+            eras_spanned.append(next_era)
+        career_file["eras_spanned"] = eras_spanned
+
+    arc_consequences = new_ws.get("arc_consequences") or {}
+    career_file.setdefault("era_transitions", []).append({
+        "from_era": current_era,
+        "to_era": next_era,
+        "turn_number": new_ws.get("turn_number", 0),
+        "arc_consequence_snapshot": {
+            "arc_stage_reached": arc_consequences.get("arc_stage_reached", "RESOLUTION"),
+            "resolved_quests": (arc_consequences.get("resolved_quests") or [])[:5],
+            "dangling_hooks": (arc_consequences.get("dangling_hooks") or [])[:3],
+        },
+    })
+    new_ws["career_file"] = career_file
+
     logger.info(
         "Era transition executed: %s -> %s (mode=%s)", current_era, next_era, mode
     )
     return new_ws
+
+
+def initialize_career_file(starting_era: str) -> dict:
+    """Phase 2.5.2: Initialize a career_file for a new campaign.
+
+    Written to world_state_json["career_file"] at campaign creation.
+    Updated at each era transition by execute_transition().
+    """
+    return {
+        "starting_era": starting_era,
+        "current_era": starting_era,
+        "eras_spanned": [starting_era],
+        "era_transitions": [],
+        "aging_milestones": [],
+    }

@@ -604,6 +604,35 @@ def make_commit_node():
                 logger.warning(
                     "Episodic memory store failed (non-fatal): %s", _epi_err
                 )
+
+            # Phase 4.2: Codex discovery — check if lore citations unlock codex entries
+            try:
+                from backend.app.core.codex_discovery import CodexDiscovery  # noqa: E402
+                from backend.app.content.repository import CONTENT_REPOSITORY  # noqa: E402
+                _era_id = (state.get("campaign") or {}).get("time_period") or world_state.get("era_id") or ""
+                _era_id = str(_era_id).strip()
+                _era_pack_for_codex = CONTENT_REPOSITORY.get_pack(_era_id) if _era_id else None
+                if _era_pack_for_codex:
+                    _lore_citations = state.get("lore_citations") or []
+                    _codex_discovery = CodexDiscovery()
+                    _newly_unlocked = _codex_discovery.check_unlocks(
+                        world_state=world_state,
+                        lore_citations=_lore_citations,
+                        era_pack=_era_pack_for_codex,
+                    )
+                    if _newly_unlocked:
+                        # Re-persist world_state with updated unlocked_codex_ids
+                        conn.execute(
+                            "UPDATE campaigns SET world_state_json = ? WHERE id = ?",
+                            (json.dumps(world_state), campaign_id),
+                        )
+                        logger.info(
+                            "Codex: %d entries unlocked this turn: %s",
+                            len(_newly_unlocked), _newly_unlocked,
+                        )
+            except Exception as _codex_err:
+                logger.debug("Codex discovery failed (non-fatal): %s", _codex_err)
+
             conn.commit()
         except Exception as e:
             conn.rollback()
