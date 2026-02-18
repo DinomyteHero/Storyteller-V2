@@ -54,6 +54,7 @@ def retrieve_lore(
     setting_id: str | None = None,
     period_id: str | None = None,
     universe: str | None = None,
+    rule_system_id: str | None = None,
     source_title: str | None = None,
     source_titles: List[str] | None = None,
     chapter_index_min: int | None = None,
@@ -64,7 +65,7 @@ def retrieve_lore(
 ) -> List[dict[str, Any]]:
     """
     Retrieve top-k lore chunks. Filters: era, source_type, time_period, planet, faction, doc_type, section_kind,
-    doc_types (OR list), section_kinds (OR list), characters.
+    doc_types (OR list), section_kinds (OR list), characters, rule_system_id.
     Old DBs missing new columns are handled gracefully (filters skipped, no crash).
     """
     db_path = resolve_vectordb_path(db_path)
@@ -113,6 +114,7 @@ def retrieve_lore(
         setting_id = _safe_filter_token(setting_id)
         period_id = _safe_filter_token(period_id)
         universe = _safe_filter_token(universe)
+        rule_system_id = _safe_filter_token(rule_system_id)
         source_title = _safe_filter_token(source_title)
         safe_doc_types = _safe_filter_tokens(doc_types)
         safe_section_kinds = _safe_filter_tokens(section_kinds)
@@ -126,6 +128,8 @@ def retrieve_lore(
             where_clauses.append(f"period_id = '{_esc(period_id)}'")
         if universe and "universe" in schema_cols:
             where_clauses.append(f"universe = '{_esc(universe)}'")
+        if rule_system_id and "rule_system_id" in schema_cols:
+            where_clauses.append(f"rule_system_id = '{_esc(rule_system_id)}'")
         if "source" in schema_cols:
             if safe_source_titles:
                 parts = [f"source = '{_esc(s)}'" for s in safe_source_titles]
@@ -219,6 +223,7 @@ def retrieve_lore(
             "chapter_title": chapter_title or None,
             "chunk_id": chunk_id,
             "universe": _v("universe") or "",
+            "rule_system_id": _v("rule_system_id") or "",
         }
         out.append({
             "text": _v("text") or "",
@@ -246,7 +251,7 @@ class LoreRetriever:
         warnings: list[str] | None = None,
     ) -> List[dict[str, Any]]:
         """Query lore. filters: {planet, faction, time_period, era, doc_type, section_kind,
-        doc_types (list), section_kinds (list), characters, related_npcs,
+        doc_types (list), section_kinds (list), characters, related_npcs, rule_system_id,
         source_title, source_titles, chapter_index_min, chapter_index_max} (optional).
         characters/related_npcs can be a string or list of strings for contains-match."""
         filters = filters or {}
@@ -269,6 +274,7 @@ class LoreRetriever:
             setting_id=filters.get("setting_id"),
             period_id=filters.get("period_id"),
             universe=filters.get("universe"),
+            rule_system_id=filters.get("rule_system_id"),
             source_title=filters.get("source_title"),
             source_titles=filters.get("source_titles"),
             chapter_index_min=filters.get("chapter_index_min"),

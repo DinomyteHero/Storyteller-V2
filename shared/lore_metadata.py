@@ -41,3 +41,7 @@ def default_characters() -> list:
 
 def default_related_npcs() -> list:
     return []
+
+
+# Default rule system ID used when no setting-specific rule system is configured
+RULE_SYSTEM_ID_DEFAULT = "storyteller_core"

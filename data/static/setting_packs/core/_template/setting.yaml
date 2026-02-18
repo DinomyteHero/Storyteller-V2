@@ -1,0 +1,85 @@
+# {SETTING_DISPLAY_NAME} — Top-Level Setting Definition (Template)
+#
+# INSTRUCTIONS
+# ============
+# 1. Copy this directory to: data/static/setting_packs/core/{setting_id}/
+# 2. Replace all {PLACEHOLDERS} with your universe's values.
+# 3. Create a rule system doc: data/static/rule_systems/{rule_system_id}.md
+#    (copy _template.md and fill in all required sections)
+# 4. Add an entry to data/static/rule_systems/catalog.yaml
+# 5. Create period packs in: data/static/setting_packs/core/{setting_id}/periods/{period_id}/
+#    (or use era_packs/{period_id}/ for legacy layout — both are supported)
+# 6. (Optional) Ingest your setting's lore:
+#    python -m ingestion.ingest_lore \
+#      --input ./data/lore/{setting_id} \
+#      --setting-id {setting_id} --period-id {period_id} \
+#      --rule-system {rule_system_id} --recursive
+# 7. (Optional) Ingest rule system into LanceDB for RAG retrieval:
+#    python -m ingestion.ingest_rules \
+#      --input data/static/rule_systems/{rule_system_id}.md \
+#      --rule-system {rule_system_id} --setting-id {setting_id}
+# 8. DELETE THESE INSTRUCTIONS from your copy.
+
+# ─── Identity ─────────────────────────────────────────────────────────────────
+# setting_id: snake_case identifier, unique across all settings.
+# Must match the directory name: setting_packs/core/{setting_id}/
+setting_id: "{setting_id}"
+
+display_name: "{SETTING_DISPLAY_NAME}"  # Human-readable, shown in UI catalog
+
+# genre: short genre label — used in prompts and catalog display.
+# Examples: "science fantasy", "epic fantasy", "political intrigue", "horror", "cyberpunk"
+genre: "{GENRE}"
+
+# ─── Rule System ──────────────────────────────────────────────────────────────
+# rule_system_id: ID of the rule system document at data/static/rule_systems/{id}.md
+# Must be registered in data/static/rule_systems/catalog.yaml.
+# The ResolutionAgent loads this document to resolve player actions.
+rule_system_id: "{rule_system_id}"
+
+# ─── Periods ─────────────────────────────────────────────────────────────────
+# default_period_id: used when no period is specified (e.g. new campaigns).
+# supported_period_ids: all valid periods for this setting.
+# Each period needs a pack at: setting_packs/core/{setting_id}/periods/{period_id}/
+# OR: era_packs/{period_id}/ (legacy layout — both are supported by the loader).
+default_period_id: "{default_period_id}"
+supported_period_ids:
+  - "{period_id_1}"
+  # - "{period_id_2}"
+  # Add more periods as needed
+
+# ─── Setting-Wide SettingRules Defaults ───────────────────────────────────────
+# These populate the SettingRules model used by Director, Narrator, BiographerAgent,
+# and ResolutionAgent. Individual era packs (era.yaml) can override any field.
+#
+# All fields are optional — defaults fall back to storyteller_core values if omitted.
+setting_rules:
+  # setting_name: used in system prompts ("You are the Narrator for a {setting_name} RPG")
+  setting_name: "{SETTING_DISPLAY_NAME}"
+
+  # setting_genre: used in tone and content generation
+  setting_genre: "{GENRE}"
+
+  # Agent role descriptions — customize for your universe's voice
+  biographer_role: "a biographer for a {SETTING_DISPLAY_NAME} narrative RPG"
+  architect_role: "the World Architect for a {SETTING_DISPLAY_NAME} narrative RPG"
+  director_role: "the Director for an interactive {SETTING_DISPLAY_NAME} story engine"
+  suggestion_style: "a {SETTING_DISPLAY_NAME} narrative RPG"
+
+  # historical_lore_label: how the Narrator refers to canonical source material
+  # Examples: "established Star Wars Legends lore", "Tolkien canon", "GRRM's novels"
+  historical_lore_label: "established {SETTING_DISPLAY_NAME} lore"
+
+  # common_species: list of playable/common species or character types in this universe.
+  # Used by the CharacterCreationAgent and Narrator for NPC casting.
+  common_species:
+    - "{SPECIES_1}"
+    - "{SPECIES_2}"
+    # Add more as needed
+
+  # example_factions: major factions in this universe.
+  # Used by the Director for faction standing display and campaign setup.
+  example_factions:
+    - "{FACTION_1}"
+    - "{FACTION_2}"
+    # Add more as needed
