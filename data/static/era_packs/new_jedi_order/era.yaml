@@ -1,67 +1,107 @@
+# ============================================================
+# new_jedi_order/era.yaml — The New Jedi Order Era Pack Manifest (V6.0 Minimal)
+# ============================================================
+# V6.0: Era packs now contain ONLY what is needed for character creation.
+# Campaign content (NPCs, companions, factions, locations, quests) is generated
+# at setup time by CampaignBibleAgent and stored in campaigns.campaign_bible_json.
+#
+# Files in this directory:
+#   era.yaml       — This manifest (setting rules, metadata, start pool)
+#   backgrounds.yaml — CYOA character backgrounds (required for character creation)
+#   species.yaml   — Playable species + stat bonuses (required for character creation)
+# ============================================================
+
 era_id: NEW_JEDI_ORDER
+schema_version: 3
 style_ref: data/style/era/new_jedi_order_style.md
-schema_version: 2
+
+# Minimal file index — only character creation essentials
 file_index:
   era: era.yaml
-  locations: locations.yaml
-  npcs: npcs.yaml
-  factions: factions.yaml
   backgrounds: backgrounds.yaml
-  namebanks: namebanks.yaml
-  quests: quests.yaml
-  events: events.yaml
-  rumors: rumors.yaml
-  meters: meters.yaml
-  facts: facts.yaml
-  companions: companions.yaml
+  species: species.yaml
+
+# Canonical starting location archetypes — used by BiographerAgent to pick a starting point.
+# CampaignBibleAgent generates rich named versions of these locations for each campaign.
 start_location_pool:
-- loc-cantina
-- loc-bazaar_market
-- loc-safe_house
-- loc-yavin_base
-global_event_templates: []
-travel_graph: []
-default_scene_pacing: {}
+  - loc-cantina
+  - loc-docking-bay
+  - loc-safe-house
+  - loc-refugee-camp
+
 metadata:
   display_name: The New Jedi Order Era
-  time_period: 25-29 ABY (Legends)
+  time_period: 25–29 ABY (Legends)
   calendar_note: The Yuuzhan Vong War period in Legends continuity.
-  summary: A living weapon from beyond the galaxy has arrived. The Yuuzhan Vong carve
-    through known space with biotechnology the Jedi cannot easily read through the
-    Force. Worlds burn, refugees flood safe sectors, and old rivalries collapse under
-    existential threat. The New Jedi Order must redefine duty, sacrifice, and unity
-    to survive a war unlike any before it.
-  tone: Apocalyptic pressure; moral trials; resilient defiance.
+  summary: >
+    A living weapon from beyond the rim of the galaxy has arrived. The Yuuzhan Vong —
+    a species without a presence in the Force — carve through the New Republic with
+    biotechnology that lightsabers cannot easily deflect and Force-users cannot sense.
+    Worlds burn. Refugees flood safe sectors. The New Jedi Order reels from an enemy
+    they cannot feel in the Force. Old rivalries collapse under existential pressure.
+    Security hardliners seize authority as democratic institutions fracture. The heroes
+    of the Rebellion are old now, and some will not survive this war.
+  tone: Apocalyptic pressure; moral trials; resilient defiance; sacrifice and loss.
   key_conflicts:
-  - Galactic Alliance coalition warfare vs. Yuuzhan Vong crusade.
-  - Jedi doctrine under an enemy resistant to traditional Force perception.
-  - Security hardliners vs. civil liberties during total war.
+    - "Galactic Alliance coalition warfare vs. Yuuzhan Vong crusade: total war unlike anything before."
+    - "Jedi doctrine under crisis: an enemy invisible to the Force demands new ways of fighting."
+    - "Security hardliners vs. civil liberties: wartime emergency powers threatening the Republic's soul."
   themes:
-  - Faith and adaptation in the face of the unknown.
-  - Unity across cultures during existential crisis.
-  - What must be preserved when everything else is negotiable.
+    - Faith and adaptation in the face of the unknown — the Force as uncertain guide.
+    - Unity across cultures during existential crisis — old enemies become allies.
+    - What must be preserved when everything else is negotiable.
+
+# Legends timeline reference — used by CampaignBibleAgent to generate era-accurate content.
+legends_timeline:
+  era_start: "25 ABY (Yuuzhan Vong invasion begins)"
+  era_end: "29 ABY (Battle of Coruscant / Fall of Coruscant)"
+  key_events:
+    - "25 ABY: Yuuzhan Vong invade from the Unknown Regions through Helska system"
+    - "25 ABY: Battle of Sernpidal — Chewbacca killed; New Republic shocked into war footing"
+    - "26 ABY: Fall of Dubrillion; Vong advance accelerates across Mid Rim"
+    - "26 ABY: Ithor destroyed by Vong bioweapons — a paradise world annihilated"
+    - "27 ABY: Anakin Solo killed during raid on Myrkr — loss shapes remaining Solo children"
+    - "27 ABY: New Republic Senate fractures; Peace Brigade collaborationists emerge"
+    - "28 ABY: Galactic Alliance formed from New Republic remnants and allied species"
+    - "29 ABY: Fall of Coruscant — Yuuzhan Vong capital world established on Coruscant"
+    - "29 ABY: Jedi siege of Coruscant — turning point of the war"
+  galactic_state: >
+    The Yuuzhan Vong have carved a corridor of destruction through the galaxy's heart.
+    The New Republic has fractured and reformed as the Galactic Alliance, a desperate
+    coalition of surviving governments, military remnants, and even former Imperial
+    factions united against a common threat. Trillions are displaced. Entire ecosystems
+    are consumed and reshaped by Vong terraforming. The Jedi Order, still young and
+    recovering from its own crises, must redefine the Force in the face of an enemy
+    that doesn't exist within it. Every victory costs more than the last.
+  notable_locations:
+    - "Coruscant (taken by Yuuzhan Vong, reshaped as 'Yuuzhan'tar')"
+    - "Mon Calamari (Galactic Alliance capital in exile)"
+    - "Hapes Consortium (isolationist monarchy, reluctant ally)"
+    - "Borleias (key defensive position during Vong advance)"
+    - "Myrkr (site of tragic Jedi strike mission)"
+    - "Zonama Sekot (living planet, key to Vong mystery)"
+    - "Kashyyyk (Wookiee world, fierce resistance against Vong)"
+    - "Ylesia (Peace Brigade collaborationist headquarters)"
+  notable_figures:
+    - "Luke Skywalker (Jedi Grand Master, leading order through existential crisis)"
+    - "Mara Jade Skywalker (Jedi Master, wounded early in war)"
+    - "Jacen Solo (Jedi Knight, philosophical questioning of the Force)"
+    - "Jaina Solo (Jedi ace pilot, 'Sword of the Jedi')"
+    - "Anakin Solo (Jedi Knight, killed at Myrkr)"
+    - "Supreme Overlord Shimrra (Yuuzhan Vong ruler)"
+    - "Admiral Gilad Pellaeon (Imperial commander, Galactic Alliance military)"
+    - "Nom Anor (Vong executor, master of infiltration)"
+
+# V3.2: Universe rules — setting-specific text for agent prompts.
 setting_rules:
-  setting_name: Star Wars Legends
-  setting_genre: science fantasy
-  biographer_role: a biographer for a Star Wars narrative RPG
-  architect_role: the World Architect for a Star Wars narrative RPG
-  director_role: the Director for an interactive Star Wars story engine
-  suggestion_style: a Star Wars KOTOR-style game
-  common_species:
-  - Human
-  - Twi'lek
-  - Rodian
-  - Wookiee
-  - Zabrak
-  - Bothan
-  - Chiss
-  example_factions:
-  - Rebellion
-  - Empire
-  - Hutt Cartel
-  historical_lore_label: established Star Wars Legends lore
-  bypass_methods:
-  - force
-  - force_dark
-  - sith_amulet
-  fallback_background: A traveler in a vast galaxy.
+  setting_name: "Star Wars Legends"
+  setting_genre: "science fantasy"
+  biographer_role: "a biographer for a Star Wars narrative RPG"
+  architect_role: "the World Architect for a Star Wars narrative RPG"
+  director_role: "the Director for an interactive Star Wars story engine"
+  suggestion_style: "a Star Wars KOTOR-style game"
+  common_species: ["Human", "Twi'lek", "Rodian", "Wookiee", "Zabrak", "Bothan", "Chiss"]
+  example_factions: ["Galactic Alliance", "Yuuzhan Vong", "New Jedi Order", "Peace Brigade"]
+  historical_lore_label: "established Star Wars Legends lore"
+  bypass_methods: ["force", "force_dark", "sith_amulet"]
+  fallback_background: "A survivor in a galaxy-wide war with no safe ground."

@@ -1,76 +1,65 @@
 # ============================================================
-# era.yaml -- Era Pack Manifest (TEMPLATE)
+# era.yaml — Era Pack Manifest (TEMPLATE) — V6.0 Minimal
 # ============================================================
 #
 # PURPOSE:
 #   Root manifest file for an era pack. Declares the era ID, schema version,
-#   and indexes all other files. Also defines starting locations, global events,
-#   travel graph, and display metadata.
+#   and the three files needed for character creation. Also defines starting
+#   location archetypes and display metadata.
 #
 # USED BY:
 #   - Era pack loader (backend/app/world/era_pack_loader.py)
-#   - Architect node (campaign setup — reads start_location_pool)
+#   - CampaignBibleAgent (reads start_location_pool, legends_timeline / setting_timeline)
+#   - BiographerAgent (reads start_location_pool, metadata, setting_rules)
 #   - Director & Narrator (reads metadata.tone, metadata.themes for prompt context)
+#
+# V6.0 DESIGN:
+#   Era packs contain ONLY character creation essentials (3 files: era, backgrounds, species).
+#   All campaign content (NPCs, companions, factions, locations, quests) is generated ONCE
+#   at campaign creation by CampaignBibleAgent and stored in campaigns.campaign_bible_json.
+#   This makes adding a new era pack a single afternoon of work instead of months of content.
 #
 # INSTRUCTIONS:
 #   1. Copy this entire _template/ directory to data/static/era_packs/<your_era_key>/
-#   2. Replace "_TEMPLATE" with your era key (UPPERCASE convention: REBELLION, OLD_REPUBLIC, etc.)
-#   3. Fill in metadata, then author the other files
-#   4. Run the test suite to validate cross-references:
-#      python -m pytest backend/tests/ -k "era_pack" -q --tb=short
+#   2. Replace "_TEMPLATE" with your era key (UPPERCASE: REBELLION, OLD_REPUBLIC, etc.)
+#   3. Fill in metadata, legends_timeline (or setting_timeline), and setting_rules
+#   4. Author backgrounds.yaml (CYOA questions) and species.yaml (playable species)
+#   5. Run the test suite: python -m pytest backend/tests/ -k "era_pack" -q --tb=short
 #
 # GOTCHAS:
-#   - file_index keys MUST exactly match: era, locations, npcs, factions, backgrounds,
-#     namebanks, quests, events, rumors, meters, facts, companions
-#   - start_location_pool IDs MUST exist in locations.yaml
+#   - file_index keys MUST exactly match: era, backgrounds, species
+#   - start_location_pool IDs are canonical archetypes (e.g., loc-cantina), NOT specific locations
+#     CampaignBibleAgent will generate named locations based on these archetypes
 #   - era_id should be UPPERCASE by convention (e.g., REBELLION, OLD_REPUBLIC)
-#   - style_ref path is relative to the project root
+#   - style_ref path is relative to the project root (or null)
+#   - For Star Wars Legends settings: use legends_timeline block
+#   - For other settings: use setting_timeline block (different keys, same purpose)
 # ============================================================
 
 # --- REQUIRED: Unique era identifier (UPPERCASE convention) ---
 era_id: _TEMPLATE
 
-# --- Schema version (current: 2) ---
-schema_version: 2
+# --- Schema version (current: 3) ---
+schema_version: 3
 
 # --- Optional: path to a prose style guide for this era ---
 # The Narrator uses this to match tone and vocabulary.
-# style_ref: data/style/my_era_style.md
 style_ref: null
 
 # --- REQUIRED: Maps logical file names to actual filenames ---
-# Every key listed here must have a corresponding .yaml file in this directory.
-# The loader reads these to assemble the full EraPack model.
+# V6.0: Only three files needed for character creation.
 file_index:
   era: era.yaml
-  locations: locations.yaml
-  npcs: npcs.yaml
-  factions: factions.yaml
   backgrounds: backgrounds.yaml
-  namebanks: namebanks.yaml
-  quests: quests.yaml
-  events: events.yaml
-  rumors: rumors.yaml
-  meters: meters.yaml
-  facts: facts.yaml
-  companions: companions.yaml
+  species: species.yaml
 
-# --- REQUIRED: Location IDs eligible as starting positions ---
-# The Architect picks from this pool when creating a new campaign.
-# Each ID must exist in locations.yaml.
+# --- REQUIRED: Canonical location archetypes eligible as starting positions ---
+# These are archetype IDs, not specific named locations.
+# CampaignBibleAgent generates named versions of these for each campaign.
+# Use generic IDs like loc-cantina, loc-tavern, loc-docking-bay, loc-marketplace.
 start_location_pool:
-  - loc-main_hub
-  - loc-secondary_hub
-
-# --- Global event template IDs (usually empty) ---
-# Event IDs that fire globally regardless of location. Referenced from events.yaml.
-global_event_templates: []
-
-# --- Era-level travel connections (usually empty; prefer per-location travel_links) ---
-travel_graph: []
-
-# --- Default scene pacing parameters (usually empty) ---
-default_scene_pacing: {}
+  - loc-main-hub
+  - loc-secondary-hub
 
 # --- Freeform metadata (display info for the frontend and prompt context) ---
 metadata:
@@ -84,8 +73,10 @@ metadata:
   calendar_note: "Brief note about when this era takes place relative to major events."
 
   # summary: 3-5 sentence overview of the era (used in Director/Narrator prompts)
-  # Use single quotes for strings containing em dashes or colons.
-  summary: 'A brief summary of the era. Describe the political landscape, major conflicts, and the state of the galaxy. This text is injected into Director and Narrator prompts to set the tone.'
+  summary: >
+    A brief summary of the era. Describe the political landscape, major conflicts,
+    and the state of the world. This text is injected into Director and Narrator
+    prompts to set the tone.
 
   # tone: short phrase describing the era's emotional register
   tone: "Descriptive tone phrase; e.g., Gritty hope; dark intrigue; mythic grandeur."
@@ -100,10 +91,43 @@ metadata:
     - "Theme one: e.g., Sacrifice and duty."
     - "Theme two: e.g., The cost of power."
 
+# --- Timeline reference block ---
+# Used by CampaignBibleAgent to generate era-accurate campaign content.
+# CHOOSE ONE:
+#
+# For Star Wars Legends settings → use legends_timeline:
+legends_timeline:
+  era_start: "XX BBY/ABY (name of the opening event)"
+  era_end: "XX BBY/ABY (name of the closing event)"
+  key_events:
+    - "XX BBY: Event name — brief description"
+    - "XX BBY: Event name — brief description"
+  galactic_state: >
+    2-3 sentences describing the political/military state of the galaxy at era start.
+    What factions hold power? What is the major threat? Who are the powerless?
+  notable_locations:
+    - "Location Name (brief context)"
+    - "Location Name (brief context)"
+  notable_figures:
+    - "Character Name (role/faction)"
+    - "Character Name (role/faction)"
+
+# For non-Star-Wars settings → replace legends_timeline with setting_timeline:
+# setting_timeline:
+#   era_label: "1492 DR (Year of Three Ships Sailing)"
+#   calendar_system: "Dale Reckoning (DR)"
+#   key_events:
+#     - "XXXX: Event — description"
+#   world_state: >
+#     Political/world state description.
+#   notable_locations:
+#     - "Location Name (context)"
+#   notable_figures:
+#     - "Character Name (role)"
+
 # --- V3.2: Universe rules (SettingRules) ---
 # These fields control all setting-specific text in agent prompts.
-# Fill them in to prevent cross-universe contamination (e.g., no lightsabers in Harry Potter).
-# If omitted, the system defaults to Star Wars Legends values.
+# Fill them in to prevent cross-universe contamination (e.g., no lightsabers in D&D).
 setting_rules:
   # The human-readable name of this setting/universe
   setting_name: "Your Setting Name"
@@ -114,13 +138,13 @@ setting_rules:
   architect_role: "the World Architect for a [Your Setting] narrative RPG"
   director_role: "the Director for an interactive [Your Setting] story engine"
   suggestion_style: "a [Your Setting]-style game"
-  # Common species/races that NPCs can be:
+  # Common species/races that NPCs and players can be:
   common_species: ["Human"]
-  # Major factions used in faction-neutrality prompts:
+  # Major factions — used in faction-neutrality prompts and bible generation:
   example_factions: ["Faction A", "Faction B", "Faction C"]
   # Label for historical lore in HISTORICAL campaign mode:
   historical_lore_label: "established [Your Setting] lore"
-  # Setting-specific bypass methods for access points (e.g., magic, force, potion):
+  # Setting-specific bypass methods for access points (e.g., magic, force, pick_lock):
   bypass_methods: []
   # Fallback background text when character creation fails:
   fallback_background: "A traveler in a vast world."

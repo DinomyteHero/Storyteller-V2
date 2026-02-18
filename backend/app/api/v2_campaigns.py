@@ -30,7 +30,7 @@ from backend.app.core.turn_contract import build_turn_contract
 from backend.app.core.truth_ledger import get_facts, ledger_summary, upsert_facts, record_event
 from backend.app.core.passages.engine import load_episode, render_template, build_choices, apply_choice
 from backend.app.models.events import Event
-from backend.app.core.agents import CampaignArchitect, BiographerAgent
+from backend.app.core.agents import CampaignBibleAgent, BiographerAgent
 from backend.app.core.story_position import (
     canonical_year_label_from_campaign,
     initialize_story_position,
@@ -48,7 +48,7 @@ from backend.app.api.campaign_models import (  # noqa: F401
 )
 from backend.app.api.campaign_setup import (  # noqa: F401
     DEFAULT_LOCATIONS, NPC_CAST,
-    _active_factions_from_era, _location_pool,
+    _location_pool,
     _create_npc_cast, _create_npc_cast_from_skeleton,
     _catalog_items, _resolve_requested_period,
     _is_safe_start_location, _pick_start_location_from_pack,
@@ -215,10 +215,10 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
     time.perf_counter()
     try:
         try:
-            _arch = CampaignArchitect(llm=AgentLLM("architect"))
+            _bible = CampaignBibleAgent(llm=AgentLLM("bible"))
         except Exception as e:
-            logger.warning("Failed to initialize CampaignArchitect with LLM, using fallback: %s", e, exc_info=True)
-            _arch = CampaignArchitect(llm=None)
+            logger.warning("Failed to initialize CampaignBibleAgent with LLM, using fallback: %s", e, exc_info=True)
+            _bible = CampaignBibleAgent(llm=None)
         try:
             _bio = BiographerAgent(llm=AgentLLM("biographer"))
         except Exception as e:
@@ -233,23 +233,16 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         era_for_setup = req_period
         era_pack_for_setup = CONTENT_REPOSITORY.get_content(req_setting, req_period)
         _setting_rules = era_pack_for_setup.setting_rules if (era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules")) else None
-        skeleton = _arch.build(time_period=era_for_setup, themes=body.themes, setting_rules=_setting_rules)
 
-        # Refine era pack if architect resolved a different time_period
-        if not era_for_setup:
-            era_for_setup = skeleton.get("time_period")
-            if era_for_setup:
-                _, era_for_setup, _ = _resolve_requested_period(setting_id=req_setting, period_id=None, time_period=era_for_setup)
-                era_pack_for_setup = CONTENT_REPOSITORY.get_content(req_setting, era_for_setup)
-                _setting_rules = era_pack_for_setup.setting_rules if (era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules")) else _setting_rules
+        # V6.0: Use era pack's canonical start_location_pool for biographer (no locations.yaml needed).
         available_locations = (
-            [loc.id for loc in (era_pack_for_setup.locations or [])]
-            if (era_pack_for_setup and era_pack_for_setup.locations)
-            else skeleton.get("locations")
+            list(era_pack_for_setup.start_location_pool)
+            if (era_pack_for_setup and era_pack_for_setup.start_location_pool)
+            else DEFAULT_LOCATIONS
         )
         character_sheet = _bio.build(
             body.player_concept,
-            skeleton.get("time_period"),
+            era_for_setup,
             available_locations=available_locations,
             setting_rules=_setting_rules,
         )
@@ -275,8 +268,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
 
         campaign_id = str(uuid.uuid4())
         player_id = str(uuid.uuid4())
-        title = skeleton.get("title", "New Campaign")
-        time_period = skeleton.get("time_period")
+        time_period = era_for_setup
 
         # Extract character info early (needed for NPC generation)
         name = character_sheet.get("name", "Hero")
@@ -284,49 +276,44 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         hp_current = int(character_sheet.get("hp_current", 10))
         starting_location = character_sheet.get("starting_location", "loc-cantina")
 
-        # Starting location override / randomization (use era pack if available)
-        if era_pack_for_setup and era_pack_for_setup.locations:
+        # V6.0: Generate the campaign bible — full screenplay bible tailored to this player.
+        # Runs after biographer so we can pass the character sheet for richer context.
+        era_metadata = (
+            era_pack_for_setup.metadata if (era_pack_for_setup and era_pack_for_setup.metadata) else {}
+        )
+        bible_dict = _bible.build(
+            player_concept=body.player_concept or "",
+            time_period=time_period,
+            character_sheet=character_sheet,
+            setting_rules=_setting_rules,
+            themes=body.themes,
+            era_metadata=dict(era_metadata) if era_metadata else {},
+        )
+        title = bible_dict.get("campaign_title", "New Campaign")
+
+        # Starting location override / randomization (use canonical pool — no locations.yaml needed)
+        if era_pack_for_setup and era_pack_for_setup.start_location_pool:
             if body.starting_location:
                 starting_location = body.starting_location
             elif body.randomize_starting_location:
-                safe_ids = [
-                    loc.id for loc in era_pack_for_setup.locations
-                    if _is_safe_start_location(loc.tags, loc.threat_level)
-                ] or [loc.id for loc in era_pack_for_setup.locations]
-                starting_location = random.choice(safe_ids)
-            else:
-                # Avoid very dangerous/prison starts unless explicitly requested.
-                loc_obj = era_pack_for_setup.location_by_id(starting_location)
-                if loc_obj and not _is_safe_start_location(loc_obj.tags, loc_obj.threat_level):
-                    starting_location = _pick_start_location_from_pack(era_pack_for_setup, body.player_concept, safe_only=True)
+                starting_location = random.choice(era_pack_for_setup.start_location_pool)
             character_sheet["starting_location"] = starting_location
 
-        # Resolve starting planet: from character sheet, or look up via era pack
+        # Resolve starting planet: prefer bible location data, then character sheet
         starting_planet = character_sheet.get("starting_planet") or None
-        if not starting_planet and time_period:
-            era_pack = era_pack_for_setup if (era_pack_for_setup and era_pack_for_setup.era_id == time_period) else CONTENT_REPOSITORY.get_pack(time_period) if time_period else None
-            if era_pack:
-                loc_obj = era_pack.location_by_id(starting_location)
-                if loc_obj and loc_obj.planet:
-                    starting_planet = loc_obj.planet
-                    character_sheet["starting_planet"] = starting_planet
+        if not starting_planet:
+            for bible_loc in (bible_dict.get("locations") or []):
+                if isinstance(bible_loc, dict) and bible_loc.get("id") == starting_location:
+                    starting_planet = bible_loc.get("planet") or None
+                    if starting_planet:
+                        character_sheet["starting_planet"] = starting_planet
+                    break
 
-        # Persist world_state_json: active_factions from SetupOutput (top-level or world_state_json)
-        active_factions = skeleton.get("active_factions")
-        if not isinstance(active_factions, list):
-            world_state = skeleton.get("world_state_json")
-            active_factions = (world_state.get("active_factions") if isinstance(world_state, dict) else None) or []
-        if not isinstance(active_factions, list):
-            active_factions = []
-
-        create_default_npcs = not ENABLE_BIBLE_CASTING
-        if ENABLE_BIBLE_CASTING:
-            era_factions = _active_factions_from_era(time_period)
-            if era_factions:
-                active_factions = era_factions
-            else:
-                # Fallback: create default NPCs if no era pack found
-                create_default_npcs = True
+        # V6.0: Active factions come from the campaign bible (not static era YAML).
+        active_factions = [
+            f if isinstance(f, dict) else (f.model_dump(mode="json") if hasattr(f, "model_dump") else {})
+            for f in (bible_dict.get("active_factions") or [])
+        ]
         companion_state = build_initial_companion_state(world_time_minutes=0, era=time_period)
         world_state = {"active_factions": active_factions, **companion_state}
         world_state["setting_id"] = req_setting
@@ -337,15 +324,19 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
             campaign_mode=body.campaign_mode or "historical",
             world_time_minutes=0,
         )
-        # Hybrid arc approach: one setup-time scaffold (LLM when available),
-        # then deterministic arc progression for all runtime turns.
-        world_state["arc_seed"] = _generate_arc_seed(
-            time_period=time_period,
-            genre=body.genre,
-            themes=body.themes,
-            player_concept=body.player_concept,
-            starting_location=starting_location,
-        )
+        # V6.0: Derive arc_seed from the campaign bible's quest arcs.
+        # Replaces the separate LLM arc seed generation — the bible already provides this.
+        _quest_arcs = bible_dict.get("quest_arcs") or []
+        world_state["arc_seed"] = {
+            "source": "campaign_bible",
+            "active_themes": [arc.get("title", "") for arc in _quest_arcs[:3]],
+            "opening_threads": [arc.get("hook", "") for arc in _quest_arcs[:3]],
+            "climax_question": _quest_arcs[0].get("stakes", "What will you sacrifice for the greater good?") if _quest_arcs else "What will you sacrifice for the greater good?",
+            "arc_intent": bible_dict.get("campaign_theme", "adventure"),
+            "opening_crawl": bible_dict.get("opening_crawl", ""),
+        }
+        # Store the full bible in world_state for narrative agents to read during turns.
+        world_state["campaign_bible"] = bible_dict
         # V2.10: Auto-genre assignment (background + location tags → genre)
         if body.genre:
             world_state["genre"] = body.genre
@@ -410,7 +401,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                 logger.debug("Legacy faction seeding failed (non-fatal): %s", _legacy_err)
 
         # V2.12: Generate opening beats — structured 3-turn opening sequence
-        npc_cast = skeleton.get("npc_cast") or []
+        npc_cast = bible_dict.get("npc_cast") or []
         _villain = next((n for n in npc_cast if (n.get("role") or "").lower() == "villain"), None)
         _informant = next((n for n in npc_cast if (n.get("role") or "").lower() == "informant"), None)
         _first_npc = next((n for n in npc_cast if n.get("role")), None)
@@ -459,6 +450,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         # V3.0: Per-campaign world generation — generate unique locations, NPCs, and quest hooks
         try:
             from backend.app.core.campaign_init import initialize_campaign_world  # noqa: E402
+            # V6.0: Pass bible_dict as skeleton — it has a superset of the expected shape.
             campaign_world = initialize_campaign_world(
                 campaign_id=campaign_id,
                 era=time_period,
@@ -466,7 +458,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                 player_concept=body.player_concept or "",
                 starting_location=starting_location,
                 existing_factions=active_factions,
-                skeleton=skeleton,
+                skeleton=bible_dict,
                 campaign_mode=body.campaign_mode or "historical",
                 campaign_scale=body.campaign_scale or "medium",
             )
@@ -571,8 +563,22 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, datetime('now'), datetime('now'))""",
             (player_id, campaign_id, name, "Player", starting_location, starting_planet, json.dumps(stats), hp_current, None, None, background, cyoa_answers_json, body.player_gender),
         )
-        if create_default_npcs:
-            _create_npc_cast_from_skeleton(conn, campaign_id, skeleton, starting_location)
+        # V6.0: Always insert NPC cast from the campaign bible.
+        bible_location_ids = [
+            loc.get("id", "") if isinstance(loc, dict) else str(loc)
+            for loc in (bible_dict.get("locations") or [])
+        ] or DEFAULT_LOCATIONS
+        _create_npc_cast_from_skeleton(
+            conn,
+            campaign_id,
+            {"npc_cast": bible_dict.get("npc_cast", []), "locations": bible_location_ids},
+            starting_location,
+        )
+        # Store the campaign bible in its own column for direct access by narrative agents.
+        conn.execute(
+            "UPDATE campaigns SET campaign_bible_json = ? WHERE id = ?",
+            (json.dumps(bible_dict), campaign_id),
+        )
         conn.commit()
         initial_events = [Event(event_type="FLAG_SET", payload={"key": "campaign_started", "value": True})]
         # Seed the ledger with player background so the arc planner has material from turn 1
@@ -585,7 +591,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                 )
         append_events(conn, campaign_id, 1, initial_events)
         apply_projection(conn, campaign_id, initial_events)
-        return SetupAutoResponse(campaign_id=campaign_id, player_id=player_id, skeleton=skeleton, character_sheet=character_sheet)
+        return SetupAutoResponse(campaign_id=campaign_id, player_id=player_id, skeleton=bible_dict, character_sheet=character_sheet)
     except HTTPException:
         raise
     except Exception as e:
@@ -611,14 +617,9 @@ def create_campaign(body: CreateCampaignRequest) -> dict[str, Any]:
         player_id = str(uuid.uuid4())
 
         companion_state = build_initial_companion_state(world_time_minutes=0, era=body.time_period)
-        create_default_npcs = not ENABLE_BIBLE_CASTING
-        if ENABLE_BIBLE_CASTING:
-            active_factions = _active_factions_from_era(body.time_period)
-            # Fallback: create default NPCs if no era pack found
-            if not active_factions:
-                create_default_npcs = True
-        else:
-            active_factions = []
+        # V6.0: No era pack factions — create_campaign is the minimal path; use defaults.
+        active_factions = []
+        create_default_npcs = True
         world_state = {"active_factions": active_factions, **companion_state}
         world_state["story_position"] = initialize_story_position(
             setting_id=body.setting_id if hasattr(body, "setting_id") else None,

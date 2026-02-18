@@ -1,0 +1,49 @@
+# _template/species.yaml — Playable species template.
+# Copy to your era pack directory and fill in species appropriate to your setting.
+# Used during character creation only. Stat bonuses are applied on top of the base stat array.
+# Generated campaign content (companions, NPCs) can use any species via CampaignBibleAgent.
+#
+# STAT BONUS KEYS (choose from these):
+#   General  — broad capability bonus (1-2 points; safe default for adaptable species)
+#   Combat   — fighting, weapons, physical confrontation
+#   Stealth  — sneaking, hiding, deception
+#   Charisma — persuasion, social manipulation, leadership
+#   Tech     — technology, machinery, arcane/technical problem-solving
+#
+# CONVENTION: Total stat bonus per species should be 1-2 points.
+# A species with +2 in one stat is a specialist; +1/+1 across two stats is a generalist.
+#
+# NARRATIVE HOOKS: 2 hooks per species. Short, evocative, first-person or second-person.
+# These surface in character creation to help the player find a character concept.
+
+species:
+  - id: species-template-one
+    name: "Species Name"
+    description: >
+      2-3 sentences describing this species in the context of your era. What is their
+      history, their reputation, and their role in the current galactic/world situation?
+      What does an individual of this species typically face?
+    cultural_notes: >
+      1-2 sentences on cultural practices, social norms, or stigmas that affect
+      how this species interacts with others and what shapes their worldview.
+    common_homeworlds: ["Homeworld Name", "Secondary World"]
+    typical_traits: [Trait1, Trait2, Trait3]
+    stat_bonus:
+      General: 1
+    narrative_hooks:
+      - "A hook that gives the player a character concept seed."
+      - "A second hook offering a different angle on the same species."
+
+  - id: species-template-two
+    name: "Second Species"
+    description: >
+      Description of the second species.
+    cultural_notes: Cultural context.
+    common_homeworlds: ["Homeworld"]
+    typical_traits: [Trait1, Trait2]
+    stat_bonus:
+      Combat: 1
+      Stealth: 1
+    narrative_hooks:
+      - "Hook one."
+      - "Hook two."

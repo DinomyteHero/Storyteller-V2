@@ -1,67 +1,108 @@
+# ============================================================
+# new_republic/era.yaml — Age of the New Republic Era Pack Manifest (V6.0 Minimal)
+# ============================================================
+# V6.0: Era packs now contain ONLY what is needed for character creation.
+# Campaign content (NPCs, companions, factions, locations, quests) is generated
+# at setup time by CampaignBibleAgent and stored in campaigns.campaign_bible_json.
+#
+# Files in this directory:
+#   era.yaml       — This manifest (setting rules, metadata, start pool)
+#   backgrounds.yaml — CYOA character backgrounds (required for character creation)
+#   species.yaml   — Playable species + stat bonuses (required for character creation)
+# ============================================================
+
 era_id: NEW_REPUBLIC
+schema_version: 3
 style_ref: data/style/era/new_republic_style.md
-schema_version: 2
+
+# Minimal file index — only character creation essentials
 file_index:
   era: era.yaml
-  locations: locations.yaml
-  npcs: npcs.yaml
-  factions: factions.yaml
   backgrounds: backgrounds.yaml
-  namebanks: namebanks.yaml
-  quests: quests.yaml
-  events: events.yaml
-  rumors: rumors.yaml
-  meters: meters.yaml
-  facts: facts.yaml
-  companions: companions.yaml
+  species: species.yaml
+
+# Canonical starting location archetypes — used by BiographerAgent to pick a starting point.
+# CampaignBibleAgent generates rich named versions of these locations for each campaign.
 start_location_pool:
-- loc-cantina
-- loc-bazaar_market
-- loc-safe_house
-- loc-yavin_base
-global_event_templates: []
-travel_graph: []
-default_scene_pacing: {}
+  - loc-cantina
+  - loc-docking-bay
+  - loc-safe-house
+  - loc-marketplace
+
 metadata:
   display_name: Age of the New Republic
-  time_period: 5-19 ABY (Legends)
-  calendar_note: After Endor, before the Yuuzhan Vong invasion.
-  summary: The Empire has fallen from its throne but not from the stars. The New Republic
-    struggles to govern liberated worlds while Imperial warlords regroup in the shadows.
-    Luke Skywalker begins rebuilding the Jedi Order amid political uncertainty and
-    old grudges. Intelligence wars, border conflicts, and broken treaties define this
-    fragile peace.
-  tone: Hard-won optimism; political intrigue; reconstruction under pressure.
+  time_period: 5–19 ABY (Legends)
+  calendar_note: After Endor (4 ABY), before the Yuuzhan Vong invasion (25 ABY).
+  summary: >
+    The Empire has fallen from its throne but not from the stars. The New Republic
+    struggles to govern liberated worlds while Imperial warlords regroup in the shadows —
+    Grand Admiral Thrawn among them. Luke Skywalker begins rebuilding the Jedi Order
+    on Yavin 4, a project that carries both extraordinary hope and dangerous naivety.
+    Intelligence wars, border conflicts, and broken treaties define this fragile peace.
+    Old Imperial infrastructure still governs entire sectors. The heroes of Endor must
+    learn that winning a war is easier than rebuilding what the war destroyed.
+  tone: Hard-won optimism; political intrigue; reconstruction under pressure; the weight of legacy.
   key_conflicts:
-  - New Republic governance vs. Imperial remnant insurgencies.
-  - Rebuilding the Jedi amid fear, trauma, and ideological fracture.
-  - Outer Rim autonomy vs. central authority from Coruscant.
+    - "New Republic governance vs. Imperial remnant warlords: fractured Empire refusing to yield."
+    - "Rebuilding the Jedi Order amid fear, trauma, and ideological fracture across the galaxy."
+    - "Outer Rim autonomy vs. central authority from Coruscant — echoes of what created the Empire."
   themes:
-  - The cost of rebuilding after total war.
-  - Legacy, mentorship, and the burden of institutions.
-  - Hope tested by compromise and relapse into extremism.
+    - The cost of rebuilding after total war.
+    - Legacy, mentorship, and the burden of institutions.
+    - Hope tested by compromise and relapse into extremism.
+
+# Legends timeline reference — used by CampaignBibleAgent to generate era-accurate content.
+legends_timeline:
+  era_start: "5 ABY (New Republic formally established)"
+  era_end: "19 ABY (Caamas Document Crisis; relative peace before Vong War)"
+  key_events:
+    - "4 ABY: Battle of Endor — Emperor and Vader killed, Empire collapses at center"
+    - "5 ABY: Battle of Jakku — decisive New Republic victory ends Imperial civil war"
+    - "5 ABY: Galactic Concordance signed; Imperial remnant confined to Outer Rim"
+    - "9 ABY: Grand Admiral Thrawn's campaign — Empire's last coordinated military threat"
+    - "10 ABY: Emperor reborn via cloning on Byss; Dark Empire crisis"
+    - "11 ABY: Luke Skywalker founds the New Jedi Order on Yavin 4"
+    - "12 ABY: Admiral Daala launches guerrilla campaigns against New Republic worlds"
+    - "14 ABY: Kyp Durron incident — Jedi student turns superweapon on Imperial worlds"
+    - "17 ABY: Pellaeon-Gavrisom Treaty — official end of hostilities with Imperial remnant"
+    - "19 ABY: Caamas Document crisis — political scandal threatens New Republic unity"
+  galactic_state: >
+    The New Republic governs a fractured coalition of worlds still rebuilding from
+    decades of Imperial rule. The government sits on Coruscant but lacks the legitimacy
+    and logistical reach of the old Republic. Imperial remnant warlords control significant
+    Outer Rim territories and launch periodic offensives. Luke Skywalker's fledgling Jedi
+    academy produces students faster than wisdom can guide them. Criminal syndicates
+    fill power vacuums. The galaxy is technically at peace but operationally at war on
+    a dozen fronts simultaneously.
+  notable_locations:
+    - "Coruscant (New Republic capital)"
+    - "Yavin 4 (Jedi Praxeum / Luke's academy)"
+    - "Byss (Emperor's clone world, Dark Empire)"
+    - "Nkllon (Lando's mining operation, target of Thrawn)"
+    - "Nar Shaddaa (Smuggler's Moon, criminal hub)"
+    - "Corellia (independent system, political flashpoint)"
+    - "Bastion (Imperial capital in Remnant)"
+    - "Dathomir (Witches' world, Force traditions)"
+  notable_figures:
+    - "Luke Skywalker (Jedi Master, founder of New Jedi Order)"
+    - "Leia Organa Solo (New Republic Chief of State / Senator)"
+    - "Han Solo (General, smuggler-turned-diplomat)"
+    - "Mon Mothma (first Chief of State, architect of New Republic)"
+    - "Grand Admiral Thrawn (last great Imperial strategist)"
+    - "Mara Jade (former Emperor's Hand, independent operative, later Jedi)"
+    - "Admiral Gilad Pellaeon (Imperial remnant commander, eventual peacemaker)"
+    - "Kyp Durron (Jedi student, cautionary tale)"
+
+# V3.2: Universe rules — setting-specific text for agent prompts.
 setting_rules:
-  setting_name: Star Wars Legends
-  setting_genre: science fantasy
-  biographer_role: a biographer for a Star Wars narrative RPG
-  architect_role: the World Architect for a Star Wars narrative RPG
-  director_role: the Director for an interactive Star Wars story engine
-  suggestion_style: a Star Wars KOTOR-style game
-  common_species:
-  - Human
-  - Twi'lek
-  - Rodian
-  - Wookiee
-  - Zabrak
-  - Bothan
-  - Chiss
-  example_factions:
-  - Rebellion
-  - Empire
-  - Hutt Cartel
-  historical_lore_label: established Star Wars Legends lore
-  bypass_methods:
-  - force
-  - force_dark
-  - sith_amulet
-  fallback_background: A traveler in a vast galaxy.
+  setting_name: "Star Wars Legends"
+  setting_genre: "science fantasy"
+  biographer_role: "a biographer for a Star Wars narrative RPG"
+  architect_role: "the World Architect for a Star Wars narrative RPG"
+  director_role: "the Director for an interactive Star Wars story engine"
+  suggestion_style: "a Star Wars KOTOR-style game"
+  common_species: ["Human", "Twi'lek", "Rodian", "Wookiee", "Zabrak", "Bothan", "Chiss"]
+  example_factions: ["New Republic", "Imperial Remnant", "Hutt Cartel", "New Jedi Order"]
+  historical_lore_label: "established Star Wars Legends lore"
+  bypass_methods: ["force", "force_dark", "sith_amulet"]
+  fallback_background: "A traveler in a galaxy learning to breathe again."

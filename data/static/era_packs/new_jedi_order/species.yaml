@@ -1,0 +1,131 @@
+# new_jedi_order/species.yaml — Playable species for the New Jedi Order era (Yuuzhan Vong War).
+# Used during character creation only. Stat bonuses are applied on top of the base stat array.
+# Generated campaign content (companions, NPCs) can use any species via CampaignBibleAgent.
+
+species:
+  - id: species-human
+    name: Human
+    description: >
+      Humans face the Yuuzhan Vong War as they face everything: with adaptability born of
+      desperation. A generation that grew up in the New Republic's fragile peace now watches
+      worlds burn. Human generals, Jedi students, and refugees alike must find new ways
+      to fight an enemy that defies every tactic the galaxy has developed.
+    cultural_notes: No cultural bias — humans occupy every role from Galactic Alliance command to refugee camps.
+    common_homeworlds: [Coruscant (occupied), Corellia, Naboo]
+    typical_traits: [Adaptable, Resilient, Desperate]
+    stat_bonus:
+      General: 1
+    narrative_hooks:
+      - "The galaxy you grew up in is being consumed. What you do next defines you."
+      - "You have seen Yuuzhan Vong up close. You know what the news doesn't say."
+
+  - id: species-twilek
+    name: "Twi'lek"
+    description: >
+      Twi'leks survived Imperial occupation and Hutt exploitation. The Yuuzhan Vong are
+      something different — an enemy that reshapes worlds biologically and views non-Vong
+      life as resources or sacrifices. Twi'lek communities on threatened worlds face a
+      choice between flight and a resistance they may not be equipped to mount.
+    cultural_notes: >
+      Twi'leks understand that survival sometimes means appearing harmless.
+      Many are veterans of refugee networks from the earlier Imperial era.
+    common_homeworlds: [Ryloth]
+    typical_traits: [Perceptive, Charismatic, Resilient]
+    stat_bonus:
+      Charisma: 1
+      Stealth: 1
+    narrative_hooks:
+      - "Your people know what it is to lose a world. You survived once."
+      - "The Vong don't understand negotiation. They understand power. Learn the difference."
+
+  - id: species-rodian
+    name: Rodian
+    description: >
+      Rodian bounty hunters and mercenaries find themselves in unprecedented demand as the
+      Galactic Alliance deploys any asset available. Clan honor is tested when contracts
+      conflict with survival, and some Rodian clans have been completely destroyed in
+      Vong assaults on their systems.
+    cultural_notes: Hunting prowess is still paramount. Some clans now define "prey" to include Yuuzhan Vong.
+    common_homeworlds: [Rodia]
+    typical_traits: [Precise, Tenacious, Adaptive]
+    stat_bonus:
+      Combat: 1
+      Stealth: 1
+    narrative_hooks:
+      - "You have studied Yuuzhan Vong anatomy. They bleed. That's enough."
+      - "Your clan is gone. The hunt continues anyway."
+
+  - id: species-wookiee
+    name: Wookiee
+    description: >
+      Kashyyyk became a major Yuuzhan Vong target for its resources and slave population.
+      Wookiees fight the Vong with the same fierce tenacity they brought to the Rebellion,
+      but this enemy doesn't respond to conventional tactics — their biotechnology absorbs
+      and adapts to opposition. Wookiee warriors have learned to fight more creatively.
+    cultural_notes: >
+      The life-debt extends now to those who defend Kashyyyk and Wookiee refugees.
+      Wookiees who have faced the Vong carry a particular hatred that even their allies find intense.
+    common_homeworlds: [Kashyyyk]
+    typical_traits: [Loyal, Ferocious, Enduring]
+    stat_bonus:
+      Combat: 2
+    narrative_hooks:
+      - "Kashyyyk fell. You were not there. That is not something you will accept."
+      - "A life-debt is not a burden. It is the reason you keep fighting."
+
+  - id: species-zabrak
+    name: Zabrak
+    description: >
+      Zabrak worlds near the Yuuzhan Vong invasion corridor faced early devastation.
+      Zabrak survivors fight with the characteristic fury of a species that has faced
+      extinction-level threats before and refused to be erased. Their stubbornness,
+      usually a social complication, is now a military asset.
+    cultural_notes: >
+      Zabrak who have survived Vong attacks carry visible damage with a kind of pride.
+      The Vong's disdain for weakness is something Zabraks understand and despise.
+    common_homeworlds: [Iridonia, Dathomir]
+    typical_traits: [Determined, Ferocious, Unyielding]
+    stat_bonus:
+      Combat: 1
+      General: 1
+    narrative_hooks:
+      - "They destroyed your world expecting you to break. You have not."
+      - "The Vong call themselves warriors. You intend to show them the difference."
+
+  - id: species-bothan
+    name: Bothan
+    description: >
+      The Bothan Spynet is working overtime during the Yuuzhan Vong War — and struggling.
+      Vong biotechnology defeats electronic surveillance; their agents are difficult to
+      infiltrate. For a species that has built its identity on information dominance,
+      the Vong represent an existential challenge to Bothan self-conception.
+    cultural_notes: >
+      Bothan political influence in the Galactic Alliance is significant but contested.
+      Some Bothans have become Security Council hawks; others advocate negotiated settlement.
+    common_homeworlds: [Bothawui]
+    typical_traits: [Cunning, Perceptive, Politically-minded]
+    stat_bonus:
+      Charisma: 1
+      Tech: 1
+    narrative_hooks:
+      - "The Vong have no electronic signatures. Your entire tradecraft needs rebuilding."
+      - "Information is power. You're learning what happens when the enemy has different information entirely."
+
+  - id: species-chiss
+    name: Chiss
+    description: >
+      The Chiss Ascendancy knew the Yuuzhan Vong were coming before anyone else — their
+      unknown regions scouts had observed the Vong advance for years. Why they didn't warn
+      the galaxy earlier is a political question with no comfortable answer. Individual
+      Chiss now serve in the Galactic Alliance carrying that context.
+    cultural_notes: >
+      Chiss play long games and consider Galactic Alliance leadership strategically shortsighted.
+      Their early warning failure is a political wound they deflect with characteristic precision.
+    common_homeworlds: [Csilla]
+    typical_traits: [Analytical, Disciplined, Strategic]
+    stat_bonus:
+      Tech: 1
+      General: 1
+    narrative_hooks:
+      - "The Ascendancy knew. That is not a comfortable thing to carry."
+      - "You think in campaigns, not battles. The Alliance needs both."

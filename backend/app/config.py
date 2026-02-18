@@ -82,6 +82,11 @@ def _model_config() -> dict[str, dict[str, str]]:
         # Phase 2.1: Arc Screenplay — generates per-arc narrative blueprint.
         # Override to cloud for quality: STORYTELLER_ARC_SCREENPLAY_PROVIDER=anthropic
         "arc_screenplay": {"provider": "ollama", "model": "qwen3:8b"},
+        # V6.0: Campaign Bible — generates the full campaign screenplay bible at setup (one-shot).
+        # STRONGLY recommended to override to cloud for quality — this is the highest-value
+        # single LLM call in the entire pipeline (sets up the whole campaign).
+        # Override: STORYTELLER_BIBLE_PROVIDER=anthropic STORYTELLER_BIBLE_MODEL=claude-opus-4-6
+        "bible": {"provider": "ollama", "model": "qwen3:8b"},
     }
     out = {}
     for role, cfg in base.items():

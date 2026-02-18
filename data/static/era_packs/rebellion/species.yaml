@@ -1,0 +1,122 @@
+# rebellion/species.yaml — Playable species for the Age of Rebellion era.
+# Used during character creation only. Stat bonuses are applied on top of the base stat array.
+# Generated campaign content (companions, NPCs) can use any species via CampaignBibleAgent.
+
+species:
+  - id: species-human
+    name: Human
+    description: >
+      The most numerous and adaptable species in the galaxy. Humans thrive in every corner
+      of known space, from Coruscant's spires to the Outer Rim's dusty backwaters.
+    cultural_notes: No cultural bias — humans are found in every faction and profession.
+    common_homeworlds: [Coruscant, Corellia, Tatooine, Alderaan]
+    typical_traits: [Adaptable, Ambitious, Diverse]
+    stat_bonus:
+      General: 1
+    narrative_hooks:
+      - "Your unremarkable appearance is your greatest disguise."
+      - "Everywhere is home. Nowhere is home."
+
+  - id: species-twilek
+    name: "Twi'lek"
+    description: >
+      A species defined by their colorful lekku (head-tails) and their history of exploitation.
+      Twi'leks are found at the margins of society — as slaves, dancers, criminals, and freedom fighters —
+      and have learned that survival requires cunning more than strength.
+    cultural_notes: >
+      Twi'leks communicate subtle meaning through lekku movement alongside speech.
+      Many carry deep resentment of the Hutt Cartel's slave trade.
+    common_homeworlds: [Ryloth]
+    typical_traits: [Perceptive, Charismatic, Resilient]
+    stat_bonus:
+      Charisma: 1
+      Stealth: 1
+    narrative_hooks:
+      - "You've learned to read a room faster than most people can read a word."
+      - "Freedom means something different when you've seen its absence."
+
+  - id: species-rodian
+    name: Rodian
+    description: >
+      Green-skinned hunters from Rodia whose culture is built around the pursuit of prey.
+      Rodians have a reputation as mercenaries and bounty hunters, though that reputation
+      obscures a rich tradition of artisanship and clan loyalty.
+    cultural_notes: Hunting prowess determines social status. Clan ties are paramount.
+    common_homeworlds: [Rodia]
+    typical_traits: [Precise, Tenacious, Clan-loyal]
+    stat_bonus:
+      Combat: 1
+      Stealth: 1
+    narrative_hooks:
+      - "You track what matters. You never let go."
+      - "Clan honor is a debt that runs both ways."
+
+  - id: species-wookiee
+    name: Wookiee
+    description: >
+      Towering, hirsute beings from Kashyyyk with lifespans exceeding 400 years.
+      Wookiees are fiercely loyal, terrifyingly strong, and capable of great tenderness
+      — though their rage is something to be respected by friend and foe alike.
+    cultural_notes: >
+      The life-debt (honored obligation to someone who saved your life) is sacred.
+      Wookiees do not respond well to condescension.
+    common_homeworlds: [Kashyyyk]
+    typical_traits: [Loyal, Ferocious, Enduring]
+    stat_bonus:
+      Combat: 2
+    narrative_hooks:
+      - "A life-debt is not a chain. It is a choice, renewed every day."
+      - "The Empire enslaved your people. That is not something you forget."
+
+  - id: species-zabrak
+    name: Zabrak
+    description: >
+      Horned near-humans with an iron will and a cultural obsession with self-determination.
+      Zabraks were among the first to resist Imperial domination and pay a steep price for it.
+    cultural_notes: >
+      Zabrak facial tattoos mark clan affiliation and life achievements.
+      The concept of yielding is not culturally intuitive.
+    common_homeworlds: [Iridonia, Dathomir]
+    typical_traits: [Determined, Independent, Resilient]
+    stat_bonus:
+      Combat: 1
+      General: 1
+    narrative_hooks:
+      - "You don't know how to give up. That's a strength — and sometimes a problem."
+      - "The marks on your face tell a story. Not everyone deserves to know it."
+
+  - id: species-bothan
+    name: Bothan
+    description: >
+      Fur-covered beings whose culture revolves around politics, intelligence-gathering,
+      and the ruthless pursuit of information as currency. The Bothan Spynet is the galaxy's
+      most feared intelligence network.
+    cultural_notes: >
+      "Many Bothans died to bring us this information." Information is power.
+      Betrayal is considered the deepest cultural transgression.
+    common_homeworlds: [Bothawui]
+    typical_traits: [Cunning, Perceptive, Politically-minded]
+    stat_bonus:
+      Charisma: 1
+      Tech: 1
+    narrative_hooks:
+      - "You always know three things about a person before you say hello."
+      - "Information is more valuable than credits. You've built your life on that."
+
+  - id: species-chiss
+    name: Chiss
+    description: >
+      Blue-skinned, red-eyed beings from the Unknown Regions who value precision,
+      strategic thinking, and meritocracy above all else. The Chiss Ascendancy is
+      militarily powerful and deeply insular.
+    cultural_notes: >
+      Chiss tend toward formal register in speech. Emotional displays are considered
+      undisciplined. They play long games.
+    common_homeworlds: [Csilla]
+    typical_traits: [Analytical, Disciplined, Strategic]
+    stat_bonus:
+      Tech: 1
+      General: 1
+    narrative_hooks:
+      - "You think three moves ahead. The galaxy thinks one."
+      - "You left the Ascendancy. They will want to know why."

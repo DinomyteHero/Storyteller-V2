@@ -42,26 +42,6 @@ NPC_CAST = [
 ]
 
 
-def _active_factions_from_era(time_period: str | None) -> list[dict]:
-    """Derive active_factions from Era Pack (deterministic)."""
-    if not time_period:
-        return []
-    pack = CONTENT_REPOSITORY.get_pack(time_period) if time_period else None
-    if not pack:
-        return []
-    out: list[dict] = []
-    for f in pack.factions:
-        loc = f.home_locations[0] if f.home_locations else "loc-cantina"
-        goal = f.goals[0] if f.goals else ""
-        out.append({
-            "name": f.name,
-            "location": loc,
-            "current_goal": goal,
-            "resources": 5,
-            "is_hostile": "hostile" in (f.tags or []),
-        })
-    return out
-
 def _location_pool(starting_location: str) -> list[str]:
     """Return a small set of locations including starting_location."""
     pool = list(dict.fromkeys([starting_location] + DEFAULT_LOCATIONS))

@@ -193,6 +193,9 @@ class GameState(BaseModel):
     lore_citations: list[dict] = Field(default_factory=list)  # NarrationCitation-like dicts for transcript
     context_stats: dict | None = None  # Dev-only: token budgeting stats from ContextBudget
     warnings: list[str] = Field(default_factory=list)  # Turn warnings (LLM/RAG fallbacks)
+    # V6.0: Campaign Bible (loaded from campaigns.campaign_bible_json; read by narrative agents)
+    campaign_bible: dict | None = None
+
     # V2.5: Arc planner output (deterministic arc guidance for Director)
     arc_guidance: dict | None = None
     # V2.5: Narrative validator output
@@ -233,6 +236,7 @@ class GameState(BaseModel):
                 "active_rumors": [],
                 "world_sim_debug": None,
                 "pending_world_time_minutes": None,
+                # V6.0: campaign_bible is persistent — not cleared between turns
                 # V2.5 transient fields
                 "arc_guidance": None,
                 "validation_notes": [],

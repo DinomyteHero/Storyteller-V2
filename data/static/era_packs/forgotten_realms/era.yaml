@@ -1,46 +1,101 @@
+# ============================================================
+# forgotten_realms/era.yaml — Forgotten Realms Era Pack Manifest (V6.0 Minimal)
+# ============================================================
+# V6.0: Era packs now contain ONLY what is needed for character creation.
+# Campaign content (NPCs, companions, factions, locations, quests) is generated
+# at setup time by CampaignBibleAgent and stored in campaigns.campaign_bible_json.
+#
+# Files in this directory:
+#   era.yaml       — This manifest (setting rules, metadata, start pool)
+#   backgrounds.yaml — CYOA character backgrounds (required for character creation)
+#   species.yaml   — Playable species + stat bonuses (required for character creation)
+# ============================================================
+
 era_id: FORGOTTEN_REALMS
+schema_version: 3
 style_ref: ""
+
+# Minimal file index — only character creation essentials
 file_index:
   era: era.yaml
-  locations: locations.yaml
-  npcs: npcs.yaml
-  factions: factions.yaml
   backgrounds: backgrounds.yaml
-  quests: quests.yaml
-schema_version: 3
+  species: species.yaml
+
+# Canonical starting location archetypes — used by BiographerAgent to pick a starting point.
+# CampaignBibleAgent generates rich named versions of these locations for each campaign.
 start_location_pool:
-  - loc-sword_coast_inn
-  - loc-bazaar_waterdeep
-  - loc-adventurers_guild
-global_event_templates: []
-travel_graph: []
-default_scene_pacing: {}
+  - loc-tavern
+  - loc-city-gate
+  - loc-market-district
+  - loc-adventurers-guild
+
 metadata:
   display_name: Forgotten Realms
   time_period: 1492 DR (Year of Three Ships Sailing)
-  calendar_note: "The Dale Reckoning calendar. The present era spans the aftermath of the Sundering."
+  calendar_note: The Dale Reckoning calendar. The present era spans the aftermath of the Sundering.
   summary: >
-    The continent of Faerûn, a land of ancient magic and forgotten gods, where the mundane
-    and magical are inseparable. The great city of Waterdeep anchors the Sword Coast, while
-    the Underdark churns beneath and the Far Realm presses against reality's edges.
-    Adventurers fill the void left by gods and empires. Every ruin holds treasure; every
-    treasure holds a curse.
-  tone: High fantasy; ancient mysteries; heroic adventure with dark undertones.
+    The continent of Faerûn, a land of ancient magic and forgotten gods, where the
+    mundane and magical are inseparable. The great city of Waterdeep anchors the Sword
+    Coast as the north's premier trading hub and seat of hidden power. The Underdark
+    churns beneath with its own wars. The Far Realm presses against reality's edges.
+    The Sundering reshaped the cosmos — gods died and were reborn, races changed, and
+    the Spellplague's scars still heal. Adventurers fill the void left by gods and
+    collapsed empires. Every ruin holds treasure; every treasure holds a curse.
+  tone: High fantasy; ancient mysteries; heroic adventure with dark undertones; gods made mortal.
   key_conflicts:
-    - The Lords' Alliance vs. threats from the north and east.
-    - Ancient evils stirring in ruins and forgotten temples.
-    - Arcane guilds and thieves' guilds competing for power in Waterdeep.
+    - "The Lords' Alliance vs. threats from the north and east: orc armies, undead legions, and worse."
+    - "Ancient evils stirring in ruins and forgotten temples: Bhaal, Vecna, Tharizdun."
+    - "Arcane guilds and thieves' guilds competing for power in Waterdeep's shadow government."
   themes:
-    - Power and its corrupting influence.
+    - Power and its corrupting influence — the gods play games with mortal lives.
     - The weight of prophecy versus free will.
     - Redemption and the cost of heroism.
+
+# Setting timeline reference — used by CampaignBibleAgent to generate era-accurate content.
+# Note: uses setting_timeline (not legends_timeline) for non-Star-Wars settings.
+setting_timeline:
+  era_label: "1492 DR (Year of Three Ships Sailing)"
+  calendar_system: "Dale Reckoning (DR)"
+  key_events:
+    - "1385 DR: Spellplague erupts — Mystra slain, magic warps across Faerûn"
+    - "1479 DR: Second Sundering begins — gods reshape the cosmos"
+    - "1487 DR: Sundering ends; Mystra restored; the Weave stabilizes"
+    - "1489 DR: War of the Silver Marches — orc and giant army assaults the north"
+    - "1491 DR: Rage of Demons — demonic lords pulled to the Underdark"
+    - "1492 DR: Present day — aftermath of multiple catastrophes still reshaping power structures"
+  world_state: >
+    Faerûn recovers from decades of cosmic upheaval. The Spellplague's mutations still
+    scar some landscapes and bloodlines. The Sundering reordered divine hierarchies —
+    some gods diminished, others elevated. Ancient evils that were sealed or destroyed
+    seek to return through cults and planar rifts. The great cities endure but hold
+    secrets in their foundations. Magic is reliable again, but practitioners remember
+    when it wasn't. Heroes are needed because institutions are still rebuilding.
+  notable_locations:
+    - "Waterdeep (City of Splendors, Lords' Alliance hub)"
+    - "Baldur's Gate (largest port city on the Sword Coast)"
+    - "Neverwinter (Jewel of the North, rebuilding from catastrophe)"
+    - "Candlekeep (great library fortress)"
+    - "Menzoberranzan (Underdark drow city)"
+    - "Icewind Dale (far north frontier)"
+    - "Luskan (pirate city, Arcane Brotherhood)"
+    - "Elturel (paladin city, later descended to Avernus)"
+  notable_figures:
+    - "Laeral Silverhand (Open Lord of Waterdeep)"
+    - "Elminster Aumar (Chosen of Mystra, ancient sage)"
+    - "Drizzt Do'Urden (drow ranger, Companion of the Hall)"
+    - "Jarlaxle Baenre (mercenary drow, Bregan D'aerthe leader)"
+    - "Halaster Blackcloak (Mad Mage of Undermountain)"
+    - "The Xanathar (beholder crime lord of Waterdeep)"
+    - "Manshoon (vampire clone of the Zhentarim founder)"
+
+# V3.2: Universe rules — setting-specific text for agent prompts.
 setting_rules:
-  setting_name: Forgotten Realms
-  setting_genre: high fantasy
-  biographer_role: a chronicler of heroes for a Forgotten Realms narrative RPG
-  architect_role: the Dungeon Master for a Forgotten Realms narrative RPG
-  director_role: the Director for an interactive Forgotten Realms story engine
-  suggestion_style: a D&D 5e Forgotten Realms-style game
+  setting_name: "Forgotten Realms"
+  setting_genre: "high fantasy"
+  biographer_role: "a chronicler of heroes for a Forgotten Realms narrative RPG"
+  architect_role: "the Dungeon Master for a Forgotten Realms narrative RPG"
+  director_role: "the Director for an interactive Forgotten Realms story engine"
+  suggestion_style: "a D&D 5e Forgotten Realms-style game"
   rule_system_id: dnd_5e_simplified
   common_species:
     - Human
@@ -56,10 +111,10 @@ setting_rules:
     - Zhentarim
     - Order of the Gauntlet
     - Emerald Enclave
-  historical_lore_label: established Forgotten Realms lore
+  historical_lore_label: "established Forgotten Realms lore"
   bypass_methods:
     - magic
     - persuasion
     - arcane_lock
     - pick_lock
-  fallback_background: An adventurer seeking fame and fortune on the Sword Coast.
+  fallback_background: "An adventurer seeking fame and fortune on the Sword Coast."
