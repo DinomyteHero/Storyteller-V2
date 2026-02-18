@@ -12,13 +12,29 @@ feel as deep as a Baldur's Gate or KOTOR campaign.
 **Score: ~70% of the way to the vision.** The remaining 30% is almost entirely about
 enriching the data layer — not rewriting the engine.
 
-### Design Philosophy: Every Arc Is a Movie
+### Design Philosophy: A Campaign Is a Character's Career
+
+A campaign **is** the character. Think Jim Butcher's Harry Dresden across 17+ novels,
+Captain Kirk from TOS through six films, or Jack Reacher walking into town after town.
+The player doesn't start a "3-part story" — they start a **career**. Each arc is one
+novel/movie in that career: self-contained but shaped by everything that came before.
 
 Each gameplay arc should feel like a **movie or book** — a self-contained story with its
-own cast, locations, stakes, and narrative structure. A campaign is a trilogy (or series).
-The player doesn't just "play a Star Wars game" — they play through *The Smuggler's
-Gambit*, then *Shadows Over Kessel*, then *The Last Stand at Dantooine*. Each arc has an
-opening crawl, a rising tension, a climax, and consequences that ripple into the next.
+own cast, locations, stakes, and narrative structure. The player doesn't just "play a
+Star Wars game" — they play through *The Smuggler's Gambit*, then *Shadows Over Kessel*,
+then *The Last Stand at Dantooine*, and however many more novels their character's career
+demands. Each arc has an opening crawl, a rising tension, a climax, and consequences
+that ripple into the next. There is no predetermined end — the character's story
+continues until they retire, die, or become legend.
+
+**The series model:**
+- **Dresden Files:** Same character, growing power, accumulating allies/enemies/scars.
+  Book 1 is a noir mystery. Book 12 is a war. The *character* is the through-line.
+- **Star Trek (Kirk):** Same captain, same crew, episodic adventures that build a
+  career. Some arcs are standalone; others form multi-arc sagas (Wrath of Khan →
+  Search for Spock → Voyage Home).
+- **The Expanse:** Same crew, escalating stakes. Early arcs are local conflicts;
+  later arcs are galaxy-shaping events. Characters grow and change across the series.
 
 ### Hybrid Architecture: Cloud LLM + Ingestion
 
@@ -682,12 +698,30 @@ extraction pipeline is replaced by direct Cloud LLM generation.
 *this story*. It doesn't regenerate the universe; it casts a new film from the same
 studio backlot.
 
-**The "movie/book" mental model:**
+**The "character career" mental model:**
 
-A campaign is a series. Each arc is an episode/film/novel:
-- **Arc 1:** *The Smuggler's Gambit* — Meet the crew, first mission, establish stakes
-- **Arc 2:** *Shadows Over Kessel* — Darker tone, betrayal, companion crisis
-- **Arc 3:** *The Last Stand at Dantooine* — Climax, major consequences, resolution
+A campaign is a character's ongoing career — like a book series. Each arc is one
+novel/movie in that career. There is no predetermined number of arcs. The character
+keeps going until they retire, die, or the player decides their story is told.
+
+- **Arc 1:** *The Smuggler's Gambit* — First job, establishing the character
+- **Arc 2:** *Shadows Over Kessel* — Darker tone, old enemies resurface
+- **Arc 3:** *The Inquisitor's Trail* — Galactic stakes, companions tested
+- **Arc 7:** *The Battle of Dantooine* — The character is a legend now; everything converges
+- **Arc 12:** *One Last Run* — Maybe. Or maybe there's one more after that.
+
+Like the Dresden Files, early arcs can be relatively standalone noirs. As the character
+accumulates allies, enemies, scars, and reputation, later arcs naturally escalate —
+not because of a predetermined plot, but because the character's growing history
+creates larger and more interconnected stakes.
+
+**What grows across arcs (the character's "career file"):**
+- **Relationship history** — NPCs met, allies made, enemies created, debts owed
+- **Reputation** — Faction standings shift novel by novel
+- **Companion bonds** — Loyalty deepens (or fractures) over multiple arcs
+- **Psychological weight** — Trauma accumulates, stress patterns emerge
+- **World mutations** — Locations destroyed, factions shifted, regimes changed
+- **The character themselves** — Stats grow, abilities unlock, alignment drifts
 
 Each arc generates its own metadata because each movie needs its own:
 
@@ -1263,38 +1297,93 @@ Arc Screenplay Output:
 | Factions | **Reused from era pack** | Goals may shift based on previous arc consequences |
 | World facts | **Accumulated** | Base facts + mutations from previous arcs |
 
-### Sequel Arcs: Consequence Threading
+### The Career File: Cumulative Consequence Threading
 
-When generating Arc 2+, the Cloud LLM receives a **consequence manifest** from the
-previous arc:
+Each arc adds to a growing **career file** — the complete history of the character's
+journey. This is not just "what happened last arc" but "everything this character has
+ever done." Like a character sheet in a tabletop campaign that's been running for years,
+or the accumulated continuity of a long-running book series.
+
+When generating the next arc, the Cloud LLM receives the full career file:
 
 ```yaml
-# Passed to Cloud LLM for Arc 2 generation
-previous_arc_consequences:
-  arc_title: "The Smuggler's Gambit"
-  ending_path: heroic
-  npcs_state:
-    npc-karrde: { relationship: respect, alive: true }
-    npc-mara_jade: { relationship: debt_owed, alive: true }
-    npc-imperial_captain: { status: captured }
+# The character's career file — grows with every arc
+career_file:
+  character:
+    name: "Kira Voss"
+    class: smuggler
+    species: twilek
+    arc_count: 4
+    career_turns_played: 162
+
+  # Prologue consequences (always available — this is the origin)
+  origin:
+    prologue_title: "Last Run from Corellia"
+    defining_choice: "Saved Renn, talked past Kael"
+    departure_thread: "Headed to Ord Mantell"
+
+  # Cumulative arc history (summarized, not raw)
+  arc_history:
+    - arc: 1
+      title: "The Smuggler's Gambit"
+      summary: "Stole an Imperial manifest; chose to free prisoners over profit"
+      ending: heroic
+      key_consequences: [imperial_convoy_destroyed, prisoners_freed]
+    - arc: 2
+      title: "Shadows Over Kessel"
+      summary: "Betrayed by a contact; lost Renn to Imperial capture"
+      ending: pyrrhic_victory
+      key_consequences: [renn_voss_captured, kessel_mining_operation_exposed]
+    - arc: 3
+      title: "The Inquisitor's Trail"
+      summary: "Hunted by an Inquisitor; discovered latent Force sensitivity"
+      ending: narrow_escape
+      key_consequences: [inquisitor_knows_player_face, force_training_begun]
+
+  # Current state of ALL NPCs the character has ever interacted with
+  npc_relationships:
+    npc-karrde: { met_in: arc_1, current: trusted_ally, alive: true }
+    npc-mara_jade: { met_in: arc_1, current: complex_respect, alive: true }
+    npc-renn_voss: { met_in: prologue, current: captured, alive: true, location: imperial_prison }
+    npc-lt_kael: { met_in: prologue, current: nemesis, alive: true, promoted: true }
+    npc-inquisitor_vex: { met_in: arc_3, current: active_hunter, alive: true }
+
+  # Cumulative world state
   world_mutations:
-    - imperial_convoy_destroyed
-    - prisoners_freed_at_ord_mantell
-  faction_shifts:
-    rebel_alliance: +15
-    galactic_empire: -20
+    - imperial_convoy_destroyed (arc 1)
+    - kessel_mining_operation_exposed (arc 2)
+    - inquisitor_dispatched_to_outer_rim (arc 3)
+  faction_reputation:
+    rebel_alliance: 45
+    galactic_empire: -60
+    underworld: 30
+
+  # Player state
   player_state:
-    alignment: { light_dark: 12, paragon_renegade: 8 }
-    stress: 4
-    companion_loyalty: { comp-reb-kessa: TRUSTED }
-  narrative_threads_open:
-    - "The Empire sends an Inquisitor to find you"
-    - "Freed prisoners join the Rebellion"
-    - "Mara Jade's true mission remains unresolved"
+    alignment: { light_dark: 18, paragon_renegade: 5 }
+    stress: 6
+    active_trauma: [loss_of_mentor, hunted]
+    companion_loyalty: { comp-reb-kessa: LOYAL, comp-reb-jareth: TRUSTED }
+
+  # Open narrative threads (unresolved from ANY arc)
+  open_threads:
+    - "Renn Voss is still in an Imperial prison" (from arc 2)
+    - "The Inquisitor knows your face" (from arc 3)
+    - "Your Force sensitivity is untrained and dangerous" (from arc 3)
+    - "Lt. Kael has been promoted and assigned to find you" (from prologue, escalated)
+    - "Mara Jade's true mission remains unresolved" (from arc 1)
 ```
 
-The Cloud LLM uses this to generate a sequel that feels like a natural continuation —
-not a disconnected episode.
+The Cloud LLM uses the career file to generate the next arc as a natural continuation.
+It can:
+- **Resolve long-standing threads** (Arc 4 might be about rescuing Renn)
+- **Escalate simmering conflicts** (Lt. Kael, now a Commander, closes in)
+- **Introduce new threats** informed by accumulated reputation
+- **Pay off character growth** (the untrained Force sensitivity becomes central)
+- **Bring back characters from earlier arcs** for callbacks and payoffs
+
+The longer the career, the richer the source material for the next arc. Like a book
+series that gets better as it goes because the author has more history to draw from.
 
 ---
 
@@ -1714,18 +1803,27 @@ Character Creation (species, class, 5-7 narrative questions)
     ↓
 Prologue: "Last Run from Corellia" (5-10 turns — playable origin)
     ↓
-Arc 1: "Episode I — The Smuggler's Gambit" (35-50 turns)
+Arc 1: "The Smuggler's Gambit" (35-50 turns)
     ↓
 Hub/Downtime interlude (companions, rest, codex, planning)
     ↓
-Arc 2: "Episode II — Shadows Over Kessel" (35-50 turns)
+Arc 2: "Shadows Over Kessel" (35-50 turns)
     ↓
 Hub/Downtime interlude
     ↓
-Arc 3: "Episode III — The Last Stand at Dantooine" (35-50 turns)
+Arc 3: "The Inquisitor's Trail" (35-50 turns)
     ↓
-Campaign Epilogue (consequences of the full trilogy)
+Hub/Downtime interlude
+    ↓
+...as many arcs as the character's career demands...
+    ↓
+Arc N: "One Last Run" — when the player decides, or the narrative converges
 ```
+
+**There is no predetermined end.** The career continues as long as the player wants.
+Each arc's screenplay is richer than the last because the career file grows — more
+NPCs, more history, more threads to weave. Like a book series that improves as the
+author accumulates lore.
 
 ---
 
