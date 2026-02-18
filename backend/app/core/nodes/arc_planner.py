@@ -72,57 +72,80 @@ def _determine_arc_stage_dynamic(
     ledger: dict,
     current_stage: str | None,
     stage_start_turn: int,
-) -> tuple[str, bool]:
-    """Determine arc stage using content-aware transitions with min/max guards.
+    recent_narrative: str = "",
+) -> tuple[str, bool, dict]:
+    """Determine arc stage using LLM semantic analysis with min/max safety guards.
 
-    Returns (stage, transition_occurred).
+    V5.0: Hybrid approach — deterministic guards (hard constraints) + LLM narrative
+    analysis (within the transition window). Returns (stage, transition_occurred, arc_weaver_result).
     """
     if current_stage is None:
-        return "SETUP", False
+        return "SETUP", False, {}
+
+    if current_stage == "RESOLUTION":
+        return "RESOLUTION", False, {}
 
     turns_in_stage = max(0, turn_number - stage_start_turn)
     min_turns = ARC_MIN_TURNS.get(current_stage, 3)
     max_turns = ARC_MAX_TURNS.get(current_stage, 999)
 
-    # Don't transition before minimum turns
+    # Hard guard: don't transition before minimum turns
     if turns_in_stage < min_turns:
-        return current_stage, False
+        return current_stage, False, {}
 
     threads = ledger.get("open_threads") or []
     facts = ledger.get("established_facts") or []
-    flags = [f for f in facts if f.startswith("Flag set:")]
+    consequence_hints = ledger.get("consequence_hints") or []
 
-    # 2.4: Use weighted thread count — a W3 plot thread counts as 3 toward thresholds
-    thread_score = weighted_thread_count(threads)
-
-    ready_to_advance = False
-
-    if current_stage == "SETUP":
-        # Need enough thread weight and facts to move to RISING
-        if thread_score >= ARC_SETUP_TO_RISING_MIN_THREADS and len(facts) >= ARC_SETUP_TO_RISING_MIN_FACTS:
-            ready_to_advance = True
-    elif current_stage == "RISING":
-        # Need enough thread weight and narrative density to move to CLIMAX
-        if thread_score >= ARC_RISING_TO_CLIMAX_MIN_THREADS:
-            ready_to_advance = True
-    elif current_stage == "CLIMAX":
-        # Move to RESOLUTION when a "resolved" flag appears
-        resolved_flags = [f for f in flags if ARC_CLIMAX_RESOLUTION_FLAG_PREFIX in f.lower()]
-        if resolved_flags:
-            ready_to_advance = True
-    elif current_stage == "RESOLUTION":
-        return "RESOLUTION", False  # Terminal stage
-
-    # Force transition if max turns exceeded
+    # Hard guard: force transition if max turns exceeded
     if turns_in_stage >= max_turns:
-        ready_to_advance = True
-
-    if ready_to_advance:
         idx = _STAGE_ORDER.index(current_stage) if current_stage in _STAGE_ORDER else 0
         if idx < len(_STAGE_ORDER) - 1:
-            return _STAGE_ORDER[idx + 1], True
+            return _STAGE_ORDER[idx + 1], True, {"justification": "max turns exceeded"}
+        return current_stage, False, {}
 
-    return current_stage, False
+    # Within transition window: use LLM semantic analysis
+    try:
+        from backend.app.core.agents.arc_weaver_agent import evaluate_arc_transition
+        result = evaluate_arc_transition(
+            current_stage=current_stage,
+            turns_in_stage=turns_in_stage,
+            ledger_facts=facts[-10:],
+            open_threads=threads[-8:],
+            consequence_hints=consequence_hints[:5],
+            recent_narrative=recent_narrative,
+        )
+        if result.get("should_advance"):
+            idx = _STAGE_ORDER.index(current_stage) if current_stage in _STAGE_ORDER else 0
+            if idx < len(_STAGE_ORDER) - 1:
+                logger.info(
+                    "ArcWeaver: advancing %s -> %s — %s",
+                    current_stage, _STAGE_ORDER[idx + 1],
+                    result.get("justification", ""),
+                )
+                return _STAGE_ORDER[idx + 1], True, result
+        return current_stage, False, result
+    except Exception as e:
+        # If LLM fails, fall back to the deterministic thresholds
+        logger.warning("ArcWeaver LLM failed, using deterministic fallback: %s", e)
+        thread_score = weighted_thread_count(threads)
+        ready = False
+        if current_stage == "SETUP":
+            if thread_score >= ARC_SETUP_TO_RISING_MIN_THREADS and len(facts) >= ARC_SETUP_TO_RISING_MIN_FACTS:
+                ready = True
+        elif current_stage == "RISING":
+            if thread_score >= ARC_RISING_TO_CLIMAX_MIN_THREADS:
+                ready = True
+        elif current_stage == "CLIMAX":
+            flags = [f for f in facts if f.startswith("Flag set:")]
+            resolved_flags = [f for f in flags if ARC_CLIMAX_RESOLUTION_FLAG_PREFIX in f.lower()]
+            if resolved_flags:
+                ready = True
+        if ready:
+            idx = _STAGE_ORDER.index(current_stage) if current_stage in _STAGE_ORDER else 0
+            if idx < len(_STAGE_ORDER) - 1:
+                return _STAGE_ORDER[idx + 1], True, {}
+        return current_stage, False, {}
 
 
 def _determine_hero_beat(arc_stage: str, turns_in_stage: int, min_turns: int, max_turns: int) -> dict:
@@ -325,8 +348,10 @@ def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
         current_stage = "SETUP"
         stage_start_turn = turn_number
 
-    arc_stage, transition_occurred = _determine_arc_stage_dynamic(
+    recent_narrative = "\n".join((state.get("recent_narrative") or [])[-2:])[:500]
+    arc_stage, transition_occurred, arc_weaver_result = _determine_arc_stage_dynamic(
         turn_number, ledger, current_stage, stage_start_turn,
+        recent_narrative=recent_narrative,
     )
 
     if transition_occurred:

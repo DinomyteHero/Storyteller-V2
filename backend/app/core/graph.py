@@ -19,7 +19,7 @@ from backend.app.core.nodes.scene_frame import scene_frame_node
 from backend.app.core.nodes.director import make_director_node
 from backend.app.core.nodes.narrator import make_narrator_node
 from backend.app.core.nodes.narrative_validator import narrative_validator_node
-from backend.app.core.nodes.suggestion_refiner import make_suggestion_refiner_node
+from backend.app.core.nodes.choice_crafter_node import make_choice_crafter_node
 from backend.app.core.nodes.commit import make_commit_node
 # Lazy singleton: compiled on first use so module import is side-effect-free.
 # The compiled graph contains no connection references -- conn is injected via
@@ -36,7 +36,7 @@ def build_graph() -> StateGraph:
 
     Topology:
         router -> (META->commit | TALK->encounter->... | ACTION->mechanic->encounter->...->commit) -> END.
-        Full ACTION path: router->mechanic->encounter->world_sim->companion_reaction->arc_planner->scene_frame->director->narrator->narrative_validator->suggestion_refiner->commit.
+        Full ACTION path: router->mechanic->encounter->world_sim->companion_reaction->arc_planner->scene_frame->director->narrator->narrative_validator->choice_crafter->commit.
     """
     graph = StateGraph(dict)
 
@@ -51,7 +51,7 @@ def build_graph() -> StateGraph:
     graph.add_node("director", make_director_node())
     graph.add_node("narrator", make_narrator_node())
     graph.add_node("narrative_validator", narrative_validator_node)
-    graph.add_node("suggestion_refiner", make_suggestion_refiner_node())
+    graph.add_node("choice_crafter", make_choice_crafter_node())
     graph.add_node("commit", make_commit_node())
 
     graph.set_entry_point("router")
@@ -78,8 +78,8 @@ def build_graph() -> StateGraph:
     graph.add_edge("scene_frame", "director")
     graph.add_edge("director", "narrator")
     graph.add_edge("narrator", "narrative_validator")
-    graph.add_edge("narrative_validator", "suggestion_refiner")
-    graph.add_edge("suggestion_refiner", "commit")
+    graph.add_edge("narrative_validator", "choice_crafter")
+    graph.add_edge("choice_crafter", "commit")
     graph.add_edge("commit", END)
 
     return graph
@@ -103,15 +103,42 @@ def run_turn(conn: sqlite3.Connection, state: GameState) -> GameState:
     capturing a stale connection in closures. This key is a non-serializable runtime handle and
     MUST NOT be persisted or checkpointed. It is stripped from the result before converting back
     to GameState.
+
+    V5.0: AgentFailureError from authoritative agents is caught here and returned as a
+    structured error in the GameState (final_text with error message, empty suggestions).
     """
     import logging
     import time
+
+    from backend.app.core.error_handling import AgentFailureError
 
     _logger = logging.getLogger(__name__)
     initial = state_to_dict(state)
     initial["__runtime_conn"] = conn
     t0 = time.monotonic()
-    result = _get_compiled_graph().invoke(initial)
+    try:
+        result = _get_compiled_graph().invoke(initial)
+    except AgentFailureError as afe:
+        elapsed = time.monotonic() - t0
+        _logger.error(
+            "Turn aborted after %.2fs — agent failure: %s (campaign=%s, turn=%d)",
+            elapsed,
+            afe,
+            state.campaign_id or "unknown",
+            state.turn_number or 0,
+        )
+        # Return a GameState with the error surfaced to the player
+        error_dict = state_to_dict(state)
+        error_dict.pop("__runtime_conn", None)
+        error_dict["final_text"] = (
+            f"[SYSTEM] A narrative agent failed: {afe.agent_name}. "
+            "The turn could not be completed. Please try again."
+        )
+        error_dict["suggested_actions"] = []
+        error_dict["warnings"] = list(error_dict.get("warnings") or []) + [
+            f"[AGENT_FAILURE] {afe.agent_name}: {afe.original_error}"
+        ]
+        return dict_to_state(error_dict)
     elapsed = time.monotonic() - t0
     result.pop("__runtime_conn", None)
     _logger.info(

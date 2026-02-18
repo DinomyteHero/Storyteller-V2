@@ -88,29 +88,12 @@ _INTENT_STYLES = {
 def _humanize_location_for_suggestion(loc_id: str) -> str:
     """Convert a raw location ID into a readable name for suggestions.
 
-    Handles both loc- prefixed IDs and plain names (planets, proper nouns).
+    V5.0: Setting-agnostic — strips common prefixes and formats for natural language.
+    No hardcoded setting-specific location mappings.
     """
     if not loc_id or loc_id == "\u2014":
         return "the area"
     raw = loc_id.strip()
-    _display_names = {
-        "loc-cantina": "the cantina",
-        "loc-tavern": "the cantina",
-        "loc-marketplace": "the marketplace",
-        "loc-market": "the marketplace",
-        "loc-docking-bay": "the docking bay",
-        "loc-docks": "the docking bay",
-        "loc-lower-streets": "the lower streets",
-        "loc-street": "the lower streets",
-        "loc-hangar": "the hangar bay",
-        "loc-spaceport": "the spaceport",
-        "loc-command-center": "the command center",
-        "loc-med-bay": "the med bay",
-        "loc-jedi-temple": "the Jedi Temple",
-    }
-    display = _display_names.get(raw.lower())
-    if display:
-        return display
     # Check if it has a loc- prefix (generic location) vs a proper name
     has_prefix = False
     cleaned = raw
@@ -799,7 +782,7 @@ def generate_suggestions(
     is_return_visit = _has_visited_location(history, loc)
 
     # V3.0: Extract companion context
-    era = str((campaign.get("time_period") or campaign.get("era") or "REBELLION")).strip().upper() or "REBELLION"
+    era = str((campaign.get("time_period") or campaign.get("era") or "")).strip().upper()
     party_ids = (campaign.get("party") or []) if isinstance(campaign, dict) else []
     comp_name, comp_archetype, comp_influence = _get_companion_context(world_state, party_ids)
 
@@ -854,13 +837,8 @@ def generate_suggestions(
     elif tone_streak == TONE_TAG_RENEGADE:
         pass
 
-    # PARAGON option -- adapt based on player background
-    if "Force" in player_background or "Jedi" in player_background:
-        paragon_intent = "Say: 'I sense your distress. Let me help \u2014 it's what I was trained to do.'"
-    elif "smuggler" in player_background.lower() or "criminal" in player_background.lower():
-        paragon_intent = "Say: 'Look, I've been where you are. What do you need? I might know someone.'"
-    else:
-        paragon_intent = "Say: 'I can see you're dealing with something. What do you need? Maybe I can help.'"
+    # PARAGON option -- setting-agnostic
+    paragon_intent = "Say: 'I can see you're dealing with something. What do you need? Maybe I can help.'"
 
     # V3.0: Return visit -- adapt paragon to acknowledge familiarity
     if is_return_visit and npc_names:

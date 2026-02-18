@@ -120,7 +120,7 @@ CRITICAL RULES:
 - At SETUP: slower buildup, factions consolidating, establishing quiet tensions.
 - At RISING: mounting pressure, factions committing resources, rumors escalating.
 - At RESOLUTION: aftermath, winners consolidating, losers regrouping.
-- Rumors: 1-2 atmospheric sentences, written as overheard gossip or spacer tales.
+- Rumors: 1-2 atmospheric sentences, written as overheard gossip or traveler tales.
 - Do NOT generate rumors or moves unrelated to the game state provided.
 
 Return ONLY a single valid JSON object. No markdown fences. No preamble.

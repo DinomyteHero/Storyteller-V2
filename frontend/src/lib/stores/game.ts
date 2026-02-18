@@ -128,6 +128,12 @@ export const activeNpcContexts = derived<typeof lastTurnResponse, NpcContext[]>(
   ($resp) => $resp?.active_npc_contexts ?? []
 );
 
+/** V5.0 Derived: active narrative obligations from ContinuityAgent ledger. */
+export const activeObligations = derived(
+  lastTurnResponse,
+  ($resp) => $resp?.active_obligations ?? []
+);
+
 /** Reset all game state (e.g., when returning to main menu). */
 export function resetGame(): void {
   campaignId.set(null);

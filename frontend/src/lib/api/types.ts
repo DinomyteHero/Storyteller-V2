@@ -169,6 +169,8 @@ export interface TurnResponse {
   // V4.1: Dramatic moment type and active NPC contexts
   consequence_type?: string | null;
   active_npc_contexts?: NpcContext[] | null;
+  // V5.0: Active narrative obligations from ContinuityAgent ledger
+  active_obligations?: string[] | null;
 }
 
 export interface TurnContract {

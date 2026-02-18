@@ -15,9 +15,10 @@
     suggestedActions: ActionSuggestion[];
     animKey: number;
     onPopulate: (text: string) => void; // populate the text input (not submit)
+    activeObligations?: string[] | null; // V5.0: narrative obligations from ContinuityAgent
   }
 
-  let { playerResponses, suggestedActions, animKey, onPopulate }: Props = $props();
+  let { playerResponses, suggestedActions, animKey, onPopulate, activeObligations = null }: Props = $props();
 
   const TONE_ORDER: Record<string, number> = {
     PARAGON: 0,
@@ -75,6 +76,15 @@
 </script>
 
 <div class="approach-section" role="group" aria-label="Suggested approaches">
+  {#if activeObligations && activeObligations.length > 0}
+    <div class="obligations-row" aria-label="Active narrative obligations">
+      {#each activeObligations as obligation}
+        <span class="obligation-badge" title={obligation}>
+          {obligation.length > 40 ? obligation.slice(0, 37) + '…' : obligation}
+        </span>
+      {/each}
+    </div>
+  {/if}
   <div class="approach-label">approaches</div>
   {#key animKey}
     <div class="approach-scroll">
@@ -106,6 +116,29 @@
 <style>
   .approach-section {
     width: 100%;
+  }
+
+  .obligations-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  .obligation-badge {
+    font-size: 0.58rem;
+    font-weight: 600;
+    color: var(--tone-investigate, #ffd246);
+    background: rgba(255, 210, 70, 0.08);
+    border: 1px solid rgba(255, 210, 70, 0.2);
+    border-radius: 2px;
+    padding: 2px 6px;
+    letter-spacing: 0.3px;
+    line-height: 1.3;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .approach-label {
