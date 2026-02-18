@@ -8,7 +8,8 @@
     suggestedActions, playerSheet, inventory,
     partyStatus, factionReputation, newsFeed, turnNumber,
     isGameActive, resetGame,
-    dialogueTurn, sceneFrame, npcUtterance, playerResponses, questLog
+    dialogueTurn, sceneFrame, npcUtterance, playerResponses, questLog,
+    consequenceType, activeNpcContexts,
   } from '$lib/stores/game';
   import {
     isStreaming, streamedText, streamError, showCursor,
@@ -30,12 +31,25 @@
   import CompanionSidebar from '$lib/components/game/CompanionSidebar.svelte';
   import AlignmentIndicator from '$lib/components/game/AlignmentIndicator.svelte';
   import QuestTracker from '$lib/components/game/QuestTracker.svelte';
+  // V4.1: Narrative experience upgrades
+  import ApproachCards from '$lib/components/choices/ApproachCards.svelte';
+  import NpcIdentityStrip from '$lib/components/narrative/NpcIdentityStrip.svelte';
+  import ConsequenceOverlay from '$lib/components/game/ConsequenceOverlay.svelte';
 
   let isSendingTurn = $state(false);
   let narrativeEl: HTMLDivElement | undefined = $state();
   let drawerEl: HTMLElement | undefined = $state();
   let showPreviously = $state(false);
   let isCompleting = $state(false);
+
+  // V4.1: Free text input state
+  let freeTextInput = $state('');
+  let freeTextEl: HTMLTextAreaElement | undefined = $state();
+
+  // V4.1: Consequence overlay state (shown once per turn for TRIUMPH/DESPAIR/HP_CRITICAL)
+  let shownConsequenceForTurn = $state(-1);
+  let showConsequenceOverlay = $state(false);
+  let pendingConsequenceType = $state<string | null>(null);
 
   // V3.2: Detect campaign conclusion readiness from warnings
   let conclusionReady = $derived(
@@ -214,11 +228,24 @@
     }
   });
 
+  // V4.1: Show consequence overlay for dramatic turns (once per turn number)
+  $effect(() => {
+    const ct = $consequenceType;
+    const tn = $turnNumber;
+    const DRAMATIC = new Set(['TRIUMPH', 'DESPAIR', 'HP_CRITICAL', 'TURNING_POINT']);
+    if (ct && DRAMATIC.has(ct) && tn !== shownConsequenceForTurn && !$isStreaming && !typewriterActive && !isSendingTurn) {
+      shownConsequenceForTurn = tn;
+      pendingConsequenceType = ct;
+      showConsequenceOverlay = true;
+    }
+  });
+
   // Keyboard shortcuts
   function handleKeydown(e: KeyboardEvent) {
-    // Skip if inside an input field
+    // Skip most shortcuts if inside an input field (but allow Escape)
     const active = document.activeElement;
-    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) return;
+    const inInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
+    if (inInput && e.key !== 'Escape') return;
 
     // 1-4 for choices — works with both DialogueTurn (primary) and ActionSuggestion (fallback)
     if (choicesReady) {
@@ -268,6 +295,20 @@
     if (e.key === 'j' && !e.ctrlKey && !e.metaKey && !e.altKey) {
       ui.openDrawer('journal');
     }
+  }
+
+  /** V4.1: Populate the free text input (from approach card click — does NOT submit). */
+  function handleApproachPopulate(text: string) {
+    freeTextInput = text;
+    freeTextEl?.focus();
+  }
+
+  /** V4.1: Submit from the free text input. */
+  async function handleFreeTextSubmit() {
+    const text = freeTextInput.trim();
+    if (!text || isSendingTurn || $isStreaming) return;
+    freeTextInput = '';
+    await handleChoiceInput(text, text);
   }
 
   /** V3.0: Unified choice handler — accepts string input from DialogueWheel or keyboard shortcuts. */
@@ -479,6 +520,11 @@
       <!-- V3.0: Scene context bar (topic, pressure, scene type) -->
       <SceneContext sceneFrame={$sceneFrame} />
 
+      <!-- V4.1: NPC Identity Strip — shows present NPCs with MemoryAgent emotional state -->
+      {#if $activeNpcContexts.length > 0}
+        <NpcIdentityStrip npcs={$activeNpcContexts} />
+      {/if}
+
       <!-- V3.0: NPC utterance data feeds SuggestionRefiner context but is not rendered visually -->
       <!-- NPC dialogue is woven into narrative prose by the Narrator -->
 
@@ -515,14 +561,44 @@
       {/if}
     </div>
 
-    <!-- V3.0: KOTOR-style dialogue choices (tone-filled, hover-reveal metadata) -->
-    {#if choicesReady}
-      <DialogueWheel
-        playerResponses={$playerResponses}
-        suggestedActions={$suggestedActions}
-        {choiceAnimKey}
-        onChoice={handleChoiceInput}
-      />
+    <!-- V4.1: Approach cards (horizontal scroll) + free text input -->
+    {#if choicesReady || (!isSendingTurn && !$isStreaming)}
+      <div class="action-zone">
+        {#if choicesReady}
+          <ApproachCards
+            playerResponses={$playerResponses}
+            suggestedActions={$suggestedActions}
+            animKey={choiceAnimKey}
+            onPopulate={handleApproachPopulate}
+          />
+        {/if}
+
+        <div class="free-input-row">
+          <textarea
+            bind:this={freeTextEl}
+            bind:value={freeTextInput}
+            class="free-text-input"
+            placeholder="What do you do?"
+            rows="2"
+            disabled={isSendingTurn || $isStreaming}
+            aria-label="Describe your action"
+            onkeydown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey && freeTextInput.trim()) {
+                e.preventDefault();
+                handleFreeTextSubmit();
+              }
+            }}
+          ></textarea>
+          <button
+            class="act-btn"
+            disabled={!freeTextInput.trim() || isSendingTurn || $isStreaming}
+            onclick={handleFreeTextSubmit}
+            aria-label="Submit action"
+          >
+            ACT
+          </button>
+        </div>
+      </div>
     {/if}
 
     {#if isSendingTurn && !$isStreaming}
@@ -855,6 +931,14 @@
   <CompanionSidebar />
   <QuestTracker />
   <AlignmentIndicator />
+
+  <!-- V4.1: Consequence overlay for dramatic moments -->
+  {#if showConsequenceOverlay && pendingConsequenceType}
+    <ConsequenceOverlay
+      consequenceType={pendingConsequenceType}
+      onDismiss={() => { showConsequenceOverlay = false; pendingConsequenceType = null; }}
+    />
+  {/if}
 </div>
 {/if}
 
@@ -1053,9 +1137,98 @@
     margin-left: 4px;
   }
 
-  /* Choice panel CSS is now in DialogueWheel.svelte */
+  /* Choice panel CSS is now in DialogueWheel.svelte / ApproachCards.svelte */
   .positive { color: var(--tone-paragon); }
   .negative { color: var(--tone-renegade); }
+
+  /* ======================== V4.1 ACTION ZONE ======================== */
+  .action-zone {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .free-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .free-text-input {
+    flex: 1;
+    background: rgba(10, 18, 40, 0.7);
+    border: 1px solid rgba(118, 176, 255, 0.28);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-family: inherit;
+    line-height: 1.5;
+    padding: 10px 14px;
+    resize: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    min-height: 48px;
+  }
+
+  .free-text-input::placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+    opacity: 0.7;
+  }
+
+  .free-text-input:focus {
+    outline: none;
+    border-color: rgba(118, 176, 255, 0.55);
+    box-shadow: 0 0 0 2px rgba(100, 160, 255, 0.12), 0 0 12px rgba(100, 160, 255, 0.08);
+  }
+
+  .free-text-input:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .act-btn {
+    background: rgba(80, 130, 220, 0.15);
+    border: 1px solid rgba(100, 160, 255, 0.35);
+    border-radius: 8px;
+    color: #a8caff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 12px 18px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    flex-shrink: 0;
+    height: 48px;
+    align-self: flex-end;
+  }
+
+  .act-btn:hover:not(:disabled) {
+    background: rgba(80, 130, 220, 0.28);
+    border-color: rgba(140, 190, 255, 0.6);
+    color: #c8dfff;
+    box-shadow: 0 0 14px rgba(100, 160, 255, 0.18);
+  }
+
+  .act-btn:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .act-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 480px) {
+    .free-text-input {
+      font-size: 0.85rem;
+      padding: 8px 11px;
+    }
+    .act-btn {
+      padding: 10px 14px;
+      font-size: 0.68rem;
+    }
+  }
 
   /* ======================== LOADING ======================== */
   .loading-indicator {

@@ -35,7 +35,7 @@ from ingestion.npc_tagging import apply_npc_tags_to_chunks  # noqa: E402
 from ingestion.store import LanceStore, stable_chunk_id, file_doc_id, CHUNK_ID_SCHEME  # noqa: E402
 from ingestion.tagger import apply_tagger_to_chunks  # noqa: E402
 from ingestion.era_normalization import apply_era_mode, resolve_era_mode, infer_era_from_input_root  # noqa: E402
-from shared.lore_metadata import default_doc_type, default_section_kind, default_characters  # noqa: E402
+from shared.lore_metadata import default_doc_type, default_section_kind, default_characters, RULE_SYSTEM_ID_DEFAULT  # noqa: E402
 from shared.config import EMBEDDING_DIMENSION, EMBEDDING_MODEL  # noqa: E402
 from backend.app.content.repository import CONTENT_REPOSITORY  # noqa: E402
 from backend.app.content.loader import resolve_legacy_era  # noqa: E402
@@ -128,6 +128,7 @@ def _chunk_meta(meta: dict[str, str], text: str) -> dict[str, Any]:
         "collection": meta.get("collection", "lore"),
         "source_type": meta.get("source_type", "reference"),
         "book_title": meta.get("book_title", ""),
+        "rule_system_id": meta.get("rule_system_id", ""),
     }
 
 
@@ -266,6 +267,7 @@ def _to_canonical_chunks(hierarchical: list[dict[str, Any]]) -> list[dict[str, A
             "collection": c.get("collection", "lore"),
             "source_type": c.get("source_type", "reference"),
             "book_title": c.get("book_title", ""),
+            "rule_system_id": c.get("rule_system_id", ""),
         }
         canonical.append({"text": c["text"], "metadata": metadata})
     return canonical
@@ -343,6 +345,16 @@ def main() -> int:
         help="Delete chunks by filter instead of ingesting. Format: era=REBELLION,source=mybook.epub,doc_type=novel,collection=lore,setting_id=star_wars_legends,period_id=rebellion",
     )
     ap.add_argument("--dry-run-delete", action="store_true", help="Preview delete-by matches without deleting rows")
+    ap.add_argument(
+        "--rule-system",
+        type=str,
+        default="",
+        help=(
+            "Rule system ID to tag all chunks (e.g. 'storyteller_core', 'lotr_core'). "
+            "Auto-detected from setting_packs/core/{setting_id}/setting.yaml if --setting-id "
+            "is provided and this flag is omitted."
+        ),
+    )
     args = ap.parse_args()
 
     # V2.5: Bulk delete mode (early exit)
@@ -387,6 +399,26 @@ def main() -> int:
         period_id=args.period_id,
         time_period=args.time_period,
     )
+    # Resolve rule_system_id: CLI flag → setting.yaml auto-detect → default
+    rule_system_id = (args.rule_system or "").strip()
+    if not rule_system_id and setting_id:
+        _setting_yaml = (
+            Path(__file__).resolve().parents[1]
+            / "data" / "static" / "setting_packs" / "core" / setting_id / "setting.yaml"
+        )
+        if _setting_yaml.exists():
+            try:
+                import yaml as _yaml
+                _setting_data = _yaml.safe_load(_setting_yaml.read_text(encoding="utf-8")) or {}
+                rule_system_id = _setting_data.get("rule_system_id", "")
+                if rule_system_id:
+                    logger.info("Auto-detected rule_system_id '%s' from %s", rule_system_id, _setting_yaml)
+            except Exception as _e:
+                logger.warning("Could not load setting.yaml for rule_system_id auto-detection: %s", _e)
+    if not rule_system_id:
+        rule_system_id = RULE_SYSTEM_ID_DEFAULT
+        logger.info("Using default rule_system_id: %s", rule_system_id)
+
     catalog = CONTENT_REPOSITORY.list_catalog()
     known_pairs = {(row.get("setting_id"), row.get("period_id")) for row in catalog}
     if known_pairs and (setting_id, period_id) not in known_pairs:
@@ -403,6 +435,7 @@ def main() -> int:
         "period_id": period_id,
         "planet": args.planet.strip(),
         "faction": args.faction.strip(),
+        "rule_system_id": rule_system_id,
     }
     era_aliases = load_era_aliases(args.era_aliases)
     all_chunks: list[dict] = []
@@ -487,6 +520,7 @@ def main() -> int:
             "setting_id": setting_id,
             "period_id": period_id,
             "legacy_era_id": legacy_era,
+            "rule_system_id": rule_system_id,
             "source_type": args.source_type,
             "collection": args.collection,
             "npc_linkage": npc_linkage,

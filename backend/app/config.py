@@ -54,6 +54,18 @@ def _model_config() -> dict[str, dict[str, str]]:
         # V3.1: Dedicated campaign init role — defaults to architect config.
         # In production, override to cloud: STORYTELLER_CAMPAIGN_INIT_PROVIDER=anthropic
         "campaign_init": {"provider": "ollama", "model": "qwen3:4b"},
+        # V4.0: NPC narrative memory — lightweight, runs post-turn
+        "memory": {"provider": "ollama", "model": "qwen3:8b"},
+        # V4.0: World Mind — contextual world simulation replacing faction engine
+        "world_mind": {"provider": "ollama", "model": "qwen3:8b"},
+        # V4.0: Continuity — LLM-managed Truth Ledger (fact pruning + consequence hints)
+        "continuity": {"provider": "ollama", "model": "qwen3:4b"},
+        # V4.0: Quest Weaver — dynamic quest generation and completion evaluation
+        "quest_weaver": {"provider": "ollama", "model": "qwen3:8b"},
+        # V4.0: Progression — narrative stat growth and ability unlocking (~10 turns)
+        "progression": {"provider": "ollama", "model": "qwen3:4b"},
+        # V4.0: Psych Archivist — psychological arc + emotional_arc_note (~5 turns)
+        "psych_archivist": {"provider": "ollama", "model": "qwen3:4b"},
     }
     out = {}
     for role, cfg in base.items():
@@ -263,3 +275,9 @@ NARRATOR_MAX_INPUT_TOKENS = get_role_max_input_tokens("narrator")
 
 # Ingestion tagger (local LLM) flag: optional, off by default.
 INGESTION_TAGGER_ENABLED = os.environ.get("INGESTION_TAGGER_ENABLED", "").strip().lower() in ("1", "true", "yes")
+
+# V4.0: Rule system configuration
+# STORYTELLER_RULE_SYSTEM: id of the active rule system (filename without .md in data/static/rule_systems/)
+# Override to "ffg_star_wars", "dnd_5e_simplified", "stargate_d20", etc.
+DEFAULT_RULE_SYSTEM = os.environ.get("STORYTELLER_RULE_SYSTEM", "storyteller_core")
+RULE_SYSTEMS_DIR = DATA_ROOT / "static" / "rule_systems"

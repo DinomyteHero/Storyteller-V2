@@ -42,6 +42,8 @@ nul
 
 # Build artifacts
 *.egg-info/
+frontend/.svelte-kit/
+frontend/build/
 
 # Data variants (local vector DB)
 data/lancedb*/

@@ -1029,6 +1029,65 @@ def post_turn(
 
         logger.info("turn_complete node=post_turn campaign_id=%s turn_id=%s latency_ms=%s validation_errors=%s repair_count=%s", campaign_id, turn_contract.turn_id, int((time.perf_counter()-start_ts)*1000), len((turn_contract.debug.validation_errors if turn_contract.debug else [])), (turn_contract.debug.repair_count if turn_contract.debug else 0))
 
+        # V4.1: Extract consequence_type from mechanic_result
+        consequence_type_out: str | None = None
+        mr = result.mechanic_result
+        if mr is not None:
+            consequence_type_out = getattr(mr, "consequence_type", None) or (
+                mr.get("consequence_type") if isinstance(mr, dict) else None
+            )
+
+        # V4.1: Build active_npc_contexts — present NPCs enriched with MemoryAgent state
+        active_npc_contexts_out: list[dict] | None = None
+        try:
+            scene_frame_raw = getattr(result, "scene_frame", None) or {}
+            present_npcs_raw = scene_frame_raw.get("present_npcs") or [] if isinstance(scene_frame_raw, dict) else []
+            if present_npcs_raw:
+                ws_for_npc = camp.get("world_state_json") if camp else None
+                if isinstance(ws_for_npc, str):
+                    import json as _json_npc
+                    try:
+                        ws_for_npc = _json_npc.loads(ws_for_npc)
+                    except Exception:
+                        ws_for_npc = {}
+                npc_states_map = (ws_for_npc or {}).get("npc_states") or {} if isinstance(ws_for_npc, dict) else {}
+                npc_contexts = []
+                for npc_ref in present_npcs_raw:
+                    if not isinstance(npc_ref, dict):
+                        continue
+                    npc_id = npc_ref.get("id") or ""
+                    npc_name = npc_ref.get("name") or npc_id
+                    npc_state = npc_states_map.get(npc_id) or npc_states_map.get(npc_name) or {}
+                    npc_contexts.append({
+                        "id": npc_id,
+                        "name": npc_name,
+                        "role": npc_ref.get("role") or "",
+                        "emotional_state": npc_state.get("emotional_state") or "",
+                        "agenda": npc_state.get("agenda") or "",
+                        "next_move": npc_state.get("next_move") or "",
+                    })
+                if npc_contexts:
+                    active_npc_contexts_out = npc_contexts
+        except Exception:
+            pass  # NPC context enrichment is non-critical
+
+        # V4.1: Overlay spoken_reaction from CompanionVoiceAgent onto party_status
+        if party_status and camp:
+            try:
+                ws_spoken = camp.get("world_state_json")
+                if isinstance(ws_spoken, str):
+                    import json as _json_spoken
+                    try:
+                        ws_spoken = _json_spoken.loads(ws_spoken)
+                    except Exception:
+                        ws_spoken = {}
+                spoken_map = (ws_spoken or {}).get("companion_spoken_reactions") or {} if isinstance(ws_spoken, dict) else {}
+                if spoken_map:
+                    for item in party_status:
+                        item.spoken_reaction = spoken_map.get(item.id) or spoken_map.get(item.name)
+            except Exception:
+                pass  # spoken reactions are non-critical
+
         return TurnResponse(
             narrated_text=result.final_text or "",
             suggested_actions=suggested_actions,
@@ -1047,6 +1106,8 @@ def post_turn(
             warnings=warnings_out,
             dialogue_turn=getattr(result, "dialogue_turn", None),
             turn_contract=turn_contract,
+            consequence_type=consequence_type_out,
+            active_npc_contexts=active_npc_contexts_out,
         )
     except HTTPException:
         # Re-raise HTTP exceptions (e.g., 404 from _ensure_campaign_and_player)

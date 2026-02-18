@@ -647,6 +647,9 @@ class SettingRules(BaseModel):
     location_display_names: Dict[str, str] = Field(default_factory=dict)
     bypass_methods: List[str] = Field(default=["force", "force_dark", "sith_amulet"])
     fallback_background: str = "A traveler in a vast galaxy."
+    # V4.0: Rule system override — set to "ffg_star_wars", "dnd_5e_simplified", etc.
+    # Defaults to "storyteller_core". Corresponds to filename in data/static/rule_systems/.
+    rule_system_id: str = "storyteller_core"
 
 
 class EraPack(BaseModel):

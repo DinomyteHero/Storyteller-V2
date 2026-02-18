@@ -1,0 +1,91 @@
+# Rule System Catalog
+#
+# Registry of all available rule systems. Each entry links a rule_system_id to its
+# .md document in this directory, its stat schema, and which settings use it.
+#
+# To add a new rule system:
+#   1. Copy _template.md → {rule_system_id}.md and fill in all required sections
+#   2. Add an entry here
+#   3. Reference the rule_system_id in the relevant setting.yaml (setting_packs/core/{setting_id}/setting.yaml)
+#   4. (Optional) Ingest the rules into LanceDB for RAG retrieval:
+#      python -m ingestion.ingest_rules --input data/static/rule_systems/{id}.md \
+#        --rule-system {id} --setting-id {setting_id}
+
+rule_systems:
+
+  - id: storyteller_core
+    display_name: "Storyteller Core"
+    description: >
+      Default narrative dice system designed for LLM-driven RPGs. Setting-agnostic;
+      works for any science-fantasy, space opera, or genre-fiction universe.
+      Uses a 6-stat schema with Triumph/Success/Threat/Despair spectrum outcomes.
+    version: "2.0"
+    stat_schema:
+      - name: Presence
+        governs: "Social actions — persuasion, deception, leadership, intimidation"
+      - name: Cunning
+        governs: "Stealth, trickery, sleight of hand, tactical maneuvering"
+      - name: Physique
+        governs: "Melee combat, athletics, endurance, brute-force tasks"
+      - name: Intellect
+        governs: "Technical skills, medicine, hacking, investigation, piloting"
+      - name: Willpower
+        governs: "Resistance to fear, corruption, mental strain, moral resolve"
+      - name: Force
+        governs: "Force sensitivity, perception, intuition, supernatural effects"
+    settings_using:
+      - star_wars
+    doc_file: "storyteller_core.md"
+
+  # --- Add new rule systems below this line ---
+  #
+  # Example entry for a Lord of the Rings setting:
+  #
+  # - id: lotr_core
+  #   display_name: "Middle-earth Narrative Rules"
+  #   description: >
+  #     Rules for Lord of the Rings campaigns. Replaces Force with Grace (Elvish gifts),
+  #     adds the One Ring corruption mechanic, and emphasizes fellowship bonds.
+  #   version: "1.0"
+  #   stat_schema:
+  #     - name: Courage
+  #       governs: "Standing firm against fear, dark powers, and despair"
+  #     - name: Cunning
+  #       governs: "Stealth, trickery, riddle-games, ranger skills"
+  #     - name: Might
+  #       governs: "Melee combat, physical feats, endurance on the road"
+  #     - name: Lore
+  #       governs: "Elvish knowledge, ancient history, rune-lore, healing herbs"
+  #     - name: Wits
+  #       governs: "Tactical thinking, navigation, resisting temptation"
+  #     - name: Grace
+  #       governs: "Elvish gifts, nature communion, bardic inspiration"
+  #   settings_using:
+  #     - lotr
+  #   doc_file: "lotr_core.md"
+  #
+  # Example entry for a Game of Thrones / A Song of Ice and Fire setting:
+  #
+  # - id: got_core
+  #   display_name: "Westeros Intrigue Rules"
+  #   description: >
+  #     Rules for A Song of Ice and Fire campaigns. Political maneuvering is the
+  #     primary mechanic. Adds House Reputation, Winter Severity, and Betrayal risk.
+  #     No Force stat — replaced by Intrigue (scheming, spying, blackmail).
+  #   version: "1.0"
+  #   stat_schema:
+  #     - name: Presence
+  #       governs: "Lordship, command, social standing, public speeches"
+  #     - name: Cunning
+  #       governs: "Deception, spycraft, information warfare, assassination"
+  #     - name: Physique
+  #       governs: "Combat, jousting, tourney performance, physical feats"
+  #     - name: Intellect
+  #       governs: "Military strategy, maestering, historical knowledge, planning"
+  #     - name: Willpower
+  #       governs: "Resisting torture, temptation, corruption, grief"
+  #     - name: Intrigue
+  #       governs: "Political scheming, blackmail leverage, court maneuvering"
+  #   settings_using:
+  #     - got
+  #   doc_file: "got_core.md"

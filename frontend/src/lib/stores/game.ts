@@ -7,7 +7,7 @@
 import { writable, derived } from 'svelte/store';
 import type {
   TurnResponse, TranscriptTurn,
-  DialogueTurn, SceneFrame, NPCUtterance, PlayerResponse
+  DialogueTurn, SceneFrame, NPCUtterance, PlayerResponse, NpcContext
 } from '$lib/api/types';
 
 /** Active campaign ID. */
@@ -110,6 +110,22 @@ export const playerResponses = derived<typeof dialogueTurn, PlayerResponse[]>(
 export const questLog = derived(
   lastTurnResponse,
   ($resp) => $resp?.quest_log ?? {}
+);
+
+// ---------------------------------------------------------------------------
+// V4.1: Consequence type and NPC contexts
+// ---------------------------------------------------------------------------
+
+/** Derived: consequence_type for dramatic moment overlay (TRIUMPH|DESPAIR|HP_CRITICAL|TURNING_POINT|NORMAL). */
+export const consequenceType = derived(
+  lastTurnResponse,
+  ($resp) => $resp?.consequence_type ?? null
+);
+
+/** Derived: present NPCs enriched with MemoryAgent state. */
+export const activeNpcContexts = derived<typeof lastTurnResponse, NpcContext[]>(
+  lastTurnResponse,
+  ($resp) => $resp?.active_npc_contexts ?? []
 );
 
 /** Reset all game state (e.g., when returning to main menu). */

@@ -117,6 +117,8 @@ class PartyStatusItem(BaseModel):
     trust: int | None = None
     respect: int | None = None
     fear: int | None = None
+    # V4.1: LLM-generated spoken reaction in companion voice
+    spoken_reaction: str | None = None
 
 
 class TurnResponse(BaseModel):
@@ -143,6 +145,10 @@ class TurnResponse(BaseModel):
     # V2.17: Canonical DialogueTurn (scene + NPC utterance + player responses)
     dialogue_turn: dict | None = None
     turn_contract: TurnContract | None = None
+    # V4.1: Dramatic moment type (TRIUMPH|DESPAIR|HP_CRITICAL|TURNING_POINT|NORMAL)
+    consequence_type: str | None = None
+    # V4.1: Present NPCs enriched with MemoryAgent state (emotional_state, agenda)
+    active_npc_contexts: list[dict] | None = None
 
 
 class CampaignSummary(BaseModel):

@@ -180,8 +180,30 @@ def _build_story_state_summary(state: GameState) -> str:
     loc = _humanize_location(state.current_location) or "the scene"
     campaign_id = state.campaign_id or ""
     npcs = state.present_npcs or []
-    npc_lines = [f"- {n.get('name', 'Unknown')} ({n.get('role', '')})" for n in npcs if n.get("name")]
     npc_names_list = [n.get("name") for n in npcs if n.get("name")]
+
+    # V4.0: Load NPC narrative memory from world_state_json["npc_states"]
+    campaign = state.campaign or {}
+    ws = campaign.get("world_state_json") if isinstance(campaign, dict) else {}
+    npc_states: dict = (ws.get("npc_states") or {}) if isinstance(ws, dict) else {}
+
+    # Build per-NPC lines with narrative memory injected
+    from backend.app.core.agents.memory_agent import format_npc_memory_for_narrator
+    npc_lines = []
+    for n in npcs:
+        name = n.get("name")
+        if not name:
+            continue
+        role = n.get("role") or ""
+        npc_id = n.get("id") or name.lower().replace(" ", "-")
+        line = f"- {name} ({role})"
+        # Inject narrative memory if available (try by id, then by name)
+        mem_block = format_npc_memory_for_narrator(npc_id, npc_states) or \
+                    format_npc_memory_for_narrator(name, npc_states)
+        if mem_block:
+            line = line + "\n" + mem_block
+        npc_lines.append(line)
+
     if npc_lines:
         allowed_names_str = ", ".join(npc_names_list)
         npc_block = (
@@ -224,7 +246,14 @@ def _build_story_state_summary(state: GameState) -> str:
         psych = state.player.psych_profile or {}
     current_mood = psych.get("current_mood", "neutral")
     stress_level = int(psych.get("stress_level", 0) or 0)
-    psych_block = f"current_mood: {current_mood}, stress_level: {stress_level}, active_trauma: {psych.get('active_trauma') or 'none'}"
+    psych_block = (
+        f"current_mood: {current_mood}, stress_level: {stress_level}, "
+        f"active_trauma: {psych.get('active_trauma') or 'none'}"
+    )
+    # V4.0: Inject emotional_arc_note from PsychArchivistAgent when available
+    _emotional_arc_note = ws.get("emotional_arc_note") if isinstance(ws, dict) else None
+    if _emotional_arc_note:
+        psych_block += f"\nDirector note: {_emotional_arc_note}"
 
     # V2.5: Active rumors (last 3 is_public_rumor events)
     active_rumors = getattr(state, "active_rumors", None) or []
@@ -236,6 +265,14 @@ def _build_story_state_summary(state: GameState) -> str:
     if isinstance(ws, dict):
         ledger = ws.get("ledger") or {}
     ledger_block = format_ledger_for_prompt(ledger)
+
+    # V4.0: Dynamic quest hooks — surface active dynamic quests to Director/Narrator
+    dynamic_quests_block = ""
+    if isinstance(ws, dict):
+        _dq = ws.get("dynamic_quests") or []
+        if _dq:
+            from backend.app.core.agents.quest_weaver_agent import format_dynamic_quests_for_prompt  # noqa: E402
+            dynamic_quests_block = format_dynamic_quests_for_prompt(_dq)
 
     # V2.5: Open threads for narrative continuity
     open_threads = ledger.get("open_threads") or []
@@ -333,7 +370,8 @@ def _build_story_state_summary(state: GameState) -> str:
         f"If you are unsure about a fact, phrase it as rumor/speculation. Never contradict established facts.\n\n"
         f"## Open threads (reference 1-2 subtly to maintain continuity)\n"
         f"{threads_block}\n\n"
-        f"## Character psych_profile (use for tone)\n"
+        + (f"{dynamic_quests_block}\n\n" if dynamic_quests_block else "")
+        + f"## Character psych_profile (use for tone)\n"
         f"{psych_block}\n\n"
         f"## Present NPCs (ONLY these characters exist in this scene)\n"
         f"{npc_block}\n\n"

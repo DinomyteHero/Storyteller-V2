@@ -7,7 +7,8 @@
  * ============================================================ */
 
 /* === Typography === */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+/* Rajdhani: angular, wide-spaced — KOTOR 2 UI label aesthetic */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
 
 /* === Reset === */
 *, *::before, *::after {
@@ -42,27 +43,27 @@ body::after {
   z-index: -2;
 }
 
-/* Old Republic-inspired star field */
+/* Old Republic — faint teal star field (distant, minimal — doesn't compete with prose) */
 body::before {
   background:
-    radial-gradient(2px 2px at 12% 18%, rgba(150, 197, 255, 0.7), transparent 60%),
-    radial-gradient(1px 1px at 22% 72%, rgba(193, 223, 255, 0.7), transparent 60%),
-    radial-gradient(1.5px 1.5px at 34% 42%, rgba(130, 178, 255, 0.7), transparent 60%),
-    radial-gradient(2px 2px at 58% 12%, rgba(163, 205, 255, 0.7), transparent 60%),
-    radial-gradient(1px 1px at 68% 58%, rgba(170, 214, 255, 0.65), transparent 60%),
-    radial-gradient(1.5px 1.5px at 82% 34%, rgba(180, 221, 255, 0.7), transparent 60%),
-    radial-gradient(1px 1px at 91% 76%, rgba(188, 227, 255, 0.72), transparent 60%),
-    linear-gradient(180deg, rgba(3, 10, 22, 0.7) 0%, rgba(5, 12, 29, 0.9) 55%, rgba(2, 6, 15, 0.98) 100%);
-  opacity: 0.92;
+    radial-gradient(2px 2px at 12% 18%, rgba(0, 200, 160, 0.38), transparent 60%),
+    radial-gradient(1px 1px at 22% 72%, rgba(0, 220, 175, 0.30), transparent 60%),
+    radial-gradient(1.5px 1.5px at 34% 42%, rgba(0, 185, 148, 0.35), transparent 60%),
+    radial-gradient(2px 2px at 58% 12%, rgba(0, 210, 168, 0.32), transparent 60%),
+    radial-gradient(1px 1px at 68% 58%, rgba(0, 190, 152, 0.28), transparent 60%),
+    radial-gradient(1.5px 1.5px at 82% 34%, rgba(0, 205, 162, 0.34), transparent 60%),
+    radial-gradient(1px 1px at 91% 76%, rgba(0, 215, 170, 0.30), transparent 60%),
+    linear-gradient(180deg, rgba(1, 8, 5, 0.75) 0%, rgba(2, 10, 7, 0.92) 55%, rgba(0, 5, 3, 0.98) 100%);
+  opacity: 0.90;
 }
 
-/* Nebula glow */
+/* Teal nebula glow — very faint atmospheric depth */
 body::after {
   z-index: -1;
   background:
-    radial-gradient(42rem 24rem at 15% 8%, rgba(67, 138, 255, 0.11), transparent 70%),
-    radial-gradient(32rem 18rem at 90% 20%, rgba(49, 107, 205, 0.1), transparent 72%),
-    radial-gradient(30rem 20rem at 50% 100%, rgba(39, 83, 173, 0.16), transparent 75%);
+    radial-gradient(42rem 24rem at 15% 8%, rgba(0, 160, 120, 0.09), transparent 70%),
+    radial-gradient(32rem 18rem at 90% 20%, rgba(0, 130, 100, 0.07), transparent 72%),
+    radial-gradient(30rem 20rem at 50% 100%, rgba(0, 140, 110, 0.10), transparent 75%);
 }
 
 /* === Scrollbar === */
@@ -92,27 +93,31 @@ h1, h2, h3, h4 {
   font-weight: 600;
 }
 
-/* === Panel / Card === */
+/* === Panel / Card — KOTOR 2 chamfered corner style === */
+/* clip-path creates the 45° cut at corners; filter:drop-shadow replaces box-shadow
+   (clip-path clips box-shadow, so we use filter instead) */
 .card {
   border: 1px solid var(--border-panel);
-  background:
-    linear-gradient(145deg, rgba(14, 26, 56, 0.88) 0%, rgba(10, 18, 41, 0.84) 40%, rgba(9, 16, 34, 0.86) 100%),
-    var(--bg-panel);
-  box-shadow:
-    0 0 0 1px rgba(124, 177, 255, 0.08) inset,
-    0 12px 40px rgba(0, 0, 0, 0.45),
-    0 0 30px rgba(56, 115, 216, 0.16);
-  border-radius: var(--panel-radius);
+  background: var(--bg-panel);
+  clip-path: polygon(
+    7px 0%, calc(100% - 7px) 0%,
+    100% 7px, 100% calc(100% - 7px),
+    calc(100% - 7px) 100%, 7px 100%,
+    0% calc(100% - 7px), 0% 7px
+  );
+  filter:
+    drop-shadow(0 0 10px var(--accent-glow))
+    drop-shadow(0 6px 20px rgba(0, 0, 0, 0.40));
+  border-radius: 0;
   padding: var(--panel-padding);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, filter 0.2s ease;
   backdrop-filter: blur(2px);
 }
 .card:hover {
-  border-color: rgba(118, 184, 255, 0.62);
-  box-shadow:
-    0 0 0 1px rgba(124, 177, 255, 0.14) inset,
-    0 16px 48px rgba(0, 0, 0, 0.48),
-    0 0 34px rgba(89, 164, 255, 0.24);
+  border-color: var(--border-accent);
+  filter:
+    drop-shadow(0 0 16px var(--accent-glow))
+    drop-shadow(0 8px 28px rgba(0, 0, 0, 0.50));
 }
 
 /* === Scanline overlay === */
@@ -136,27 +141,27 @@ h1, h2, h3, h4 {
   opacity: var(--hud-scanline-opacity);
 }
 
-/* === HUD Pill === */
+/* === HUD Pill — Rajdhani for the KOTOR 2 UI label feel === */
 .pill {
   display: flex;
   align-items: center;
-  background: linear-gradient(140deg, rgba(20, 35, 69, 0.92), rgba(15, 30, 57, 0.86));
-  border: 1px solid rgba(115, 160, 226, 0.45);
-  border-radius: 4px;
-  padding: 4px 10px;
+  background: var(--hud-pill-bg);
+  border: 1px solid var(--hud-pill-border);
+  border-radius: 2px;  /* near-square in Old Republic theme */
+  padding: 3px 9px;
   font-size: var(--font-caption);
+  font-family: 'Rajdhani', 'Inter', sans-serif;
   color: var(--text-secondary);
   white-space: nowrap;
-  box-shadow: inset 0 1px 0 rgba(170, 210, 255, 0.12), 0 2px 10px rgba(0, 0, 0, 0.28);
 }
 .pill .label {
-  color: var(--text-primary);
+  font-family: 'Rajdhani', 'Inter', sans-serif;
+  color: var(--text-muted);
   font-weight: 600;
   margin-right: 6px;
   text-transform: uppercase;
-  font-size: 0.7rem;
-  opacity: 0.8;
-  letter-spacing: 0.5px;
+  font-size: 0.72rem;
+  letter-spacing: 0.8px;
 }
 .pill .value {
   font-family: 'JetBrains Mono', 'Courier New', monospace;
@@ -185,11 +190,13 @@ h1, h2, h3, h4 {
   font-style: italic;
 }
 
-/* === Section header === */
+/* === Section header — Rajdhani, wide-spaced uppercase === */
 .section-header {
+  font-family: 'Rajdhani', 'Inter', sans-serif;
   font-size: var(--font-caption);
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.5px;
   color: var(--text-secondary);
   padding-bottom: 4px;
   border-bottom: 1px solid var(--border-subtle);
@@ -213,32 +220,31 @@ button {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1px solid rgba(107, 160, 233, 0.5);
-  background: linear-gradient(150deg, rgba(18, 33, 64, 0.94), rgba(13, 23, 45, 0.92));
+  border: 1px solid var(--border-panel);
+  background: var(--bg-panel);
   color: var(--text-primary);
-  border-radius: 8px;
+  border-radius: var(--panel-radius);
   padding: 0.6rem 1.2rem;
   font-size: var(--font-body);
-  font-weight: 500;
+  font-family: 'Rajdhani', 'Inter', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
   transition: all 0.2s ease;
 }
 .btn:hover {
-  border-color: rgba(153, 203, 255, 0.86);
-  background: linear-gradient(150deg, rgba(28, 51, 94, 0.94), rgba(16, 30, 58, 0.92));
+  border-color: var(--border-accent);
   color: var(--text-heading);
-  box-shadow: 0 0 24px rgba(107, 171, 255, 0.4);
+  filter: drop-shadow(0 0 12px var(--accent-glow));
 }
 .btn-primary {
-  background: linear-gradient(130deg, #5a9fff 0%, #4c88e6 40%, #3f73c7 100%);
-  border-color: rgba(153, 208, 255, 0.75);
-  color: #041225;
-  font-weight: 600;
-  box-shadow: 0 8px 22px rgba(54, 125, 231, 0.38);
+  background: var(--accent-primary);
+  border-color: var(--border-accent);
+  color: #010805;
+  font-weight: 700;
+  filter: drop-shadow(0 4px 14px var(--accent-glow));
 }
 .btn-primary:hover {
-  background: linear-gradient(130deg, #77b3ff 0%, #5b96ef 45%, #497ecc 100%);
-  border-color: rgba(182, 224, 255, 0.9);
-  box-shadow: 0 0 28px rgba(105, 176, 255, 0.52);
+  filter: drop-shadow(0 0 20px var(--accent-glow)) brightness(1.10);
 }
 
 /* === Form inputs === */

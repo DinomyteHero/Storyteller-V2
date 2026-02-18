@@ -1,0 +1,56 @@
+# Star Wars Legends — Top-Level Setting Definition
+#
+# This file registers the Star Wars setting with the Storyteller-V2 engine.
+# It lives at the setting level (above individual periods/eras) and defines:
+#   - Which rule system governs this setting
+#   - Default and supported time periods
+#   - Setting-wide SettingRules defaults (can be overridden per-period in era.yaml)
+#
+# Period packs continue to live in: data/static/era_packs/{period_id}/
+# (legacy layout — use setting_packs/core/star_wars/periods/ for new periods)
+
+setting_id: star_wars
+display_name: "Star Wars Legends"
+genre: "science fantasy"
+
+# ─── Rule System ──────────────────────────────────────────────────────────────
+# Links this setting to a rule system document in data/static/rule_systems/.
+# The ResolutionAgent loads data/static/rule_systems/{rule_system_id}.md
+# to resolve player actions.
+rule_system_id: storyteller_core
+
+# ─── Periods ─────────────────────────────────────────────────────────────────
+default_period_id: rebellion
+supported_period_ids:
+  - dark_times        # Age of Empire; Order 66 aftermath
+  - rebellion         # Galactic Civil War era
+  - new_republic      # Post-Endor; rebuilding
+  - new_jedi_order    # Luke's academy; Yuuzhan Vong threat
+
+# ─── Setting-Wide SettingRules Defaults ───────────────────────────────────────
+# These values feed the SettingRules model used by Director, Narrator, and
+# BiographerAgent. Individual era packs (era.yaml) can override any field.
+setting_rules:
+  setting_name: "Star Wars Legends"
+  setting_genre: "science fantasy"
+  biographer_role: "a biographer for a Star Wars Legends narrative RPG"
+  architect_role: "the World Architect for a Star Wars Legends narrative RPG"
+  director_role: "the Director for an interactive Star Wars story engine"
+  suggestion_style: "a Star Wars KOTOR-style game"
+  historical_lore_label: "established Star Wars Legends lore"
+  common_species:
+    - Human
+    - "Twi'lek"
+    - Rodian
+    - Wookiee
+    - Zabrak
+    - Bothan
+    - Chiss
+    - Duros
+    - Nautolan
+  example_factions:
+    - Rebellion
+    - Galactic Empire
+    - "Hutt Cartel"
+    - "Black Sun"
+    - "Mandalorian Clans"
