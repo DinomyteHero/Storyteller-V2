@@ -216,14 +216,60 @@ export const HOLOCRON_ARCHIVE: ThemeTokens = {
   panelPadding: '16px 18px',
 };
 
+export const OLD_REPUBLIC: ThemeTokens = {
+  name: 'Old Republic',
+  className: 'theme-old-republic',
+  // Deep near-black with imperceptible dark teal tint — pure KOTOR 2
+  bgApp:
+    'radial-gradient(ellipse 120rem 60rem at 25% 0%, rgba(0, 80, 55, 0.07), transparent 60%),' +
+    'radial-gradient(ellipse 80rem 50rem at 85% 15%, rgba(0, 60, 42, 0.05), transparent 55%),' +
+    'linear-gradient(180deg, #010805 0%, #020a07 55%, #010704 100%)',
+  bgPanel: 'rgba(0, 22, 15, 0.82)',
+  bgInput: 'rgba(0, 16, 11, 0.65)',
+  bgOverlay: 'rgba(0, 8, 5, 0.96)',
+  // The iconic KOTOR teal-green borders
+  borderPanel: 'rgba(0, 185, 148, 0.22)',
+  borderAccent: 'rgba(0, 218, 174, 0.48)',
+  borderSubtle: 'rgba(0, 180, 140, 0.08)',
+  // Slightly teal-tinted white — readable against near-black
+  textPrimary: 'rgba(210, 245, 238, 0.95)',
+  textSecondary: 'rgba(130, 200, 178, 0.88)',
+  textMuted: 'rgba(55, 115, 95, 0.65)',
+  textHeading: 'rgba(0, 218, 174, 0.95)',
+  // Teal accent — the KOTOR 2 signature
+  accentPrimary: 'rgba(0, 208, 165, 0.90)',
+  accentSecondary: 'rgba(0, 160, 128, 0.80)',
+  accentGlow: 'rgba(0, 200, 160, 0.22)',
+  accentDanger: 'rgba(255, 68, 50, 0.90)',
+  hudPillBg: 'rgba(0, 18, 12, 0.60)',
+  hudPillBorder: 'rgba(0, 185, 148, 0.22)',
+  hudScanlineOpacity: '0.09',
+  choiceHoverBorder: 'rgba(0, 218, 174, 0.50)',
+  choiceHoverGlow: '0 0 18px rgba(0, 200, 160, 0.18)',
+  // Tone colors unchanged — Paragon/Investigate/Renegade/Neutral are KOTOR canon
+  toneParagon: 'rgba(100, 175, 255, 0.92)',
+  toneInvestigate: 'rgba(255, 210, 70, 0.92)',
+  toneRenegade: 'rgba(255, 72, 52, 0.92)',
+  toneNeutral: 'rgba(155, 195, 185, 0.82)',
+  fontNarrative: '1.07rem',
+  fontBody: '0.95rem',
+  fontCaption: '0.83rem',
+  fontHeading: '1.15rem',
+  fontSmall: '0.76rem',
+  lineHeightNarrative: '1.70',
+  panelRadius: '3px',   // near-square — the key KOTOR 2 corner detail
+  panelPadding: '14px 16px',
+};
+
 export const THEMES: Record<string, ThemeTokens> = {
+  'Old Republic': OLD_REPUBLIC,
   'Clean Dark': CLEAN_DARK,
   'Rebel Amber': REBEL_AMBER,
   'Alliance Blue': ALLIANCE_BLUE,
   'Holocron Archive': HOLOCRON_ARCHIVE,
 };
 
-export const DEFAULT_THEME = 'Clean Dark';
+export const DEFAULT_THEME = 'Old Republic';
 
 export const THEME_NAMES = Object.keys(THEMES);
 

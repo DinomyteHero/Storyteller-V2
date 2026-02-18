@@ -113,7 +113,7 @@
 
   .companion-card {
     padding: 0.5rem;
-    border-radius: 0.375rem;
+    border-radius: 3px;
     background: var(--color-surface-alt, #111827);
     border: 1px solid var(--color-border, #374151);
   }

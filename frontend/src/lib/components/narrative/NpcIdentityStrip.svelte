@@ -90,7 +90,7 @@
   }
 
   .npc-card {
-    border-radius: 6px;
+    border-radius: 2px;
     padding: 7px 10px;
     border: 1px solid;
     cursor: pointer;

@@ -77,12 +77,11 @@
 <div class="approach-section" role="group" aria-label="Suggested approaches">
   <div class="approach-label">approaches</div>
   {#key animKey}
-    <div class="approach-scroll" role="list">
+    <div class="approach-scroll">
       {#each approaches as approach, i}
         <button
           class="approach-card tone-{approach.toneTag.toLowerCase()} stagger-enter"
           style="animation-delay: {i * 55}ms"
-          role="listitem"
           onclick={() => onPopulate(approach.populateText)}
           aria-label="Approach {i + 1}: {approach.displayText}. Tap to use as starting point. {approach.consequenceHint ? approach.consequenceHint : ''}{approach.riskLevel && approach.riskLevel !== 'SAFE' ? '. Risk: ' + approach.riskLevel : ''}"
           title="Click to populate input"
@@ -144,7 +143,7 @@
     text-align: left;
     position: relative;
     border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: 3px;
     padding: 10px 12px;
     transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
     flex-shrink: 0;
