@@ -4,7 +4,12 @@
 
 A single turn flows through a LangGraph `StateGraph` that is compiled once on first use (see `backend/app/core/graph.py`). The pipeline is invoked by `run_turn(conn, state)`, which injects the SQLite connection as `state["__runtime_conn"]` and strips it after graph execution.
 
-## Pipeline Topology
+**V5.0 changes:**
+- `moments` node added between `companion_reaction` and `arc_planner`
+- `suggestion_refiner` replaced by `choice_crafter` (authoritative LLM; no deterministic fallback)
+- `run_turn()` now catches `AgentFailureError` from authoritative agents and returns a structured error in `GameState`
+
+## Pipeline Topology (V5.0)
 
 ```mermaid
 flowchart TD
@@ -20,13 +25,14 @@ flowchart TD
     MECHANIC --> ENCOUNTER
     ENCOUNTER --> WORLDSIM[WorldSim Node]
     WORLDSIM --> COMPANION[Companion Reaction Node]
-    COMPANION --> ARCPLAN[Arc Planner Node]
+    COMPANION --> MOMENTS[Moments Node]
+    MOMENTS --> ARCPLAN[Arc Planner Node]
     ARCPLAN --> SCENEFRAME[Scene Frame Node]
     SCENEFRAME --> DIRECTOR[Director Node]
     DIRECTOR --> NARRATOR[Narrator Node]
     NARRATOR --> VALIDATOR[Narrative Validator Node]
-    VALIDATOR --> REFINER[Suggestion Refiner Node]
-    REFINER --> COMMIT
+    VALIDATOR --> CHOICECRAFTER[Choice Crafter Node]
+    CHOICECRAFTER --> COMMIT
 
     COMMIT --> END_NODE([Return GameState])
 
@@ -35,7 +41,8 @@ flowchart TD
     style WORLDSIM fill:#9ff,stroke:#333
     style ARCPLAN fill:#cfc,stroke:#333
     style VALIDATOR fill:#fcf,stroke:#333
-    style REFINER fill:#ffc,stroke:#333
+    style CHOICECRAFTER fill:#f9c,stroke:#333
+    style MOMENTS fill:#cff,stroke:#333
 ```
 
 ## Node-by-Node Detail
@@ -96,7 +103,7 @@ Behavior (current/default):
 - Reads DB connection from `state["__runtime_conn"]`.
 - Queries existing NPCs for `(campaign_id, effective_location)`.
 - If none exist:
-  - If `ENABLE_BIBLE_CASTING=1`, chooses NPCs deterministically from Era Packs (`data/static/era_packs/*`).
+  - If `ENABLE_BIBLE_CASTING=1`, chooses NPCs deterministically from Era Packs via `ContentRepository`.
   - If `ENABLE_PROCEDURAL_NPCS=1`, generates a deterministic procedural NPC (fallback when Bible selection yields none).
   - Emits `NPC_SPAWN` events (staged in memory; committed later) when encounter throttling allows introductions.
 - **Legacy path:** If both `ENABLE_BIBLE_CASTING=0` and `ENABLE_PROCEDURAL_NPCS=0`, the EncounterManager uses a legacy 10% "spawn request" and the node may call the LLM-based `CastingAgent` (still gated by encounter throttling).
@@ -113,7 +120,7 @@ Also:
 
 ### 4) WorldSim (Living World)
 
-**File:** `backend/app/core/nodes/world_sim.py` (calls `backend/app/core/agents/architect.py`)
+**File:** `backend/app/core/nodes/world_sim.py` (calls `backend/app/core/agents/architect.py` or `backend/app/world/faction_engine.py`)
 
 **Purpose:** Run off-screen simulation on tick-boundary crossing or travel.
 
@@ -127,12 +134,12 @@ Also:
 **When triggered:**
 
 - Loads current `active_factions` from DB (`campaigns.world_state_json.active_factions`).
-- Calls `CampaignArchitect.simulate_off_screen(...)`.
+- Calls `CampaignArchitect.simulate_off_screen(...)` (LLM with deterministic fallback) or the deterministic `faction_engine.simulate_faction_tick()`.
 - Produces:
   - `world_sim_events` (hidden faction moves / plot ticks)
   - `world_sim_rumors` as public rumor events (`is_public_rumor=true`)
   - `world_sim_factions_update` (new `active_factions` list to persist)
-  - `campaign.news_feed` (ME-style briefing, derived from rumors)
+  - `campaign.news_feed` (ME-style briefing, derived from rumors via `rumors_to_news_feed()`)
   - `faction_memory` updates (multi-turn plan tracking)
   - `npc_states` updates (20% movement chance per tick, faction-aware goals)
 - Always sets `pending_world_time_minutes = t1` for Commit.
@@ -159,68 +166,107 @@ No DB access. No LLM calls.
 
 ---
 
-### 6) Director
+### 6) Moments (V5.0 — NEW)
 
-**File:** `backend/app/core/nodes/director.py` (agent in `backend/app/core/agents/director.py`)
+**File:** `backend/app/core/nodes/moments.py`
 
-**Purpose:** Pacing instructions (text-only) + deterministic suggestion generation.
+**Purpose:** Check and fire `EraMoment` triggers defined in the era pack.
 
-The Director generates **text-only scene instructions** for the Narrator. No JSON schema, no suggestion generation in the LLM call. Suggestions are 100% deterministic.
+**Pipeline position:** `companion_reaction → moments → arc_planner`
 
-- Uses RAG (4-lane style retrieval):
-  - `retrieve_style_layered()` from `backend/app/rag/style_retriever.py` — Base SW (always-on) + Era + Genre + Archetype lanes
-  - Adventure hook lore (`backend/app/rag/lore_retriever.py` with `doc_type=adventure`, `section_kind=hook`)
-  - KG context from `backend/app/rag/kg_retriever.py`
-- Uses `personality_profile` blocks for NPC characterization in scene instructions.
-- Uses episodic memories (`shared_episodic_memories`) for narrative continuity.
-- Uses `known_npcs` for per-NPC naming (name if known, descriptive role if not).
-- **Deterministic suggestions:** Calls `generate_suggestions(state, mechanic_result)` from `suggestion_engine.py` (re-exported via `director_validation.py`):
-  - Produces exactly 4 KOTOR-style options based on game state, mechanic results, present NPCs, and scene context.
-  - Post-combat: success/failure branches. Post-stealth: success/failure branches.
-  - Exploration suggestions (`_exploration_suggestions()`) for no-NPC scenes.
-  - High-stress calming option when `stress > 7`.
-  - `classify_suggestion()` assigns tone (PARAGON/INVESTIGATE/RENEGADE/NEUTRAL), risk (SAFE/RISKY/DANGEROUS), and category.
-  - `ensure_tone_diversity()` re-tags NEUTRAL suggestions to fill PARAGON/INVESTIGATE/RENEGADE gaps.
-- Runs `ActionLint` to remove invalid suggestions (missing NPCs/items, travel-in-combat, etc.) and pads to exactly 4.
-- Adds turn warnings when it has to fallback, trim context, or lint/pad actions.
+**Trigger conditions (all specified must pass):**
+- `companion_id + affinity_threshold`: companion affinity >= threshold
+- `arc_stage`: current arc stage matches
+- `turn_number_min`: current turn >= minimum
+- `location_tags_any`: current location has any of these tags
+- `quest_id_completed`: quest is in the completed quests list
+- `alignment_min`: player alignment axis >= minimum value
 
-**Output keys set:** `director_instructions`, `suggested_actions`, `warnings`
+**When a moment fires:**
+- The moment ID is added to `world_state["fired_moments"]` for once-only enforcement.
+- The moment's `narrative_beat` is prepended to `arc_guidance["scene_instructions"]` so the Director sees it.
+- All fired beats are collected in `arc_guidance["fired_moments_beats"]`.
+
+**Failure handling:** Non-fatal — any exception returns the unchanged state. Only fires once per moment ID (unless `once_only=False`).
+
+**Output keys set:** `arc_guidance` (updated with fired moment beats), `campaign.world_state_json` (fired_moments list updated)
 
 ---
 
-### 7) Narrator
+### 7) Arc Planner
+
+**File:** `backend/app/core/nodes/arc_planner.py`
+
+**Purpose:** Deterministic story arc tracking and pacing guidance.
+
+- Reads `turn_number`, `ledger`, `arc_state` from world_state_json.
+- Outputs `arc_guidance`: arc stage, tension level, priority threads, pacing hints, suggested action weights, active themes, hero_beat, archetype_hints, theme_guidance, era_transition_pending, and any fired moment beats from the Moments node.
+- Tracks Hero's Journey beats (12 beats), genre triggers, and era transition readiness.
+
+No DB writes, no LLM.
+
+---
+
+### 8) Scene Frame
+
+**File:** `backend/app/core/nodes/scene_frame.py`
+
+**Purpose:** Builds scene framing context for the Director.
+
+- Extracts `topic_primary`, `subtext`, `npc_agenda` from current scene state.
+- These fields are available to the ChoiceCrafter node (passed via state).
+
+---
+
+### 9) Director
+
+**File:** `backend/app/core/nodes/director.py` (agent in `backend/app/core/agents/director.py`)
+
+**Purpose:** Pacing instructions (text-only) for the Narrator.
+
+The Director generates **text-only scene instructions** (no JSON schema, no suggestion generation in the LLM call). All player-facing choices are now generated by the ChoiceCrafter node.
+
+- Checks `is_hub_location()` and injects hub-mode context if at a hub location.
+- Uses RAG (4-lane style retrieval):
+  - `retrieve_style_layered()` from `backend/app/rag/style_retriever.py`
+  - Adventure hook lore from `backend/app/rag/lore_retriever.py`
+  - KG context from `backend/app/rag/kg_retriever.py`
+- Uses `personality_profile` blocks for NPC characterization.
+- Uses episodic memories (`shared_episodic_memories`) for narrative continuity.
+- Uses `known_npcs` for per-NPC naming.
+- Uses `SettingRules` from `get_setting_rules(state)` for setting-agnostic context.
+- Adds turn warnings when it has to fallback, trim context, or lint/pad actions.
+
+**Output keys set:** `director_instructions`, `warnings`, `shared_kg_character_context`, `shared_episodic_memories`
+
+---
+
+### 10) Narrator
 
 **File:** `backend/app/core/nodes/narrator.py` (agent in `backend/app/core/agents/narrator.py`; prompt construction in `narrator_prompt.py`; output post-processing in `narrator_postprocess.py`)
 
-**Purpose:** Final prose narration (prose-only, no suggestions).
+**Purpose:** Final prose narration (prose-only, no choices).
 
 The Narrator writes **only prose** (5-8 sentences, max 250 words). `embedded_suggestions` is always `None`. The `_prose_stop_rule` instructs the LLM to stop after the last narrative sentence.
 
 - Uses RAG:
   - Lore chunks (`doc_type in {novel, sourcebook}`, `section_kind in {lore, location, faction}`)
-  - Character voice snippets (`backend/app/rag/character_voice_retriever.py`) — era-scoped
+  - Character voice snippets from `backend/app/rag/character_voice_retriever.py`
+- Uses shared RAG data (KG context, episodic memories) from Director node to avoid duplicate retrieval.
 - Uses token budgeting (`backend/app/core/context_budget.py`) and emits warnings when trimming occurs.
-- Uses companion reactions summary and inter-party tension context from Companion Reaction node.
+- Uses companion reactions summary and inter-party tension context.
 - Appends one queued banter line if not in high-stakes combat.
-- Applies a deterministic canon/voice guardrail that softens risky "new fact" claims when unsupported.
 - **Post-processing pipeline** (implemented in `backend/app/core/agents/narrator_postprocess.py`):
-  - `_strip_structural_artifacts()` catches 12+ patterns:
-    - "Option N (Tone):" inline choice blocks
-    - Meta-game sections: Scene Continuation, Potential Complications, Next Steps, Stress Level Monitoring
-    - Character sheet fields: Name:, Species:, Class:, Traits:, etc.
-    - "Regardless of player choice" sections
-  - `_truncate_overlong_prose()` caps at 250 words, breaks at sentence boundary.
-  - `_enforce_pov_consistency()` strips meta-narrator endings ("What will you do?", "The choice is yours", etc.).
-  - `_flag_unknown_entities()` warns on hallucinated NPC names not in `present_npcs`.
-- Gender-aware: Pronoun blocks injected via `pronouns.py`.
-- NPC emotional reactions: body language, facial expressions, surprise reactions required in prompt.
-- Mechanic action narration: combat/stealth/intimidation actions narrated, not skipped to aftermath.
+  - `_strip_structural_artifacts()` catches 12+ patterns
+  - `_truncate_overlong_prose()` caps at 250 words, breaks at sentence boundary
+  - `_enforce_pov_consistency()` strips meta-narrator endings
+  - `_flag_unknown_entities()` warns on hallucinated NPC names not in `present_npcs`
 
 **Output keys set:** `final_text`, `lore_citations`, `embedded_suggestions` (always `None`), `campaign` (banter queue consumed), `warnings`
 
 ---
 
-### 8) Narrative Validator
+### 11) Narrative Validator
 
 **File:** `backend/app/core/nodes/narrative_validator.py`
 
@@ -232,24 +278,28 @@ The Narrator writes **only prose** (5-8 sentences, max 250 words). `embedded_sug
 
 ---
 
-### 9) Suggestion Refiner (V2.16)
+### 12) Choice Crafter (V5.0 — replaces Suggestion Refiner)
 
-**File:** `backend/app/core/nodes/suggestion_refiner.py`
+**File:** `backend/app/core/nodes/choice_crafter_node.py`
 
-**Purpose:** LLM-based refinement of player action suggestions using the Narrator's prose.
+**Purpose:** LLM-driven player choice generation from the Narrator's prose and scene context.
 
-After the Narrative Validator, the Suggestion Refiner reads the Narrator's `final_text` and scene context (location, present NPCs, mechanic outcome) to generate 4 scene-aware KOTOR-style action suggestions that respond to what actually happened in the prose. Uses `qwen3:4b` (lightweight, ~2-5s latency).
+**Key differences from the former Suggestion Refiner:**
+- **Authoritative:** No deterministic fallback. On LLM failure, raises `AgentFailureError` (caught at graph level in `run_turn()`).
+- **Setting-agnostic:** Uses `get_setting_rules(state)` for `suggestion_style` — no hardcoded universe names.
+- **Richer context:** Uses `npc_utterance`, `scene_frame` fields (`topic_primary`, `subtext`, `npc_agenda`), companion hint, player history hint, consequence hints, arc stage, tension level, and stat summary.
 
-- Feature-flagged via `ENABLE_SUGGESTION_REFINER` (default: `True`)
-- When disabled or on any failure, the deterministic suggestions from the Director node are used unchanged
-- 3-layer fallback: AgentLLM JSON retry -> node-level validation (tone/label checks) -> deterministic suggestions survive on failure
-- Output passes through `classify_suggestion()`, `ensure_tone_diversity()`, and `lint_actions()` for consistency
+**Calls into:**
+- `backend/app/core/agents/choice_crafter_agent.py:generate_choices()` — LLM call
+- `backend/app/core/suggestion_engine.py:classify_suggestion()` + `ensure_tone_diversity()`
+- `backend/app/core/action_lint.py:lint_actions()`
+- `backend/app/core/suggestion_engine.py:action_suggestions_to_player_responses()` — converts to `PlayerResponse` dicts
 
-**Output keys set:** `suggested_actions` (overrides Director's deterministic suggestions with scene-aware alternatives)
+**Output keys set:** `suggested_actions` (list of `ActionSuggestion` dicts), `player_responses` (list of `PlayerResponse` dicts for the DialogueTurn), `warnings`
 
 ---
 
-### 10) Commit (Single Transaction Boundary)
+### 13) Commit (Single Transaction Boundary)
 
 **File:** `backend/app/core/nodes/commit.py`
 
@@ -258,14 +308,16 @@ After the Narrative Validator, the Suggestion Refiner reads the Narrator's `fina
 In one SQLite transaction, Commit:
 
 1. Advances `campaigns.world_time_minutes` (from `pending_world_time_minutes` or `mechanic_result.time_cost_minutes`)
-2. Persists `campaigns.world_state_json` (active_factions + party state + news_feed + ledger + **arc_state** + throttling state + **known_npcs** + **companion_memories** + **era_summaries** + **opening_beats** + **act_outline** + **faction_memory** + **npc_states**)
+2. Persists `campaigns.world_state_json` (active_factions + party state + news_feed + ledger + **arc_state** + throttling state + **known_npcs** + **companion_memories** + **era_summaries** + **opening_beats** + **act_outline** + **faction_memory** + **npc_states** + **quest_log** + **fired_moments** + **party_state**)
 3. Appends all staged events to `turn_events`
-4. Applies projections to normalized tables (`characters`, `inventory`, etc.)
+4. Applies projections to normalized tables (`characters`, `inventory`, etc.) via `backend/app/core/projections.py` (alias for `state_reducer.py`)
 5. Applies staged encounter-throttle effects (`NPC_INTRODUCTION_RECORDED`, `LAST_LOCATION_UPDATED`)
-6. Writes the rendered turn transcript (`rendered_turns`) with `suggested_actions` from the deterministic pipeline
+6. Writes the rendered turn transcript (`rendered_turns`) with `suggested_actions` from the ChoiceCrafter pipeline
 7. Persists episodic memories to `episodic_memories` table
 8. Updates `known_npcs` (present NPCs become known after commit)
 9. Persists era transitions and era summaries when detected
+10. Processes quest tracker (`process_quests_for_turn()`) and updates `quest_log`
+11. Upserts truth ledger facts via `truth_ledger.upsert_facts()`
 
 After commit, it reloads and returns a refreshed `GameState` from the DB so the API response is consistent with persisted data.
 
@@ -282,12 +334,36 @@ Most fields are defined in `backend/app/models/state.py`.
 | `present_npcs`, `spawn_events`, `throttle_events`, `active_rumors` | Encounter | `spawn_events`/`throttle_events` are committed later |
 | `pending_world_time_minutes`, `world_sim_*`, `new_rumors` | WorldSim | WorldSim is pure (no DB writes) |
 | `campaign.party_*`, `campaign.alignment`, `campaign.faction_reputation`, `campaign.banter_queue` | Companion Reaction | Pure; includes inter-party tensions |
-| `director_instructions`, `suggested_actions` | Director | Deterministic; linted/padded to 4; may add warnings |
+| `arc_guidance.fired_moments_beats`, `arc_guidance.scene_instructions` | Moments Node (V5.0) | Prepended to scene instructions for Director |
+| `arc_guidance` | Arc Planner | Arc stage, tension, hero beat, pacing |
+| `scene_frame` | Scene Frame | `topic_primary`, `subtext`, `npc_agenda` |
+| `director_instructions` | Director | Text-only pacing instructions for Narrator |
+| `shared_kg_character_context`, `shared_episodic_memories` | Director | Shared for Narrator (avoids duplicate retrieval) |
+| `suggested_actions` | ChoiceCrafter (V5.0) | 4 LLM-generated choices; `ActionSuggestion` dicts |
+| `player_responses` | ChoiceCrafter (V5.0) | `PlayerResponse` dicts for `DialogueTurn` |
 | `final_text`, `lore_citations` | Narrator | Prose-only; may append banter; may add warnings |
-| `embedded_suggestions` | Narrator | Always `None` (suggestions are deterministic via Director/SuggestionRefiner) |
-| `player_starship` | State Loader / Commit | `dict` or `None`; earned in-story (V2.10) |
+| `embedded_suggestions` | Narrator | Always `None` |
+| `player_starship` | State Loader / Commit | `dict` or `None`; earned in-story |
 | `known_npcs` | State Loader / Commit | `list[str]` of NPC IDs the player has encountered |
-| `shared_kg_*` | Director | KG context retrieved for prompt grounding |
-| `shared_episodic_memories` | Director | Episodic memories retrieved for narrative continuity |
-| `warnings`, `context_stats` | Multiple nodes | Warnings are surfaced in `TurnResponse.warnings` |
+| `warnings`, `context_stats` | Multiple nodes | Warnings surfaced in `TurnResponse.warnings` |
 | `__runtime_conn` | `run_turn()` | Non-serializable runtime handle; never persisted |
+
+## AgentFailureError Handling (V5.0)
+
+```python
+# backend/app/core/graph.py:run_turn()
+
+try:
+    result = _get_compiled_graph().invoke(initial)
+except AgentFailureError as afe:
+    # Return GameState with error surfaced to player
+    error_dict["final_text"] = f"[SYSTEM] A narrative agent failed: {afe.agent_name}. ..."
+    error_dict["suggested_actions"] = []
+    error_dict["warnings"] += [f"[AGENT_FAILURE] {afe.agent_name}: {afe.original_error}"]
+    return dict_to_state(error_dict)
+```
+
+The `authoritative_call()` utility in `error_handling.py` wraps agent calls with:
+- 2 attempts (1 retry on any exception)
+- Raises `AgentFailureError` if both fail
+- Currently used by: `ChoiceCrafterNode` (and can be applied to other authoritative agents)

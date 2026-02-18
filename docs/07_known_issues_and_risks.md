@@ -2,99 +2,172 @@
 
 This is a **living** list of code-evidenced issues and risks in the current repo state.
 
----
-
-## Current Issues (Code-Evidenced)
-
-### 1) No Auth + Wide-Open CORS
-
-**Severity:** Medium (high if deployed beyond localhost)
-**File:** `backend/main.py`
-
-- No authentication or authorization is implemented.
-- CORS allows all origins (`allow_origins=["*"]`).
-
-**Impact:** Any network exposure becomes unsafe without adding auth and restricting CORS.
+Last updated: V5.0 architecture revision.
 
 ---
 
-### 2) Schema Check on Every Request
+## Resolved in V5.0
 
-**Severity:** Low (performance)
-**File:** `backend/app/api/v2_campaigns.py`
-
-The API helper that opens a connection runs schema application checks (`apply_schema(...)`) per request.
-
-**Impact:** Extra overhead on every request (acceptable for single-user local use; wasteful at scale).
-
----
-
-### 3) Mechanic "Choice Impact" Deltas Partially Populated
-
-**Severity:** Low (functionality gap / tuning)
-**File:** `backend/app/core/agents/mechanic.py`
-
-`MechanicOutput` includes `alignment_delta`, `faction_reputation_delta`, and `companion_affinity_delta`. The `alignment_delta` and `faction_reputation_delta` fields still default to empty dicts in most cases, but `companion_affinity_delta` now works via trait scoring in the companion reaction system.
-
-**Impact:** Alignment and faction reputation changes are driven primarily by deterministic companion-reaction heuristics and tone tags, rather than explicit mechanic outputs. Companion affinity is fully functional through trait-based scoring.
+| Issue | Status | Resolution |
+| ------- | -------- | ----------- |
+| SuggestionRefiner had deterministic fallback that could produce low-quality, context-free choices | ✅ Resolved | Replaced by authoritative `ChoiceCrafterAgent` (LLM-driven, no fallback) |
+| Agents hardcoded "Star Wars" universe references in prompts | ✅ Resolved | All agents now use `get_setting_rules(state)` / `SettingRules` |
+| No scripted narrative moment system | ✅ Resolved | `EraMoments` system added (V5.0) — `moments_node` in pipeline |
+| No quest state machine | ✅ Resolved | `QuestTracker` deterministic quest state machine added (V5.0) |
+| Companion data in multiple inconsistent locations | ✅ Resolved | `PartyState` canonical model in `world_state_json["party_state"]` (V5.0) |
+| No hub/downtime mode | ✅ Resolved | `hub_system.py` added; Director gets hub context injection (V5.0) |
+| Content loading not thread-safe | ✅ Resolved | `ContentRepository` singleton with `threading.RLock` (V5.0) |
 
 ---
 
-### 4) Duplicate Static NPC Cast Definitions (Legacy Path)
+## Active Issues
 
-**Severity:** Low (maintainability)
-**Files:** `backend/app/api/v2_campaigns.py`, `backend/app/core/agents/architect.py`
+### 1. ChoiceCrafterNode: No graceful degradation on authoritative failure
 
-Both files embed a "12 NPC cast" template for non-Era Pack setups.
+**Severity:** Medium
 
-**Impact:** Divergence risk if legacy (non-Bible) setup paths are used.
+**Evidence:** `backend/app/core/nodes/choice_crafter_node.py`
 
----
+When `ChoiceCrafterAgent` fails after retry, `AgentFailureError` is raised and caught by `run_turn()`. The turn returns `final_text` with an error message and **empty `suggested_actions`**. The player sees a `[SYSTEM]` error and cannot continue without retrying the turn.
 
-### 5) Single-Writer Assumption (No Optimistic Locking)
+**Risk:** If the ChoiceCrafter LLM endpoint is unavailable (Ollama down), every turn fails — even if the Narrator succeeded.
 
-**Severity:** Low (fine for local-only)
-**File:** `backend/app/core/nodes/commit.py`
-
-Commit assumes it is the only writer for a campaign (no version checks).
-
-**Impact:** Concurrent sessions could race and overwrite state if multi-user/multi-process usage is introduced.
+**Workaround:** None at runtime. Fix: Add a minimal deterministic fallback (4 generic action stubs) when `AgentFailureError` is caught, rather than returning empty choices.
 
 ---
 
-### 6) Suggestion Cache Is Basic
+### 2. apply_projection() is O(N) over full event history
 
-**Severity:** Low (optimization opportunity)
-**File:** `backend/app/core/suggestion_cache.py`
+**Severity:** Medium (performance)
 
-The suggestion cache uses a one-turn TTL with a simple `(location, arc_stage)` composite key. Suggestions are regenerated every turn even when the scene context has not meaningfully changed.
+**Evidence:** `backend/app/core/state_reducer.py` — replays ALL events from the beginning of the campaign on every turn.
 
-**Impact:** Minimal for local single-user use, but a more sophisticated cache (e.g., scene-hash key, multi-turn TTL with invalidation on NPC/location change) could reduce redundant computation.
+**Risk:** For long campaigns (1000+ turns), projection time grows linearly. This blocks the turn response.
 
----
-
-## Recently Resolved (No Longer Issues)
-
-- **Director suggestions are 100% deterministic (V2.15)** — no JSON schema, no LLM retries. `generate_suggestions()` uses mechanic results, NPCs, arc stage, and tone for pure-Python suggestion generation.
-- **Narrator is prose-only (V2.15)** — no more embedded suggestion extraction failures. Narrator writes 5-8 sentences of prose; `embedded_suggestions=None` always.
-- **Companion system is fully functional** — 108 companions with gender, species, voice_tags, motivation, speech_quirk. 17 banter styles (BANTER_POOL). Trait-based affinity scoring, loyalty arcs, companion-initiated events (COMPANION_REQUEST, COMPANION_QUEST, COMPANION_CONFRONTATION).
-- **Arc planner tracks Hero's Journey beats** — content-aware stage transitions (SETUP, RISING, CLIMAX, RESOLUTION), hero_beat, archetype_hints, theme_guidance, genre triggers, era transitions.
-- **Faction engine is deterministic** — `faction_engine.py` uses zero LLM calls, seeded RNG for faction tick simulation.
-- **Gender/pronoun system implemented (V2.8)** — male/female selection with pronoun injection into Director and Narrator prompts via `pronouns.py`.
-- **4-lane style retrieval implemented (V2.8)** — Base SW (always-on) + Era + Genre + Archetype lanes in `style_retriever.py`.
-- **Episodic memory system** — long-term recall via `episodic_memory.py`, persisted in `episodic_memories` table (migration 0014).
-- **Starship acquisition system (V2.10)** — no starting ships; earned in-story via quest/purchase/salvage/faction/theft. STARSHIP_ACQUIRED event handler in projections.
-- Token budgeting is applied to both Director and Narrator via `backend/app/core/context_budget.py`.
-- SentenceTransformer and LanceDB handles are cached (`backend/app/rag/_cache.py`).
-- Character voice retrieval uses filtered vector search (no full-table scan) (`backend/app/rag/character_voice_retriever.py`).
-- Turn warnings are surfaced in `TurnResponse.warnings` (`backend/app/api/v2_campaigns.py`).
-- `GameState.cleared_for_next_turn()` resets WorldSim fields (`backend/app/models/state.py`).
+**Workaround:** The system works correctly for campaigns up to ~200 turns. For longer campaigns, a snapshot-based projection (periodic checkpoint + replay from checkpoint) would be needed.
 
 ---
 
-## Future Work (Non-Bugs)
+### 3. world_state_json is a single large JSON blob
 
-- Add optimistic locking/versioning if concurrent writers are ever supported.
-- Add reranking (cross-encoder / hybrid search) if retrieval relevance becomes a bottleneck.
-- Replace token estimation heuristics with a tokenizer-based estimate if needed.
-- Upgrade suggestion cache with scene-hash keys and multi-turn TTL.
+**Severity:** Low-Medium
+
+**Evidence:** `backend/app/db/migrations/0001_init.sql` — `world_state_json TEXT`
+
+**Risk:** Concurrent writes to `world_state_json` are not safe in multi-threaded scenarios (though FastAPI/uvicorn workers serialize requests per campaign). Any partial failure during Commit that writes JSON but doesn't commit the transaction could leave the column out of sync. SQLite's WAL mode mitigates data loss risk.
+
+**Mitigation:** Single transaction boundary in Commit node prevents partial writes. Foreign key constraints and WAL mode enabled.
+
+---
+
+### 4. Encounter throttling state is persisted in world_state_json, not in a dedicated table
+
+**Severity:** Low
+
+**Evidence:** Encounter throttle events (`NPC_INTRODUCTION_RECORDED`, `LAST_LOCATION_UPDATED`) are replayed through `apply_projection()`.
+
+**Risk:** If throttling state is reset (e.g., via migration or manual DB edit), NPCs may be re-introduced on the next turn, potentially causing duplicate NPC spawns.
+
+**Workaround:** Avoid resetting world_state_json manually. Migration-safe.
+
+---
+
+### 5. KG extraction is offline-only, not integrated into the live pipeline
+
+**Severity:** Low
+
+**Evidence:** `storyteller extract-knowledge` command — runs offline, not during turns.
+
+**Risk:** The KG in the database may be stale relative to the current narrative (events not yet extracted). `kg_retriever.py` retrieves from a static snapshot.
+
+**Workaround:** Run `storyteller extract-knowledge` periodically on long campaigns.
+
+---
+
+### 6. Era pack `moments` field: not all era packs define moments
+
+**Severity:** Low
+
+**Evidence:** `backend/app/core/nodes/moments.py` — `moments = getattr(era_pack, "moments", []) or []`
+
+**Risk:** Era packs that don't define `moments` get no scripted moment triggers. This is expected behavior, but it means some settings will have no EraMoments system benefits until packs are updated.
+
+**Workaround:** Moments node is non-fatal; packs without moments silently skip the system.
+
+---
+
+### 7. Truth Ledger tables (truth_facts, truth_events) not yet in current migrations
+
+**Severity:** Medium
+
+**Evidence:** `backend/app/core/truth_ledger.py` references `truth_facts` and `truth_events` tables. These tables are referenced in the code but not yet included in migrations 0001-0021.
+
+**Risk:** `truth_ledger.upsert_facts()` will fail at runtime with "no such table: truth_facts" unless the tables are created by a future migration.
+
+**Status:** Pending migration — a migration `0022_truth_ledger.sql` should be added.
+
+---
+
+### 8. PartyState backward compatibility: legacy fields written but may drift
+
+**Severity:** Low
+
+**Evidence:** `backend/app/core/party_state.py:save_party_state()` writes both `party_state` and legacy fields (`party`, `party_affinity`, etc.).
+
+**Risk:** Any code that modifies legacy fields directly (bypassing `PartyState`) will cause drift between `party_state` and legacy fields. The next `load_party_state()` call will prefer `party_state` (which won't reflect the manual change).
+
+**Mitigation:** Only modify companion data via `add_companion_to_party()`, `remove_companion_from_party()`, and `apply_influence_delta()`.
+
+---
+
+### 9. LanceDB vector tables may not exist on fresh install
+
+**Severity:** Medium (setup)
+
+**Evidence:** `backend/app/rag/lore_retriever.py` — `db.open_table(LORE_TABLE_NAME)` raises if table doesn't exist.
+
+**Risk:** If LanceDB hasn't been populated via the ingestion pipeline, RAG retrieval raises exceptions. The Director and Narrator nodes have fallback handling for retrieval failures, but this produces generic (non-grounded) narration.
+
+**Workaround:** Run ingestion pipeline before first use. The health check endpoint (`/health/detail`) reports LanceDB table status. `storyteller doctor` also reports this.
+
+---
+
+### 10. No streaming support for MetaNode responses
+
+**Severity:** Low
+
+**Evidence:** `backend/app/core/nodes/router.py:meta_node` — returns synchronously with no streaming.
+
+**Risk:** Meta responses (help, status) are returned in full synchronously. Consistent with the rest of the pipeline for META intent, but SSE stream consumers may expect at least one chunk.
+
+**Workaround:** Frontend handles META responses as full-text (no streaming needed for meta).
+
+---
+
+## Risks
+
+### R1. Ollama model availability
+
+If the configured LLM model (e.g., `mistral-nemo:latest`) is not pulled in Ollama, all LLM calls will fail. Authoritative agents (Narrator, ChoiceCrafter) will trigger `AgentFailureError`. Non-authoritative agents (Director, WorldMind) will produce empty output.
+
+**Mitigation:** `storyteller doctor` checks Ollama connectivity. `python run_app.py --check` runs preflight. Recommend pulling models before starting.
+
+### R2. LLM JSON output reliability
+
+Narrator and ChoiceCrafter use JSON-mode LLM calls. Malformed JSON from the LLM triggers repair attempts (up to 3 retries). If all retries fail:
+- NarratorAgent: `AgentFailureError` → user-facing error
+- ChoiceCrafterAgent: `AgentFailureError` → user-facing error
+
+**Mitigation:** `json_reliability.py` + `json_repair.py` handle most common LLM JSON failures (trailing commas, unclosed brackets, embedded newlines).
+
+### R3. World time consistency
+
+`world_time_minutes` advances atomically in the Commit node. If Commit fails after advancing time but before writing events, the time counter will be ahead of the event log.
+
+**Mitigation:** Single `conn.commit()` call ensures time + events are written atomically.
+
+### R4. Setting-agnostic architecture: incomplete migration
+
+Not all agents have been fully migrated to use `get_setting_rules(state)`. Some prompt templates may still contain Star Wars-specific references.
+
+**Mitigation:** V5.0 makes this the default; future agents must use `SettingRules`. Existing agents are progressively being updated.

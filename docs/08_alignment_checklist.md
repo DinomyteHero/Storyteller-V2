@@ -1,154 +1,127 @@
 # 08 — Alignment Checklist
 
-Use this checklist to validate whether the implementation matches the intended Storyteller AI V2.20 design goals.
+Use this checklist to validate whether the implementation matches the intended Storyteller AI V5.0 design goals.
 
 Legend:
-
-- ✅ Implemented
-- ⚠️ Partial
-- ❌ Not implemented / deferred
-
----
-
-## Core Architecture
-
-| # | Goal | Status | Evidence |
-| --- | ------ | -------- | ---------- |
-| A1 | LangGraph pipeline orchestration | ✅ | `backend/app/core/graph.py` (`build_graph`, `run_turn`) |
-| A2 | Pipeline order: Router → (Meta or Mechanic) → Encounter → WorldSim → CompanionReaction → ArcPlanner → Director → Narrator → NarrativeValidator → Commit | ✅ | `backend/app/core/graph.py` edges; node impls in `backend/app/core/nodes/` |
-| A3 | Single transaction boundary (Commit only writer) | ✅ | `backend/app/core/nodes/commit.py` |
-| A4 | Graph compiled once (lazy singleton) | ✅ | `backend/app/core/graph.py:_get_compiled_graph()` |
-| A5 | DB connection not captured in closures | ✅ | `run_turn()` injects `__runtime_conn`; nodes read it at invocation time |
+- ✅ Implemented and verified in code
+- ⚠️ Partially implemented or has caveats
+- ❌ Not yet implemented
+- 🔄 Changed in V5.0
 
 ---
 
-## Living World System
+## Core Invariants
 
-| # | Goal | Status | Evidence |
-| --- | ------ | -------- | ---------- |
-| L1 | Every turn has a time cost (minutes) | ✅ | `backend/app/time_economy.py`, `backend/app/core/agents/mechanic.py` |
-| L2 | WorldSim triggers on tick-boundary crossing | ✅ | `backend/app/core/nodes/world_sim.py:world_sim_tick_crosses_boundary()` |
-| L3 | WorldSim triggers on travel | ✅ | `backend/app/core/nodes/world_sim.py` travel detection |
-| L4 | WorldSim produces rumors + faction moves + optional updates | ✅ | `backend/app/core/agents/architect.py` (`simulate_off_screen`) |
-| L5 | ME-style news feed derived from rumors | ✅ | `backend/app/models/news.py:rumors_to_news_feed()` |
-| L6 | Deterministic faction engine (zero LLM, seeded RNG) | ✅ | `backend/app/world/faction_engine.py` |
-| L7 | Era transitions | ✅ | `backend/app/core/era_transition.py` |
-
----
-
-## Mechanic + Routing
-
-| # | Goal | Status | Evidence |
-| --- | ------ | -------- | ---------- |
-| M1 | Deterministic mechanic (no LLM) | ✅ | `backend/app/core/agents/mechanic.py` |
-| M2 | Router guardrails prevent mechanic bypass | ✅ | `backend/app/core/router.py` + `backend/app/core/nodes/router.py` |
-| M3 | Only dialogue-only can skip Mechanic | ✅ | `backend/app/core/nodes/router.py` (TALK gating) |
+| Invariant | Status | Notes |
+| ----------- | -------- | ------- |
+| **Single Transaction Boundary** — only `CommitNode` writes to DB | ✅ | `backend/app/core/nodes/commit.py` is the only node that calls `conn.commit()`. All other nodes are pure functions. |
+| **Deterministic Mechanic** — `MechanicAgent` uses zero LLM calls | ✅ | `backend/app/core/agents/mechanic.py` is pure Python. |
+| **Prose-Only Narrator** — `final_text` contains only prose, no embedded choice text | ✅ | `embedded_suggestions = None` always. `_strip_structural_artifacts()` and `_truncate_overlong_prose()` enforced in `narrator_postprocess.py`. |
+| **Event Sourcing** — `turn_events` is append-only | ✅ | No DELETE or UPDATE on `turn_events`. `apply_projection()` replays from event log. |
+| **Connection-Agnostic Graph** — LangGraph pipeline contains no captured DB connections | ✅ | Connection injected via `state["__runtime_conn"]` at `run_turn()` invocation time. Not a closure capture. |
+| **Immutable Compiled Graph** — pipeline compiled once, singleton | ✅ | `_COMPILED_GRAPH` singleton in `graph.py`. Re-compiled per test (`PYTEST_CURRENT_TEST` env). |
 
 ---
 
-## LLM Provider (Ollama-only)
+## V5.0 Architecture
 
-| # | Goal | Status | Evidence |
-| --- | ------ | -------- | ---------- |
-| P1 | Per-role model configuration | ✅ | `backend/app/config.py` (`MODEL_CONFIG`) |
-| P2 | Ollama-only provider enforcement | ✅ | `backend/app/core/agents/base.py` |
-| P3 | JSON mode + deterministic repair retry | ✅ | `backend/app/core/agents/base.py` |
-
----
-
-## RAG + Context Budgeting
-
-| # | Goal | Status | Evidence |
-| --- | ------ | -------- | ---------- |
-| R1 | LanceDB-backed lore retrieval with metadata filters | ✅ | `backend/app/rag/lore_retriever.py` |
-| R2 | Style retrieval (4-lane: Base SW + Era + Genre + Archetype) | ✅ | `backend/app/rag/style_retriever.py`, `backend/app/rag/style_mappings.py` |
-| R3 | Retrieval bundles per agent role | ✅ | `backend/app/rag/retrieval_bundles.py` |
-| R5 | Token-aware context trimming | ✅ | `backend/app/core/context_budget.py` (used by Director + Narrator agents) |
-| R6 | Caching of encoder + LanceDB handles | ✅ | `backend/app/rag/_cache.py` |
+| Feature | Status | Notes |
+| --------- | -------- | ------- |
+| **Setting-agnostic agents** — no hardcoded universe names in agent prompts | 🔄 ⚠️ | `get_setting_rules(state)` added; Director and ChoiceCrafter use `SettingRules`. Remaining agents are progressively updated. Some prompts may still contain SW-specific text. |
+| **ChoiceCrafter (authoritative)** — replaces SuggestionRefiner | 🔄 ✅ | `choice_crafter_node.py` + `choice_crafter_agent.py`. No deterministic fallback. Raises `AgentFailureError` on failure. |
+| **EraMoments system** — scripted narrative triggers from era packs | 🔄 ✅ | `moments_node` between `companion_reaction` and `arc_planner`. Non-fatal. Once-only enforcement via `fired_moments`. |
+| **AgentFailureError / authoritative_call()** — structured agent failure handling | 🔄 ✅ | `error_handling.py`. `run_turn()` catches `AgentFailureError` and returns structured error. |
+| **ContentRepository singleton** — thread-safe era pack loading | 🔄 ✅ | `content/repository.py`. Thread-safe via `threading.RLock`. |
+| **PartyState canonical model** — multi-axis companion relationship | 🔄 ✅ | `party_state.py`. `world_state_json["party_state"]` is canonical. Legacy fields still written for compat. |
+| **Hub/Downtime system** — hub locations activate downtime mode | 🔄 ✅ | `hub_system.py`. Director gets hub-mode prompt injection. |
+| **QuestTracker** — deterministic quest state machine | 🔄 ✅ | `quest_tracker.py`. Called in Commit node. Supports entry conditions, stage conditions, resolution paths. |
+| **Truth Ledger** — persistent fact store | 🔄 ⚠️ | `truth_ledger.py` implemented. DB tables (`truth_facts`, `truth_events`) **not yet in migrations 0001-0021**. Pending migration 0022. |
 
 ---
 
-## Companion System (Deep)
+## Agent System
 
-| # | Goal | Status | Evidence |
-| --- | ------ | -------- | ---------- |
-| C1 | Party seeding + trait storage | ✅ | `backend/app/core/companions.py` (`build_initial_companion_state`) |
-| C2 | Affinity + loyalty progression | ✅ | `backend/app/core/companion_reactions.py` |
-| C3 | Banter queue (rate-limited, 17 banter styles) | ✅ | `backend/app/core/companion_reactions.py` + `backend/app/banter_pool.py` (BANTER_POOL) |
-| C4 | Alignment + faction reputation tracking | ✅ | `backend/app/core/companion_reactions.py` |
-| C5 | Companion-initiated events (REQUEST, QUEST, CONFRONTATION) | ✅ | `backend/app/core/companion_reactions.py` |
-| C6 | Inter-party tensions (opposing reactions trigger tension context) | ✅ | `backend/app/core/companion_reactions.py:compute_inter_party_tensions()` |
-| C7 | 108 companions with metadata (species, voice_tags, motivation, speech_quirk) | ✅ | `data/companions.yaml` |
-
----
-
-## Director + Narrator
-
-| # | Goal | Status | Evidence |
-| --- | ------ | -------- | ---------- |
-| D1 | KOTOR dialogue wheel (4 deterministic suggestions per turn) | ✅ | `backend/app/core/suggestion_engine.py:generate_suggestions()`, `backend/app/core/action_lint.py` |
-| D2 | Prose-only Narrator (no embedded suggestions) | ✅ | `backend/app/core/agents/narrator.py` (`embedded_suggestions=None` always) |
-| D3 | Narrator prose: 5-8 sentences, max 250 words | ✅ | `backend/app/core/agents/narrator_postprocess.py:_truncate_overlong_prose()` |
-| D4 | Post-processing strips structural artifacts | ✅ | `backend/app/core/agents/narrator_postprocess.py:_strip_structural_artifacts()` |
-| D5 | Gender/pronoun system | ✅ | `backend/app/core/pronouns.py`, `backend/app/db/migrations/0015_add_gender.sql` |
+| Feature | Status | Notes |
+| --------- | -------- | ------- |
+| **Director generates text-only output** — no JSON schema, no suggestion generation in LLM call | ✅ | Post-V5.0: Director LLM call is text-only. ChoiceCrafter owns choice generation. |
+| **Narrator max 250 words** | ✅ | Enforced by `_truncate_overlong_prose()` in `narrator_postprocess.py`. |
+| **4-tone diversity** — PARAGON, INVESTIGATE, RENEGADE, NEUTRAL all represented | ✅ | `ensure_tone_diversity()` in `suggestion_engine.py` pads/replaces to guarantee all 4 tones. |
+| **3-tier risk classification** — SAFE, RISKY, DANGEROUS | ✅ | `classify_suggestion()` in `suggestion_engine.py`. Used by MechanicAgent for DC modifiers. |
+| **Action linting** — suggestions validated against NPC/item/location reality | ✅ | `lint_actions()` in `action_lint.py`. Called in `choice_crafter_node.py`. |
+| **ChoiceCrafter context richness** — scene frame, NPC utterance, companion hint, history, arc | ✅ | All context fields built in `choice_crafter_node.py` and passed to `generate_choices()`. |
 
 ---
 
-## Arc Planning + Story Structure
+## World Systems
 
-| # | Goal | Status | Evidence |
-| --- | ------ | -------- | ---------- |
-| S1 | Hero's Journey arc planner with beats | ✅ | `backend/app/core/nodes/arc_planner.py` |
-| S2 | Genre triggers | ✅ | `backend/app/core/genre_triggers.py` |
-| S3 | Era transitions | ✅ | `backend/app/core/era_transition.py` |
-| S4 | Episodic memory for long-term recall | ✅ | `backend/app/core/episodic_memory.py`, `backend/app/db/migrations/0014_episodic_memories.sql` |
-| S5 | NPC personality profiles | ✅ | `backend/app/core/personality_profile.py` |
-
----
-
-## Starship System
-
-| # | Goal | Status | Evidence |
-| --- | ------ | -------- | ---------- |
-| V1 | Starship acquisition (quest/purchase/salvage/faction/theft) | ✅ | `backend/app/api/starships.py`, `backend/app/models/starship.py`, `backend/app/db/migrations/0017_starships.sql` |
-| V2 | STARSHIP_ACQUIRED event + projections | ✅ | `backend/app/core/projections.py` |
+| Feature | Status | Notes |
+| --------- | -------- | ------- |
+| **Living World tick** — WorldSim fires on time tick or travel | ✅ | `world_sim.py`: `floor(t0/tick) != floor(t1/tick)` or TRAVEL action. |
+| **Deterministic faction engine** — no LLM fallback for faction simulation | ✅ | `faction_engine.simulate_faction_tick()`. WorldMindAgent is the optional LLM enhancement. |
+| **Encounter throttling** — prevent NPC spam per location | ✅ | `encounter_throttle.py`. Throttle state persisted via `NPC_INTRODUCTION_RECORDED` events. |
+| **Companion reactions** — alignment/faction deltas, banter, tensions | ✅ | `companion_reactions.py`. No LLM; deterministic. |
+| **Episodic memory** — compressed narrative summaries for continuity | ✅ | `episodic_memory.py`. Stored in `episodic_memories` table. Retrieved by Director/Narrator. |
+| **Genre triggers** — 11 genres, keyword-based activation | ✅ | `genre_triggers.py`. Used by Director for style retrieval lane selection. |
+| **Era transitions** — REBELLION/NEW_REPUBLIC/etc. detection | ✅ | `era_transition.py`. Triggers era summary generation and `era_transition_pending` flag. |
+| **Starship system** — no starting ship, earned in-story | ✅ | `starships.py`. `STARSHIP_ACQUIRED` event. `starships` table. API endpoints. |
+| **Psychology system** — psych_profile (mood, stress, trauma) | ✅ | `characters.psych_profile_json`. Stress delta in MechanicAgent. `PsychArchivistAgent` for updates. |
+| **Rumor/news feed** — world sim rumors surfaced as ME-style briefing | ✅ | `is_public_rumor=1` events → `rumors_to_news_feed()` → `world_state_json["news_feed"]`. |
 
 ---
 
-## Ingestion Pipeline
+## RAG System
 
-| # | Goal | Status | Evidence |
-| --- | ------ | -------- | ---------- |
-| I1 | Hierarchical parent/child chunking (PDF/EPUB/TXT) | ✅ | `ingestion/ingest_lore.py` |
-| I3 | Optional ingestion tagger (LLM enrichment) | ✅ | `ingestion/tagger.py` (guarded by `INGESTION_TAGGER_ENABLED`) |
-| I4 | Run manifest per ingest | ✅ | `ingestion/manifest.py` + `data/manifests/` |
-
-## Warnings System
-
-| # | Goal | Status | Evidence |
-| --- | ------ | -------- | ---------- |
-| W1 | Collect turn-level warnings | ✅ | `backend/app/core/warnings.py:add_warning()` |
-| W2 | Surface warnings in the API response | ✅ | `backend/app/api/v2_campaigns.py` (`TurnResponse.warnings`) |
+| Feature | Status | Notes |
+| --------- | -------- | ------- |
+| **4-lane style retrieval** — Base + Era + Genre + Archetype | ✅ | `retrieve_style_layered()` in `style_retriever.py`. |
+| **Lore retrieval** — novel/sourcebook chunks with era/doc_type filters | ✅ | `lore_retriever.py`. Filter by `era`, `doc_type`, `section_kind`. |
+| **Character voice retrieval** — dialogue samples per NPC | ✅ | `character_voice_retriever.py`. Era-scoped. |
+| **KG retrieval** — runtime entity/triple lookup | ✅ | `kg_retriever.py`. Optional; requires prior KG extraction. |
+| **Director/Narrator share RAG results** — avoid duplicate retrieval | ✅ | `shared_kg_character_context`, `shared_episodic_memories` passed from Director to Narrator. |
+| **Token budgeting** — per-agent context budget with warnings | ✅ | `context_budget.py`. Emits warnings when trimming occurs. |
 
 ---
 
-## Test Coverage (Regression Gates)
+## API & Infrastructure
 
-467+ tests passing (Feb 2026), 2 skipped (RAG cache tests need LanceDB).
+| Feature | Status | Notes |
+| --------- | -------- | ------- |
+| **V2 REST API** — campaign/turn/content endpoints | ✅ | `v2_campaigns.py`. 18+ endpoints. |
+| **SSE streaming** — turn/stream endpoint | ✅ | `GET /v2/campaigns/{id}/turn/stream`. Streams narration chunks. |
+| **Auto-setup endpoint** — `POST /v2/setup/auto` | ✅ | CampaignArchitect + BiographerAgent pipeline. |
+| **Health check** — `/health` + `/health/detail` | ✅ | Checks Ollama, LanceDB, era packs, LLM roles. |
+| **Auth middleware** — bearer token or X-API-Key | ✅ | `main.py`. Disabled in `STORYTELLER_DEV_MODE=1`. |
+| **Rate limiting** — 10 turn requests/min per IP | ✅ | `main.py` rate limiter middleware. |
+| **CORS allowlist** | ✅ | `STORYTELLER_CORS_ALLOW_ORIGINS` env. |
 
-| Area | Status | Evidence |
-| ------ | -------- | ---------- |
-| Router/mechanic/world sim/ledger | ✅ | `backend/tests/test_router.py`, `test_ledger.py`, `test_world_sim.py` |
-| RAG caching + retrieval | ✅ | `backend/tests/test_rag_cache.py` |
-| Companion system (deep) | ✅ | `backend/tests/test_companion_deep.py`, `test_companion_metadata.py` |
-| Embedded suggestions | ✅ | `backend/tests/test_embedded_suggestions.py` |
-| Arc planner + dynamic arcs | ✅ | `backend/tests/test_arc_planner.py`, `test_dynamic_arc.py` |
-| Genre triggers | ✅ | `backend/tests/test_genre_triggers.py` |
-| Faction engine | ✅ | `backend/tests/test_faction_engine.py` |
-| Personality profiles | ✅ | `backend/tests/test_personality_profile.py` |
-| Starship acquisition | ✅ | `backend/tests/test_starship_acquisition.py` |
-| Style layered retrieval | ✅ | `backend/tests/test_style_layered_retrieval.py` |
-| Director suggestions | ✅ | `backend/tests/test_director_suggestions.py` |
-| Narrator voice guardrail | ✅ | `backend/tests/test_narrator_voice_guardrail.py` |
-| Ingestion | ✅ | `ingestion/test_*.py` |
-| CLI smoke | ✅ | `tests/test_cli.py` |
+---
+
+## Content System
+
+| Feature | Status | Notes |
+| --------- | -------- | ------- |
+| **Era packs** — YAML-defined content (locations, NPCs, companions, quests, factions, moments) | ✅ | 5 shipped packs. `_template/` for authoring. |
+| **SettingRules in era packs** — setting-agnostic agent config | ✅ | `SettingRules` model in `era_pack_models.py`. Stored in `world_state_json["setting_rules"]`. |
+| **EraMoments in era packs** — scripted trigger moments | ⚠️ | `EraMoment` model exists. Not all shipped packs define moments yet. |
+| **Quest definitions in era packs** — YAML quests with stages | ⚠️ | `EraQuest` model exists. Packs vary in quest coverage. |
+| **Ingestion pipeline** — PDF/EPUB/TXT → LanceDB | ✅ | `ingestion/ingest_lore.py`. Parent/child chunking. |
+| **Style ingestion** — `data/style/` → LanceDB | ✅ | `scripts/ingest_style.py`. |
+| **Era pack validation** | ✅ | `scripts/validate_era_packs.py`. Run as part of `make check`. |
+
+---
+
+## Checklist: Before Shipping a New Turn
+
+Before merging changes that affect the pipeline, verify:
+
+- [ ] `MechanicAgent` makes no LLM calls (grep for `llm.call` in `agents/mechanic.py`)
+- [ ] `CommitNode` is the only node with `conn.commit()` (grep for `conn.commit` in `nodes/`)
+- [ ] `final_text` never contains embedded choice text (test: `test_narrator_banter_weave.py`)
+- [ ] `suggested_actions` always has exactly 4 items after ChoiceCrafter
+- [ ] `ensure_tone_diversity()` enforces all 4 tones
+- [ ] `AgentFailureError` is caught in `run_turn()` — not re-raised
+- [ ] Truth Ledger migration exists before calling `upsert_facts()`
+- [ ] New agents that must succeed are declared authoritative and use `authoritative_call()`
+- [ ] New agents that are optional return `state` unchanged on exception (non-fatal)
+- [ ] Era pack changes pass `python scripts/validate_era_packs.py`
+- [ ] Pipeline topology in `graph.py` matches `docs/02_turn_lifecycle.md`

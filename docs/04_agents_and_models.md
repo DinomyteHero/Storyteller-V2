@@ -1,291 +1,439 @@
 # 04 — Agents & LLM Plumbing
 
-## Agent Summary (Current)
+## Agent Summary (Current — V5.0)
 
-| Component | File | Deterministic? | LLM? | Output | Fallback Behavior |
-| ---------- | ------ | ---------------- | ------ | -------- | ------------------- |
-| **Router** | `backend/app/core/router.py` + `backend/app/core/nodes/router.py` | Yes | No | `RouterOutput` | Always deterministic routing |
-| **MechanicAgent** | `backend/app/core/agents/mechanic.py` | Yes | No | `MechanicOutput` | Always deterministic |
-| **EncounterManager** | `backend/app/core/agents/encounter.py` | Yes (DB + deterministic RNG) | No (default) | present NPCs + optional spawn payloads | Returns empty/purely anonymous NPCs when throttled |
-| **ArcPlannerNode** | `backend/app/core/nodes/arc_planner.py` | Yes | No | `arc_guidance` (arc stage, tension, pacing) | Always deterministic |
-| **FactionEngine** | `backend/app/world/faction_engine.py` | Yes | No | `WorldSimOutput` (faction moves, news) | Always deterministic |
-| **NpcGenerator** | `backend/app/world/npc_generator.py` | Yes | No | NPC dict (name, role, traits, voice_tags) | Always deterministic |
-| **PersonalityProfile** | `backend/app/core/personality_profile.py` | Yes | No | Prompt blocks (speech patterns, behavior notes) | Always deterministic |
-| **CampaignArchitect** | `backend/app/core/agents/architect.py` | No | Yes (Ollama) | `SetupOutput` + `WorldSimOutput` | Deterministic skeleton / no-op WorldSim output |
-| **DirectorAgent** | `backend/app/core/agents/director.py` | No | Yes (Ollama) | `director_instructions` (text-only scene guidance) | Deterministic fallback + warnings |
-| **NarratorAgent** | `backend/app/core/agents/narrator.py` (+ `narrator_prompt.py`, `narrator_postprocess.py`) | No | Yes (Ollama) | Prose (5-8 sentences, max 250 words). `embedded_suggestions` always `None`. | Deterministic narration fallback + warnings |
-| **NarrativeValidatorNode** | `backend/app/core/nodes/narrative_validator.py` | Yes | No | `validation_notes` + warnings | Always deterministic, non-blocking |
-| **SuggestionRefinerNode** | `backend/app/core/nodes/suggestion_refiner.py` | No | Yes (Ollama) | 4 scene-aware KOTOR suggestions | Deterministic suggestions from Director (fallback) |
-| **BiographerAgent** | `backend/app/core/agents/biographer.py` | No | Yes (Ollama) | character sheet dict | Static default character sheet |
-| **CastingAgent (legacy)** | `backend/app/core/agents/casting.py` | No | Yes (Ollama) | NPC payload dict | Generic "Wanderer" NPC payload |
-
-Notes:
-
-- **CastingAgent is legacy-only** in normal gameplay: the default encounter path introduces NPCs via Era Packs and/or deterministic procedural generation (`ENABLE_BIBLE_CASTING=1`, `ENABLE_PROCEDURAL_NPCS=1`). LLM casting is only used when both flags are off.
-- **DirectorAgent** no longer generates JSON suggestions. It produces text-only scene instructions (pacing, beat, NPC emphasis). All player-facing suggestions are generated deterministically via `generate_suggestions()` in `backend/app/core/suggestion_engine.py` (re-exported via `director_validation.py`).
-- **NarratorAgent** writes prose only. The `_suggestion_request` prompt block was replaced with `_prose_stop_rule` — strict "STOP after last sentence" instructions. The `_extract_embedded_suggestions()` function is no longer called; `embedded_suggestions` is always `None`. Post-processing is hardened with `_strip_structural_artifacts()`, `_truncate_overlong_prose()` (max 250 words, sentence boundary), and `_enforce_pov_consistency()` — all implemented in `backend/app/core/agents/narrator_postprocess.py`. Prompt construction lives in `narrator_prompt.py`.
-- **FactionEngine** runs during WorldSim to advance faction plans, generate news events, and shift NPC dispositions. Fully deterministic (seeded RNG).
-- **NpcGenerator** creates procedural NPCs from era pack name banks and templates. Uses seeded RNG (`derive_seed()`) for deterministic generation.
-- **PersonalityProfile** transforms NPC data (voice_tags, traits, archetype, motivation, speech_quirk) into structured prompt blocks injected into Director and Narrator context.
-- **SuggestionRefinerNode** (V2.16) reads the Narrator's `final_text` prose and scene context to generate 4 scene-aware KOTOR-style suggestions via `qwen3:4b`. Feature-flagged via `ENABLE_SUGGESTION_REFINER` (default: `True`). 3-layer fallback: AgentLLM JSON retry -> node validation -> deterministic suggestions from Director survive on failure.
-- Node glue lives under `backend/app/core/nodes/` (Director/Narrator nodes also lint/pad suggestions and surface warnings).
+| Component | File | Deterministic? | LLM? | Authoritative? | Output | Fallback Behavior |
+| ----------- | ------ | :---: | :---: | :---: | ------- | --------- |
+| **MechanicAgent** | `agents/mechanic.py` | Yes | No | N/A | `MechanicOutput` (dice/DC/time/events) | Pure-Python; always succeeds |
+| **EncounterManager** | `agents/encounter.py` | Yes | No (default) | N/A | `present_npcs`, `spawn_events` | Deterministic; optional LLM cast path if both flags off |
+| **DirectorAgent** | `agents/director.py` | No | Yes | No | `director_instructions` (text-only) | Returns empty instructions; pipeline continues |
+| **NarratorAgent** | `agents/narrator.py` | No | Yes | Yes | `final_text` (prose) | `AgentFailureError` on failure (caught at graph level) |
+| **ChoiceCrafterAgent** | `agents/choice_crafter_agent.py` | No | Yes | Yes | 4x player choices (setting-agnostic) | `AgentFailureError` on failure (caught at graph level) |
+| **WorldMindAgent** | `agents/world_mind_agent.py` | No | Yes | No | World events, rumors, faction updates | Falls back to deterministic faction engine |
+| **CampaignArchitect** | `agents/architect.py` | No | Yes | No | Campaign blueprint, off-screen simulation | Returns minimal scaffold |
+| **BiographerAgent** | `agents/biographer.py` | No | Yes | No | Character background text | Returns default background |
+| **CastingAgent** | `agents/casting.py` | No | Yes | No | NPC cast list | Falls back to Bible casting / procedural |
+| **IntentRouterAgent** | `agents/intent_router_agent.py` | No | Yes | No | Route classification assist | Falls back to keyword-based routing |
+| **CompanionSystemAgent** | `agents/companion_system_agent.py` | No | Yes | No | Extended companion interactions | Skipped on failure |
+| **ContinuityAgent** | `agents/continuity_agent.py` | No | Yes | No | Continuity check results | Skipped on failure |
+| **EraTransitionSceneAgent** | `agents/era_transition_scene_agent.py` | No | Yes | No | Era transition scene text | Skipped on failure |
+| **MemoryAgent** | `agents/memory_agent.py` | No | Yes | No | Long-term memory summaries | Skipped on failure |
+| **ProgressionAgent** | `agents/progression_agent.py` | No | Yes | No | Story/player progression updates | Skipped on failure |
+| **PrologueAgent** | `agents/prologue_agent.py` | No | Yes | No | Campaign opening narration | Skipped on failure |
+| **PsychArchivistAgent** | `agents/psych_archivist_agent.py` | No | Yes | No | Psychology profile updates | Skipped on failure |
+| **QuestWeaverAgent** | `agents/quest_weaver_agent.py` | No | Yes | No | Quest narrative text | Skipped on failure |
+| **ResolutionAgent** | `agents/resolution_agent.py` | No | Yes | No | Story resolution scenes | Skipped on failure |
+| **ArcScreenplayAgent** | `agents/arc_screenplay_agent.py` | No | Yes | No | Act-level screenplay plan | Skipped on failure |
+| **ArcWeaverAgent** | `agents/arc_weaver_agent.py` | No | Yes | No | Thread weaving between arcs | Skipped on failure |
 
 ---
 
-## LLM Provider Plumbing
+## Authoritative vs Non-Authoritative Agents
 
-### `AgentLLM` (Ollama-only)
+**V5.0 introduces a distinction between authoritative and non-authoritative LLM agents:**
 
-**File:** `backend/app/core/agents/base.py`
+### Authoritative Agents
+These agents produce output that is required for the pipeline to continue. On failure (after one retry), they raise `AgentFailureError`, which is caught at the graph level by `run_turn()` and returned as a structured error to the player.
 
-`AgentLLM(role)` is the central LLM wrapper. It:
+- **NarratorAgent** — the prose narrative is required for every turn
+- **ChoiceCrafterAgent** — player choices are required (no deterministic fallback)
 
-- Reads per-role config from `backend/app/config.py` (`MODEL_CONFIG`)
-- Only supports `provider=ollama`
-- Supports JSON mode (`json_mode=True`) with a single deterministic repair retry
+### Non-Authoritative Agents
+These agents provide enrichment. On failure, the pipeline continues with a default/empty value. The node logs a warning.
+
+- DirectorAgent, WorldMindAgent, CampaignArchitect, BiographerAgent, CompanionSystemAgent, and all other agents
+
+### `authoritative_call()` Pattern
+
+```python
+# backend/app/core/error_handling.py
+
+def authoritative_call(agent_name: str, fn: Callable, *args, **kwargs):
+    """Call an authoritative agent with one retry. Raises AgentFailureError on second failure."""
+    for attempt in range(2):
+        try:
+            return fn(*args, **kwargs)
+        except Exception as exc:
+            if attempt == 0:
+                logger.warning("Agent '%s' failed (attempt 1/2), retrying: %s", agent_name, exc)
+            else:
+                logger.error("Agent '%s' failed after retry: %s", agent_name, exc)
+                raise AgentFailureError(agent_name, exc) from exc
+```
+
+---
+
+## Per-Role LLM Configuration
+
+Each agent role can be independently configured via environment variables:
+
+```bash
+# Pattern: STORYTELLER_{ROLE}_{CONFIG}
+STORYTELLER_DIRECTOR_MODEL=mistral-nemo:latest
+STORYTELLER_NARRATOR_MODEL=mistral-nemo:latest
+STORYTELLER_ARCHITECT_MODEL=qwen3:4b
+STORYTELLER_CASTING_MODEL=qwen3:4b
+STORYTELLER_BIOGRAPHER_MODEL=qwen3:4b
+STORYTELLER_KG_MODEL=qwen3:8b
+STORYTELLER_CHOICE_CRAFTER_MODEL=qwen3:4b
+
+# Provider override (default: ollama)
+STORYTELLER_DIRECTOR_PROVIDER=ollama
+STORYTELLER_NARRATOR_PROVIDER=anthropic  # Switch to cloud
+
+# Custom Ollama endpoint per role
+STORYTELLER_DIRECTOR_BASE_URL=http://gpu-server:11434
+
+# Timeout override (seconds)
+STORYTELLER_NARRATOR_TIMEOUT=120
+LLM_TIMEOUT=300  # Default fallback timeout
+```
 
 ### Default Model Assignments
 
-| Tier | Model | Roles | VRAM |
-| ------ | ------- | ------- | ------ |
-| Quality-critical | `mistral-nemo:latest` | Director, Narrator | ~7 GB |
-| Medium | `qwen3:8b` | Mechanic, Ingestion Tagger, NPC Render | ~5 GB |
-| Lightweight | `qwen3:4b` | Architect, Casting, Biographer, KG Extractor, Suggestion Refiner | ~2 GB |
-| Embedding | `nomic-embed-text` | Embedding (reserved; runtime uses sentence-transformers) | minimal |
-
-Only one model is loaded at a time (specialist swapping), so peak VRAM equals the largest loaded model.
-
-### Token Budgets
-
-| Model class | Max context tokens | Reserved output tokens |
-| ------------- | ------------------- | ---------------------- |
-| 14b models | 8192 | 2048 |
-| 7b models | 4096 | 1024 |
-
-### Hardware Profiles
-
-Defined in `backend/app/config.py` (`HARDWARE_PROFILES`):
-
-| GPU | Director/Narrator | Architect/Casting/Biographer | Mechanic/Tagger/KG |
-| ----- | ------------------- | ------------------------------ | --------------------- |
-| RTX 4070 12GB | `mistral-nemo:latest` | `qwen3:4b` | `qwen3:8b` / `qwen3:4b` |
-| RTX 3080 10GB | `qwen3:8b` | `qwen3:4b` | `qwen3:8b` / `qwen3:4b` |
-| RTX 4090 24GB | `mistral-nemo:latest` | `mistral-nemo:latest` | `qwen3:8b` |
-
-### Roles
-
-Roles present in `MODEL_CONFIG` (some are for optional workflows):
-
-- `architect`, `director`, `narrator`, `casting`, `biographer`
-- `mechanic` (configured but MechanicAgent is deterministic)
-- `ingestion_tagger` (optional ingestion enrichment; off by default)
-- `npc_render` (optional "render pass" for generated NPCs; off by default)
-- `kg_extractor` (knowledge graph extraction pipeline)
-- `suggestion_refiner` (V2.16: scene-aware suggestion generation from Narrator prose)
-- `embedding` (reserved; runtime embedding currently uses sentence-transformers)
-
-### Per-role env overrides
-
-`backend/app/config.py` supports:
-
-- `STORYTELLER_{ROLE}_PROVIDER` (must be `ollama`)
-- `STORYTELLER_{ROLE}_MODEL`
-- `STORYTELLER_{ROLE}_BASE_URL`
-
-With fallback to `{ROLE}_MODEL`/`{ROLE}_BASE_URL` for convenience.
+| Role | Default Model | Notes |
+| ------ | ------------ | ------- |
+| Director | `mistral-nemo:latest` | Quality-critical; generates scene instructions |
+| Narrator | `mistral-nemo:latest` | Quality-critical; generates prose (authoritative) |
+| Architect | `qwen3:4b` | Campaign blueprint + off-screen simulation |
+| Casting | `qwen3:4b` | Legacy NPC casting path |
+| Biographer | `qwen3:4b` | Character background |
+| KG Extraction | `qwen3:8b` | Knowledge graph extraction |
+| ChoiceCrafter | `qwen3:4b` | Player choice generation (authoritative) |
+| Embedding | `nomic-embed-text` | Ingestion + RAG retrieval |
 
 ---
 
-## Token Budgeting (Director + Narrator)
+## Agent Details
 
-**File:** `backend/app/core/context_budget.py`
+### MechanicAgent — `backend/app/core/agents/mechanic.py`
 
-Both Director and Narrator use `build_context(...)` to:
+**Zero LLM calls.** Pure Python.
 
-- Estimate tokens conservatively
-- Trim least-important context first (style -> voice -> lore -> history -> hard cut)
-- Emit a warning when trimming occurs
+**Responsibilities:**
+- Map user action text to `action_type` (COMBAT, STEALTH, PERSUADE, INVESTIGATE, MOVE/TRAVEL, DIALOGUE_ONLY, USE_ITEM, CRAFT, SKILL_CHECK, GENERIC)
+- Compute DC (difficulty class) from action type + modifiers
+- Apply advantage/disadvantage from player stats and location environment
+- Apply arc-stage DC modifier (`_ARC_DC_MODIFIER`: SETUP=-2, RISING=0, CLIMAX=+3, RESOLUTION=-1)
+- Apply environmental modifiers (`environmental_modifiers()`: location tag, weapon check, time-of-day)
+- Roll 1d20 + stat modifier vs DC
+- Handle critical success/failure
+- Compute `time_cost_minutes` (action-type weighted, modified by success)
+- Compute `stress_delta` (risk tier: SAFE=0, RISKY=+1, DANGEROUS=+2; critical_failure=+3)
+- Compute alignment delta (PARAGON/RENEGADE tone scaffold for companion reactions)
+- Compute faction reputation delta (faction-targeted actions)
+- Determine `world_reaction_needed` flag (triggers WorldSim attention)
+- Generate `events` list (typed event payloads from outcome)
+- Generate `narrative_facts` (grounding facts for Narrator)
 
-If `DEV_CONTEXT_STATS=1`, Narrator records a JSON `context_stats` report on the state, which is surfaced in `TurnResponse.context_stats`.
-
----
-
-## Action Validation + Suggestion Generation
-
-### Deterministic Suggestion Generation
-
-**File:** `backend/app/core/suggestion_engine.py` — `generate_suggestions()` (re-exported via `director_validation.py`)
-
-Player-facing suggestions are 100% deterministic (no LLM). The `generate_suggestions()` function uses scene context to produce exactly `SUGGESTED_ACTIONS_TARGET` (4) action choices.
-
-**Context-aware branches:**
-
-| Branch | Trigger | Suggestion style |
-| -------- | --------- | ----------------- |
-| Post-combat success | `action_type` is ATTACK/COMBAT and `success=True` | Search fallen, interrogate, tend wounds, press deeper |
-| Post-combat failure | `action_type` is ATTACK/COMBAT and `success=False` | Fall back, negotiate, escape, desperate stand |
-| Post-stealth success | `action_type` is STEALTH/SNEAK and `success=True` | Eavesdrop, slip past, reveal self, ambush |
-| Post-stealth failure | `action_type` is STEALTH/SNEAK and `success=False` | Bluff, surrender, fight free, create distraction |
-| Exploration (no NPCs) | `present_npcs` is empty | Search clues, wait and observe, check terminals, keep moving |
-| Social (default) | NPCs present | PARAGON offer help, INVESTIGATE press for info, RENEGADE confront, NEUTRAL tactical scan |
-
-**Additional context signals:**
-
-- Player background (Force-sensitive, smuggler, etc.) shapes PARAGON dialogue
-- Faction memory shapes INVESTIGATE questions
-- Location name shapes RENEGADE threats and tactical scan hints
-- Stress level > 7 swaps the last exploration option with "Take a moment to steady yourself"
-
-### Suggestion Classification
-
-**File:** `backend/app/core/suggestion_engine.py` — `classify_suggestion()` (re-exported via `director_validation.py`)
-
-Classifies raw suggestion text into a full `ActionSuggestion` using deterministic keyword analysis:
-
-- **Tone:** Lead verb checked against `_PARAGON_VERBS`, `_INVESTIGATE_VERBS`, `_RENEGADE_VERBS` keyword sets. Falls back to `NEUTRAL`.
-- **Risk:** `_DANGEROUS_VERBS` -> DANGEROUS, `_RISKY_VERBS` -> RISKY, else SAFE.
-- **Category:** Dialogue quotes -> SOCIAL, `_SOCIAL_VERBS` -> SOCIAL, `_COMMIT_VERBS` -> COMMIT, else EXPLORE.
-- **Dialogue detection:** Quoted text (`"..."`) is wrapped as `Say: '...'` for the router (TALK intent).
-
-### Tone Diversity
-
-**File:** `backend/app/core/suggestion_engine.py` — `ensure_tone_diversity()` (re-exported via `director_validation.py`)
-
-Guarantees KOTOR tone spread: at least one each of PARAGON, INVESTIGATE, RENEGADE if possible. Re-tags NEUTRAL suggestions to fill gaps. Also ensures at least one ALTERNATIVE strategy tag.
-
-### Action Linting
-
-**File:** `backend/app/core/action_lint.py` — `lint_actions()`
-
-Validates and pads suggestions to exactly `SUGGESTED_ACTIONS_TARGET` (4):
-
-1. Normalizes input to `ActionSuggestion` instances
-2. Drops actions referencing missing NPCs/items
-3. Enforces talk-only mode constraints
-4. Removes travel-in-combat suggestions
-5. Pads back to exactly 4 safe options with context-aware defaults (location name, NPC name)
-6. Ensures at least one of each core category (SOCIAL, EXPLORE, COMMIT)
-
-Warnings from validation/linting are collected into `GameState.warnings` and returned by the API.
-
----
-
-## Companion Reactions System
-
-**File:** `backend/app/core/companion_reactions.py`
-
-### Trait Scoring
-
-Companions react to player choices via deterministic trait-vs-tone scoring. Each companion has traits on three axes:
-
-- `idealist_pragmatic` — idealists like PARAGON, pragmatists like RENEGADE
-- `merciful_ruthless` — merciful likes PARAGON, ruthless likes RENEGADE
-- `lawful_rebellious` — cautious (low lawful) likes INVESTIGATE
-
-The mechanic result's `tone_tag` is scored against each companion's traits to produce an affinity delta (range: -5 to +5 per turn).
-
-### Affinity Arcs
-
-| Stage | Affinity range | Unlocks |
-| ------- | --------------- | --------- |
-| STRANGER | <= -10 | Minimal interaction |
-| ALLY | -9 to 29 | Normal dialogue |
-| TRUSTED | 30 to 69 | COMPANION_REQUEST events (20% per turn), banter with memory |
-| LOYAL | 70+ | COMPANION_QUEST events (personal quest hook, one-time) |
-
-### Banter System
-
-**Pool:** 17 banter styles (`BANTER_POOL` in `backend/app/banter_pool.py`): stoic, warm, snarky, defensive, wise, calculating, terse, academic, gruff, apologetic, weary, earnest, diplomatic, beeps, analytical, mystical, formal.
-
-Banter is rate-limited to one line per `BANTER_COOLDOWN_TURNS` (3) turns. Selection uses seeded RNG (`derive_seed()`) for determinism. At TRUSTED/LOYAL arc stages with memories, banter references companion memories via `BANTER_MEMORY_POOL`.
-
-### Inter-Party Tensions
-
-**Function:** `compute_inter_party_tensions()`
-
-When one companion approves (delta >= 2) and another disapproves (delta <= -2) on the same turn, a tension is flagged. Tension context is formatted for both Director (`format_inter_party_tensions_for_director()`) and Narrator (`format_inter_party_tensions_for_narrator()`), capped at 2 tension lines per turn.
-
-### Companion Triggers
-
-**Function:** `check_companion_triggers()`
-
-Milestone-based companion-initiated events:
-
-- **COMPANION_REQUEST:** TRUSTED companion wants to speak (20% per turn, seeded RNG)
-- **COMPANION_QUEST:** LOYAL companion reveals personal quest hook (one-time)
-- **COMPANION_CONFRONTATION:** Sharp drop conflict detected, companion confronts player
-
-Fired triggers are persisted in `world_state_json["companion_triggers_fired"]` to avoid repeats.
-
----
-
-## NPC Personality Profiles
-
-**File:** `backend/app/core/personality_profile.py`
-
-### `build_personality_block(npc)`
-
-Transforms NPC data into structured prompt blocks for Director/Narrator context injection. No LLM calls -- pure Python string assembly from constant mappings.
-
-**Input:** NPC dict (from era pack or companion YAML) with fields: `name`, `voice_tags`, `traits`, `archetype`, `motivation`, `speech_quirk`, `banter_style`.
-
-**Output:** Formatted text block:
-
-```text
-[NPC_NAME -- Personality]
-Archetype: <archetype>
-Voice: <voice_tags>
-Traits: <traits>
-Speech pattern: <from VOICE_TAG_SPEECH_PATTERNS lookup, max 2>
-Behavior: <from TRAIT_BEHAVIOR_MAP lookup, max 2>
-Interaction: <from ARCHETYPE_INTERACTION_MAP lookup>
-Quirk: <speech_quirk>
-Drives: <motivation>
+**Key Output: `MechanicOutput`**
+```python
+MechanicOutput(
+    action_type="COMBAT",
+    time_cost_minutes=15,
+    success=True,
+    roll=18,
+    dc=14,
+    outcome_summary="Critical hit! The guard goes down.",
+    critical_outcome="critical_success",
+    events=[...],
+    narrative_facts=[...],
+    stress_delta=2,
+    world_reaction_needed=True,
+    modifiers={"arc_stage": -2, "environmental": 1}
+)
 ```
 
-### Constant Mappings
+---
 
-| Map | Count | Purpose |
-| ----- | ------- | --------- |
-| `VOICE_TAG_SPEECH_PATTERNS` | ~82 tags | Voice tag -> speech pattern description |
-| `TRAIT_BEHAVIOR_MAP` | ~46 traits | Trait keyword -> behavioral description |
-| `ARCHETYPE_INTERACTION_MAP` | ~30 archetypes | Archetype -> interaction style |
+### DirectorAgent — `backend/app/core/agents/director.py`
 
-### Scene Context
+**LLM call produces text-only output** (no JSON schema, no suggestion generation since V5.0).
 
-**Function:** `build_scene_personality_context(present_npcs, era_npc_lookup, companion_lookup, max_npcs=4)`
+**Responsibilities:**
+- Build scene pacing instructions for the Narrator
+- Check `is_hub_location()` → inject hub-mode context if at hub
+- Incorporate arc guidance (stage, tension, pacing hints, fired moment beats)
+- Incorporate scene frame context (topic_primary, subtext, npc_agenda)
+- Use RAG (4 lanes):
+  - Lane 0: Base style (always-on)
+  - Lane 1: Era style
+  - Lane 2: Genre style (detected by `genre_triggers.py`)
+  - Lane 3: Archetype style
+- Use KG character context (`shared_kg_character_context`)
+- Use episodic memories (`shared_episodic_memories`) for continuity
+- Use `personality_profile` blocks for present NPCs
+- Use `known_npcs` for per-NPC naming consistency
+- Use `SettingRules` for setting-agnostic context
+- Use inter-party tension context
+- Use `psych_profile` (current_mood, stress_level) for tone calibration
 
-Builds combined personality context for all NPCs in a scene. Looks up rich data from era pack or companion YAML, merges with present NPC state, and assembles personality blocks (max 4 NPCs per scene for token budget).
+**Output:** `director_instructions` (plain text, ~500 tokens), plus `shared_kg_character_context`, `shared_episodic_memories` (for Narrator reuse).
 
 ---
 
-## Pronoun System
+### NarratorAgent — `backend/app/core/agents/narrator.py`
 
-**File:** `backend/app/core/pronouns.py`
+**Authoritative LLM agent.** Raises `AgentFailureError` on failure.
 
-### `pronoun_block(name, gender)`
+**Responsibilities:**
+- Generate prose-only narration (5-8 sentences, max 250 words)
+- Use `director_instructions` as pacing guidance
+- Use `mechanic_result` for outcome grounding
+- Use lore RAG (novel/sourcebook chunks)
+- Use character voice RAG (dialogue samples)
+- Use shared KG context + episodic memories from Director (avoid double retrieval)
+- Apply pronoun system via `pronoun_block()` for consistent player-character references
+- Apply banter queue (consume 1 item if not high-stakes combat)
+- Apply inter-party tension context if companions present
 
-Generates pronoun context for Director/Narrator prompts. Returns empty string when gender is unknown (preserves existing behavior).
+**Post-Processing Pipeline** (`narrator_postprocess.py`):
+1. `_strip_structural_artifacts()` — removes 12+ patterns (markdown headers, list bullets, OOC text, "Narrator:", etc.)
+2. `_truncate_overlong_prose()` — caps at 250 words at sentence boundary
+3. `_enforce_pov_consistency()` — strips meta-narrator endings ("What will you do?", etc.)
+4. `_flag_unknown_entities()` — warns on NPC names not in `present_npcs`
 
-**Supported genders:** `male` (he/him/his/himself), `female` (she/her/her/herself).
+**Output:** `final_text` (post-processed prose), `lore_citations`, `embedded_suggestions=None`
 
-**Output format:**
+---
 
-```text
-CHARACTER PRONOUNS: {name} uses {subject}/{object}/{possessive} pronouns.
-Always use these pronouns when referring to {name} in narration and dialogue.
+### ChoiceCrafterAgent — `backend/app/core/agents/choice_crafter_agent.py`
+
+**Authoritative LLM agent (V5.0).** Raises `AgentFailureError` on failure. Replaces the old `SuggestionRefinerAgent`.
+
+**Key design principle:** Setting-agnostic. Uses `SettingRules.suggestion_style` instead of hardcoded universe terms.
+
+**Responsibilities:**
+- Generate 4 player choices from the Narrator's `final_text` and scene context
+- Build context from: location, present NPCs, mechanic outcome, NPC utterance, scene frame fields (`topic_primary`, `subtext`, `npc_agenda`), companion hint, player history (tone streak detection), consequence hints from ledger, arc stage + tension, stat summary, setting style, director intent
+- Return raw choices as list of `{text, tone, meaning, risk, consequence_hint}` dicts
+
+**Post-Processing Pipeline** (in `choice_crafter_node.py`):
+1. `_to_action_suggestions()` — convert dicts to `ActionSuggestion` objects
+2. `ensure_tone_diversity()` — guarantee all 4 tones (PARAGON, INVESTIGATE, RENEGADE, NEUTRAL) are represented
+3. `lint_actions()` — validate NPC/item/travel references
+4. `action_suggestions_to_player_responses()` — convert to `PlayerResponse` dicts for DialogueTurn
+
+**Output:** `suggested_actions` (list of `ActionSuggestion` dicts), `player_responses` (list of `PlayerResponse` dicts)
+
+---
+
+### CampaignArchitect — `backend/app/core/agents/architect.py`
+
+**Non-authoritative LLM agent.** Falls back to minimal deterministic scaffold.
+
+**Two responsibilities:**
+
+1. **Campaign blueprint generation** (used in `POST /v2/setup/auto`):
+   - Generates arc scaffold: themes, opening threads, climax, act outline
+   - Populates `world_state_json.act_outline`, `world_state_json.opening_beats`
+
+2. **Off-screen simulation** (used by WorldSim node on tick boundary):
+   - Simulates world events for `active_factions`
+   - Generates new rumors, faction goals, NPC movements
+   - Falls back to `faction_engine.simulate_faction_tick()` if LLM unavailable
+
+---
+
+### CompanionSystemAgent — `backend/app/core/agents/companion_system_agent.py`
+
+**Non-authoritative LLM agent (V5.0).** Extended companion interactions beyond the deterministic `companion_reactions.py` layer.
+
+**Responsibilities:**
+- Generate companion-initiated dialogue or scene beats when triggered
+- Handle `COMPANION_REQUEST`, `COMPANION_QUEST`, `COMPANION_CONFRONTATION` events
+- Incorporate companion personality, voice tags, and affinity trajectory
+
+---
+
+### WorldMindAgent — `backend/app/core/agents/world_mind_agent.py`
+
+**Non-authoritative LLM agent (V5.0).** LLM-driven world simulation.
+
+**Responsibilities:**
+- Generate off-screen world events from faction context
+- Produce world-state rumors with narrative flavor
+- Produce faction movement and goal updates
+- Falls back to deterministic `faction_engine` on failure
+
+---
+
+### Other V5.0 Agents (brief)
+
+| Agent | File | Primary Use |
+| ------- | ------ | ----------- |
+| **IntentRouterAgent** | `intent_router_agent.py` | Assist routing for ambiguous inputs (invoked by router node when confidence is low) |
+| **ContinuityAgent** | `continuity_agent.py` | Post-narration continuity check (can flag contradictions for Validator) |
+| **EraTransitionSceneAgent** | `era_transition_scene_agent.py` | Generate era-transition narrative scenes when `era_transition_pending=True` |
+| **MemoryAgent** | `memory_agent.py` | Summarize episodic memories for long-running campaigns |
+| **ProgressionAgent** | `progression_agent.py` | Track player skill/story progression milestones |
+| **PrologueAgent** | `prologue_agent.py` | Generate campaign opening scene (invoked by `/v2/campaigns` creation) |
+| **PsychArchivistAgent** | `psych_archivist_agent.py` | Update player psychology profile based on accumulated stress/choices |
+| **QuestWeaverAgent** | `quest_weaver_agent.py` | Generate narrative context for quest stage transitions |
+| **ResolutionAgent** | `resolution_agent.py` | Generate story resolution scenes for completed arcs |
+| **ArcScreenplayAgent** | `arc_screenplay_agent.py` | Act-level screenplay planning (arc outline) |
+| **ArcWeaverAgent** | `arc_weaver_agent.py` | Thread weaving between active story arcs |
+| **BiographerAgent** | `biographer.py` | Character background text generation (used in campaign setup) |
+
+---
+
+## Pydantic Models
+
+### `GameState` — `backend/app/models/state.py`
+
+The LangGraph pipeline packet. See `03_state_and_persistence.md` for full field list.
+
+### `ActionSuggestion` — `backend/app/models/state.py`
+
+Player choice object.
+
+```python
+class ActionSuggestion(BaseModel):
+    label: str              # Short display text (e.g., "Press for details")
+    intent_text: str        # Full action description sent as user_input
+    category: str           # Action category (SOCIAL, COMBAT, INVESTIGATE, etc.)
+    tone_tag: str           # PARAGON | INVESTIGATE | RENEGADE | NEUTRAL
+    risk_level: str         # SAFE | RISKY | DANGEROUS
+    consequence_hint: str   # Optional hint about likely outcome
+    meaning_tag: str        # Semantic meaning tag for companion reactions
 ```
 
-Injected into both Director and Narrator prompts during turn execution. Gender is set at character creation via `SetupAutoRequest.player_gender` and persisted on `CharacterSheet.gender`.
+### `TurnContract` — `backend/app/models/turn_contract.py`
+
+Structured turn result stored in `rendered_turns`.
+
+```python
+class TurnContract(BaseModel):
+    meta: TurnMeta          # campaign_id, turn_number, intent, arc_stage
+    mechanic: MechanicOutput | None
+    narration: str          # final_text
+    choices: list[Choice]   # Player-facing choices (from ChoiceCrafter)
+    suggestions: list[ActionSuggestion]  # Sugested follow-ups
+    facts: list[Fact]       # Facts for truth ledger upsert
+    warnings: list[str]
+```
+
+### `Fact` — `backend/app/models/turn_contract.py`
+
+```python
+class Fact(BaseModel):
+    fact_key: str       # e.g., "npc_location:darth_vader"
+    fact_value: Any     # e.g., "Death Star"
+```
+
+### `SettingRules` — `backend/app/world/era_pack_models.py`
+
+Setting-agnostic rules for agents. Stored in `world_state_json["setting_rules"]`.
+
+```python
+class SettingRules(BaseModel):
+    setting_name: str = "Star Wars Legends"
+    default_species: list[str] = ["Human", "Twi'lek", "Rodian"]
+    suggestion_style: str = "Star Wars"   # Used by ChoiceCrafter for setting context
+    faction_names: list[str] = [...]
+    # ... other setting-specific config
+```
+
+### `EraMoment` — `backend/app/world/era_pack_models.py`
+
+Scripted narrative moment definition (V5.0).
+
+```python
+class EraMomentTrigger(BaseModel):
+    arc_stage: str | None = None
+    turn_number_min: int | None = None
+    location_tags_any: list[str] = []
+    companion_id: str | None = None
+    affinity_threshold: int | None = None
+    quest_id_completed: str | None = None
+    alignment_min: dict[str, int] = {}
+
+class EraMoment(BaseModel):
+    id: str
+    title: str
+    trigger: EraMomentTrigger
+    narrative_beat: str    # Text injected into Director scene instructions
+    once_only: bool = True
+```
+
+### `PartyState` / `CompanionRuntimeState` — `backend/app/core/party_state.py`
+
+Persistent multi-axis companion state (V5.0).
+
+```python
+class CompanionRuntimeState(BaseModel):
+    companion_id: str
+    influence: int = 0      # -100..100 (primary relationship axis)
+    trust: int = 0          # -100..100
+    respect: int = 0        # -100..100
+    fear: int = 0           # -100..100
+    loyalty_progress: int = 0   # 0..100
+    traits: dict[str, int] = {}
+    memories: list[str] = []   # max 10 significant moments
+    triggers_fired: list[str] = []
+    banter_last_turn: int = 0
+
+class PartyState(BaseModel):
+    active_companions: list[str]
+    companion_states: dict[str, CompanionRuntimeState]
+```
 
 ---
 
+## LLM Provider Architecture
+
+### LLM Client Base — `backend/llm_client.py`
+
+`LLMClient` is the primary HTTP client for Ollama. Key methods:
+
+```python
+class LLMClient:
+    def chat(self, model, messages, temperature, format) -> str:
+        """Ollama /api/chat endpoint."""
+
+    def ensure_json(self, model, messages, schema, max_retries=3) -> dict:
+        """Call with JSON mode, parse, repair, retry on malformed JSON."""
+```
+
+### LLM Provider Abstraction — `backend/app/core/llm_provider.py`
+
+`AgentLLM` wraps the LLM client with per-role config:
+
+```python
+class AgentLLM:
+    def __init__(self, role: str):
+        # Reads STORYTELLER_{ROLE}_MODEL, _PROVIDER, _BASE_URL, _TIMEOUT from env
+
+    def call(self, system: str, user: str, **kwargs) -> str:
+        """Text-mode call (Director)."""
+
+    def call_json(self, system: str, user: str, schema: dict) -> dict:
+        """JSON-mode call with repair+retry (used by NarratorAgent, ChoiceCrafterAgent, etc.)."""
+```
+
+### JSON Reliability
+
+`backend/app/core/json_reliability.py` + `json_repair.py` provide:
+
+- `safe_parse_json(text)` — try direct parse, then regex extraction, then heuristic repair
+- `repair_json(text)` — bracket matching, quote fixing, trailing comma removal
+- `parse_with_retry(fn, max_retries=3)` — retry wrapper for LLM JSON calls
+
 ---
 
-## Operations Reference
+## Hub/Downtime System — `backend/app/core/hub_system.py`
 
-Model override mechanics, cloud/local/hybrid operating guidance, and timeline planning have been consolidated into:
+The Hub System activates when the current location has `"hub"` in its era-pack `services` list, or when `world_state["hub_mode"] = True`.
 
-- `docs/10_model_selection_and_timeline.md`
+**Director integration:**
+```python
+# In director node:
+if is_hub_location(world_state, era_pack):
+    hub_options = get_hub_options(world_state, party_ids)
+    hub_context = build_hub_system_prompt_injection(world_state, hub_options)
+    # inject hub_context into Director system prompt
+```
 
-This avoids duplicating operational guidance across architecture docs.
+**Hub options:** `rest`, `gather_intel`, `resupply`, `wait`, `talk_{companion_id}` (for each party member)
+
+**`apply_rest(world_state)`:** Reduces `stress_level` by 10 (min 0) and `player_condition["fatigue"]` by 5. Sets `last_rest_turn`.
