@@ -50,6 +50,16 @@ def _model_config() -> dict[str, dict[str, str]]:
         "npc_render": {"provider": "ollama", "model": NPC_RENDER_MODEL},
         "kg_extractor": {"provider": "ollama", "model": "qwen3:4b"},
         "suggestion_refiner": {"provider": "ollama", "model": "qwen3:8b"},
+        # V5.0: Choice Crafter — authoritative LLM choice generation (replaces suggestion_engine)
+        # Override to cloud for quality: STORYTELLER_CHOICE_CRAFTER_PROVIDER=anthropic
+        "choice_crafter": {"provider": "ollama", "model": "qwen3:8b"},
+        # V5.0: Companion System — authoritative LLM companion reactions + voice
+        # Override to cloud for quality: STORYTELLER_COMPANION_SYSTEM_PROVIDER=anthropic
+        "companion_system": {"provider": "ollama", "model": "qwen3:8b"},
+        # V5.0: Arc Weaver — LLM narrative arc analysis (structural, fast)
+        "arc_weaver": {"provider": "ollama", "model": "qwen3:4b"},
+        # V5.0: Intent Router — LLM intent classification (structural, fast)
+        "intent_router": {"provider": "ollama", "model": "qwen3:4b"},
         "embedding": {"provider": "ollama", "model": "nomic-embed-text"},
         # V3.1: Dedicated campaign init role — defaults to architect config.
         # In production, override to cloud: STORYTELLER_CAMPAIGN_INIT_PROVIDER=anthropic
@@ -260,6 +270,7 @@ def get_role_timeout(role: str) -> float:
             pass
     _ROLE_TIMEOUT_DEFAULTS = {
         "suggestion_refiner": 60.0,
+        "choice_crafter": 60.0,
         "narrator": 120.0,
         "director": 120.0,
     }

@@ -9,7 +9,7 @@
     partyStatus, factionReputation, newsFeed, turnNumber,
     isGameActive, resetGame,
     dialogueTurn, sceneFrame, npcUtterance, playerResponses, questLog,
-    consequenceType, activeNpcContexts,
+    consequenceType, activeNpcContexts, activeObligations,
   } from '$lib/stores/game';
   import {
     isStreaming, streamedText, streamError, showCursor,
@@ -570,6 +570,7 @@
             suggestedActions={$suggestedActions}
             animKey={choiceAnimKey}
             onPopulate={handleApproachPopulate}
+            activeObligations={$activeObligations}
           />
         {/if}
 

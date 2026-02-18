@@ -4,11 +4,16 @@ from __future__ import annotations
 import json
 import logging
 import sqlite3
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
-from backend.app.core.error_handling import log_error_with_context  # noqa: E402
+from backend.app.core.error_handling import (  # noqa: E402
+    AgentFailureError,
+    authoritative_call,
+    log_error_with_context,
+)
 from backend.app.core.event_store import append_events, reserve_next_turn_number  # noqa: E402
 from backend.app.core.projections import apply_projection  # noqa: E402
 from backend.app.core.state_loader import build_initial_gamestate, load_turn_history  # noqa: E402
@@ -123,26 +128,23 @@ def make_commit_node():
                 events,
                 final_text or "",
             )
-            # V4.0: ContinuityAgent — LLM semantic pass on the ledger: prunes superseded
-            # facts, extracts narrative-weight facts, generates consequence hints.
-            # Runs after the deterministic update_ledger() so mechanical events are
-            # already present. Non-fatal: a LLM failure keeps the deterministic ledger.
-            try:
-                from backend.app.core.agents.continuity_agent import ContinuityAgent  # noqa: E402
-                if final_text and intent != "META":
-                    _cont_events = [
-                        {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
-                        for e in events
-                    ]
-                    ContinuityAgent().update(
-                        world_state=world_state,
-                        final_text=final_text,
-                        user_input=user_input,
-                        mechanic_result=mechanic_result,
-                        events=_cont_events,
-                    )
-            except Exception as _cont_err:
-                logger.warning("ContinuityAgent ledger update failed (non-fatal): %s", _cont_err)
+            # V5.0: ContinuityAgent — authoritative LLM semantic pass on the ledger.
+            # Runs FIRST among LLM agents (Group 1) because others read ledger data.
+            from backend.app.core.agents.continuity_agent import ContinuityAgent  # noqa: E402
+            if final_text and intent != "META":
+                _cont_events = [
+                    {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
+                    for e in events
+                ]
+                authoritative_call(
+                    "ContinuityAgent",
+                    ContinuityAgent().update,
+                    world_state=world_state,
+                    final_text=final_text,
+                    user_input=user_input,
+                    mechanic_result=mechanic_result,
+                    events=_cont_events,
+                )
             # V2.5: project stress changes to characters.psych_profile (authoritative).
             stress_delta = int(mechanic_result.get("stress_delta", 0))
             if stress_delta != 0:
@@ -265,26 +267,26 @@ def make_commit_node():
                     _known.add(npc_name)
             world_state["known_npcs"] = sorted(_known)
 
-            # V4.0: NPC narrative memory — LLM updates per-NPC emotional state, memories,
-            # agenda, and next_move in world_state["npc_states"] (pre-commit, atomic)
-            try:
-                from backend.app.core.agents.memory_agent import MemoryAgent  # noqa: E402
-                _present_npcs = state.get("present_npcs") or []
+            # V5.0: NPC narrative memory — authoritative LLM agent.
+            # Part of Group 2 (parallel with QuestWeaver). Runs after ContinuityAgent.
+            from backend.app.core.agents.memory_agent import MemoryAgent  # noqa: E402
+            _present_npcs = state.get("present_npcs") or []
+            _mem_events = [
+                {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
+                for e in events
+            ] if _present_npcs and final_text else []
+
+            def _run_memory_agent():
                 if _present_npcs and final_text:
-                    _mem_events = [
-                        {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
-                        for e in events
-                    ]
-                    _memory_agent = MemoryAgent()
-                    _memory_agent.update(
+                    authoritative_call(
+                        "MemoryAgent",
+                        MemoryAgent().update,
                         world_state=world_state,
                         final_text=final_text,
                         turn_number=next_turn_number,
                         present_npcs=_present_npcs,
                         events=_mem_events,
                     )
-            except Exception as _mem_err:
-                logger.warning("NPC MemoryAgent update failed (non-fatal): %s", _mem_err)
 
             # V3.0: Quest tracking — check entry/stage conditions after events committed
             try:
@@ -329,166 +331,181 @@ def make_commit_node():
             except Exception as _quest_err:
                 logger.warning("Quest tracking failed (non-fatal): %s", _quest_err)
 
-            # V4.0: QuestWeaverAgent — dynamic quest generation + completion evaluation
-            # evaluate_completion: every turn if active dynamic quests exist
-            # generate: every 10 turns or when < TARGET_ACTIVE_QUESTS are running
-            try:
-                from backend.app.core.agents.quest_weaver_agent import QuestWeaverAgent  # noqa: E402
-                if final_text and intent != "META":
-                    _qw_events = [
-                        {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
-                        for e in events
-                    ]
-                    _qw = QuestWeaverAgent()
-                    # Evaluate active dynamic quests against this turn's prose
-                    _dq = world_state.get("dynamic_quests") or []
-                    _active_dq = [q for q in _dq if q.get("status") == "active"]
-                    if _active_dq:
-                        _dq_notifications = _qw.evaluate_completion(
-                            world_state=world_state,
-                            final_text=final_text,
-                            events=_qw_events,
-                        )
-                        if _dq_notifications:
-                            _existing_warnings = list(state.get("warnings") or [])
-                            for _dqn in _dq_notifications:
-                                _existing_warnings.append(f"[QUEST] {_dqn}")
-                            state["warnings"] = _existing_warnings
-                    # Generate new dynamic quests when the active count is low
-                    _active_count = sum(
-                        1 for q in (world_state.get("dynamic_quests") or [])
-                        if q.get("status") == "active"
-                    )
-                    _should_gen = (
-                        next_turn_number % 10 == 0
-                        or _active_count == 0
-                    )
-                    if _should_gen:
-                        _campaign_ws = (state.get("campaign") or {}).get("world_state_json") or {}
-                        _arc = (_campaign_ws.get("arc_state") or {}).get("current_stage", "SETUP")
-                        _recent_narr = ""
-                        _recent_list = state.get("recent_narrative") or []
-                        if _recent_list:
-                            _recent_narr = "\n".join(_recent_list[-2:])[:600]
-                        _new_quests = _qw.generate(
-                            world_state=world_state,
-                            arc_stage=_arc,
-                            player_location=state.get("current_location") or "",
-                            turn_number=next_turn_number,
-                            recent_narrative=_recent_narr,
-                        )
-                        if _new_quests:
-                            _existing_warnings = list(state.get("warnings") or [])
-                            for _nq in _new_quests:
-                                _existing_warnings.append(f"[QUEST] New quest: {_nq.get('title', '?')}")
-                            state["warnings"] = _existing_warnings
-            except Exception as _qw_err:
-                logger.warning("QuestWeaverAgent failed (non-fatal): %s", _qw_err)
+            # V5.0: QuestWeaverAgent — authoritative dynamic quest system.
+            # Part of Group 2 (parallel with MemoryAgent). Runs after ContinuityAgent.
+            from backend.app.core.agents.quest_weaver_agent import QuestWeaverAgent  # noqa: E402
+            _qw_events = [
+                {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
+                for e in events
+            ] if final_text and intent != "META" else []
+            # Collect quest warnings in a thread-safe list for parallel execution
+            _quest_warnings: list[str] = []
 
-            # V4.0: ProgressionAgent — narrative stat growth every ~10 turns.
-            # Evaluates player history and awards stat improvements + new narrative
-            # abilities earned through story action. Writes stats_json to DB.
-            # Non-fatal: a LLM failure keeps current stats unchanged.
-            try:
-                from backend.app.core.agents.progression_agent import ProgressionAgent  # noqa: E402
-                if final_text and intent != "META" and next_turn_number % 10 == 0:
-                    _prog_player = state.get("player")
-                    _prog_stats: dict = {}
-                    _prog_psych: dict = {}
-                    _prog_bg = ""
-                    if isinstance(_prog_player, dict):
-                        _prog_stats = dict(_prog_player.get("stats") or {})
-                        _prog_psych = dict(_prog_player.get("psych_profile") or {})
-                        _prog_bg = str(_prog_player.get("background") or "")
-                    elif _prog_player is not None:
-                        _prog_stats = dict(getattr(_prog_player, "stats", None) or {})
-                        _prog_psych = dict(getattr(_prog_player, "psych_profile", None) or {})
-                        _prog_bg = str(getattr(_prog_player, "background", None) or "")
-                    _prog_narr = "\n".join((state.get("recent_narrative") or [])[-2:])[:600]
-                    _prog_notif = ProgressionAgent().advance(
+            def _run_quest_weaver():
+                if not (final_text and intent != "META"):
+                    return
+                _qw = QuestWeaverAgent()
+                # Evaluate active dynamic quests against this turn's prose
+                _dq = world_state.get("dynamic_quests") or []
+                _active_dq = [q for q in _dq if q.get("status") == "active"]
+                if _active_dq:
+                    _dq_notifications = authoritative_call(
+                        "QuestWeaverAgent.evaluate",
+                        _qw.evaluate_completion,
                         world_state=world_state,
-                        player_stats=_prog_stats,
-                        psych_profile=_prog_psych,
-                        background=_prog_bg,
-                        turn_number=next_turn_number,
-                        recent_narrative=_prog_narr,
-                        conn=conn,
-                        campaign_id=campaign_id,
-                        player_id=player_id,
+                        final_text=final_text,
+                        events=_qw_events,
                     )
-                    if _prog_notif:
-                        _existing_warnings = list(state.get("warnings") or [])
-                        _existing_warnings.append(f"[PROGRESSION] {_prog_notif}")
-                        state["warnings"] = _existing_warnings
-            except Exception as _prog_err:
-                logger.warning("ProgressionAgent failed (non-fatal): %s", _prog_err)
-
-            # V4.0: PsychArchivistAgent — psychological arc update every ~5 turns.
-            # Evaluates the character's emotional state from narrative events and prose,
-            # producing a nuanced psych_profile and an emotional_arc_note for the Narrator.
-            # Writes psych_profile to DB and emotional_arc_note to world_state.
-            # Non-fatal: a LLM failure keeps the existing psych_profile.
-            try:
-                from backend.app.core.agents.psych_archivist_agent import PsychArchivistAgent  # noqa: E402
-                if final_text and intent != "META" and next_turn_number % 5 == 0:
-                    _psych_player = state.get("player")
-                    _psych_profile: dict = {}
-                    _psych_bg = ""
-                    if isinstance(_psych_player, dict):
-                        _psych_profile = dict(_psych_player.get("psych_profile") or {})
-                        _psych_bg = str(_psych_player.get("background") or "")
-                    elif _psych_player is not None:
-                        _psych_profile = dict(
-                            getattr(_psych_player, "psych_profile", None) or {}
-                        )
-                        _psych_bg = str(getattr(_psych_player, "background", None) or "")
-                    _psych_narr = "\n".join((state.get("recent_narrative") or [])[-2:])[:700]
-                    _psych_events = [
-                        {
-                            "event_type": ensure_event(e).event_type,
-                            "payload": ensure_event(e).payload or {},
-                        }
-                        for e in events
-                    ]
-                    _arc_stage = (
-                        arc_guidance.get("arc_stage")
-                        if isinstance(arc_guidance, dict)
-                        else None
-                    ) or "SETUP"
-                    PsychArchivistAgent().update(
+                    for _dqn in (_dq_notifications or []):
+                        _quest_warnings.append(f"[QUEST] {_dqn}")
+                # Generate new dynamic quests when the active count is low
+                _active_count = sum(
+                    1 for q in (world_state.get("dynamic_quests") or [])
+                    if q.get("status") == "active"
+                )
+                _should_gen = (
+                    next_turn_number % 10 == 0
+                    or _active_count == 0
+                )
+                if _should_gen:
+                    _campaign_ws = (state.get("campaign") or {}).get("world_state_json") or {}
+                    _arc = (_campaign_ws.get("arc_state") or {}).get("current_stage", "SETUP")
+                    _recent_narr = ""
+                    _recent_list = state.get("recent_narrative") or []
+                    if _recent_list:
+                        _recent_narr = "\n".join(_recent_list[-2:])[:600]
+                    _new_quests = authoritative_call(
+                        "QuestWeaverAgent.generate",
+                        _qw.generate,
                         world_state=world_state,
-                        current_psych_profile=_psych_profile,
-                        background=_psych_bg,
+                        arc_stage=_arc,
+                        player_location=state.get("current_location") or "",
                         turn_number=next_turn_number,
-                        recent_narrative=_psych_narr,
-                        events=_psych_events,
-                        arc_stage=_arc_stage,
-                        conn=conn,
-                        campaign_id=campaign_id,
-                        player_id=player_id,
+                        recent_narrative=_recent_narr,
                     )
-            except Exception as _psych_err:
-                logger.warning("PsychArchivistAgent failed (non-fatal): %s", _psych_err)
+                    for _nq in (_new_quests or []):
+                        _quest_warnings.append(f"[QUEST] New quest: {_nq.get('title', '?')}")
 
-            # V2.21: NPC persistent memory — record NPC interactions from turn events
-            try:
-                from backend.app.core.npc_memory import (  # noqa: E402
-                    ensure_npc_memory_table,
-                    extract_npc_memories_from_events,
-                    record_npc_interaction,
+            # V5.0 Group 2: Run MemoryAgent + QuestWeaverAgent in parallel.
+            # These agents mutate different keys in world_state (npc_states vs dynamic_quests)
+            # and do NOT use the SQLite connection, so parallel execution is safe.
+            _group2_errors: list[AgentFailureError] = []
+            with ThreadPoolExecutor(max_workers=2, thread_name_prefix="commit_g2") as _pool:
+                _futures = {
+                    _pool.submit(_run_memory_agent): "MemoryAgent",
+                    _pool.submit(_run_quest_weaver): "QuestWeaverAgent",
+                }
+                for fut in as_completed(_futures):
+                    try:
+                        fut.result()
+                    except AgentFailureError as afe:
+                        _group2_errors.append(afe)
+            if _group2_errors:
+                raise _group2_errors[0]
+            # Merge quest warnings from parallel thread
+            if _quest_warnings:
+                _existing_warnings = list(state.get("warnings") or [])
+                _existing_warnings.extend(_quest_warnings)
+                state["warnings"] = _existing_warnings
+
+            # V5.0 Group 3: Sequential agents that use SQLite connection.
+            # ProgressionAgent — authoritative narrative stat growth.
+            # Dynamic frequency: every 5 turns during RISING/CLIMAX, every 10 otherwise.
+            from backend.app.core.agents.progression_agent import ProgressionAgent  # noqa: E402
+            _arc_g = state.get("arc_guidance") or {}
+            _arc_state = _arc_g.get("arc_state") or {} if isinstance(_arc_g, dict) else {}
+            _current_arc_stage = _arc_state.get("current_stage", "SETUP") if isinstance(_arc_state, dict) else "SETUP"
+            _progression_interval = 5 if _current_arc_stage in ("RISING", "CLIMAX") else 10
+            if final_text and intent != "META" and next_turn_number % _progression_interval == 0:
+                _prog_player = state.get("player")
+                _prog_stats: dict = {}
+                _prog_psych: dict = {}
+                _prog_bg = ""
+                if isinstance(_prog_player, dict):
+                    _prog_stats = dict(_prog_player.get("stats") or {})
+                    _prog_psych = dict(_prog_player.get("psych_profile") or {})
+                    _prog_bg = str(_prog_player.get("background") or "")
+                elif _prog_player is not None:
+                    _prog_stats = dict(getattr(_prog_player, "stats", None) or {})
+                    _prog_psych = dict(getattr(_prog_player, "psych_profile", None) or {})
+                    _prog_bg = str(getattr(_prog_player, "background", None) or "")
+                _prog_narr = "\n".join((state.get("recent_narrative") or [])[-2:])[:600]
+                _prog_notif = authoritative_call(
+                    "ProgressionAgent",
+                    ProgressionAgent().advance,
+                    world_state=world_state,
+                    player_stats=_prog_stats,
+                    psych_profile=_prog_psych,
+                    background=_prog_bg,
+                    turn_number=next_turn_number,
+                    recent_narrative=_prog_narr,
+                    conn=conn,
+                    campaign_id=campaign_id,
+                    player_id=player_id,
                 )
-                ensure_npc_memory_table(conn)
-                npc_mems = extract_npc_memories_from_events(
-                    [{"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}} for e in events],
-                    present_npcs=state.get("present_npcs"),
-                )
-                for mem in npc_mems:
-                    record_npc_interaction(
-                        conn, campaign_id, mem["npc_name"], next_turn_number,
-                        mem["event_type"], mem["summary"], mem.get("sentiment", 0),
+                if _prog_notif:
+                    _existing_warnings = list(state.get("warnings") or [])
+                    _existing_warnings.append(f"[PROGRESSION] {_prog_notif}")
+                    state["warnings"] = _existing_warnings
+
+            # PsychArchivistAgent — authoritative psychological arc update every ~5 turns.
+            from backend.app.core.agents.psych_archivist_agent import PsychArchivistAgent  # noqa: E402
+            if final_text and intent != "META" and next_turn_number % 5 == 0:
+                _psych_player = state.get("player")
+                _psych_profile: dict = {}
+                _psych_bg = ""
+                if isinstance(_psych_player, dict):
+                    _psych_profile = dict(_psych_player.get("psych_profile") or {})
+                    _psych_bg = str(_psych_player.get("background") or "")
+                elif _psych_player is not None:
+                    _psych_profile = dict(
+                        getattr(_psych_player, "psych_profile", None) or {}
                     )
-            except Exception as _npc_mem_err:
-                logger.warning("NPC memory recording failed (non-fatal): %s", _npc_mem_err)
+                    _psych_bg = str(getattr(_psych_player, "background", None) or "")
+                _psych_narr = "\n".join((state.get("recent_narrative") or [])[-2:])[:700]
+                _psych_events = [
+                    {
+                        "event_type": ensure_event(e).event_type,
+                        "payload": ensure_event(e).payload or {},
+                    }
+                    for e in events
+                ]
+                _arc_stage = (
+                    arc_guidance.get("arc_stage")
+                    if isinstance(arc_guidance, dict)
+                    else None
+                ) or "SETUP"
+                authoritative_call(
+                    "PsychArchivistAgent",
+                    PsychArchivistAgent().update,
+                    world_state=world_state,
+                    current_psych_profile=_psych_profile,
+                    background=_psych_bg,
+                    turn_number=next_turn_number,
+                    recent_narrative=_psych_narr,
+                    events=_psych_events,
+                    arc_stage=_arc_stage,
+                    conn=conn,
+                    campaign_id=campaign_id,
+                    player_id=player_id,
+                )
+
+            # V5.0: NPC persistent memory — authoritative (deterministic, not LLM).
+            from backend.app.core.npc_memory import (  # noqa: E402
+                ensure_npc_memory_table,
+                extract_npc_memories_from_events,
+                record_npc_interaction,
+            )
+            ensure_npc_memory_table(conn)
+            npc_mems = extract_npc_memories_from_events(
+                [{"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}} for e in events],
+                present_npcs=state.get("present_npcs"),
+            )
+            for mem in npc_mems:
+                record_npc_interaction(
+                    conn, campaign_id, mem["npc_name"], next_turn_number,
+                    mem["event_type"], mem["summary"], mem.get("sentiment", 0),
+                )
 
             # Phase 1-3: advance story-position timeline (year/chapter + divergence signals)
             try:
@@ -608,6 +625,22 @@ def make_commit_node():
         refreshed_dict["embedded_suggestions"] = state.get("embedded_suggestions")
         refreshed_dict["lore_citations"] = state.get("lore_citations") or []
         refreshed_dict["warnings"] = state.get("warnings") or []
+
+        # V5.0: Surface consequence_hints from ledger for player UI
+        _refreshed_ws = refreshed_dict.get("campaign", {})
+        if isinstance(_refreshed_ws, dict):
+            _refreshed_wsj = _refreshed_ws.get("world_state_json") or {}
+            if isinstance(_refreshed_wsj, str):
+                import json as _json_ws
+                try:
+                    _refreshed_wsj = _json_ws.loads(_refreshed_wsj)
+                except Exception:
+                    _refreshed_wsj = {}
+            _ledger = _refreshed_wsj.get("ledger") or {} if isinstance(_refreshed_wsj, dict) else {}
+            _consequence_hints = _ledger.get("consequence_hints") or [] if isinstance(_ledger, dict) else []
+            refreshed_dict["active_obligations"] = [str(h) for h in _consequence_hints[:5] if h]
+        else:
+            refreshed_dict["active_obligations"] = []
 
         # V2.17: Assemble DialogueTurn from pipeline state
         scene_frame_data = state.get("scene_frame")

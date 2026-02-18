@@ -1,10 +1,48 @@
 """Error handling utilities: structured logging and error responses."""
 from __future__ import annotations
 
+import functools
 import logging
-from typing import Any
+from typing import Any, Callable, TypeVar
 
 logger = logging.getLogger(__name__)
+
+T = TypeVar("T")
+
+
+class AgentFailureError(Exception):
+    """Raised when an authoritative LLM agent fails after retry.
+
+    This is a fatal error — the pipeline cannot continue without the agent's output.
+    Caught at the graph level to produce a structured error response.
+    """
+
+    def __init__(self, agent_name: str, original_error: Exception):
+        self.agent_name = agent_name
+        self.original_error = original_error
+        super().__init__(f"Agent '{agent_name}' failed after retry: {original_error}")
+
+
+def authoritative_call(agent_name: str, fn: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+    """Call an authoritative LLM agent with one retry, then raise AgentFailureError.
+
+    Use this for agents whose output is required for the pipeline to continue.
+    Retries once on any exception. If both attempts fail, raises AgentFailureError
+    which is caught at the graph level.
+    """
+    for attempt in range(2):
+        try:
+            return fn(*args, **kwargs)
+        except Exception as exc:
+            if attempt == 0:
+                logger.warning(
+                    "Agent '%s' failed (attempt 1/2), retrying: %s", agent_name, exc
+                )
+            else:
+                logger.error("Agent '%s' failed after retry: %s", agent_name, exc)
+                raise AgentFailureError(agent_name, exc) from exc
+    # Unreachable, but satisfies type checker
+    raise AgentFailureError(agent_name, RuntimeError("unreachable"))
 
 
 def log_error_with_context(

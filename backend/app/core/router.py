@@ -136,49 +136,19 @@ def route(user_input: str) -> RouterOutput:
             rationale_short="split UI: action only",
         )
 
-    # 1) Heuristic: pure dialogue cues -> TALK + DIALOGUE_ONLY (candidate)
-    looks_like_dialogue_only = False
-    rationale = ""
-
-    if low.startswith("say:"):
-        looks_like_dialogue_only = True
-        rationale = "say: prefix"
-    elif '"' in raw or "'" in raw:
-        # Quoted speech
-        looks_like_dialogue_only = True
-        rationale = "quoted speech"
-    elif re.search(r"\bi\s+(ask|tell|say|reply|answer|whisper|shout)\s+(him|her|them|you|the\s+)", low):
-        # "I ask him...", "I tell her...", "I say to the guard..."
-        looks_like_dialogue_only = True
-        rationale = "I ask/tell/say pattern"
-    elif re.search(r"\bi('m| am)\s+(just\s+)?(saying|asking|telling)", low):
-        looks_like_dialogue_only = True
-        rationale = "I'm saying/asking/telling"
-    elif re.search(r"^(tell|ask)\s+(him|her|them|you)\b", low):
-        looks_like_dialogue_only = True
-        rationale = "tell/ask him/her"
-
-    # 2) Deterministic guardrail: action verbs -> never META, never DIALOGUE_ONLY (must hit Mechanic)
+    # SAFETY GUARDRAIL 1: Action verbs → always ACTION (never skip Mechanic)
     if action_verb_guardrail_triggers(raw):
-        if looks_like_dialogue_only or '"' in raw or "'" in raw or "say" in low or "tell" in low or "ask" in low:
-            return RouterOutput(
-                intent_text=raw,
-                route=ROUTER_ROUTE_MECHANIC,
-                action_class=ROUTER_ACTION_CLASS_DIALOGUE_WITH_ACTION,
-                requires_resolution=True,
-                confidence=1.0,
-                rationale_short="guardrail: action verb in input",
-            )
+        looks_dialogue = ('"' in raw or "'" in raw or "say" in low or "tell" in low or "ask" in low)
         return RouterOutput(
             intent_text=raw,
             route=ROUTER_ROUTE_MECHANIC,
-            action_class=ROUTER_ACTION_CLASS_PHYSICAL_ACTION,
+            action_class=ROUTER_ACTION_CLASS_DIALOGUE_WITH_ACTION if looks_dialogue else ROUTER_ACTION_CLASS_PHYSICAL_ACTION,
             requires_resolution=True,
             confidence=1.0,
             rationale_short="guardrail: action verb",
         )
 
-    # 2b) Persuasion/intimidation/deception: dialogue that changes the world -> Mechanic (requires_resolution=True)
+    # SAFETY GUARDRAIL 2: Persuasion/intimidation → always ACTION
     if persuasion_guardrail_triggers(raw):
         return RouterOutput(
             intent_text=raw,
@@ -186,12 +156,11 @@ def route(user_input: str) -> RouterOutput:
             action_class=ROUTER_ACTION_CLASS_DIALOGUE_WITH_ACTION,
             requires_resolution=True,
             confidence=1.0,
-            rationale_short="guardrail: persuasion/intimidation/deception or ask ... to",
+            rationale_short="guardrail: persuasion/intimidation/deception",
         )
 
-    # 3) Meta: save/load/help/quit — only when no action verb (so "I ask for help and stab him" -> Mechanic)
+    # SAFETY GUARDRAIL 3: Meta commands (deterministic — simple pattern)
     if re.search(r"\b(save|load|help|menu|quit)\b", low) and not re.search(r"\b(save\s+him|load\s+the)\b", low):
-        # Normalize intent_text for meta
         if re.search(r"\bhelp\b", low):
             meta_intent = "help"
         elif re.search(r"\bsave\b", low):
@@ -211,23 +180,74 @@ def route(user_input: str) -> RouterOutput:
             rationale_short="meta command",
         )
 
-    # 4) Dialogue-only path: skip Mechanic only when safe (no persuasion guardrail triggered above)
+    # V5.0: LLM intent classification (safety guardrails already passed)
+    import logging as _logging
+    _logger = _logging.getLogger(__name__)
+    try:
+        from backend.app.core.agents.intent_router_agent import classify_intent
+        llm_result = classify_intent(raw)
+        llm_intent = llm_result.get("intent", "ACTION")
+        llm_rationale = llm_result.get("rationale", "")
+
+        if llm_intent == "META":
+            return RouterOutput(
+                intent_text=raw,
+                route=ROUTER_ROUTE_META,
+                action_class=ROUTER_ACTION_CLASS_META,
+                requires_resolution=False,
+                confidence=0.85,
+                rationale_short=f"LLM: {llm_rationale[:50]}",
+            )
+        elif llm_intent == "TALK":
+            return RouterOutput(
+                intent_text=raw,
+                route=ROUTER_ROUTE_TALK,
+                action_class=ROUTER_ACTION_CLASS_DIALOGUE_ONLY,
+                requires_resolution=False,
+                confidence=0.85,
+                rationale_short=f"LLM: {llm_rationale[:50]}",
+            )
+        else:  # ACTION
+            looks_dialogue = ('"' in raw or "'" in raw or "say" in low or "tell" in low or "ask" in low)
+            return RouterOutput(
+                intent_text=raw,
+                route=ROUTER_ROUTE_MECHANIC,
+                action_class=ROUTER_ACTION_CLASS_DIALOGUE_WITH_ACTION if looks_dialogue else ROUTER_ACTION_CLASS_PHYSICAL_ACTION,
+                requires_resolution=True,
+                confidence=0.85,
+                rationale_short=f"LLM: {llm_rationale[:50]}",
+            )
+    except Exception as e:
+        _logger.warning("IntentRouter LLM failed, using heuristic fallback: %s", e)
+
+    # Heuristic fallback (if LLM fails)
+    looks_like_dialogue_only = False
+    rationale = ""
+    if low.startswith("say:"):
+        looks_like_dialogue_only = True
+        rationale = "say: prefix"
+    elif '"' in raw or "'" in raw:
+        looks_like_dialogue_only = True
+        rationale = "quoted speech"
+    elif re.search(r"\bi\s+(ask|tell|say|reply|answer|whisper|shout)\s+(him|her|them|you|the\s+)", low):
+        looks_like_dialogue_only = True
+        rationale = "I ask/tell/say pattern"
+
     if looks_like_dialogue_only:
         return RouterOutput(
             intent_text=raw,
             route=ROUTER_ROUTE_TALK,
             action_class=ROUTER_ACTION_CLASS_DIALOGUE_ONLY,
             requires_resolution=False,
-            confidence=0.85,
-            rationale_short=rationale or "dialogue-only",
+            confidence=0.7,
+            rationale_short=rationale or "heuristic dialogue-only",
         )
 
-    # 5) Default: send to Mechanic
     return RouterOutput(
         intent_text=raw,
         route=ROUTER_ROUTE_MECHANIC,
         action_class=ROUTER_ACTION_CLASS_PHYSICAL_ACTION,
         requires_resolution=True,
-        confidence=0.8,
-        rationale_short="default to mechanic",
+        confidence=0.7,
+        rationale_short="heuristic default to mechanic",
     )
