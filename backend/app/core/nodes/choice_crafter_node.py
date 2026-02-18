@@ -145,6 +145,35 @@ def _get_arc_context(gs: GameState) -> tuple[str, str]:
     return stage, tension
 
 
+def _make_fallback_choices(
+    final_text: str,
+    loc: str,
+    immediate_situation: str = "",
+) -> list[dict[str, str]]:
+    """Deterministic 2-choice fallback when LLM fails.
+
+    Returns minimal but contextually grounded PARAGON + INVESTIGATE choices so the
+    turn can complete instead of hard-failing. Caller adds a warning to state.
+    """
+    situation = immediate_situation or (final_text[-120:].strip() if final_text else "the current situation")
+    return [
+        {
+            "text": f"Act decisively in response to {situation[:60]}",
+            "tone": "PARAGON",
+            "meaning": "pragmatic",
+            "risk": "RISKY",
+            "consequence_hint": "Your bold action shapes what happens next.",
+        },
+        {
+            "text": f"Hold back and carefully assess {loc}",
+            "tone": "INVESTIGATE",
+            "meaning": "seek_history",
+            "risk": "SAFE",
+            "consequence_hint": "Taking stock reveals something important.",
+        },
+    ]
+
+
 def _to_action_suggestions(items: list[dict[str, str]]) -> list[ActionSuggestion]:
     """Convert raw LLM choice dicts to ActionSuggestion objects."""
     suggestions = []
@@ -171,7 +200,7 @@ def make_choice_crafter_node():
     """Factory: returns a LangGraph node function for LLM-driven choice generation."""
 
     def choice_crafter_node(state: dict[str, Any]) -> dict[str, Any]:
-        """Generate player choices using LLM. Authoritative — no deterministic fallback."""
+        """Generate player choices using LLM. Falls back to 2-choice degraded output on LLM failure."""
         final_text = state.get("final_text") or ""
         if not final_text.strip():
             raise ValueError("ChoiceCrafter: no final_text available for choice generation")
@@ -225,25 +254,39 @@ def make_choice_crafter_node():
         # Director intent
         director_intent = str((state.get("director_instructions") or ""))[:300]
 
-        # Generate choices via LLM
-        items = generate_choices(
-            final_text=final_text,
-            location=loc,
-            npc_descriptions=npc_descriptions,
-            mechanic_summary=mechanic_summary,
-            npc_utterance_text=npc_utterance_text,
-            topic_primary=topic_primary,
-            subtext=subtext,
-            npc_agenda=npc_agenda,
-            companion_hint=companion_hint,
-            player_history_hint=player_history_hint,
-            director_intent=director_intent,
-            arc_stage=arc_stage,
-            tension_level=tension_level,
-            consequence_hints=consequence_hints,
-            stat_summary=stat_summary,
-            setting_style=setting_style,
-        )
+        # GM Context Object (from scene_frame_node)
+        gm_context = state.get("gm_context") or ""
+
+        # Generate choices via LLM (with degraded 2-choice fallback on failure)
+        _use_fallback = False
+        try:
+            items = generate_choices(
+                final_text=final_text,
+                location=loc,
+                npc_descriptions=npc_descriptions,
+                mechanic_summary=mechanic_summary,
+                npc_utterance_text=npc_utterance_text,
+                topic_primary=topic_primary,
+                subtext=subtext,
+                npc_agenda=npc_agenda,
+                companion_hint=companion_hint,
+                player_history_hint=player_history_hint,
+                director_intent=director_intent,
+                arc_stage=arc_stage,
+                tension_level=tension_level,
+                consequence_hints=consequence_hints,
+                stat_summary=stat_summary,
+                setting_style=setting_style,
+                gm_context=gm_context,
+            )
+        except Exception as e:
+            logger.warning("ChoiceCrafter LLM failed (%s); using 2-choice degraded fallback", e)
+            immediate_situation = scene_frame.get("immediate_situation", "") if isinstance(scene_frame, dict) else ""
+            items = _make_fallback_choices(final_text, loc, immediate_situation)
+            _use_fallback = True
+
+        if _use_fallback:
+            add_warning(gs, "ChoiceCrafter: LLM failed; showing 2-choice degraded options.")
 
         # Convert to ActionSuggestions
         suggestions = _to_action_suggestions(items)

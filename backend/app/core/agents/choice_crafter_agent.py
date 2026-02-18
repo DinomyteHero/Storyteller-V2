@@ -36,10 +36,10 @@ Your job: generate exactly 4 player choices that define WHAT THE PLAYER CAN DO N
 ## RULES
 
 1. TONE SPREAD — You MUST produce exactly:
-   - 1 PARAGON choice (cooperative, compassionate, diplomatic)
-   - 1 INVESTIGATE choice (curious, analytical, probing)
-   - 1 RENEGADE choice (aggressive, confrontational, ruthless)
-   - 1 NEUTRAL choice (tactical, pragmatic, unexpected, or a lateral move)
+   - 1 PARAGON choice (bold, direct, decisive — act now, lead, commit without hesitation)
+   - 1 INVESTIGATE choice (cautious, analytical — gather information before committing, probe carefully)
+   - 1 RENEGADE choice (deceptive or ruthless — use cunning, misdirection, leverage, or force)
+   - 1 NEUTRAL choice (tactical pause or unexpected lateral move — an angle the player hasn't considered)
 
 2. SCENE-SPECIFIC — Every choice must directly respond to what just happened in the
    prose. Reference specific NPCs by name, specific locations, specific events. Never
@@ -99,12 +99,17 @@ def _build_context(
     tension_level: str = "",
     consequence_hints: list[str] | None = None,
     stat_summary: str = "",
+    gm_context: str = "",
 ) -> str:
     """Assemble the user prompt from scene context."""
     parts = [f"PROSE:\n{final_text[-800:]}"]  # Last 800 chars of prose for recency
 
     if npc_utterance_text:
         parts.append(f"\nNPC SAYS: \"{npc_utterance_text}\"")
+
+    # GM Context Object — compact unified summary from scene_frame_node
+    if gm_context:
+        parts.append(f"\n{gm_context}")
 
     parts.append(f"\nSCENE: {location}")
 
@@ -260,10 +265,11 @@ def generate_choices(
     consequence_hints: list[str] | None = None,
     stat_summary: str = "",
     setting_style: str = "an interactive narrative RPG",
+    gm_context: str = "",
 ) -> list[dict[str, str]]:
     """Generate 4 player choices via LLM.
 
-    Raises on failure — no deterministic fallback.
+    Raises ValueError on failure after one retry — caller should catch and use fallback.
     Returns list of dicts with keys: text, tone, meaning, risk, consequence_hint.
     """
     llm = AgentLLM("choice_crafter")
@@ -286,6 +292,7 @@ def generate_choices(
         tension_level=tension_level,
         consequence_hints=consequence_hints,
         stat_summary=stat_summary,
+        gm_context=gm_context,
     )
 
     raw = llm.complete(system_prompt, user_prompt, json_mode=True, raw_json_mode=True)

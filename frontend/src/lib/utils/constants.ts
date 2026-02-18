@@ -30,18 +30,18 @@ export const DEFAULT_ERA = 'REBELLION';
 
 /** Tone tag icon characters. */
 export const TONE_ICONS: Record<string, string> = {
-  PARAGON: '◇',
-  INVESTIGATE: '◈',
-  RENEGADE: '☠',
-  NEUTRAL: '◯',
+  PARAGON: '▶',      // Bold / decisive
+  INVESTIGATE: '◈',  // Cautious / analytical
+  RENEGADE: '◆',     // Deceptive / cunning
+  NEUTRAL: '◯',      // Observe / lateral
 };
 
-/** Tone tag display labels. */
+/** Tone tag display labels — Star Wars action-type language (internal tone keys unchanged). */
 export const TONE_LABELS: Record<string, string> = {
-  PARAGON: 'Paragon',
-  INVESTIGATE: 'Investigate',
-  RENEGADE: 'Renegade',
-  NEUTRAL: 'Neutral',
+  PARAGON: 'Bold',
+  INVESTIGATE: 'Cautious',
+  RENEGADE: 'Deceptive',
+  NEUTRAL: 'Observe',
 };
 
 /** CYOA character creation questions (fallback when no era background). */

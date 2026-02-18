@@ -523,6 +523,25 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         except Exception as _arc_err:
             logger.warning("ArcScreenplayAgent failed (non-fatal): %s", _arc_err)
 
+        # V6.0: Generate PrologueScreenplay seeded from campaign bible's opening_hook.
+        # Wires PrologueScreenplayAgent into the setup pipeline for the first time.
+        try:
+            from backend.app.core.agents.prologue_agent import PrologueScreenplayAgent  # noqa: E402
+            from backend.app.core.prologue_engine import initialize_prologue  # noqa: E402
+            _prologue_agent = PrologueScreenplayAgent(llm=AgentLLM("prologue"))
+            _prologue_screenplay = _prologue_agent.generate(
+                background_id=body.background_id or "",
+                species_id=body.species_id or "",
+                choice_effects=None,
+                setting_rules=era_pack_for_setup.setting_rules if era_pack_for_setup and hasattr(era_pack_for_setup, "setting_rules") else None,
+                available_locations=available_locations,
+                prologue_scenario=bible_dict.get("opening_hook") or None,
+            )
+            world_state = initialize_prologue(world_state, _prologue_screenplay)
+            logger.info("PrologueScreenplay generated: title=%r, tone=%s", _prologue_screenplay.get("prologue_title"), _prologue_screenplay.get("tone"))
+        except Exception as _prologue_err:
+            logger.warning("PrologueScreenplayAgent failed (non-fatal): %s", _prologue_err)
+
         world_state_json_str = json.dumps(world_state)
         from datetime import datetime, timezone  # noqa: E402
         now_str = datetime.now(timezone.utc).isoformat()
