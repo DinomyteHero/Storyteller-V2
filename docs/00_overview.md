@@ -2,9 +2,11 @@
 
 ## What the System Does
 
-Storyteller AI (current codebase, project version 0.1.0) is a text-based RPG engine that runs a turn-by-turn narrative loop driven by a **LangGraph state-machine pipeline**. A player selects from KOTOR-style dialogue-wheel suggestions; the engine classifies the input, resolves mechanics, simulates off-screen world events, generates dramatic pacing instructions, and produces final prose narration — all in a single turn.
+Storyteller AI (current codebase, project version 0.1.0, engine version V5.0) is a text-based RPG engine that runs a turn-by-turn narrative loop driven by a **LangGraph state-machine pipeline**. A player selects from KOTOR-style dialogue-wheel choices; the engine classifies the input, resolves mechanics, fires any scripted narrative moments, simulates off-screen world events, generates dramatic pacing instructions, and produces final prose narration — all in a single turn.
 
-The "Living World" mechanic is the core differentiator: every player action costs in-game time (in minutes). When accumulated time crosses a configurable tick boundary (default 4 hours), a **WorldSim** node fires an LLM-driven faction simulation that moves NPC factions, generates rumors, and feeds a Mass Effect-style news briefing system — making the world feel alive even when the player isn't directly interacting with those factions.
+The "Living World" mechanic is the core differentiator: every player action costs in-game time (in minutes). When accumulated time crosses a configurable tick boundary (default 4 hours), a **WorldSim** node fires a deterministic faction simulation (with optional LLM-driven world narrative) that moves NPC factions, generates rumors, and feeds a Mass Effect-style news briefing system — making the world feel alive even when the player isn't directly interacting with those factions.
+
+**V5.0 is a setting-agnostic architecture.** Agents no longer hardcode universe names, species, or factions. All setting-specific content comes from `SettingRules` (stored in `world_state_json["setting_rules"]`) and era pack YAML files, loaded via the `ContentRepository` singleton.
 
 ## Key Design Principles
 
@@ -13,15 +15,16 @@ The "Living World" mechanic is the core differentiator: every player action cost
 | **Local-First** | Default provider is Ollama (local LLMs). No cloud dependency required. |
 | **Single Transaction Boundary** | Only `CommitNode` (the last pipeline node) writes to the database. All preceding nodes are pure functions that pass state forward. This prevents partial-write corruption. |
 | **Deterministic Mechanic** | The `MechanicAgent` uses zero LLM calls. All dice rolls, DC computation, time costs, and event generation are pure Python. This guarantees reproducible gameplay mechanics regardless of model quality. |
-| **Deterministic Suggestions** | Suggestions are 100% deterministic (no LLM). `generate_suggestions()` in `suggestion_engine.py` produces exactly 4 KOTOR-style options based on game state, mechanic results, present NPCs, and scene context. |
+| **LLM-Driven Choices (V5.0)** | The `ChoiceCrafterNode` replaced the deterministic `SuggestionRefiner`. Player choices are now fully LLM-generated from the Narrator's prose, scene context, and arc state. This is an authoritative node — on failure it raises `AgentFailureError`, surfaced as a structured error to the player. |
 | **Event Sourcing** | The source of truth is an append-only event log (`turn_events` table). Normalized tables (`characters`, `inventory`, `campaigns.world_state_json`) are projections derived from events via `apply_projection()`. |
-| **Per-Role LLM Config** | Agent configuration is per-role via environment variables (`STORYTELLER_{ROLE}_MODEL`). Multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:4b` for lightweight roles (Architect, Casting, Biographer, KG). |
-| **Graceful Degradation** | Every LLM-dependent agent has a deterministic fallback. If the LLM is down or returns garbage, the game continues with safe defaults. |
-| **Prose-Only Narrator** | The Narrator writes only prose (5-8 sentences, max 250 words). Suggestions are never embedded in narration. Post-processing strips structural artifacts and enforces word-count limits. |
+| **Per-Role LLM Config** | Agent configuration is per-role via environment variables (`STORYTELLER_{ROLE}_MODEL`). Multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:4b` for lightweight roles (Architect, Casting, Biographer, KG, ChoiceCrafter). |
+| **Graceful Degradation (non-authoritative)** | Non-authoritative pipeline nodes (Mechanic, WorldSim, Companion, Arc Planner, etc.) have deterministic fallbacks and never halt the turn. Authoritative LLM nodes (Narrator, ChoiceCrafter) raise `AgentFailureError` on failure, caught at the graph level. |
+| **Prose-Only Narrator** | The Narrator writes only prose (5-8 sentences, max 250 words). Choices are never embedded in narration. Post-processing strips structural artifacts and enforces word-count limits. |
 | **Psychology System** | Each player character has a `psych_profile` (current_mood, stress_level, active_trauma) that influences narration tone, Director suggestions, and companion reactions. |
 | **Tone System** | KOTOR-inspired 4-tone dialogue wheel: PARAGON (blue), INVESTIGATE (gold), RENEGADE (red), NEUTRAL (gray). `ensure_tone_diversity()` guarantees all tones are represented. |
 | **3-Tier Risk** | Actions are classified as SAFE, RISKY, or DANGEROUS. Risk level affects DC modifiers, stress delta, and narration intensity. |
 | **Warnings Propagation** | Turn-level warnings are collected across all pipeline nodes via `add_warning()` and surfaced in the API response and debug output. |
+| **Setting-Agnostic Design** | All universe-specific content comes from era pack YAML and `SettingRules`. Agents use `get_setting_rules(state)` instead of hardcoded setting references. |
 
 ## Feature Highlights
 
@@ -30,7 +33,13 @@ The "Living World" mechanic is the core differentiator: every player action cost
 | **Gender/Pronoun System** | Male/female selection with pronoun injection into Director + Narrator prompts (`backend/app/core/pronouns.py`). |
 | **4-Lane Style RAG** | Layered style retrieval: Base Star Wars (always-on) + Era + Genre + Archetype lanes via `retrieve_style_layered()`. |
 | **Companion System** | 108 YAML-defined companions with species, voice_tags, motivation, speech_quirk. 17 banter styles. Inter-party tensions via `compute_inter_party_tensions()`. Companion-initiated events at loyalty thresholds. |
+| **PartyState System (V5.0)** | `PartyState` model in `world_state_json["party_state"]` is the canonical companion data source. Multi-axis relationships: `influence`, `trust`, `respect`, `fear`. Backward-compatible with legacy `party_affinity` fields. |
 | **Hero's Journey Arc Planner** | Deterministic arc planner with 12 Hero's Journey beats. Stages: SETUP, RISING, CLIMAX, RESOLUTION. `weighted_thread_count()` for semantic thread weighting. |
+| **EraMoments System (V5.0)** | Scripted narrative moments defined in era pack YAML. Fire once on trigger (companion affinity, arc stage, turn number, location tags, quest completion, alignment). Inject `narrative_beat` into Director scene instructions. |
+| **Hub/Downtime System (V5.0)** | Hub locations (cantinas, safehouses, guild halls) activate downtime mode. Hub options: rest, talk_to_companion, gather_intel, resupply, wait. Director gets hub-mode prompt injection. |
+| **Quest Tracker System (V5.0)** | Deterministic quest state machine (`quest_tracker.py`). Stage-based completion with resolution paths, fail conditions, and multiple condition types. Persisted in `world_state_json["quest_log"]`. |
+| **Truth Ledger (V5.0)** | SQLite-backed `truth_facts` table for persistent fact storage. `contradiction_errors()` checks claims against established facts. Distinct from the narrative `ledger.py`. |
+| **Content Repository (V5.0)** | Thread-safe `ContentRepository` singleton (`backend/app/content/repository.py`) replaces direct era-pack loading. Keyed by `(setting_id, period_id)`. |
 | **Genre Triggers** | 11 genre types activated by keyword matching. Influences style retrieval and Director pacing instructions. |
 | **Era Transitions** | REBELLION, NEW_REPUBLIC, NEW_JEDI_ORDER, LEGACY era detection with transition events and era summaries. |
 | **Episodic Memory** | Compressed narrative memories stored in `episodic_memories` table. Retrieved for Director/Narrator context grounding. |
@@ -38,6 +47,7 @@ The "Living World" mechanic is the core differentiator: every player action cost
 | **Personality Profiles** | NPC characterization via personality profile blocks injected into Director/Narrator prompts. |
 | **Deterministic Faction Engine** | No LLM calls. Faction reputation tracking, NPC movement (20% chance per tick), faction-aware goals in `npc_states`. |
 | **Knowledge Graph** | Optional KG extraction from lore. Entity resolution, triple store, synthesis summaries for runtime retrieval. |
+| **AgentFailureError (V5.0)** | `authoritative_call()` pattern: 2 attempts, then raises `AgentFailureError`. Caught at graph level (`run_turn()`), returns structured error in `GameState`. |
 
 ## High-Level Architecture
 
@@ -47,20 +57,21 @@ graph TD
         API["POST /v2/campaigns/{id}/turn"]
     end
 
-    subgraph "LangGraph Pipeline (graph.py)"
+    subgraph "LangGraph Pipeline (graph.py) — V5.0"
         R[Router Node] --> | META| META[Meta Node]
         R --> | TALK| ENC[Encounter Node]
         R --> | ACTION| MECH[Mechanic Node]
         MECH --> ENC
         ENC --> WS[WorldSim Node]
         WS --> CR[Companion Reaction Node]
-        CR --> ARC[Arc Planner Node]
+        CR --> MOM[Moments Node]
+        MOM --> ARC[Arc Planner Node]
         ARC --> SF[Scene Frame Node]
         SF --> DIR[Director Node]
         DIR --> NAR[Narrator Node]
         NAR --> VAL[Narrative Validator Node]
-        VAL --> REF[Suggestion Refiner Node]
-        REF --> COMMIT[Commit Node]
+        VAL --> CC[Choice Crafter Node]
+        CC --> COMMIT[Commit Node]
         META --> COMMIT
         COMMIT --> END_NODE[END]
     end
@@ -74,17 +85,42 @@ graph TD
         Ollama[Ollama Local]
     end
 
+    subgraph "Content Layer"
+        REPO[ContentRepository]
+        EraPacks[Era Pack YAML]
+    end
+
     API --> R
     COMMIT --> SQLite
     ENC --> | read-only| SQLite
     WS --> | read-only| SQLite
+    MOM --> REPO
+    REPO --> EraPacks
     DIR -.-> | RAG| LanceDB
     NAR -.-> | RAG| LanceDB
     WS -.-> Ollama
     DIR -.-> Ollama
     NAR -.-> Ollama
+    CC -.-> Ollama
     COMMIT --> API
 ```
+
+## Pipeline Topology (V5.0)
+
+**ACTION / TALK path:**
+```
+router → mechanic → encounter → world_sim → companion_reaction → moments → arc_planner → scene_frame → director → narrator → narrative_validator → choice_crafter → commit → END
+```
+
+**META path:**
+```
+router → meta → commit → END
+```
+
+**Key changes from previous versions:**
+- `moments` node added between `companion_reaction` and `arc_planner` (EraMoment trigger system)
+- `suggestion_refiner` replaced by `choice_crafter` (authoritative LLM; no deterministic fallback)
+- `run_turn()` catches `AgentFailureError` and returns structured error in `GameState`
 
 ## Quickstart
 
@@ -93,7 +129,7 @@ graph TD
 - Python 3.11+
 - Ollama running locally (`http://localhost:11434`) with models pulled:
   - `ollama pull mistral-nemo` (Director/Narrator — quality-critical roles)
-  - `ollama pull qwen3:4b` (Architect, Casting, Biographer, KG — lightweight roles)
+  - `ollama pull qwen3:4b` (Architect, Casting, Biographer, KG, ChoiceCrafter — lightweight roles)
   - `ollama pull nomic-embed-text` (embedding)
 - Embeddings default to `sentence-transformers/all-MiniLM-L6-v2` (downloads automatically on first ingest/retrieval)
 
@@ -143,8 +179,7 @@ curl -X POST "http://localhost:8000/v2/campaigns/{campaign_id}/turn?player_id={p
 | Primary DB | SQLite (event sourcing + projections) |
 | Vector DB | LanceDB (RAG retrieval) |
 | Embeddings | `sentence-transformers/all-MiniLM-L6-v2` (384-dim, swappable via `EMBEDDING_MODEL` env) |
-| Default LLM | Ollama (local; multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:4b` for Architect/Casting/Biographer/KG, `qwen3:8b` for Mechanic/Ingestion, `nomic-embed-text` for embedding) |
+| Default LLM | Ollama (local; multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:4b` for Architect/Casting/Biographer/KG/ChoiceCrafter, `qwen3:8b` for Mechanic/Ingestion, `nomic-embed-text` for embedding) |
 | Frontend | SvelteKit (`frontend/`) |
 | Tests | 467+ passing (`pytest`) |
-
-For model/provider overrides, cloud/local/hybrid decisions, and campaign timeline planning, see: `docs/10_model_selection_and_timeline.md`.
+| Engine Version | V5.0 (setting-agnostic, authoritative LLM choices, EraMoments, Hub system, Quest Tracker, Truth Ledger) |
