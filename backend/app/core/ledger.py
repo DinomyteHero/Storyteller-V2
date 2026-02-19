@@ -370,8 +370,16 @@ def compress_turn_history(
 ) -> str:
     """Compress a range of turns into a single era summary string.
 
+    Phase 3.3: Enhanced compression captures richer narrative context:
+    - Relationship changes (NPC names + delta)
+    - Key dialogue topics
+    - Quest/objective progress
+    - Emotional beats (stress spikes, critical outcomes)
+    - Faction reputation shifts
+
     Pure Python — no LLM.  Extracts key facts from events: locations (MOVE),
-    NPCs (NPC_SPAWN), items (ITEM_GET/LOSE), damage/heal totals, flag changes.
+    NPCs (NPC_SPAWN), items (ITEM_GET/LOSE), damage/heal totals, flag changes,
+    relationship deltas, dialogue topics, quest updates, and emotional beats.
 
     Args:
         events_by_turn: List of event lists, one per turn in the range.
@@ -386,6 +394,13 @@ def compress_turn_history(
     flags: list[str] = []
     total_damage = 0
     total_heal = 0
+    # Phase 3.3: Enhanced tracking
+    relationship_changes: dict[str, int] = {}  # npc_name -> cumulative delta
+    dialogue_topics: list[str] = []
+    quest_updates: list[str] = []
+    emotional_beats: list[str] = []
+    faction_shifts: dict[str, int] = {}  # faction_name -> cumulative delta
+    deaths: list[str] = []
 
     for turn_events in events_by_turn:
         for e in turn_events:
@@ -395,6 +410,9 @@ def compress_turn_history(
             else:
                 etype = str(getattr(e, "event_type", "")).upper()
                 payload = getattr(e, "payload", None) or {}
+
+            if not isinstance(payload, dict):
+                payload = {}
 
             if etype == "MOVE":
                 loc = payload.get("to_location") or payload.get("location_id") or ""
@@ -418,20 +436,111 @@ def compress_turn_history(
                 if key:
                     flags.append(f"{key}={value}")
 
+            # Phase 3.3: Relationship changes
+            if etype in ("RELATIONSHIP", "RELATIONSHIP_CHANGE", "COMPANION_AFFINITY"):
+                npc_name = payload.get("npc_id") or payload.get("npc_name") or payload.get("name") or ""
+                delta = int(payload.get("delta", 0) or 0)
+                if npc_name and delta:
+                    relationship_changes[npc_name] = relationship_changes.get(npc_name, 0) + delta
+
+            # Phase 3.3: Dialogue topics
+            if etype in ("DIALOGUE", "TALK", "CONVERSATION"):
+                topic = payload.get("topic") or payload.get("text") or ""
+                if topic:
+                    short_topic = str(topic).strip()[:60]
+                    if short_topic and short_topic not in dialogue_topics:
+                        dialogue_topics.append(short_topic)
+
+            # Phase 3.3: Quest/objective progress
+            if etype in ("QUEST_START", "QUEST_COMPLETE", "QUEST_UPDATE", "QUEST_ADVANCE",
+                          "OBJECTIVE_COMPLETE", "QUEST_FAIL"):
+                quest_name = payload.get("quest") or payload.get("quest_name") or payload.get("title") or ""
+                status = payload.get("status") or etype.replace("QUEST_", "").replace("OBJECTIVE_", "").lower()
+                if quest_name:
+                    quest_updates.append(f"{quest_name} ({status})")
+
+            # Phase 3.3: Emotional beats
+            if etype in ("CRITICAL_SUCCESS", "CRITICAL_FAILURE"):
+                action = payload.get("action_type") or payload.get("action") or "action"
+                emotional_beats.append(f"critical {'success' if 'SUCCESS' in etype else 'failure'} on {action}")
+            if etype == "STRESS_CHANGE":
+                new_level = int(payload.get("new_level", 0) or 0)
+                if new_level >= 8:
+                    emotional_beats.append(f"high stress ({new_level})")
+            if etype in ("COMPANION_LOYAL", "COMPANION_BETRAYAL"):
+                comp = payload.get("companion") or payload.get("name") or ""
+                if comp:
+                    label = "loyalty" if "LOYAL" in etype else "betrayal"
+                    emotional_beats.append(f"{comp} {label}")
+
+            # Phase 3.3: Faction reputation shifts
+            if etype in ("FACTION_SHIFT", "FACTION_REP_CHANGE", "FACTION_REPUTATION"):
+                faction = payload.get("faction") or payload.get("faction_name") or ""
+                delta = int(payload.get("delta", 0) or 0)
+                if faction and delta:
+                    faction_shifts[faction] = faction_shifts.get(faction, 0) + delta
+
+            # Phase 3.3: NPC deaths
+            if etype in ("NPC_DEATH", "DEATH", "NPC_DEATH_WAVE"):
+                name = payload.get("npc_name") or payload.get("name") or payload.get("target_name") or ""
+                if name and name not in deaths:
+                    deaths.append(name)
+
     start, end = turn_range
     clauses: list[str] = []
+
+    # Phase 3.3: Relationship changes (most impactful first)
+    if relationship_changes:
+        sorted_rels = sorted(relationship_changes.items(), key=lambda x: abs(x[1]), reverse=True)
+        rel_parts = []
+        for npc_name, delta in sorted_rels[:3]:
+            sign = "+" if delta > 0 else ""
+            descriptor = "built trust with" if delta > 0 else "lost trust with"
+            rel_parts.append(f"{descriptor} {npc_name} ({sign}{delta} influence)")
+        clauses.extend(rel_parts)
+
+    # Core location/NPC/item info
     if locations:
-        clauses.append(f"visited {', '.join(locations[:5])}")
+        clauses.append(f"visited {', '.join(locations[:4])}")
     if npcs:
-        clauses.append(f"met {', '.join(npcs[:5])}")
+        clauses.append(f"met {', '.join(npcs[:4])}")
     if items_gained:
-        clauses.append(f"acquired {', '.join(items_gained[:5])}")
+        clauses.append(f"acquired {', '.join(items_gained[:3])}")
+
+    # Phase 3.3: Dialogue topics
+    if dialogue_topics:
+        clauses.append(f"discussed {', '.join(dialogue_topics[:2])}")
+
+    # Phase 3.3: Quest progress
+    if quest_updates:
+        clauses.append(f"quests: {', '.join(quest_updates[:3])}")
+
+    # Combat summary
     if total_damage:
         clauses.append(f"took {total_damage} total damage")
     if total_heal:
         clauses.append(f"healed {total_heal} total")
+
+    # Phase 3.3: Faction shifts
+    if faction_shifts:
+        shift_parts = []
+        for faction, delta in sorted(faction_shifts.items(), key=lambda x: abs(x[1]), reverse=True)[:2]:
+            direction = "turned hostile" if delta < -20 else ("grew friendlier" if delta > 20 else f"shifted {'+' if delta > 0 else ''}{delta}")
+            shift_parts.append(f"{faction} {direction}")
+        clauses.append("; ".join(shift_parts))
+
+    # Phase 3.3: Emotional beats
+    if emotional_beats:
+        clauses.append("; ".join(emotional_beats[:2]))
+
+    # Phase 3.3: Deaths
+    if deaths:
+        clauses.append(f"{'deaths' if len(deaths) > 1 else 'death'}: {', '.join(deaths[:3])}")
+
+    # Flags (lower priority)
     if flags:
-        clauses.append(f"flags: {', '.join(flags[:3])}")
+        clauses.append(f"flags: {', '.join(flags[:2])}")
+
     if not clauses:
         clauses.append("uneventful")
 

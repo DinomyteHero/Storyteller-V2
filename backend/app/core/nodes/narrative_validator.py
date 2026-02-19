@@ -1,4 +1,8 @@
-"""Narrative validator node: post-narration validation against ledger and mechanic facts (no LLM, no DB)."""
+"""Narrative validator node: post-narration validation against ledger and mechanic facts (no LLM, no DB).
+
+Phase 4.3: Mechanic consistency is now BLOCKING — contradicting sentences are rewritten
+deterministically rather than just logged as warnings.
+"""
 from __future__ import annotations
 
 import logging
@@ -24,38 +28,87 @@ _FAILURE_PATTERNS = [
     re.compile(r"\bfumble[ds]?\b", re.I),
 ]
 
+# Phase 4.3: Deterministic rewrites — swap contradicting verbs to match mechanic outcome
+_SUCCESS_TO_FAILURE_REWRITES: list[tuple[re.Pattern, str]] = [
+    (re.compile(r"\bsucceeds\b", re.I), "struggles"),
+    (re.compile(r"\bsucceeded\b", re.I), "struggled"),
+    (re.compile(r"\bsucceed\b", re.I), "struggle"),
+    (re.compile(r"\bmanages\s+to\b", re.I), "tries to"),
+    (re.compile(r"\bmanaged\s+to\b", re.I), "tried to"),
+    (re.compile(r"\bmanage\s+to\b", re.I), "try to"),
+    (re.compile(r"\baccomplishes\b", re.I), "attempts"),
+    (re.compile(r"\baccomplished\b", re.I), "attempted"),
+    (re.compile(r"\baccomplish\b", re.I), "attempt"),
+    (re.compile(r"\bpulls\s+(?:it\s+)?off\b", re.I), "can't quite manage it"),
+    (re.compile(r"\bpulled\s+(?:it\s+)?off\b", re.I), "couldn't quite manage it"),
+    (re.compile(r"\bpull\s+(?:it\s+)?off\b", re.I), "can't quite pull it off"),
+    (re.compile(r"\bnailed\s+it\b", re.I), "fell short"),
+]
+
+_FAILURE_TO_SUCCESS_REWRITES: list[tuple[re.Pattern, str]] = [
+    (re.compile(r"\bfails\b", re.I), "succeeds"),
+    (re.compile(r"\bfailed\b", re.I), "succeeded"),
+    (re.compile(r"\bfail\b", re.I), "succeed"),
+    (re.compile(r"\bmisses\b", re.I), "connects"),
+    (re.compile(r"\bmissed\b", re.I), "connected"),
+    (re.compile(r"\bmiss\b", re.I), "connect"),
+    (re.compile(r"\bfumbles\b", re.I), "manages"),
+    (re.compile(r"\bfumbled\b", re.I), "managed"),
+    (re.compile(r"\bfumble\b", re.I), "manage"),
+]
+
+
+def _rewrite_contradictions(
+    final_text: str,
+    success: bool,
+) -> tuple[str, list[str]]:
+    """Rewrite sentences that contradict mechanic outcome. Returns (corrected_text, repairs)."""
+    repairs: list[str] = []
+    corrected = final_text
+
+    if success is False:
+        # Narrator wrote success language but mechanic failed — rewrite to failure
+        for pat, replacement in _SUCCESS_TO_FAILURE_REWRITES:
+            if pat.search(corrected):
+                corrected = pat.sub(replacement, corrected)
+                repairs.append(f"Rewrote success language '{pat.pattern}' → '{replacement}' (mechanic=failure)")
+    elif success is True:
+        # Narrator wrote failure language but mechanic succeeded — rewrite to success
+        for pat, replacement in _FAILURE_TO_SUCCESS_REWRITES:
+            if pat.search(corrected):
+                corrected = pat.sub(replacement, corrected)
+                repairs.append(f"Rewrote failure language '{pat.pattern}' → '{replacement}' (mechanic=success)")
+
+    return corrected, repairs
+
 
 def _check_mechanic_consistency(
     final_text: str,
     mechanic_result: dict[str, Any] | None,
-) -> list[str]:
-    """Check that final_text does not contradict mechanic outcome."""
+) -> tuple[str, list[str], list[str]]:
+    """Check and repair final_text that contradicts mechanic outcome.
+
+    Returns (corrected_text, warnings, repairs).
+    Phase 4.3: Now BLOCKING — contradictions are rewritten, not just warned about.
+    """
     warnings: list[str] = []
+    repairs: list[str] = []
     if not mechanic_result or not final_text:
-        return warnings
+        return final_text, warnings, repairs
     success = mechanic_result.get("success")
     if success is None:
-        return warnings  # No check/roll this turn
+        return final_text, warnings, repairs  # No check/roll this turn
 
-    if success is False:
-        for pat in _SUCCESS_PATTERNS:
-            if pat.search(final_text):
-                warnings.append(
-                    f"NarrativeValidator: narrator used success language ('{pat.pattern}') "
-                    f"but mechanic_result.success=False."
-                )
-                break  # one warning per category
+    corrected, repairs = _rewrite_contradictions(final_text, success)
 
-    if success is True:
-        for pat in _FAILURE_PATTERNS:
-            if pat.search(final_text):
-                warnings.append(
-                    f"NarrativeValidator: narrator used failure language ('{pat.pattern}') "
-                    f"but mechanic_result.success=True."
-                )
-                break
+    if repairs:
+        warnings.append(
+            f"NarrativeValidator: repaired {len(repairs)} mechanic contradiction(s) in narration."
+        )
+        for r in repairs:
+            logger.info("Mechanic consistency repair: %s", r)
 
-    return warnings
+    return corrected, warnings, repairs
 
 
 
@@ -183,7 +236,11 @@ def _check_dialogue_turn_validity(state: dict[str, Any]) -> tuple[list[str], lis
 
 
 def narrative_validator_node(state: dict[str, Any]) -> dict[str, Any]:
-    """Post-narration validation: check final_text against mechanic and ledger. Non-blocking."""
+    """Post-narration validation: check final_text against mechanic and ledger.
+
+    Phase 4.3: Mechanic consistency is now BLOCKING — contradictions are rewritten in-place.
+    DialogueTurn validation remains warning-only.
+    """
     final_text = state.get("final_text") or ""
     mechanic_result = state.get("mechanic_result") or {}
 
@@ -197,10 +254,18 @@ def narrative_validator_node(state: dict[str, Any]) -> dict[str, Any]:
 
     validation_warnings: list[str] = []
 
-    # Check 1: Mechanic consistency
-    validation_warnings.extend(
-        _check_mechanic_consistency(final_text, mechanic_result)
+    # Check 1: Mechanic consistency (BLOCKING — rewrites contradictions)
+    corrected_text, mech_warnings, mech_repairs = _check_mechanic_consistency(
+        final_text, mechanic_result
     )
+    validation_warnings.extend(mech_warnings)
+    # Apply corrected text if any repairs were made
+    if mech_repairs:
+        final_text = corrected_text
+        logger.info(
+            "NarrativeValidator: applied %d mechanic consistency repair(s)",
+            len(mech_repairs),
+        )
 
     # Check 2: V2.17 DialogueTurn component validity
     dt_warnings, dt_repairs = _check_dialogue_turn_validity(state)
@@ -209,7 +274,7 @@ def narrative_validator_node(state: dict[str, Any]) -> dict[str, Any]:
         for r in dt_repairs:
             logger.info("NarrativeValidator repair: %s", r)
 
-    # Propagate warnings (non-blocking: let narration through)
+    # Propagate warnings
     existing_warnings = list(state.get("warnings") or [])
     for w in validation_warnings:
         if w not in existing_warnings:
@@ -218,6 +283,7 @@ def narrative_validator_node(state: dict[str, Any]) -> dict[str, Any]:
 
     return {
         **state,
+        "final_text": final_text,
         "warnings": existing_warnings,
         "validation_notes": validation_warnings,
     }

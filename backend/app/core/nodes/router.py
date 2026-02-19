@@ -27,7 +27,9 @@ def router_node(state: dict[str, Any]) -> dict[str, Any]:
     # but keep the actual action text for routing
     if "[OPENING_SCENE]" in user_input:
         user_input = user_input.replace("[OPENING_SCENE]", "").strip()
-    router_out = router_route(user_input)
+    # Phase 1: Pass structured intent from choice card clicks (bypasses LLM classification)
+    structured_intent = state.get("structured_intent")
+    router_out = router_route(user_input, structured_intent=structured_intent)
     route = router_out.route
     action_class = router_out.action_class
     intent_text = router_out.intent_text or user_input

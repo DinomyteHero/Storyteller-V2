@@ -35,13 +35,42 @@ export async function runTurn(
   playerId: string,
   userInput: string,
   debug: boolean = false,
-  intent?: import("./types").Intent
+  intent?: import("./types").Intent,
+  structuredIntent?: import("./types").StructuredIntent | null,
 ): Promise<TurnResponse> {
-  const req: TurnRequest = intent ? { intent, user_input: userInput, debug } : { user_input: userInput, debug };
+  const req: TurnRequest = intent
+    ? { intent, user_input: userInput, debug }
+    : { user_input: userInput, debug };
+  if (structuredIntent) {
+    req.structured_intent = structuredIntent;
+  }
   return apiFetch<TurnResponse>(
     `/v2/campaigns/${campaignId}/turn?player_id=${encodeURIComponent(playerId)}`,
     { method: 'POST', body: JSON.stringify(req) },
     180_000
+  );
+}
+
+/**
+ * Phase 1.3: Preview how the router will classify free text input.
+ * Lightweight call — no turn executed, just classification preview.
+ */
+export interface ClassifyResult {
+  route: string;           // TALK | MECHANIC | META
+  action_class: string;    // DIALOGUE_ONLY | DIALOGUE_WITH_ACTION | PHYSICAL_ACTION | META
+  requires_resolution: boolean;
+  confidence: number;
+  rationale_short: string;
+}
+
+export async function classifyIntent(
+  campaignId: string,
+  userInput: string,
+): Promise<ClassifyResult> {
+  return apiFetch<ClassifyResult>(
+    `/v2/campaigns/${campaignId}/classify`,
+    { method: 'POST', body: JSON.stringify({ user_input: userInput }) },
+    5_000,
   );
 }
 

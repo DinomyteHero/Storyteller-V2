@@ -66,8 +66,16 @@ def _build_stat_summary(gs: GameState) -> str:
     return ", ".join(notable)
 
 
-def _build_companion_hint(gs: GameState) -> str:
-    """Build companion presence hint from party state (no DB calls)."""
+def _build_companion_hint(gs: GameState, state: dict[str, Any] | None = None) -> str:
+    """Build companion presence hint from party state (no DB calls).
+
+    Phase 6.2: Also incorporates loyalty stake flags (threatens_leave, reluctant)
+    so the LLM can generate choices like "Convince Kira to stay."
+    """
+    from backend.app.constants import (
+        COMPANION_LOYALTY_RELUCTANT,
+        COMPANION_LOYALTY_THREATENS_LEAVE,
+    )
     campaign = gs.campaign or {}
     if not isinstance(campaign, dict):
         return ""
@@ -89,13 +97,33 @@ def _build_companion_hint(gs: GameState) -> str:
             comp_data = get_companion_by_id(cid)
             cstate = companion_states.get(cid) or {}
             influence = int(cstate.get("influence", 0) or 0)
-            trust_label = "high trust" if influence > 50 else "wary" if influence < 0 else "neutral"
+            # Phase 6.2: Loyalty-aware trust labels
+            if influence <= COMPANION_LOYALTY_THREATENS_LEAVE:
+                trust_label = "threatening to leave"
+            elif influence <= COMPANION_LOYALTY_RELUCTANT:
+                trust_label = "reluctant"
+            elif influence > 50:
+                trust_label = "high trust"
+            elif influence < 0:
+                trust_label = "wary"
+            else:
+                trust_label = "neutral"
             if comp_data:
                 archetype = comp_data.get("archetype", "companion")
                 name = comp_data.get("name", cid)
                 hints.append(f"{name} ({trust_label}, {archetype})")
         except Exception:
             continue
+
+    # Phase 6.2: Append loyalty stake hints from companion_threatens_leave flag
+    if state:
+        threatens_leave = state.get("companion_threatens_leave") or []
+        if threatens_leave:
+            hints.append(
+                f"LOYALTY CRISIS: {', '.join(threatens_leave)} may leave the party — "
+                f"generate a choice to address this (e.g. 'Convince {threatens_leave[0]} to stay')"
+            )
+
     return ", ".join(hints) if hints else ""
 
 
@@ -193,6 +221,54 @@ def _make_fallback_choices(
     ]
 
 
+def _build_bridge_paragraph(
+    final_text: str,
+    suggestions: list[dict[str, str]],
+    scene_frame: dict,
+    npc_utterance_text: str = "",
+) -> str:
+    """Phase 4.1: Build a short bridge paragraph connecting narrative prose to choices.
+
+    Deterministic — no LLM call. Examines the prose ending and scene tension
+    to create 1-2 connecting sentences that frame the player's decision moment.
+    Returns empty string if no bridge is appropriate (e.g., fallback or very short prose).
+    """
+    if not final_text or len(final_text) < 80:
+        return ""
+
+    # Extract the last sentence of prose for tonal analysis
+    sentences = [s.strip() for s in final_text.replace("\n", " ").split(".") if s.strip()]
+    last_sentence = sentences[-1] if sentences else ""
+
+    # Determine scene tension
+    scene_weight = scene_frame.get("scene_weight", "STANDARD") if isinstance(scene_frame, dict) else "STANDARD"
+    immediate_situation = scene_frame.get("immediate_situation", "") if isinstance(scene_frame, dict) else ""
+
+    # Count unique tones in suggestions for framing variety
+    tones = {s.get("tone", "NEUTRAL").upper() for s in suggestions if isinstance(s, dict)}
+    has_danger = any(s.get("risk", "").upper() in ("RISKY", "DANGEROUS") for s in suggestions if isinstance(s, dict))
+
+    # Build bridge based on context
+    if scene_weight == "CLIMAX":
+        if has_danger:
+            return "The moment demands a decision — and every path carries weight."
+        return "This is the moment that matters. What comes next will echo far beyond this place."
+    elif scene_weight == "ELEVATED":
+        if npc_utterance_text:
+            return "The words hang in the air, waiting for a response."
+        if has_danger:
+            return "The tension is palpable. Whatever happens next, there's no going back easily."
+        return "The situation calls for a response."
+    else:
+        # STANDARD — lighter bridge
+        if npc_utterance_text and len(tones) >= 3:
+            return "Several possibilities present themselves."
+        if has_danger:
+            return "The situation could go several ways from here."
+        # For very routine scenes, no bridge needed
+        return ""
+
+
 def _to_action_suggestions(items: list[dict[str, str]]) -> list[ActionSuggestion]:
     """Convert raw LLM choice dicts to ActionSuggestion objects."""
     suggestions = []
@@ -213,6 +289,10 @@ def _to_action_suggestions(items: list[dict[str, str]]) -> list[ActionSuggestion
         if hint:
             suggestion.consequence_hint = hint
         suggestion.impact_tier = impact_tier if impact_tier in {"ripple", "wave", "tsunami"} else "ripple"
+        # Phase 2.2: Carry action_type through to PlayerResponse
+        action_type = (item.get("action_type") or "").upper()
+        if action_type in {"TALK", "DO", "INVESTIGATE", "TRAVEL", "USE_ABILITY", "WAIT"}:
+            suggestion.action_type = action_type
         suggestions.append(suggestion)
     return suggestions
 
@@ -274,7 +354,7 @@ def make_choice_crafter_node():
         npc_agenda = str(pre_context.get("npc_agenda") or (scene_frame.get("npc_agenda", "") if isinstance(scene_frame, dict) else ""))
 
         # Companion, history, consequence, arc, and stat context
-        companion_hint = _build_companion_hint(gs)
+        companion_hint = _build_companion_hint(gs, state=state)
         player_history_hint = _build_player_history_hint(gs)
         consequence_hints = _get_consequence_hints(gs)
         arc_stage = str(pre_context.get("arc_stage") or "")
@@ -349,12 +429,20 @@ def make_choice_crafter_node():
         # Convert to PlayerResponse dicts for DialogueTurn
         player_responses = action_suggestions_to_player_responses(linted, scene_frame)
 
+        # Phase 4.1: Build bridge paragraph connecting prose to choices
+        bridge = _build_bridge_paragraph(
+            final_text, items, scene_frame, npc_utterance_text
+        )
+
         logger.info("ChoiceCrafter: generated %d choices from prose", len(actions_list))
-        return {
+        result = {
             **state,
             "suggested_actions": actions_list,
             "player_responses": player_responses,
             "warnings": gs.warnings,
         }
+        if bridge:
+            result["bridge_paragraph"] = bridge
+        return result
 
     return choice_crafter_node

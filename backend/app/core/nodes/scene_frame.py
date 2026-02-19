@@ -603,6 +603,23 @@ def scene_frame_node(state: dict[str, Any]) -> dict[str, Any]:
     npc_ids = [ref.id for ref in npc_refs]
     scene_hash = compute_scene_hash(location_id, npc_ids, action_type)
 
+    # Phase 5.3: Scene loop detection — track last 5 scene hashes
+    recent_scene_hashes: list[str] = list(state.get("recent_scene_hashes") or [])
+    recent_scene_hashes.append(scene_hash)
+    # Keep only the last 5
+    if len(recent_scene_hashes) > 5:
+        recent_scene_hashes = recent_scene_hashes[-5:]
+    # Detect loop: if the same hash appears 3+ times in the window
+    scene_loop_detected = recent_scene_hashes.count(scene_hash) >= 3
+
+    if scene_loop_detected:
+        logger.info(
+            "Scene loop detected: hash=%s appeared %d times in last %d turns",
+            scene_hash,
+            recent_scene_hashes.count(scene_hash),
+            len(recent_scene_hashes),
+        )
+
     # V2.18: KOTOR-soul topic/subtext/agenda derivation
     arc_guidance = state.get("arc_guidance") or {}
     arc_stage = arc_guidance.get("arc_stage", "SETUP")
@@ -684,6 +701,9 @@ def scene_frame_node(state: dict[str, Any]) -> dict[str, Any]:
         "scene_weight": scene_weight,
         "gm_context": gm_context,
         "choice_crafter_pre_context": choice_crafter_pre_context,
+        # Phase 5.3: Scene loop detection state
+        "recent_scene_hashes": recent_scene_hashes,
+        "scene_loop_detected": scene_loop_detected,
     }
 
     # V2.20: Attempt banter injection (uses scene_frame pressure for safety check)

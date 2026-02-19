@@ -167,6 +167,62 @@ def make_world_sim_node():
                 npc_states=npc_states,
             )
 
+        # --- Phase 5.2: NPC death propagation ---
+        # Check mechanic_result for DAMAGE events where NPC HP reaches 0 or explicit death events.
+        npc_death_flag = False
+        npc_death_rumors: list[str] = []
+        npc_death_wave_consequences: list[dict] = []
+        mr_events = mechanic_result.get("events") or []
+        for ev in mr_events:
+            if not isinstance(ev, dict):
+                continue
+            ev_type = (ev.get("event_type") or "").upper()
+            payload = ev.get("payload") or {}
+            if not isinstance(payload, dict):
+                payload = {}
+
+            npc_name = payload.get("target_name") or payload.get("npc_name") or payload.get("name") or ""
+            npc_id = payload.get("target_id") or payload.get("npc_id") or payload.get("character_id") or ""
+
+            is_death = False
+            if ev_type == "DAMAGE":
+                remaining_hp = payload.get("remaining_hp", payload.get("hp_after"))
+                if remaining_hp is not None and int(remaining_hp) <= 0:
+                    is_death = True
+            if ev_type in ("NPC_DEATH", "DEATH", "KILL"):
+                is_death = True
+            if payload.get("death") or payload.get("killed") or payload.get("lethal"):
+                is_death = True
+
+            if is_death and (npc_name or npc_id):
+                npc_death_flag = True
+                display_name = npc_name or npc_id
+                # Create a rumor about the death
+                death_rumor = f"{display_name} has been killed. Word is spreading fast."
+                npc_death_rumors.append(death_rumor)
+                # Create a wave consequence
+                npc_death_wave_consequences.append({
+                    "event_type": "NPC_DEATH_WAVE",
+                    "payload": {
+                        "text": f"The death of {display_name} sends ripples through the area.",
+                        "npc_name": display_name,
+                        "npc_id": npc_id,
+                        "impact_tier": "wave",
+                    },
+                    "is_hidden": False,
+                })
+
+        # Inject death rumors into WorldMindAgent output
+        if npc_death_rumors:
+            combined_rumors = list(out.new_rumors or []) + npc_death_rumors
+            out = out.model_copy(update={"new_rumors": combined_rumors}) if hasattr(out, "model_copy") else out
+            # Fallback for objects without model_copy
+            if not hasattr(out, "model_copy"):
+                for dr in npc_death_rumors:
+                    if out.new_rumors is None:
+                        out.new_rumors = []
+                    out.new_rumors.append(dr)
+
         # --- Process output into events (same format as LLM-based version) ---
         rumor_events: list[dict] = []
         world_sim_events: list[dict] = []
@@ -179,6 +235,10 @@ def make_world_sim_node():
             }
             rumor_events.append(ev)
             world_sim_events.append(ev)
+
+        # Add NPC death wave consequences to world_sim_events
+        for wave_ev in npc_death_wave_consequences:
+            world_sim_events.append(wave_ev)
 
         for text in out.faction_moves or []:
             world_sim_events.append({
@@ -245,6 +305,8 @@ def make_world_sim_node():
             "world_sim_debug": getattr(out, "elapsed_time_summary", None) or ("travel" if travel_occurred else "tick"),
             "world_sim_events": world_sim_events,
             "new_rumors": list(out.new_rumors or []),
+            # Phase 5.2: NPC death propagation flag
+            "npc_death_occurred": npc_death_flag,
         }
 
     return world_sim_node

@@ -90,13 +90,74 @@ def persuasion_guardrail_triggers(user_input: str) -> bool:
     return False
 
 
-def route(user_input: str) -> RouterOutput:
+def _classify_structured_intent(user_input: str, structured_intent: dict) -> RouterOutput:
+    """Fast-path: when frontend sends pre-classified structured intent from a choice card,
+    construct RouterOutput directly without LLM or heuristic classification.
+
+    Structured intent fields: tone_tag, meaning_tag, risk_level, action_type, impact_tier.
+    """
+    raw = (user_input or "").strip()
+    action_type = (structured_intent.get("action_type") or "TALK").upper()
+    risk_level = (structured_intent.get("risk_level") or "SAFE").upper()
+    meaning_tag = structured_intent.get("meaning_tag") or ""
+
+    # Action types that require mechanical resolution
+    mechanic_action_types = {"DO", "TRAVEL", "USE_ABILITY"}
+    # Meaning tags that imply world-changing dialogue (persuasion, threats, demands)
+    mechanic_meanings = {"set_boundary", "make_demand", "invoke_authority", "challenge_premise"}
+    # Risk levels that require mechanic checks
+    risky_levels = {"RISKY", "DANGEROUS"}
+
+    needs_mechanic = (
+        action_type in mechanic_action_types
+        or risk_level in risky_levels
+        or meaning_tag in mechanic_meanings
+    )
+
+    if action_type == "INVESTIGATE":
+        return RouterOutput(
+            intent_text=raw,
+            route=ROUTER_ROUTE_MECHANIC,
+            action_class=ROUTER_ACTION_CLASS_PHYSICAL_ACTION,
+            requires_resolution=True,
+            confidence=1.0,
+            rationale_short="structured: INVESTIGATE action",
+        )
+    elif needs_mechanic:
+        looks_dialogue = action_type == "TALK"
+        return RouterOutput(
+            intent_text=raw,
+            route=ROUTER_ROUTE_MECHANIC,
+            action_class=ROUTER_ACTION_CLASS_DIALOGUE_WITH_ACTION if looks_dialogue else ROUTER_ACTION_CLASS_PHYSICAL_ACTION,
+            requires_resolution=True,
+            confidence=1.0,
+            rationale_short=f"structured: {action_type}/{risk_level}",
+        )
+    else:
+        return RouterOutput(
+            intent_text=raw,
+            route=ROUTER_ROUTE_TALK,
+            action_class=ROUTER_ACTION_CLASS_DIALOGUE_ONLY,
+            requires_resolution=False,
+            confidence=1.0,
+            rationale_short=f"structured: {action_type}/SAFE",
+        )
+
+
+def route(user_input: str, structured_intent: dict | None = None) -> RouterOutput:
     """
     Classify user input into route and action_class.
     Only when route==TALK and action_class==DIALOGUE_ONLY should the pipeline skip the Mechanic.
 
+    Phase 1: When structured_intent is provided (from a choice card click), skip LLM classification
+    and trust the pre-classified metadata from the choice crafter.
+
     V2.7: Supports combined [DIALOGUE] <text> [ACTION] <text> format from split action UI.
     """
+    # Phase 1: Structured intent fast-path — skip all classification
+    if structured_intent:
+        return _classify_structured_intent(user_input, structured_intent)
+
     raw = (user_input or "").strip()
     low = raw.lower()
 

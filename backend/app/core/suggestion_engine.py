@@ -1050,6 +1050,9 @@ def action_suggestion_to_player_response(
     # V2.18: Meaning tag -- use from suggestion if available, otherwise infer
     meaning = getattr(sug, "meaning_tag", "") or infer_meaning_tag(label)
 
+    # Phase 2.2: Include action_type from choice crafter
+    choice_action_type = getattr(sug, "action_type", "") or ""
+
     return {
         "id": f"resp_{index + 1}",
         "display_text": label,
@@ -1063,6 +1066,7 @@ def action_suggestion_to_player_response(
         "consequence_hint": sug.consequence_hint or "",
         "tone_tag": sug.tone_tag or TONE_TAG_NEUTRAL,
         "meaning_tag": meaning,
+        "action_type": choice_action_type,
     }
 
 

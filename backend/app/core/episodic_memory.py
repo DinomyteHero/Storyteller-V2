@@ -80,32 +80,98 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
 
 
 def _summarize_narrative(text: str, max_len: int = 200) -> str:
-    """Create a compressed summary of narrative text for storage."""
+    """Create a compressed summary of narrative text for storage.
+
+    Phase 3.3: Enhanced to capture richer context — prioritizes sentences
+    containing character names, dialogue indicators, emotional language,
+    and action verbs over generic description.
+    """
     if not text:
         return ""
-    # Take first and last sentences for a compressed summary
     sentences = re.split(r'(?<=[.!?])\s+', text.strip())
     if len(sentences) <= 2:
         summary = text.strip()
     else:
-        summary = sentences[0] + " ... " + sentences[-1]
+        # Phase 3.3: Score sentences by narrative richness
+        # Prioritize sentences with dialogue, character interaction,
+        # emotional content, or action
+        _rich_indicators = re.compile(
+            r'(said|asked|replied|whispered|growled|demanded|promised|warned'
+            r'|trust|betray|hostile|friendly|afraid|angry|relieved|desperate'
+            r'|discovered|revealed|learned|realized|understood|decided'
+            r'|killed|died|attacked|fled|escaped|surrendered'
+            r'|quest|mission|objective|artifact|secret)',
+            re.IGNORECASE,
+        )
+        scored = []
+        for i, sent in enumerate(sentences):
+            score = 0
+            # Dialogue or character speech
+            if '"' in sent or '\u201c' in sent:
+                score += 3
+            # Rich narrative indicators
+            score += len(_rich_indicators.findall(sent))
+            # Proper nouns (likely character names)
+            proper_nouns = re.findall(r'\b[A-Z][a-z]{2,}', sent)
+            score += min(len(proper_nouns), 2)
+            # Slight recency bias — later sentences often carry resolution
+            score += i * 0.1
+            scored.append((score, i, sent))
+
+        scored.sort(key=lambda x: x[0], reverse=True)
+        # Take the top 2-3 most informative sentences, in original order
+        top_indices = sorted([s[1] for s in scored[:3]])
+        selected = [sentences[i] for i in top_indices]
+        summary = " ".join(selected)
+
     return summary[:max_len]
 
 
 # ── Keyword extraction ───────────────────────────────────────────────
 
+# Phase 3.3: High-value narrative terms get priority in keyword extraction
+_NARRATIVE_PRIORITY_TERMS = frozenset({
+    "killed", "died", "death", "betrayed", "betrayal", "trust", "hostile",
+    "allied", "discovered", "revealed", "secret", "quest", "mission",
+    "artifact", "escaped", "captured", "surrendered", "promised", "warned",
+    "attacked", "ambush", "defeated", "victory", "failed", "critical",
+    "faction", "reputation", "influence", "loyalty", "companion",
+})
+
+
 def _extract_keywords(text: str, max_keywords: int = 20) -> list[str]:
-    """Extract meaningful keywords from text, filtering stop words."""
+    """Extract meaningful keywords from text, filtering stop words.
+
+    Phase 3.3: Enhanced to prioritize narrative-significant terms (relationship
+    words, quest terms, emotional language) over generic descriptors.
+    """
     words = re.findall(r"[a-zA-Z']{3,}", text.lower())
     seen: set[str] = set()
-    keywords: list[str] = []
+    priority_keywords: list[str] = []
+    regular_keywords: list[str] = []
+    # Also capture proper nouns (character/place names) from original text
+    proper_nouns = re.findall(r'\b[A-Z][a-z]{2,}(?:\s[A-Z][a-z]{2,})?', text)
+    for pn in proper_nouns:
+        pn_lower = pn.lower()
+        if pn_lower not in _STOP_WORDS and pn_lower not in seen:
+            seen.add(pn_lower)
+            priority_keywords.append(pn_lower)
+
     for w in words:
-        if w not in _STOP_WORDS and w not in seen:
-            seen.add(w)
-            keywords.append(w)
-            if len(keywords) >= max_keywords:
-                break
-    return keywords
+        if w in _STOP_WORDS or w in seen:
+            continue
+        seen.add(w)
+        if w in _NARRATIVE_PRIORITY_TERMS:
+            priority_keywords.append(w)
+        else:
+            regular_keywords.append(w)
+
+    # Merge: priority terms first, then regular, up to max
+    keywords = priority_keywords[:max_keywords]
+    remaining = max_keywords - len(keywords)
+    if remaining > 0:
+        keywords.extend(regular_keywords[:remaining])
+    return keywords[:max_keywords]
 
 
 def _is_pivotal(
@@ -532,7 +598,11 @@ class EpisodicMemory:
         return out[:max_results]
 
     def format_for_prompt(self, memories: list[dict], max_chars: int = 600) -> str:
-        """Format recalled memories as a context block for LLM prompts."""
+        """Format recalled memories as a context block for LLM prompts.
+
+        Phase 3.3: Enhanced to surface relationship changes, dialogue topics,
+        quest progress, and emotional beats alongside narrative summaries.
+        """
         if not memories:
             return ""
 
@@ -561,24 +631,69 @@ class EpisodicMemory:
             if pivotal:
                 line_parts.append("(PIVOTAL)")
 
-            # V3.0: Prefer narrative summary over raw event types
-            if summary:
-                line = "- " + ", ".join(line_parts) + " | " + summary
-            else:
-                # Add key event summaries
-                event_summaries = []
-                for ev in events[:3]:
-                    etype = ev.get("event_type", "")
-                    payload = ev.get("payload") or {}
+            # Phase 3.3: Extract rich event context
+            event_details: list[str] = []
+            for ev in events[:5]:
+                if not isinstance(ev, dict):
+                    continue
+                etype = (ev.get("event_type") or "").upper()
+                payload = ev.get("payload") or {}
+                if not isinstance(payload, dict):
+                    payload = {}
+
+                # Relationship changes
+                if etype in ("RELATIONSHIP", "RELATIONSHIP_CHANGE", "COMPANION_AFFINITY"):
+                    npc = payload.get("npc_id") or payload.get("npc_name") or ""
+                    delta = payload.get("delta", 0)
+                    reason = payload.get("reason") or ""
+                    if npc and delta:
+                        sign = "+" if int(delta) > 0 else ""
+                        detail = f"{npc} {sign}{delta} influence"
+                        if reason:
+                            detail += f" ({reason[:30]})"
+                        event_details.append(detail)
+
+                # Dialogue topics
+                elif etype in ("DIALOGUE", "TALK"):
+                    topic = payload.get("topic") or payload.get("text") or ""
+                    if topic:
+                        event_details.append(f"discussed: {str(topic)[:40]}")
+
+                # Quest progress
+                elif etype.startswith("QUEST_") or etype.startswith("OBJECTIVE_"):
+                    quest = payload.get("quest") or payload.get("quest_name") or payload.get("title") or ""
+                    if quest:
+                        status = etype.replace("QUEST_", "").replace("OBJECTIVE_", "").lower()
+                        event_details.append(f"quest {status}: {quest[:30]}")
+
+                # Emotional beats
+                elif etype in ("CRITICAL_SUCCESS", "CRITICAL_FAILURE"):
+                    action = payload.get("action_type") or ""
+                    event_details.append(f"{'triumph' if 'SUCCESS' in etype else 'disaster'}{f' on {action}' if action else ''}")
+
+                # Deaths
+                elif etype in ("NPC_DEATH", "DEATH"):
+                    name = payload.get("npc_name") or payload.get("name") or ""
+                    if name:
+                        event_details.append(f"{name} killed")
+
+                # Fallback to generic summary
+                else:
                     text = payload.get("text") or payload.get("description") or ""
                     if text:
-                        event_summaries.append(f"{etype}: {text[:60]}")
+                        event_details.append(f"{etype}: {text[:50]}")
                     elif etype:
-                        event_summaries.append(etype)
+                        event_details.append(etype)
 
+            # V3.0 + Phase 3.3: Build the line with enriched context
+            if summary and event_details:
+                line = "- " + ", ".join(line_parts) + " | " + summary + " [" + "; ".join(event_details[:3]) + "]"
+            elif summary:
+                line = "- " + ", ".join(line_parts) + " | " + summary
+            elif event_details:
+                line = "- " + ", ".join(line_parts) + " | " + "; ".join(event_details[:4])
+            else:
                 line = "- " + ", ".join(line_parts)
-                if event_summaries:
-                    line += " | " + "; ".join(event_summaries)
 
             if char_count + len(line) + 1 > max_chars:
                 break

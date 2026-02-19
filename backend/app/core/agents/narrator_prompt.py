@@ -267,9 +267,18 @@ def _build_story_state_summary(state: GameState) -> str:
     if _emotional_arc_note:
         psych_block += f"\nDirector note: {_emotional_arc_note}"
 
-    # V2.5: Active rumors (last 3 is_public_rumor events)
+    # V2.5: Active rumors (last 3 is_public_rumor events) + Phase 5.1: new rumors from WorldSim
     active_rumors = getattr(state, "active_rumors", None) or []
-    rumors_block = "\n".join(f"- {r}" for r in active_rumors[:3]) if active_rumors else "(No recent public rumors.)"
+    new_rumors = getattr(state, "new_rumors", None) or []
+    # Merge new_rumors into active set, deduplicating
+    all_rumors: list[str] = []
+    seen_rumors: set[str] = set()
+    for r in list(new_rumors) + list(active_rumors):
+        r_lower = r.strip().lower()
+        if r_lower and r_lower not in seen_rumors:
+            seen_rumors.add(r_lower)
+            all_rumors.append(r.strip())
+    rumors_block = "\n".join(f"- \"{r}\"" for r in all_rumors[:5]) if all_rumors else "(No recent public rumors.)"
 
     ledger = {}
     campaign = state.campaign or {}
@@ -427,10 +436,18 @@ def _build_story_state_summary(state: GameState) -> str:
             f"Show this tension through body language or brief exchanges between companions.\n\n"
         )
 
-    result += (
-        f"## Active rumors (reference subtly if appropriate; do not derail scene)\n"
-        f"{rumors_block}\n\n"
-    )
+    if all_rumors:
+        result += (
+            f"## AMBIENT RUMORS (weave naturally into scene — overheard, posted notice, NPC aside)\n"
+            f"{rumors_block}\n"
+            f"Work 1-2 of these into the scene as background flavor: a whispered conversation, "
+            f"a posted notice, or an NPC's offhand remark. Do NOT make rumors the focus of the scene.\n\n"
+        )
+    else:
+        result += (
+            f"## Active rumors (reference subtly if appropriate; do not derail scene)\n"
+            f"{rumors_block}\n\n"
+        )
     # Phase 3: Active themes for thematic resonance
     active_themes = ledger.get("active_themes") or []
     if active_themes:
@@ -551,6 +568,10 @@ def _build_prompt(
         "This is what the NPC says TO or NEAR the player character — their spoken words.\n"
         "If no NPC is present, write a narrator observation instead.\n\n"
         "KOTOR VOICE RULES:\n"
+        "- PLAYER-REACTIVE (CRITICAL): The NPC utterance MUST directly respond to or acknowledge the "
+        "player's stated action (shown in 'Player Input' context). If the player asked a question, the NPC "
+        "answers it. If the player made a demand, the NPC reacts to that demand. If the player tried to "
+        "intimidate, the NPC shows they felt it. NEVER ignore what the player just did.\n"
         "- The NPC speaks with PURPOSE. Every line has an AGENDA (stated in scene context as 'NPC Agenda').\n"
         "- Apply ONE rhetorical move: probe (ask a pointed question), challenge (dispute an assumption),\n"
         "  reframe (offer a different lens), warn (hint at consequences), or reveal (share something personal).\n"

@@ -119,11 +119,25 @@ class NarratorAgent:
                 )
 
         # Retrieve voice snippets for present NPCs and party
+        # Phase 3.4: Pass NPC emotional context so vector search prefers
+        # snippets matching the NPC's current disposition (angry, suspicious, etc.)
         voice_snippets_by_char: dict[str, list] = {}
         if self._voice_retriever is not None:
             char_ids = _collect_character_ids(state)
             if char_ids:
-                raw = call_retriever(self._voice_retriever, char_ids, era, k=6, warnings=warnings_list)
+                ws = campaign.get("world_state_json") if isinstance(campaign, dict) else {}
+                npc_states = (ws.get("npc_states") or {}) if isinstance(ws, dict) else {}
+                emotional_context: dict[str, str] = {}
+                for cid in char_ids:
+                    npc_st = npc_states.get(cid) or {}
+                    emo = npc_st.get("emotional_state", "") if isinstance(npc_st, dict) else ""
+                    if emo:
+                        emotional_context[cid] = str(emo)
+                raw = call_retriever(
+                    self._voice_retriever, char_ids, era, k=6,
+                    emotional_context=emotional_context if emotional_context else None,
+                    warnings=warnings_list,
+                )
                 for cid, snips in raw.items():
                     voice_snippets_by_char[cid] = [
                         {"character_id": s.character_id, "era": s.era, "text": s.text, "chunk_id": s.chunk_id}
@@ -314,12 +328,24 @@ class NarratorAgent:
                     warnings=warnings_list,
                 )
 
-        # Retrieve voice snippets
+        # Retrieve voice snippets (Phase 3.4: with emotional context)
         voice_snippets_by_char: dict[str, list] = {}
         if self._voice_retriever is not None:
             char_ids = _collect_character_ids(state)
             if char_ids:
-                raw = call_retriever(self._voice_retriever, char_ids, era, k=6, warnings=warnings_list)
+                ws = campaign.get("world_state_json") if isinstance(campaign, dict) else {}
+                npc_states = (ws.get("npc_states") or {}) if isinstance(ws, dict) else {}
+                emotional_context: dict[str, str] = {}
+                for cid in char_ids:
+                    npc_st = npc_states.get(cid) or {}
+                    emo = npc_st.get("emotional_state", "") if isinstance(npc_st, dict) else ""
+                    if emo:
+                        emotional_context[cid] = str(emo)
+                raw = call_retriever(
+                    self._voice_retriever, char_ids, era, k=6,
+                    emotional_context=emotional_context if emotional_context else None,
+                    warnings=warnings_list,
+                )
                 for cid, snips in raw.items():
                     voice_snippets_by_char[cid] = [
                         {"character_id": s.character_id, "era": s.era, "text": s.text, "chunk_id": s.chunk_id}
@@ -391,7 +417,19 @@ class NarratorAgent:
         if self._voice_retriever is not None:
             char_ids = _collect_character_ids(state)
             if char_ids:
-                raw = call_retriever(self._voice_retriever, char_ids, era, k=6, warnings=warnings_list)
+                ws_corr = campaign.get("world_state_json") if isinstance(campaign, dict) else {}
+                npc_states_corr = (ws_corr.get("npc_states") or {}) if isinstance(ws_corr, dict) else {}
+                emotional_context: dict[str, str] = {}
+                for cid in char_ids:
+                    npc_st = npc_states_corr.get(cid) or {}
+                    emo = npc_st.get("emotional_state", "") if isinstance(npc_st, dict) else ""
+                    if emo:
+                        emotional_context[cid] = str(emo)
+                raw = call_retriever(
+                    self._voice_retriever, char_ids, era, k=6,
+                    emotional_context=emotional_context if emotional_context else None,
+                    warnings=warnings_list,
+                )
                 for cid, snips in raw.items():
                     voice_snippets_by_char[cid] = [
                         {"character_id": s.character_id, "era": s.era, "text": s.text, "chunk_id": s.chunk_id}

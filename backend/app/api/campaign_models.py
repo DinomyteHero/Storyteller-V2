@@ -107,9 +107,20 @@ class ContentSummaryResponse(BaseModel):
     playable: bool
 
 
+class StructuredIntentPayload(BaseModel):
+    """Structured intent from a pre-classified choice card click.
+    When present, the router can skip LLM re-inference and trust these fields."""
+    tone_tag: str = "NEUTRAL"       # PARAGON | INVESTIGATE | RENEGADE | NEUTRAL
+    meaning_tag: str = ""            # semantic tag from choice crafter
+    risk_level: str = "SAFE"         # SAFE | RISKY | DANGEROUS
+    action_type: str = "TALK"        # TALK | DO | INVESTIGATE | TRAVEL | USE_ABILITY | WAIT
+    impact_tier: str = "ripple"      # ripple | wave | tsunami
+
+
 class TurnRequest(BaseModel):
     user_input: str = ""
     intent: Intent | None = None
+    structured_intent: StructuredIntentPayload | None = None
     debug: bool = False
     include_state: bool = False
     idempotency_key: str | None = None
@@ -165,6 +176,8 @@ class TurnResponse(BaseModel):
     world_sim_ran: bool = False
     # V7.0: Mechanic resolution notes (dice, difficulty, success for player transparency)
     mechanic_notes: dict | None = None
+    # Phase 4.1: Bridge paragraph connecting narrative prose to choice cards
+    bridge_paragraph: str | None = None
 
 
 class CampaignSummary(BaseModel):

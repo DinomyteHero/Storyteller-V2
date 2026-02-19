@@ -7,14 +7,14 @@
   Fallback: ActionSuggestion[] (legacy flat format).
 -->
 <script lang="ts">
-  import type { PlayerResponse, ActionSuggestion } from '$lib/api/types';
+  import type { PlayerResponse, ActionSuggestion, StructuredIntent } from '$lib/api/types';
   import { TONE_ICONS } from '$lib/utils/constants';
 
   interface Props {
     playerResponses: PlayerResponse[];
     suggestedActions: ActionSuggestion[];
     animKey: number;
-    onPopulate: (text: string) => void; // populate the text input (not submit)
+    onPopulate: (text: string, structuredIntent?: StructuredIntent | null) => void;
     activeObligations?: string[] | null; // V5.0: narrative obligations from ContinuityAgent
   }
 
@@ -35,6 +35,8 @@
     consequenceHint: string;
     populateText: string;
     meaningTag: string;
+    actionType: string;
+    structuredIntent: StructuredIntent | null;
   }
 
   let approaches = $derived.by(() => {
@@ -49,6 +51,14 @@
         consequenceHint: r.consequence_hint || '',
         populateText: r.display_text,
         meaningTag: r.meaning_tag || '',
+        actionType: r.action_type || 'TALK',
+        structuredIntent: {
+          tone_tag: r.tone_tag?.toUpperCase() || 'NEUTRAL',
+          meaning_tag: r.meaning_tag || '',
+          risk_level: r.risk_level || 'SAFE',
+          action_type: r.action_type || 'TALK',
+          impact_tier: 'ripple',
+        },
       }));
     } else {
       items = suggestedActions.map((a, i) => ({
@@ -59,6 +69,8 @@
         consequenceHint: a.consequence_hint || '',
         populateText: a.intent_text || a.label,
         meaningTag: '',
+        actionType: 'TALK',
+        structuredIntent: null,
       }));
     }
 
@@ -92,12 +104,15 @@
         <button
           class="approach-card tone-{approach.toneTag.toLowerCase()} stagger-enter"
           style="animation-delay: {i * 55}ms"
-          onclick={() => onPopulate(approach.populateText)}
+          onclick={() => onPopulate(approach.populateText, approach.structuredIntent)}
           aria-label="Approach {i + 1}: {approach.displayText}. Tap to use as starting point. {approach.consequenceHint ? approach.consequenceHint : ''}{approach.riskLevel && approach.riskLevel !== 'SAFE' ? '. Risk: ' + approach.riskLevel : ''}"
           title="Click to populate input"
         >
           <div class="card-tone-row">
             <span class="tone-icon" aria-hidden="true">{TONE_ICONS[approach.toneTag] ?? '◯'}</span>
+            {#if approach.actionType && approach.actionType !== 'TALK'}
+              <span class="action-type-pill">{approach.actionType}</span>
+            {/if}
             <span class="tone-label">{approach.toneTag}</span>
             {#if approach.riskLevel && approach.riskLevel !== 'SAFE'}
               <span class="risk-pill {riskClass(approach.riskLevel)}">{approach.riskLevel}</span>
@@ -255,6 +270,19 @@
     color: var(--tone-color);
     opacity: 0.85;
     flex: 1;
+  }
+
+  .action-type-pill {
+    font-size: 0.52rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1px 4px;
+    border-radius: 2px;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
   }
 
   .risk-pill {

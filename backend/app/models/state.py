@@ -67,6 +67,7 @@ class ActionSuggestion(BaseModel):
     risk_factors: list[str] = Field(default_factory=list)  # V2.9: Why is this risky? ["Outnumbered 3-to-1", "No cover"]
     meaning_tag: str = ""  # V2.18: reveal_values|probe_belief|challenge_premise|seek_history|set_boundary|pragmatic|deflect
     impact_tier: str = "ripple"  # Phase 4.3: ripple|wave|tsunami (sandbox pacing)
+    action_type: str = ""  # Phase 2.2: TALK|DO|INVESTIGATE|TRAVEL|USE_ABILITY|WAIT
 
 
 # --- Character ---
@@ -178,6 +179,7 @@ class GameState(BaseModel):
 
     # Transient (cleared every turn)
     user_input: str = ""
+    structured_intent: dict | None = None  # Phase 1: pre-classified choice card metadata (bypasses router)
     intent: str | None = None  # router: "TALK" (skip mechanic) | "ACTION" (go to mechanic)
     route: str | None = None  # router: TALK | MECHANIC
     action_class: str | None = None  # router: DIALOGUE_ONLY | DIALOGUE_WITH_ACTION | PHYSICAL_ACTION | META
@@ -211,13 +213,19 @@ class GameState(BaseModel):
     choice_crafter_pre_context: dict | None = None  # Pre-computed context for ChoiceCrafter prompt assembly
     npc_utterance: dict | None = None  # NPCUtterance (set by narrator node)
     player_responses: list[dict] = Field(default_factory=list)  # PlayerResponse list (set by suggestion_refiner)
+    bridge_paragraph: str | None = None  # Phase 4.1: connecting prose → choices (set by choice_crafter node)
     dialogue_turn: dict | None = None  # Assembled DialogueTurn (set by commit node)
+
+    # Phase 5.3: Scene loop detection
+    recent_scene_hashes: list[str] = Field(default_factory=list)  # last 5 scene hashes
+    scene_loop_detected: bool = False  # True when same hash appears 3+ times in recent history
 
     def cleared_for_next_turn(self) -> GameState:
         """Return a copy with transient fields reset; persistent and memory fields kept."""
         return self.model_copy(
             update={
                 "user_input": "",
+                "structured_intent": None,
                 "intent": None,
                 "route": None,
                 "action_class": None,
@@ -255,6 +263,9 @@ class GameState(BaseModel):
                 "choice_crafter_pre_context": None,
                 "npc_utterance": None,
                 "player_responses": [],
+                "bridge_paragraph": None,
                 "dialogue_turn": None,
+                # Phase 5.3: scene_loop_detected is transient; recent_scene_hashes persists
+                "scene_loop_detected": False,
             }
         )

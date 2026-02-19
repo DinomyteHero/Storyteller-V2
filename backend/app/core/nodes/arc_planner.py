@@ -480,6 +480,24 @@ def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
         },
     }
 
+    # ── Phase 5.3: Scene loop escalation ─────────────────────────────
+    # When scene_loop_detected is True, inject escalation guidance to break
+    # the repetitive pattern and push the narrative forward.
+    if state.get("scene_loop_detected"):
+        loop_escalation = (
+            "SCENE LOOP DETECTED: The player has been in a similar scene configuration "
+            "multiple times recently. ESCALATE the situation to break the pattern. "
+            "Introduce a new complication, have an NPC take unexpected action, "
+            "reveal new information, or shift the environment. Do NOT repeat the "
+            "same scene beats. Force narrative progression."
+        )
+        arc_guidance["pacing_hint"] = f"{arc_guidance.get('pacing_hint', '')} {loop_escalation}".strip()
+        # Bump tension if we're in a calm state
+        if arc_guidance.get("tension_level") in ("CALM", "BUILDING"):
+            arc_guidance["tension_level"] = "ESCALATING"
+        arc_guidance["scene_loop_detected"] = True
+        logger.info("Arc planner injecting scene loop escalation guidance")
+
     # ── Scale advisor (gated by ENABLE_SCALE_ADVISOR) ────────────────
     try:
         from backend.app.config import ENABLE_SCALE_ADVISOR

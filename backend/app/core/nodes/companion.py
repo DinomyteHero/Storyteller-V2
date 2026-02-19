@@ -148,6 +148,123 @@ def companion_reaction_node(state: dict[str, Any]) -> dict[str, Any]:
 
     state = maybe_enqueue_news_banter(state)
 
+    # Phase 6.2: Companion loyalty stakes — check influence thresholds and set flags
+    try:
+        from backend.app.constants import (
+            COMPANION_LOYALTY_RELUCTANT,
+            COMPANION_LOYALTY_THREATENS_LEAVE,
+            COMPANION_LOYALTY_LEAVES,
+        )
+        from backend.app.core.party_state import load_party_state as _load_ps
+        from backend.app.core.party_state import remove_companion_from_party, save_party_state as _save_ps
+
+        campaign_loyalty = dict(state.get("campaign") or {})
+        ws_loyalty = campaign_loyalty.get("world_state_json") or {}
+        if isinstance(ws_loyalty, str):
+            try:
+                ws_loyalty = _json.loads(ws_loyalty)
+            except Exception:
+                ws_loyalty = {}
+        if isinstance(ws_loyalty, dict):
+            ps_loyalty = _load_ps(ws_loyalty)
+            loyalty_warnings: list[str] = []
+            companion_left_events: list[dict[str, Any]] = []
+
+            for cid in list(ps_loyalty.active_companions):
+                cs = ps_loyalty.companion_states.get(cid)
+                if not cs:
+                    continue
+                influence = cs.influence
+
+                if influence <= COMPANION_LOYALTY_LEAVES:
+                    # Companion actually leaves the party
+                    companion_name = cid  # default to id
+                    try:
+                        from backend.app.core.companions import get_companion_by_id as _get_comp
+                        comp_data = _get_comp(cid)
+                        if comp_data:
+                            companion_name = comp_data.get("name", cid)
+                    except Exception:
+                        pass
+                    loyalty_warnings.append(
+                        f"CRITICAL: {companion_name} has left the party (influence={influence}). "
+                        f"Show their departure dramatically."
+                    )
+                    companion_left_events.append({
+                        "event_type": "companion_left",
+                        "companion_id": cid,
+                        "companion_name": companion_name,
+                        "influence": influence,
+                    })
+                    remove_companion_from_party(ps_loyalty, cid)
+                    logger.info("Phase 6.2: Companion %s left the party (influence=%d)", cid, influence)
+
+                elif influence <= COMPANION_LOYALTY_THREATENS_LEAVE:
+                    companion_name = cid
+                    try:
+                        from backend.app.core.companions import get_companion_by_id as _get_comp
+                        comp_data = _get_comp(cid)
+                        if comp_data:
+                            companion_name = comp_data.get("name", cid)
+                    except Exception:
+                        pass
+                    loyalty_warnings.append(
+                        f"WARNING: {companion_name} threatens to leave (influence={influence}). "
+                        f"Show them voicing doubt, packing belongings, or confronting the player."
+                    )
+                    logger.info("Phase 6.2: Companion %s threatens to leave (influence=%d)", cid, influence)
+
+                elif influence <= COMPANION_LOYALTY_RELUCTANT:
+                    companion_name = cid
+                    try:
+                        from backend.app.core.companions import get_companion_by_id as _get_comp
+                        comp_data = _get_comp(cid)
+                        if comp_data:
+                            companion_name = comp_data.get("name", cid)
+                    except Exception:
+                        pass
+                    loyalty_warnings.append(
+                        f"NOTICE: {companion_name} is reluctant (influence={influence}). "
+                        f"They won't help with risky plans and may drag their feet."
+                    )
+
+            # Persist updated party state if any companion left
+            if companion_left_events:
+                ws_loyalty = dict(ws_loyalty)
+                _save_ps(ws_loyalty, ps_loyalty)
+                campaign_loyalty["world_state_json"] = ws_loyalty
+                # Update legacy party list
+                campaign_loyalty["party"] = list(ps_loyalty.active_companions)
+                state = {**state, "campaign": campaign_loyalty}
+
+            # Set loyalty flags in state for narrator and choice crafter
+            if loyalty_warnings:
+                state = {**state, "companion_loyalty_warnings": loyalty_warnings}
+            if companion_left_events:
+                pending = list(state.get("pending_companion_events") or [])
+                pending.extend(companion_left_events)
+                state = {**state, "pending_companion_events": pending}
+
+            # Set companion_threatens_leave flag for choice crafter hint
+            threatens_leave_names = []
+            for cid in ps_loyalty.active_companions:
+                cs = ps_loyalty.companion_states.get(cid)
+                if cs and cs.influence <= COMPANION_LOYALTY_THREATENS_LEAVE:
+                    companion_name = cid
+                    try:
+                        from backend.app.core.companions import get_companion_by_id as _get_comp
+                        comp_data = _get_comp(cid)
+                        if comp_data:
+                            companion_name = comp_data.get("name", cid)
+                    except Exception:
+                        pass
+                    threatens_leave_names.append(companion_name)
+            if threatens_leave_names:
+                state = {**state, "companion_threatens_leave": threatens_leave_names}
+
+    except Exception:
+        logger.debug("Phase 6.2: Loyalty stake check skipped", exc_info=True)
+
     # Check for companion-initiated events
     companion_events = check_companion_triggers(state)
     if companion_events:
