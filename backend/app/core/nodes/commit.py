@@ -19,7 +19,11 @@ from backend.app.core.projections import apply_projection  # noqa: E402
 from backend.app.core.state_loader import build_initial_gamestate, load_turn_history  # noqa: E402
 from backend.app.core.transcript_store import write_rendered_turn  # noqa: E402
 from backend.app.core.ledger import update_ledger, update_era_summaries  # noqa: E402
-from backend.app.constants import MEMORY_COMPRESSION_CHUNK_SIZE  # noqa: E402
+from backend.app.constants import (  # noqa: E402
+    MEMORY_COMPRESSION_CHUNK_SIZE,
+    MAINTENANCE_AGENT_FREQUENCY,
+    NPC_STATES_MAX,
+)
 from backend.app.core.story_position import advance_story_position  # noqa: E402
 from backend.app.core.encounter_throttle import (  # noqa: E402
     apply_last_location_update_from_event,
@@ -33,6 +37,134 @@ from backend.app.models.dialogue_turn import (  # noqa: E402
 )
 from backend.app.models.events import Event  # noqa: E402
 from backend.app.models.event_utils import ensure_event  # noqa: E402
+
+
+def _extract_latest_turn_from_memories(memories: list[Any]) -> int:
+    """Best-effort extraction of latest turn marker from memory strings."""
+    latest = 0
+    for item in memories or []:
+        if not isinstance(item, str):
+            continue
+        text = item.strip()
+        if not text:
+            continue
+        upper = text.upper()
+        if not upper.startswith("TURN "):
+            continue
+        digits = []
+        for ch in text[5:]:
+            if ch.isdigit():
+                digits.append(ch)
+            else:
+                break
+        if digits:
+            try:
+                latest = max(latest, int("".join(digits)))
+            except ValueError:
+                continue
+    return latest
+
+
+def _touch_and_cap_npc_states(world_state: dict[str, Any], present_npcs: list[dict[str, Any]], turn_number: int) -> None:
+    """Stamp present NPC recency and cap npc_states to the most recently seen entries."""
+    existing = world_state.get("npc_states") or {}
+    if not isinstance(existing, dict):
+        existing = {}
+
+    # Mark all currently present NPCs as seen this turn.
+    for npc in present_npcs or []:
+        if not isinstance(npc, dict):
+            continue
+        npc_id = str(npc.get("id") or "").strip()
+        npc_name = str(npc.get("name") or "").strip()
+        target_key = npc_id or npc_name
+        if not target_key:
+            continue
+        entry = existing.get(target_key)
+        if not isinstance(entry, dict):
+            entry = {}
+        entry["last_seen_turn"] = int(turn_number)
+        existing[target_key] = entry
+
+    if len(existing) <= NPC_STATES_MAX:
+        world_state["npc_states"] = existing
+        return
+
+    scored: list[tuple[str, int]] = []
+    for key, value in existing.items():
+        if not isinstance(value, dict):
+            scored.append((key, 0))
+            continue
+        seen_turn = value.get("last_seen_turn")
+        if isinstance(seen_turn, int):
+            score = seen_turn
+        else:
+            memories = value.get("memories") or []
+            score = _extract_latest_turn_from_memories(memories if isinstance(memories, list) else [])
+        scored.append((key, score))
+    scored.sort(key=lambda item: item[1], reverse=True)
+    keep_keys = {k for k, _ in scored[:NPC_STATES_MAX]}
+    world_state["npc_states"] = {k: v for k, v in existing.items() if k in keep_keys}
+
+
+def _derive_crystallized_memory(
+    *,
+    turn_number: int,
+    events: list[dict[str, Any]],
+    arc_stage: str | None,
+    hero_beat: str | None,
+    final_text: str,
+    location_id: str | None,
+    npcs_present: list[str],
+) -> dict[str, Any] | None:
+    """Build a crystallized-memory payload for major moments, if any."""
+    beat = (hero_beat or "").upper()
+    stage = (arc_stage or "").upper()
+
+    memory_type = ""
+    emotional_tag = ""
+    summary = ""
+
+    if beat in {"ORDEAL", "RESURRECTION"} or stage == "CLIMAX":
+        memory_type = "arc_climax"
+        emotional_tag = "revelation"
+        summary = f"Arc climax ({beat or stage}) reshaped the campaign's direction."
+    else:
+        for ev in events:
+            etype = str((ev or {}).get("event_type") or "").upper()
+            payload = (ev or {}).get("payload") or {}
+            payload_text = json.dumps(payload).upper() if isinstance(payload, dict) else ""
+            if "DEATH" in etype:
+                memory_type = "death"
+                emotional_tag = "loss"
+                summary = f"A major death event occurred ({etype})."
+                break
+            if etype in {"QUEST_COMPLETED", "QUEST_COMPLETE"} or "QUEST COMPLETED" in payload_text:
+                memory_type = "quest_completion"
+                emotional_tag = "triumph"
+                summary = "A key quest reached completion."
+                break
+            if "COMPANION" in etype and ("LOYAL" in etype or "TRUST" in etype or "LOYAL" in payload_text or "TRUST" in payload_text):
+                memory_type = "companion_event"
+                emotional_tag = "bond"
+                summary = "A companion relationship crossed a major loyalty threshold."
+                break
+
+    if not memory_type:
+        return None
+
+    prose = (final_text or "").strip()
+    if prose:
+        summary = prose[:280]
+    return {
+        "turn_number": int(turn_number),
+        "memory_type": memory_type,
+        "summary": summary[:400],
+        "full_text": prose[:2000],
+        "npcs_involved": [n for n in npcs_present[:10] if n],
+        "location": location_id,
+        "emotional_tag": emotional_tag or None,
+    }
 
 
 def make_commit_node():
@@ -95,6 +227,11 @@ def make_commit_node():
             if not conn.in_transaction:
                 conn.execute("BEGIN IMMEDIATE")
             next_turn_number = reserve_next_turn_number(conn, campaign_id)
+            run_maintenance_agents = (
+                intent != "META"
+                and next_turn_number > 0
+                and next_turn_number % MAINTENANCE_AGENT_FREQUENCY == 0
+            )
             if intent != "META":
                 pending = state.get("pending_world_time_minutes")
                 if pending is not None:
@@ -129,9 +266,9 @@ def make_commit_node():
                 final_text or "",
             )
             # V5.0: ContinuityAgent — authoritative LLM semantic pass on the ledger.
-            # Runs FIRST among LLM agents (Group 1) because others read ledger data.
-            from backend.app.core.agents.continuity_agent import ContinuityAgent  # noqa: E402
-            if final_text and intent != "META":
+            # Runs on maintenance turns to reduce commit-node latency.
+            if run_maintenance_agents and final_text and intent != "META":
+                from backend.app.core.agents.continuity_agent import ContinuityAgent  # noqa: E402
                 _cont_events = [
                     {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
                     for e in events
@@ -342,6 +479,8 @@ def make_commit_node():
             _quest_warnings: list[str] = []
 
             def _run_quest_weaver():
+                if not run_maintenance_agents:
+                    return
                 if not (final_text and intent != "META"):
                     return
                 _qw = QuestWeaverAgent()
@@ -416,7 +555,12 @@ def make_commit_node():
             _arc_state = _arc_g.get("arc_state") or {} if isinstance(_arc_g, dict) else {}
             _current_arc_stage = _arc_state.get("current_stage", "SETUP") if isinstance(_arc_state, dict) else "SETUP"
             _progression_interval = 5 if _current_arc_stage in ("RISING", "CLIMAX") else 10
-            if final_text and intent != "META" and next_turn_number % _progression_interval == 0:
+            if (
+                run_maintenance_agents
+                and final_text
+                and intent != "META"
+                and next_turn_number % _progression_interval == 0
+            ):
                 _prog_player = state.get("player")
                 _prog_stats: dict = {}
                 _prog_psych: dict = {}
@@ -450,7 +594,7 @@ def make_commit_node():
 
             # PsychArchivistAgent — authoritative psychological arc update every ~5 turns.
             from backend.app.core.agents.psych_archivist_agent import PsychArchivistAgent  # noqa: E402
-            if final_text and intent != "META" and next_turn_number % 5 == 0:
+            if run_maintenance_agents and final_text and intent != "META":
                 _psych_player = state.get("player")
                 _psych_profile: dict = {}
                 _psych_bg = ""
@@ -489,6 +633,12 @@ def make_commit_node():
                     campaign_id=campaign_id,
                     player_id=player_id,
                 )
+
+            _touch_and_cap_npc_states(
+                world_state=world_state,
+                present_npcs=[n for n in (state.get("present_npcs") or []) if isinstance(n, dict)],
+                turn_number=next_turn_number,
+            )
 
             # V5.0: NPC persistent memory — authoritative (deterministic, not LLM).
             from backend.app.core.npc_memory import (  # noqa: E402
@@ -595,6 +745,17 @@ def make_commit_node():
                     narrative_text=final_text or "",
                     prev_arc_stage=prev_arc,
                 )
+                crystallized = _derive_crystallized_memory(
+                    turn_number=next_turn_number,
+                    events=key_events_for_mem,
+                    arc_stage=cur_arc,
+                    hero_beat=cur_beat,
+                    final_text=final_text or "",
+                    location_id=state.get("current_location"),
+                    npcs_present=npcs_present,
+                )
+                if crystallized:
+                    epi.add_crystallized_memory(**crystallized)
                 # V3.1: Track pivotal events for scale advisor density scoring
                 from backend.app.core.episodic_memory import _is_pivotal  # noqa: E402
                 if _is_pivotal(key_events_for_mem, cur_arc, prev_arc, stress_lvl):
@@ -653,6 +814,9 @@ def make_commit_node():
         refreshed_dict["suggested_actions"] = suggested_actions
         refreshed_dict["embedded_suggestions"] = state.get("embedded_suggestions")
         refreshed_dict["lore_citations"] = state.get("lore_citations") or []
+        refreshed_dict["context_stats"] = state.get("context_stats")
+        refreshed_dict["agent_timings"] = state.get("agent_timings")
+        refreshed_dict["llm_timings"] = state.get("llm_timings")
         refreshed_dict["warnings"] = state.get("warnings") or []
 
         # V5.0: Surface consequence_hints from ledger for player UI

@@ -13,6 +13,12 @@ import re
 import sqlite3
 from typing import Any
 
+from backend.app.constants import (
+    MEMORY_CRYSTALLIZED_MAX,
+    MEMORY_HOT_TURNS,
+    MEMORY_WARM_TURNS,
+)
+
 logger = logging.getLogger(__name__)
 
 # Words too common to be useful keywords
@@ -139,6 +145,26 @@ def _is_pivotal(
     return False
 
 
+def _tier_limits(max_results: int) -> tuple[int, int, int]:
+    """Allocate retrieval slots across crystallized/warm/cold tiers."""
+    total = max(1, int(max_results or 1))
+    crystallized = max(1, round(total * 0.4))
+    warm = max(1, round(total * 0.4))
+    cold = max(0, total - crystallized - warm)
+    while crystallized + warm + cold > total:
+        if warm > 1:
+            warm -= 1
+        elif crystallized > 1:
+            crystallized -= 1
+        elif cold > 0:
+            cold -= 1
+        else:
+            break
+    while crystallized + warm + cold < total:
+        warm += 1
+    return crystallized, warm, cold
+
+
 class EpisodicMemory:
     """Store and recall episodic memories for a campaign.
 
@@ -158,6 +184,65 @@ class EpisodicMemory:
             return "embedding_json" in columns
         except (OSError, Exception):
             return False
+
+    def _has_crystallized_table(self) -> bool:
+        """Check if crystallized_memories table exists."""
+        try:
+            row = self._conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='crystallized_memories'"
+            ).fetchone()
+            return bool(row)
+        except (OSError, Exception):
+            return False
+
+    def add_crystallized_memory(
+        self,
+        turn_number: int,
+        memory_type: str,
+        summary: str,
+        full_text: str = "",
+        npcs_involved: list[str] | None = None,
+        location: str | None = None,
+        emotional_tag: str | None = None,
+    ) -> None:
+        """Persist a high-signal memory that should survive long campaigns."""
+        if not self._has_crystallized_table():
+            return
+        trimmed_summary = (summary or "").strip()
+        if not trimmed_summary:
+            return
+        npcs = [str(n).strip() for n in (npcs_involved or []) if str(n).strip()]
+        try:
+            self._conn.execute(
+                """INSERT INTO crystallized_memories
+                   (campaign_id, turn_number, memory_type, summary, full_text, npcs_involved, location, emotional_tag)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    self._campaign_id,
+                    int(turn_number),
+                    str(memory_type or "system"),
+                    trimmed_summary[:400],
+                    (full_text or "")[:2000],
+                    json.dumps(npcs[:10]),
+                    (location or "")[:120] or None,
+                    (emotional_tag or "")[:40] or None,
+                ),
+            )
+            # Keep most recent N crystallized memories per campaign.
+            self._conn.execute(
+                """DELETE FROM crystallized_memories
+                   WHERE campaign_id = ?
+                     AND id NOT IN (
+                       SELECT id
+                       FROM crystallized_memories
+                       WHERE campaign_id = ?
+                       ORDER BY turn_number DESC, id DESC
+                       LIMIT ?
+                     )""",
+                (self._campaign_id, self._campaign_id, MEMORY_CRYSTALLIZED_MAX),
+            )
+        except Exception as e:
+            logger.warning("Failed to store crystallized memory (non-fatal): %s", e)
 
     def store(
         self,
@@ -247,18 +332,7 @@ class EpisodicMemory:
         npcs: list[str] | None = None,
         max_results: int = 5,
     ) -> list[dict[str, Any]]:
-        """Recall relevant episodic memories using hybrid scoring.
-
-        V3.0 scoring (when embeddings available):
-        - Vector similarity: cosine_sim * 5.0 (primary signal)
-        - Keyword overlap: +1 per matching keyword (secondary)
-        - Pivotal bonus: +3 for pivotal moments
-        - Location match: +2 if same location
-        - NPC overlap: +1 per shared NPC
-        - Recency decay: score * (1 / (1 + distance * 0.05))
-
-        Falls back to keyword-only scoring if embeddings unavailable.
-        """
+        """Recall relevant episodic memories using hybrid + tiered scoring."""
         has_emb_col = self._has_embedding_column()
         select_cols = (
             "turn_number, location_id, npcs_present_json, "
@@ -287,7 +361,7 @@ class EpisodicMemory:
         query_keywords = set(_extract_keywords(query_text))
         npc_set = set(n.lower() for n in (npcs or []))
 
-        # V3.0: Compute query embedding for vector similarity
+        # Compute query embedding for vector similarity.
         query_embedding: list[float] | None = None
         if has_emb_col and query_text:
             query_embedding = _embed_text(query_text)
@@ -308,42 +382,36 @@ class EpisodicMemory:
             except (json.JSONDecodeError, TypeError, ValueError):
                 pass
 
-            # Score calculation
             score = 0.0
 
-            # V3.0: Vector similarity (primary signal when available)
+            # Vector similarity is the dominant retrieval signal when present.
             if query_embedding and emb_json:
                 try:
                     mem_embedding = json.loads(emb_json)
                     sim = _cosine_similarity(query_embedding, mem_embedding)
-                    score += max(0.0, sim) * 5.0  # Scale to make it dominant signal
+                    score += max(0.0, sim) * 5.0
                 except (json.JSONDecodeError, TypeError, ValueError):
                     pass
 
-            # Keyword overlap (secondary signal)
+            # Keyword overlap (secondary signal).
             if query_keywords:
                 overlap = len(query_keywords & mem_keywords)
                 score += overlap
 
-            # Pivotal bonus
             if pivotal:
                 score += 3.0
 
-            # Location match
             if location_id and loc and location_id.lower() == loc.lower():
                 score += 2.0
 
-            # NPC overlap
             if npc_set:
                 npc_overlap = len(npc_set & mem_npcs)
                 score += npc_overlap
 
-            # Recency decay
             distance = abs(current_turn - turn_num)
             recency_factor = 1.0 / (1.0 + distance * 0.05)
             score *= recency_factor
 
-            # Minimum relevance threshold
             if score < 0.5:
                 continue
 
@@ -364,11 +432,104 @@ class EpisodicMemory:
                 "is_pivotal": bool(pivotal),
                 "relevance_score": round(score, 2),
                 "narrative_summary": summary or "",
+                "memory_tier": (
+                    "hot" if distance <= MEMORY_HOT_TURNS
+                    else ("warm" if distance <= MEMORY_WARM_TURNS else "cold")
+                ),
             }))
 
-        # Sort by score descending, return top results
+        # Retrieve crystallized memories and blend by tier budget.
+        crystallized_scored: list[tuple[float, dict[str, Any]]] = []
+        if self._has_crystallized_table():
+            try:
+                c_rows = self._conn.execute(
+                    """SELECT turn_number, memory_type, summary, full_text, npcs_involved, location, emotional_tag
+                       FROM crystallized_memories
+                       WHERE campaign_id = ?
+                       ORDER BY turn_number DESC
+                       LIMIT 200""",
+                    (self._campaign_id,),
+                ).fetchall()
+                for row in c_rows:
+                    c_turn = int(row["turn_number"])
+                    c_summary = str(row["summary"] or "").strip()
+                    c_full = str(row["full_text"] or "").strip()
+                    c_loc = str(row["location"] or "").strip()
+                    c_tag = str(row["emotional_tag"] or "").strip()
+                    c_text = f"{c_summary} {c_full}".strip()
+                    c_keywords = set(_extract_keywords(c_text))
+                    try:
+                        c_npcs = [str(x).strip().lower() for x in json.loads(row["npcs_involved"] or "[]") if str(x).strip()]
+                    except (json.JSONDecodeError, TypeError, ValueError):
+                        c_npcs = []
+                    c_score = 2.5  # Base priority for crystallized memories.
+                    if query_keywords:
+                        c_score += len(query_keywords & c_keywords)
+                    if location_id and c_loc and location_id.lower() == c_loc.lower():
+                        c_score += 2.0
+                    if npc_set:
+                        c_score += len(npc_set & set(c_npcs))
+                    if c_tag:
+                        c_score += 0.5
+                    distance = abs(current_turn - c_turn)
+                    c_score *= 1.0 / (1.0 + distance * 0.03)
+                    if c_score < 0.5:
+                        continue
+                    crystallized_scored.append((
+                        c_score,
+                        {
+                            "turn_number": c_turn,
+                            "location_id": c_loc or None,
+                            "npcs_present": c_npcs,
+                            "key_events": [],
+                            "stress_level": 0,
+                            "arc_stage": None,
+                            "hero_beat": None,
+                            "keywords": list(c_keywords),
+                            "is_pivotal": True,
+                            "is_crystallized": True,
+                            "memory_type": str(row["memory_type"] or "system"),
+                            "relevance_score": round(c_score, 2),
+                            "narrative_summary": c_summary or c_full[:220],
+                        },
+                    ))
+            except Exception as e:
+                logger.warning("Failed to recall crystallized memories (non-fatal): %s", e)
+
         scored.sort(key=lambda x: x[0], reverse=True)
-        return [item[1] for item in scored[:max_results]]
+        crystallized_scored.sort(key=lambda x: x[0], reverse=True)
+
+        crystallized_limit, warm_limit, cold_limit = _tier_limits(max_results)
+        hot_or_warm = [item for item in scored if item[1].get("memory_tier") in {"hot", "warm"}]
+        cold = [item for item in scored if item[1].get("memory_tier") == "cold"]
+
+        out: list[dict[str, Any]] = []
+        out.extend([item[1] for item in crystallized_scored[:crystallized_limit]])
+        out.extend([item[1] for item in hot_or_warm[:warm_limit]])
+        out.extend([item[1] for item in cold[:cold_limit]])
+
+        if len(out) < max_results:
+            # Backfill from remaining non-selected memories by score.
+            used_turns = {(m.get("turn_number"), m.get("memory_type"), bool(m.get("is_crystallized"))) for m in out}
+            for _, mem in scored:
+                key = (mem.get("turn_number"), mem.get("memory_type"), bool(mem.get("is_crystallized")))
+                if key in used_turns:
+                    continue
+                out.append(mem)
+                used_turns.add(key)
+                if len(out) >= max_results:
+                    break
+            if len(out) < max_results:
+                for _, mem in crystallized_scored:
+                    key = (mem.get("turn_number"), mem.get("memory_type"), bool(mem.get("is_crystallized")))
+                    if key in used_turns:
+                        continue
+                    out.append(mem)
+                    used_turns.add(key)
+                    if len(out) >= max_results:
+                        break
+
+        return out[:max_results]
 
     def format_for_prompt(self, memories: list[dict], max_chars: int = 600) -> str:
         """Format recalled memories as a context block for LLM prompts."""
@@ -386,6 +547,7 @@ class EpisodicMemory:
             pivotal = mem.get("is_pivotal", False)
             beat = mem.get("hero_beat") or ""
             summary = mem.get("narrative_summary") or ""
+            is_crystallized = bool(mem.get("is_crystallized"))
 
             line_parts = [f"Turn {turn}"]
             if loc:
@@ -394,6 +556,8 @@ class EpisodicMemory:
                 line_parts.append(f"with {', '.join(npcs[:3])}")
             if beat:
                 line_parts.append(f"[{beat}]")
+            if is_crystallized:
+                line_parts.append("(CRYSTALLIZED)")
             if pivotal:
                 line_parts.append("(PIVOTAL)")
 
@@ -422,3 +586,154 @@ class EpisodicMemory:
             char_count += len(line) + 1
 
         return "\n".join(lines) if len(lines) > 1 else ""
+
+
+def _extract_open_threads(world_state: dict[str, Any]) -> list[str]:
+    """Extract open narrative threads from common world-state ledger locations."""
+    candidates: list[str] = []
+    for key in ("narrative_ledger", "ledger"):
+        ledger = world_state.get(key)
+        if not isinstance(ledger, dict):
+            continue
+        threads = ledger.get("open_threads") or ledger.get("active_threads")
+        if isinstance(threads, list):
+            for item in threads:
+                if isinstance(item, str) and item.strip():
+                    candidates.append(item.strip())
+                elif isinstance(item, dict):
+                    text = item.get("title") or item.get("text") or item.get("summary")
+                    if isinstance(text, str) and text.strip():
+                        candidates.append(text.strip())
+    seen: set[str] = set()
+    deduped: list[str] = []
+    for thread in candidates:
+        key = thread.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(thread)
+    return deduped[:5]
+
+
+def _extract_active_quests(world_state: dict[str, Any]) -> list[str]:
+    """Extract active quest names from quest_log variants."""
+    quest_log = world_state.get("quest_log")
+    if not isinstance(quest_log, dict):
+        return []
+
+    names: list[str] = []
+    active = quest_log.get("active")
+    if isinstance(active, list):
+        for item in active:
+            if isinstance(item, str) and item.strip():
+                names.append(item.strip())
+            elif isinstance(item, dict):
+                title = item.get("title") or item.get("name") or item.get("quest")
+                if isinstance(title, str) and title.strip():
+                    names.append(title.strip())
+
+    if not names:
+        for _, item in quest_log.items():
+            if not isinstance(item, dict):
+                continue
+            status = str(item.get("status") or "").lower()
+            if status not in {"active", "in_progress", "ongoing"}:
+                continue
+            title = item.get("title") or item.get("name") or item.get("quest")
+            if isinstance(title, str) and title.strip():
+                names.append(title.strip())
+
+    seen: set[str] = set()
+    deduped: list[str] = []
+    for name in names:
+        key = name.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(name)
+    return deduped[:5]
+
+
+def _event_to_summary(events_json: str | None) -> str:
+    """Best-effort narrative summary from key events JSON."""
+    if not events_json:
+        return ""
+    try:
+        events = json.loads(events_json)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return ""
+    if not isinstance(events, list):
+        return ""
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+        payload = event.get("payload") or {}
+        for field in ("text", "description", "summary"):
+            value = payload.get(field) if isinstance(payload, dict) else None
+            if isinstance(value, str) and value.strip():
+                return value.strip()[:220]
+        etype = event.get("event_type")
+        if isinstance(etype, str) and etype.strip():
+            return etype.replace("_", " ").title()
+    return ""
+
+
+def generate_story_summary(
+    conn: sqlite3.Connection,
+    campaign_id: str,
+    world_state: dict[str, Any] | None = None,
+    max_recent_memories: int = 5,
+) -> dict[str, Any]:
+    """Build a lightweight campaign recap for the play screen."""
+    ws = world_state if isinstance(world_state, dict) else {}
+    arc_stage = str(ws.get("arc_stage") or "SETUP").upper()
+    current_beat = str(ws.get("current_beat") or "")
+
+    open_threads = _extract_open_threads(ws)
+    active_quests = _extract_active_quests(ws)
+
+    recent_memories: list[str] = []
+    try:
+        cols = {
+            row[1]
+            for row in conn.execute("PRAGMA table_info(episodic_memories)").fetchall()
+        }
+        has_summary_col = "narrative_summary" in cols
+        if has_summary_col:
+            rows = conn.execute(
+                """SELECT turn_number, narrative_summary, key_events_json
+                   FROM episodic_memories
+                   WHERE campaign_id = ?
+                   ORDER BY turn_number DESC
+                   LIMIT ?""",
+                (campaign_id, max_recent_memories),
+            ).fetchall()
+            for row in rows:
+                summary = str(row["narrative_summary"] or "").strip()
+                if not summary:
+                    summary = _event_to_summary(row["key_events_json"])
+                if summary:
+                    recent_memories.append(summary)
+        else:
+            rows = conn.execute(
+                """SELECT turn_number, key_events_json
+                   FROM episodic_memories
+                   WHERE campaign_id = ?
+                   ORDER BY turn_number DESC
+                   LIMIT ?""",
+                (campaign_id, max_recent_memories),
+            ).fetchall()
+            for row in rows:
+                summary = _event_to_summary(row["key_events_json"])
+                if summary:
+                    recent_memories.append(summary)
+    except Exception as e:
+        logger.warning("Failed to build story summary memories (non-fatal): %s", e)
+
+    return {
+        "arc_stage": arc_stage,
+        "current_beat": current_beat,
+        "open_threads": open_threads,
+        "recent_memories": recent_memories[:max_recent_memories],
+        "active_quests": active_quests,
+    }

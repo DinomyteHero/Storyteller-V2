@@ -150,26 +150,45 @@ def _make_fallback_choices(
     loc: str,
     immediate_situation: str = "",
 ) -> list[dict[str, str]]:
-    """Deterministic 2-choice fallback when LLM fails.
+    """Deterministic 4-choice fallback when LLM fails.
 
-    Returns minimal but contextually grounded PARAGON + INVESTIGATE choices so the
-    turn can complete instead of hard-failing. Caller adds a warning to state.
+    Returns contextually grounded choices covering all 4 KOTOR tones,
+    preserving the dialogue wheel contract during degraded operation.
     """
     situation = immediate_situation or (final_text[-120:].strip() if final_text else "the current situation")
+    loc_short = loc.replace("loc-", "").replace("-", " ") if loc else "here"
     return [
         {
             "text": f"Act decisively in response to {situation[:60]}",
             "tone": "PARAGON",
             "meaning": "pragmatic",
             "risk": "RISKY",
+            "impact_tier": "ripple",
             "consequence_hint": "Your bold action shapes what happens next.",
         },
         {
-            "text": f"Hold back and carefully assess {loc}",
+            "text": f"Investigate {loc_short} for more information",
             "tone": "INVESTIGATE",
             "meaning": "seek_history",
             "risk": "SAFE",
+            "impact_tier": "ripple",
             "consequence_hint": "Taking stock reveals something important.",
+        },
+        {
+            "text": "Force the issue - push hard and see what breaks",
+            "tone": "RENEGADE",
+            "meaning": "make_demand",
+            "risk": "DANGEROUS",
+            "impact_tier": "wave",
+            "consequence_hint": "Aggression has consequences, but so does hesitation.",
+        },
+        {
+            "text": "Wait and observe from a safe position",
+            "tone": "NEUTRAL",
+            "meaning": "deflect",
+            "risk": "SAFE",
+            "impact_tier": "ripple",
+            "consequence_hint": "Patience sometimes reveals what haste would miss.",
         },
     ]
 
@@ -182,6 +201,7 @@ def _to_action_suggestions(items: list[dict[str, str]]) -> list[ActionSuggestion
         tone = item.get("tone", "NEUTRAL").upper()
         meaning = item.get("meaning", "")
         risk = item.get("risk", "SAFE").upper()
+        impact_tier = str(item.get("impact_tier") or "ripple").lower()
         hint = item.get("consequence_hint", "")
 
         suggestion = classify_suggestion(text, meaning_tag=meaning)
@@ -192,6 +212,7 @@ def _to_action_suggestions(items: list[dict[str, str]]) -> list[ActionSuggestion
             suggestion.risk_level = risk
         if hint:
             suggestion.consequence_hint = hint
+        suggestion.impact_tier = impact_tier if impact_tier in {"ripple", "wave", "tsunami"} else "ripple"
         suggestions.append(suggestion)
     return suggestions
 
@@ -200,24 +221,31 @@ def make_choice_crafter_node():
     """Factory: returns a LangGraph node function for LLM-driven choice generation."""
 
     def choice_crafter_node(state: dict[str, Any]) -> dict[str, Any]:
-        """Generate player choices using LLM. Falls back to 2-choice degraded output on LLM failure."""
+        """Generate player choices using LLM. Falls back to 4-choice degraded output on LLM failure."""
         final_text = state.get("final_text") or ""
         if not final_text.strip():
             raise ValueError("ChoiceCrafter: no final_text available for choice generation")
 
         gs = GameState.model_validate(state) if not isinstance(state, GameState) else state
+        pre_context = state.get("choice_crafter_pre_context") or {}
+        if not isinstance(pre_context, dict):
+            pre_context = {}
 
         # Build location string
-        loc = gs.current_location or "here"
+        loc = str(pre_context.get("location") or gs.current_location or "here")
 
         # NPC descriptions
-        npcs = gs.present_npcs or []
-        npc_descriptions = []
-        for n in npcs:
-            name = n.get("name", "")
-            role = n.get("role", "stranger")
-            if name:
-                npc_descriptions.append(f"{name} ({role})")
+        npc_descriptions = pre_context.get("npc_descriptions")
+        if isinstance(npc_descriptions, list):
+            npc_descriptions = [str(n) for n in npc_descriptions if n]
+        else:
+            npcs = gs.present_npcs or []
+            npc_descriptions = []
+            for n in npcs:
+                name = n.get("name", "")
+                role = n.get("role", "stranger")
+                if name:
+                    npc_descriptions.append(f"{name} ({role})")
 
         # Mechanic summary
         mechanic_summary = None
@@ -234,16 +262,19 @@ def make_choice_crafter_node():
         # NPC utterance and scene context
         npc_utt = state.get("npc_utterance") or {}
         npc_utterance_text = npc_utt.get("text", "") if isinstance(npc_utt, dict) else ""
-        scene_frame = state.get("scene_frame") or {}
-        topic_primary = scene_frame.get("topic_primary", "") if isinstance(scene_frame, dict) else ""
-        subtext = scene_frame.get("subtext", "") if isinstance(scene_frame, dict) else ""
-        npc_agenda = scene_frame.get("npc_agenda", "") if isinstance(scene_frame, dict) else ""
+        scene_frame = pre_context.get("scene_frame") if isinstance(pre_context.get("scene_frame"), dict) else (state.get("scene_frame") or {})
+        topic_primary = str(pre_context.get("topic_primary") or (scene_frame.get("topic_primary", "") if isinstance(scene_frame, dict) else ""))
+        subtext = str(pre_context.get("subtext") or (scene_frame.get("subtext", "") if isinstance(scene_frame, dict) else ""))
+        npc_agenda = str(pre_context.get("npc_agenda") or (scene_frame.get("npc_agenda", "") if isinstance(scene_frame, dict) else ""))
 
         # Companion, history, consequence, arc, and stat context
         companion_hint = _build_companion_hint(gs)
         player_history_hint = _build_player_history_hint(gs)
         consequence_hints = _get_consequence_hints(gs)
-        arc_stage, tension_level = _get_arc_context(gs)
+        arc_stage = str(pre_context.get("arc_stage") or "")
+        tension_level = str(pre_context.get("tension_level") or "")
+        if not arc_stage and not tension_level:
+            arc_stage, tension_level = _get_arc_context(gs)
         stat_summary = _build_stat_summary(gs)
 
         # Setting style
@@ -252,12 +283,12 @@ def make_choice_crafter_node():
         setting_style = sr.suggestion_style
 
         # Director intent
-        director_intent = str((state.get("director_instructions") or ""))[:300]
+        director_intent = str(pre_context.get("director_intent") or (state.get("director_instructions") or ""))[:300]
 
         # GM Context Object (from scene_frame_node)
-        gm_context = state.get("gm_context") or ""
+        gm_context = str(pre_context.get("gm_context") or state.get("gm_context") or "")
 
-        # Generate choices via LLM (with degraded 2-choice fallback on failure)
+        # Generate choices via LLM (with degraded 4-choice fallback on failure)
         _use_fallback = False
         try:
             items = generate_choices(
@@ -280,13 +311,13 @@ def make_choice_crafter_node():
                 gm_context=gm_context,
             )
         except Exception as e:
-            logger.warning("ChoiceCrafter LLM failed (%s); using 2-choice degraded fallback", e)
+            logger.warning("ChoiceCrafter LLM failed (%s); using 4-choice degraded fallback", e)
             immediate_situation = scene_frame.get("immediate_situation", "") if isinstance(scene_frame, dict) else ""
             items = _make_fallback_choices(final_text, loc, immediate_situation)
             _use_fallback = True
 
         if _use_fallback:
-            add_warning(gs, "ChoiceCrafter: LLM failed; showing 2-choice degraded options.")
+            add_warning(gs, "ChoiceCrafter: LLM failed; showing degraded options.")
 
         # Convert to ActionSuggestions
         suggestions = _to_action_suggestions(items)

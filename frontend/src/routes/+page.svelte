@@ -82,6 +82,19 @@
       return iso;
     }
   }
+
+  function campaignGroups(): Array<{ key: string; label: string; items: SavedCampaign[] }> {
+    const groups = new Map<string, { key: string; label: string; items: SavedCampaign[] }>();
+    for (const campaign of savedCampaigns) {
+      const sagaKey = campaign.sagaId ? `saga:${campaign.sagaId}` : 'standalone';
+      const label = campaign.sagaTitle || (campaign.sagaId ? `Saga ${campaign.sagaId.slice(0, 8)}` : 'Standalone Campaigns');
+      if (!groups.has(sagaKey)) {
+        groups.set(sagaKey, { key: sagaKey, label, items: [] });
+      }
+      groups.get(sagaKey)!.items.push(campaign);
+    }
+    return Array.from(groups.values());
+  }
 </script>
 
 <div class="menu-container" role="main">
@@ -132,38 +145,48 @@
         <p class="empty-state">No saved campaigns found. Start a new campaign first!</p>
       {:else}
         <div class="campaign-list">
-          {#each savedCampaigns as campaign}
-            <div class="campaign-entry card" class:loading={loadingCampaignId === campaign.campaignId}>
-              <div class="campaign-info">
-                <div class="campaign-name">{campaign.playerName}</div>
-                <div class="campaign-details">
-                  <span class="campaign-era">{ERA_LABELS[campaign.era] ?? campaign.era}</span>
-                  {#if campaign.background}
-                    <span class="campaign-bg">· {campaign.background}</span>
-                  {/if}
+          {#each campaignGroups() as group}
+            <div class="campaign-group">
+              <h3 class="campaign-group-title">{group.label}</h3>
+              {#each group.items as campaign}
+                <div class="campaign-entry card" class:loading={loadingCampaignId === campaign.campaignId}>
+                  <div class="campaign-info">
+                    <div class="campaign-name">
+                      {campaign.playerName}
+                      {#if campaign.sagaChapter}
+                        <span class="campaign-chapter">Chapter {campaign.sagaChapter}</span>
+                      {/if}
+                    </div>
+                    <div class="campaign-details">
+                      <span class="campaign-era">{ERA_LABELS[campaign.era] ?? campaign.era}</span>
+                      {#if campaign.background}
+                        <span class="campaign-bg">· {campaign.background}</span>
+                      {/if}
+                    </div>
+                    <div class="campaign-meta">
+                      <span>{campaign.turnCount} {campaign.turnCount === 1 ? 'turn' : 'turns'}</span>
+                      <span>·</span>
+                      <span>{formatDate(campaign.lastPlayedAt)}</span>
+                    </div>
+                  </div>
+                  <div class="campaign-actions">
+                    <button
+                      class="btn btn-primary campaign-resume press-scale"
+                      disabled={loadingCampaignId !== null}
+                      onclick={() => resumeCampaign(campaign)}
+                    >
+                      {loadingCampaignId === campaign.campaignId ? 'Loading...' : 'Resume'}
+                    </button>
+                    <button
+                      class="btn campaign-delete press-scale"
+                      disabled={loadingCampaignId !== null}
+                      onclick={() => deleteCampaign(campaign.campaignId)}
+                      title="Remove from list"
+                      aria-label="Remove {campaign.playerName} from saved campaigns"
+                    >✕</button>
+                  </div>
                 </div>
-                <div class="campaign-meta">
-                  <span>{campaign.turnCount} {campaign.turnCount === 1 ? 'turn' : 'turns'}</span>
-                  <span>·</span>
-                  <span>{formatDate(campaign.lastPlayedAt)}</span>
-                </div>
-              </div>
-              <div class="campaign-actions">
-                <button
-                  class="btn btn-primary campaign-resume press-scale"
-                  disabled={loadingCampaignId !== null}
-                  onclick={() => resumeCampaign(campaign)}
-                >
-                  {loadingCampaignId === campaign.campaignId ? 'Loading...' : 'Resume'}
-                </button>
-                <button
-                  class="btn campaign-delete press-scale"
-                  disabled={loadingCampaignId !== null}
-                  onclick={() => deleteCampaign(campaign.campaignId)}
-                  title="Remove from list"
-                  aria-label="Remove {campaign.playerName} from saved campaigns"
-                >✕</button>
-              </div>
+              {/each}
             </div>
           {/each}
         </div>
@@ -331,10 +354,22 @@
   .campaign-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 14px;
     margin-top: 16px;
     max-height: 50vh;
     overflow-y: auto;
+  }
+  .campaign-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .campaign-group-title {
+    margin: 0;
+    font-size: var(--font-small);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
   }
   .campaign-entry {
     display: flex;
@@ -354,6 +389,17 @@
     font-weight: 600;
     color: var(--text-heading);
     font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .campaign-chapter {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    border: 1px solid var(--border-subtle);
+    padding: 1px 6px;
+    border-radius: 999px;
   }
   .campaign-details {
     font-size: var(--font-small);

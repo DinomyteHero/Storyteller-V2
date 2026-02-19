@@ -161,6 +161,7 @@ export interface TurnResponse {
   news_feed: NewsFeedItem[] | null;
   warnings: string[];
   debug?: Record<string, unknown>;
+  agent_timings?: Record<string, unknown> | null;
   // V2.17: DialogueTurn contract (primary UI source when available)
   dialogue_turn?: DialogueTurn | null;
   turn_contract?: TurnContract | null;
@@ -200,6 +201,9 @@ export interface SetupAutoRequest {
   background_id: string | null;
   background_answers: Record<string, number>;
   player_gender: string;
+  player_profile_id?: string | null;
+  legacy_id?: number | null;
+  saga_id?: string | null;
   // V3.1: Campaign scale and mode
   campaign_scale?: string;
   campaign_mode?: string;
@@ -207,6 +211,8 @@ export interface SetupAutoRequest {
   difficulty?: string;
   // Phase 0.7: Species selection
   species_id?: string | null;
+  // Phase 6.1: Quick Start setup path
+  quick_start?: boolean;
 }
 
 export interface SetupAutoResponse {
@@ -214,6 +220,8 @@ export interface SetupAutoResponse {
   player_id: string;
   skeleton: Record<string, unknown>;
   character_sheet: Record<string, unknown>;
+  saga_id?: string | null;
+  saga_chapter?: number | null;
 }
 
 export interface Intent {
@@ -241,6 +249,15 @@ export interface TranscriptResponse {
   turns: TranscriptTurn[];
 }
 
+export interface StorySummaryResponse {
+  campaign_id: string;
+  arc_stage: string;
+  current_beat: string;
+  open_threads: string[];
+  recent_memories: string[];
+  active_quests: string[];
+}
+
 export interface SSEEvent {
   type: 'token' | 'done' | 'error';
   text?: string;
@@ -257,6 +274,7 @@ export interface SSEEvent {
   faction_reputation?: Record<string, number> | null;
   news_feed?: NewsFeedItem[] | null;
   warnings?: string[];
+  agent_timings?: Record<string, unknown> | null;
   // V2.17: DialogueTurn contract
   dialogue_turn?: DialogueTurn | null;
   turn_contract?: TurnContract | null;

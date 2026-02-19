@@ -16,6 +16,9 @@ export interface SavedCampaign {
   playerName: string;
   era: string;
   background: string | null;
+  sagaId?: string | null;
+  sagaChapter?: number | null;
+  sagaTitle?: string | null;
   createdAt: string; // ISO timestamp
   lastPlayedAt: string; // ISO timestamp
   turnCount: number;

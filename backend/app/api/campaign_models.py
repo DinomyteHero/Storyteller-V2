@@ -46,6 +46,9 @@ class SetupAutoRequest(BaseModel):
     player_gender: str | None = None  # "male" or "female"
     # V2.10: Cross-campaign legacy — link to player profile
     player_profile_id: str | None = None
+    # Phase 3.3/3.4: continue an existing saga / legacy thread
+    legacy_id: int | None = None
+    saga_id: str | None = None
     # V3.0: Campaign mode — "historical" (lore immutable) or "sandbox" (player reshapes galaxy)
     campaign_mode: str = "historical"
     # V3.1: Campaign scale — controls NPC/location/quest density
@@ -54,6 +57,8 @@ class SetupAutoRequest(BaseModel):
     difficulty: str = "normal"  # easy | normal | hard
     # Phase 0.7: Species selection (written to world_state_json["species_id"])
     species_id: str | None = None
+    # Phase 6.1: Quick Start setup path (auto-defaults for missing fields).
+    quick_start: bool = False
 
 
 class SetupAutoResponse(BaseModel):
@@ -61,6 +66,8 @@ class SetupAutoResponse(BaseModel):
     player_id: str
     skeleton: dict
     character_sheet: dict
+    saga_id: str | None = None
+    saga_chapter: int | None = None
 
 
 class ContentCatalogEntry(BaseModel):
@@ -142,6 +149,8 @@ class TurnResponse(BaseModel):
     news_feed: list[dict] | None = None
     # Dev-only context stats (token budgeting info)
     context_stats: dict | None = None
+    # Dev-only node/agent timing stats
+    agent_timings: dict | None = None
     # Warning messages (LLM/RAG fallbacks, degradations)
     warnings: list[str] = Field(default_factory=list)
     # V2.17: Canonical DialogueTurn (scene + NPC utterance + player responses)
@@ -168,4 +177,43 @@ class CampaignSummary(BaseModel):
 
 class CampaignListResponse(BaseModel):
     items: list[CampaignSummary]
+
+
+class StorySummaryResponse(BaseModel):
+    campaign_id: str
+    arc_stage: str
+    current_beat: str = ""
+    open_threads: list[str] = Field(default_factory=list)
+    recent_memories: list[str] = Field(default_factory=list)
+    active_quests: list[str] = Field(default_factory=list)
+
+
+class SagaCreateRequest(BaseModel):
+    player_id: str
+    universe_id: str
+    title: str
+
+
+class SagaSummary(BaseModel):
+    saga_id: str
+    player_id: str
+    universe_id: str
+    title: str
+    created_at: str | None = None
+    updated_at: str | None = None
+    campaign_count: int = 0
+
+
+class SagaCampaignSummary(BaseModel):
+    campaign_id: str
+    title: str
+    time_period: str | None = None
+    saga_chapter: int = 1
+    updated_at: str | None = None
+    legacy_excerpt: str | None = None
+
+
+class SagaDetailResponse(BaseModel):
+    saga: SagaSummary
+    campaigns: list[SagaCampaignSummary] = Field(default_factory=list)
 

@@ -58,11 +58,19 @@ def _collect_environment_diagnostics() -> dict:
         models = [m.get("name", "") for m in resp.json().get("models", [])]
         checks["ollama"] = {
             "ok": True,
+            "status": "reachable",
             "url": ollama_url,
             "models_loaded": len(models),
+            "message": "Ollama is reachable.",
         }
     except Exception as e:
-        checks["ollama"] = {"ok": False, "url": ollama_url, "error": str(e)}
+        checks["ollama"] = {
+            "ok": False,
+            "status": "unreachable",
+            "url": ollama_url,
+            "error": str(e),
+            "message": "Story engine unavailable. Start Ollama with: ollama serve",
+        }
 
     data_root_ok = DATA_ROOT.exists()
     checks["data_root"] = {"ok": data_root_ok, "path": str(DATA_ROOT)}
@@ -209,7 +217,7 @@ async def auth_middleware(request: Request, call_next):
     if not API_TOKEN:
         return await call_next(request)
     path = request.url.path or ""
-    if path in ("/", "/health"):
+    if path in ("/", "/health", "/health/detail"):
         return await call_next(request)
     if DEV_MODE and (path.startswith("/docs") or path.startswith("/redoc") or path.startswith("/openapi")):
         return await call_next(request)

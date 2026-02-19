@@ -84,6 +84,23 @@ legends_timeline:
     - "Emperor Palpatine (ruler of the Galactic Empire)"
     - "Jabba the Hutt (crime lord, Tatooine)"
 
+# Phase 4.2: historical canon-character proximity zones.
+# cameo: visible flavor only, not interactable.
+# interaction: brief interaction allowed, but fate remains canon-protected.
+# exclusion: player is redirected away when exclusion_events context is active.
+canon_characters:
+  - name: "Luke Skywalker"
+    proximity: cameo
+    locations: [loc-cantina, loc-rebel-base]
+    exclusion_events:
+      - "Battle of Yavin trench run"
+  - name: "Darth Vader"
+    proximity: cameo
+    locations: [loc-imperial-outpost, loc-docking-bay]
+    exclusion_events:
+      - "Bespin confrontation"
+      - "Endor throne room"
+
 # V3.2: Universe rules — setting-specific text for agent prompts.
 setting_rules:
   setting_name: "Star Wars Legends"

@@ -1,7 +1,8 @@
 """Test AgentLLM provider configuration and multi-provider support."""
 import unittest
+from types import SimpleNamespace
 
-from backend.app.core.agents.base import AgentLLM
+from backend.app.core.agents.base import AgentLLM, get_llm_timings, reset_llm_timings
 
 
 class TestAgentLLMProviders(unittest.TestCase):
@@ -33,3 +34,17 @@ class TestAgentLLMProviders(unittest.TestCase):
         """Unknown role should raise ValueError at init."""
         with self.assertRaises(ValueError):
             AgentLLM("nonexistent_role")
+
+    def test_complete_records_llm_timing(self):
+        """AgentLLM.complete records per-role timing metrics."""
+        llm = AgentLLM("director")
+        mock_client = SimpleNamespace(complete=lambda _u, _s, json_mode=False: "ok")
+        llm._client = mock_client
+        llm._config["provider"] = "openai_compat"
+
+        reset_llm_timings()
+        out = llm.complete(system_prompt="sys", user_prompt="usr", json_mode=False)
+        self.assertEqual(str(out), "ok")
+        timings = get_llm_timings()
+        self.assertIn("director", timings)
+        self.assertEqual(timings["director"]["count"], 1)

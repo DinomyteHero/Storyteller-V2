@@ -93,6 +93,22 @@ legends_timeline:
     - "Saw Gerrera (partisan resistance leader)"
 
 # V3.2: Universe rules — setting-specific text for agent prompts.
+canon_characters:
+  - name: "Darth Vader"
+    proximity: cameo
+    locations: [loc-imperial-outpost, loc-docking-bay]
+    exclusion_events:
+      - "Order 66 aftermath"
+      - "Mustafar audience with the Emperor"
+  - name: "Emperor Palpatine"
+    proximity: exclusion
+    locations: [loc-imperial-outpost]
+    exclusion_events:
+      - "Imperial succession council"
+  - name: "Mon Mothma"
+    proximity: interaction
+    locations: [loc-rebel-base, loc-docking-bay]
+
 setting_rules:
   setting_name: "Star Wars Legends"
   setting_genre: "science fantasy"

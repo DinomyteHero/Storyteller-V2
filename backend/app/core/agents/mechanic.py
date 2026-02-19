@@ -13,9 +13,12 @@ The MechanicAgent class is kept as the stable public interface so that the LangG
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any
 
+from backend.app.constants import SANDBOX_ARC_STAGE_ORDER, SANDBOX_IMPACT_TIERS
 from backend.app.models.state import (
+    ActionSuggestion,
     GameState,
     MechanicOutput,
     TONE_TAG_PARAGON,
@@ -36,6 +39,126 @@ _ACTION_ITEM_TAGS: dict[str, list[str]] = {
     "INTERACT": ["tool", "document", "key"],
     "HEAL": ["consumable", "medical"],
 }
+
+
+def _world_state_from_campaign(campaign: Any) -> dict[str, Any]:
+    if not isinstance(campaign, dict):
+        return {}
+    ws = campaign.get("world_state_json") or {}
+    return ws if isinstance(ws, dict) else {}
+
+
+def _campaign_mode(state: GameState) -> str:
+    ws = _world_state_from_campaign(state.campaign)
+    return str(ws.get("campaign_mode") or "historical").strip().lower()
+
+
+def _arc_stage(state: GameState) -> str:
+    ws = _world_state_from_campaign(state.campaign)
+    arc_state = ws.get("arc_state") if isinstance(ws, dict) else {}
+    if isinstance(arc_state, dict):
+        stage = str(arc_state.get("current_stage") or "").strip().upper()
+        if stage:
+            return stage
+    arc_guidance = state.arc_guidance or {}
+    if isinstance(arc_guidance, dict):
+        stage = str(arc_guidance.get("arc_stage") or "").strip().upper()
+        if stage:
+            return stage
+        nested = arc_guidance.get("arc_state")
+        if isinstance(nested, dict):
+            stage = str(nested.get("current_stage") or "").strip().upper()
+            if stage:
+                return stage
+    return "SETUP"
+
+
+def _impact_from_text(user_input: str) -> str:
+    text = (user_input or "").lower()
+    if re.search(r"\[(tsunami)\]", text):
+        return "tsunami"
+    if re.search(r"\[(wave)\]", text):
+        return "wave"
+    if re.search(r"\[(ripple)\]", text):
+        return "ripple"
+    tsunami_markers = (
+        "destroy planet",
+        "wipe out",
+        "galaxy",
+        "world order",
+        "annihilate",
+    )
+    wave_markers = (
+        "kill the leader",
+        "assassinate",
+        "overthrow",
+        "declare war",
+        "sabotage",
+        "destroy the",
+    )
+    if any(marker in text for marker in tsunami_markers):
+        return "tsunami"
+    if any(marker in text for marker in wave_markers):
+        return "wave"
+    return "ripple"
+
+
+def _suggestion_text(suggestion: ActionSuggestion | dict[str, Any]) -> str:
+    if isinstance(suggestion, ActionSuggestion):
+        return suggestion.intent_text or suggestion.label or ""
+    if isinstance(suggestion, dict):
+        return str(suggestion.get("intent_text") or suggestion.get("label") or "")
+    return ""
+
+
+def _suggestion_impact_tier(suggestion: ActionSuggestion | dict[str, Any]) -> str:
+    if isinstance(suggestion, ActionSuggestion):
+        tier = suggestion.impact_tier
+    elif isinstance(suggestion, dict):
+        tier = suggestion.get("impact_tier") or "ripple"
+    else:
+        tier = "ripple"
+    tier_l = str(tier).strip().lower()
+    return tier_l if tier_l in SANDBOX_IMPACT_TIERS else "ripple"
+
+
+def _selected_impact_tier(state: GameState) -> str:
+    user_input = (state.user_input or "").strip().lower()
+    suggestions = list(state.suggested_actions or [])
+    if user_input and suggestions:
+        # 1) Exact/contained match against current action suggestions.
+        for suggestion in suggestions:
+            s_text = _suggestion_text(suggestion).strip().lower()
+            if not s_text:
+                continue
+            if user_input == s_text or user_input in s_text or s_text in user_input:
+                return _suggestion_impact_tier(suggestion)
+        # 2) Fuzzy overlap fallback.
+        user_words = set(re.findall(r"[a-z0-9']+", user_input))
+        if user_words:
+            best_score = 0.0
+            best_tier = "ripple"
+            for suggestion in suggestions:
+                s_words = set(re.findall(r"[a-z0-9']+", _suggestion_text(suggestion).lower()))
+                if not s_words:
+                    continue
+                overlap = len(user_words & s_words)
+                score = overlap / max(1, len(s_words))
+                if score > best_score:
+                    best_score = score
+                    best_tier = _suggestion_impact_tier(suggestion)
+            if best_score >= 0.55:
+                return best_tier
+    # 3) Text-only heuristic when no suggestion match is available.
+    return _impact_from_text(state.user_input or "")
+
+
+def _stage_allows_impact(arc_stage: str, impact_tier: str) -> bool:
+    tier_cfg = SANDBOX_IMPACT_TIERS.get(impact_tier) or SANDBOX_IMPACT_TIERS["ripple"]
+    required_stage = str(tier_cfg.get("min_arc_stage") or "SETUP").upper()
+    cur_rank = SANDBOX_ARC_STAGE_ORDER.get((arc_stage or "SETUP").upper(), 0)
+    req_rank = SANDBOX_ARC_STAGE_ORDER.get(required_stage, 0)
+    return cur_rank >= req_rank
 
 
 def _compute_item_modifiers(
@@ -157,8 +280,56 @@ class MechanicAgent:
                 difficulty="Trivial",
             )
 
+        mode = _campaign_mode(state)
+        impact_tier = "ripple"
+        arc_stage = _arc_stage(state)
+        if mode == "sandbox":
+            impact_tier = _selected_impact_tier(state)
+            if not _stage_allows_impact(arc_stage, impact_tier):
+                required = str(SANDBOX_IMPACT_TIERS[impact_tier]["min_arc_stage"]).upper()
+                return MechanicOutput(
+                    action_type="ACTION",
+                    time_cost_minutes=0,
+                    events=[],
+                    narrative_facts=[
+                        f"Sandbox impact gate: {impact_tier.upper()} requires arc stage {required} or later.",
+                    ],
+                    outcome_summary=(
+                        f"That action is too world-altering for this point in the story "
+                        f"(current stage: {arc_stage}, required: {required})."
+                    ),
+                    tone_tag=TONE_TAG_NEUTRAL,
+                    invalid_action=True,
+                    rephrase_message=(
+                        f"That is a {impact_tier} action and unlocks at {required}. "
+                        "Try a smaller action for now."
+                    ),
+                    dice_result="Failure",
+                    difficulty="Trivial",
+                )
+
         # All other intents: delegate to LLM ResolutionAgent
         result = self._resolver.resolve(state)
+
+        # Phase 4.3: Sandbox impact-tier pressure on mechanics.
+        if mode == "sandbox":
+            tier_cfg = SANDBOX_IMPACT_TIERS.get(impact_tier) or SANDBOX_IMPACT_TIERS["ripple"]
+            dc_mod = int(tier_cfg.get("dc_modifier") or 0)
+            if dc_mod:
+                result.modifiers = list(result.modifiers or []) + [
+                    {"source": f"sandbox_impact:{impact_tier}", "value": dc_mod}
+                ]
+                if result.dc is not None:
+                    result.dc = int(result.dc) + dc_mod
+                updated_checks = []
+                for c in list(result.checks or []):
+                    if c.dc is not None:
+                        c.dc = int(c.dc) + dc_mod
+                    updated_checks.append(c)
+                result.checks = updated_checks
+            facts = list(result.narrative_facts or [])
+            facts.append(f"Sandbox impact tier: {impact_tier}.")
+            result.narrative_facts = facts
 
         # Phase 4.4: Apply item difficulty modifiers from player inventory
         try:

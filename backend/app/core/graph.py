@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
+import time
 from typing import Any
 
 from langgraph.graph import END, StateGraph
@@ -22,6 +23,7 @@ from backend.app.core.nodes.narrator import make_narrator_node
 from backend.app.core.nodes.narrative_validator import narrative_validator_node
 from backend.app.core.nodes.choice_crafter_node import make_choice_crafter_node
 from backend.app.core.nodes.commit import make_commit_node
+from backend.app.core.agents.base import get_llm_timings, reset_llm_timings
 # Lazy singleton: compiled on first use so module import is side-effect-free.
 # The compiled graph contains no connection references -- conn is injected via
 # state["__runtime_conn"] at each invocation so there is no stale-capture risk.
@@ -98,6 +100,42 @@ def _get_compiled_graph():
     return _COMPILED_GRAPH
 
 
+def _run_pipeline_with_timings(state: dict[str, Any]) -> dict[str, Any]:
+    """Execute the turn pipeline step-by-step while collecting per-node timings."""
+    timings: dict[str, float] = {}
+
+    def _time_step(name: str, fn, st: dict[str, Any]) -> dict[str, Any]:
+        t0 = time.perf_counter()
+        out = fn(st)
+        timings[name] = round(time.perf_counter() - t0, 3)
+        return out
+
+    s = _time_step("router", router_node, state)
+    if s.get("intent") == "META":
+        s = _time_step("meta", meta_node, s)
+        s = _time_step("commit", make_commit_node(), s)
+    else:
+        if s.get("intent") != "TALK":
+            s = _time_step("mechanic", make_mechanic_node(), s)
+        s = _time_step("encounter", make_encounter_node(), s)
+        s = _time_step("world_sim", make_world_sim_node(), s)
+        s = _time_step("companion_reaction", companion_reaction_node, s)
+        s = _time_step("moments", moments_node, s)
+        s = _time_step("arc_planner", arc_planner_node, s)
+        s = _time_step("scene_frame", scene_frame_node, s)
+        s = _time_step("director", make_director_node(), s)
+        s = _time_step("narrator", make_narrator_node(), s)
+        s = _time_step("narrative_validator", narrative_validator_node, s)
+        s = _time_step("choice_crafter", make_choice_crafter_node(), s)
+        s = _time_step("commit", make_commit_node(), s)
+
+    s["agent_timings"] = timings
+    llm_timings = get_llm_timings()
+    if llm_timings:
+        s["llm_timings"] = llm_timings
+    return s
+
+
 def run_turn(conn: sqlite3.Connection, state: GameState) -> GameState:
     """Run the compiled graph for one turn; return updated GameState with final_text and suggested_actions.
 
@@ -111,16 +149,15 @@ def run_turn(conn: sqlite3.Connection, state: GameState) -> GameState:
     structured error in the GameState (final_text with error message, empty suggestions).
     """
     import logging
-    import time
-
     from backend.app.core.error_handling import AgentFailureError
 
     _logger = logging.getLogger(__name__)
     initial = state_to_dict(state)
     initial["__runtime_conn"] = conn
+    reset_llm_timings()
     t0 = time.monotonic()
     try:
-        result = _get_compiled_graph().invoke(initial)
+        result = _run_pipeline_with_timings(initial)
     except AgentFailureError as afe:
         elapsed = time.monotonic() - t0
         _logger.error(
@@ -141,6 +178,8 @@ def run_turn(conn: sqlite3.Connection, state: GameState) -> GameState:
         error_dict["warnings"] = list(error_dict.get("warnings") or []) + [
             f"[AGENT_FAILURE] {afe.agent_name}: {afe.original_error}"
         ]
+        error_dict["agent_timings"] = {}
+        error_dict["llm_timings"] = get_llm_timings()
         return dict_to_state(error_dict)
     elapsed = time.monotonic() - t0
     result.pop("__runtime_conn", None)

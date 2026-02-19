@@ -17,6 +17,7 @@ Last updated: V5.0 architecture revision.
 | Companion data in multiple inconsistent locations | ✅ Resolved | `PartyState` canonical model in `world_state_json["party_state"]` (V5.0) |
 | No hub/downtime mode | ✅ Resolved | `hub_system.py` added; Director gets hub context injection (V5.0) |
 | Content loading not thread-safe | ✅ Resolved | `ContentRepository` singleton with `threading.RLock` (V5.0) |
+| Truth Ledger tables (truth_facts, truth_events) missing from migrations | Resolved | Tables exist in `backend/app/db/migrations/0019_turn_contract_passages.sql` |
 
 ---
 
@@ -96,19 +97,7 @@ When `ChoiceCrafterAgent` fails after retry, `AgentFailureError` is raised and c
 
 ---
 
-### 7. Truth Ledger tables (truth_facts, truth_events) not yet in current migrations
-
-**Severity:** Medium
-
-**Evidence:** `backend/app/core/truth_ledger.py` references `truth_facts` and `truth_events` tables. These tables are referenced in the code but not yet included in migrations 0001-0021.
-
-**Risk:** `truth_ledger.upsert_facts()` will fail at runtime with "no such table: truth_facts" unless the tables are created by a future migration.
-
-**Status:** Pending migration — a migration `0022_truth_ledger.sql` should be added.
-
----
-
-### 8. PartyState backward compatibility: legacy fields written but may drift
+### 7. PartyState backward compatibility: legacy fields written but may drift
 
 **Severity:** Low
 
@@ -120,7 +109,7 @@ When `ChoiceCrafterAgent` fails after retry, `AgentFailureError` is raised and c
 
 ---
 
-### 9. LanceDB vector tables may not exist on fresh install
+### 8. LanceDB vector tables may not exist on fresh install
 
 **Severity:** Medium (setup)
 
@@ -132,7 +121,7 @@ When `ChoiceCrafterAgent` fails after retry, `AgentFailureError` is raised and c
 
 ---
 
-### 10. No streaming support for MetaNode responses
+### 9. No streaming support for MetaNode responses
 
 **Severity:** Low
 
@@ -171,3 +160,4 @@ Narrator and ChoiceCrafter use JSON-mode LLM calls. Malformed JSON from the LLM 
 Not all agents have been fully migrated to use `get_setting_rules(state)`. Some prompt templates may still contain Star Wars-specific references.
 
 **Mitigation:** V5.0 makes this the default; future agents must use `SettingRules`. Existing agents are progressively being updated.
+

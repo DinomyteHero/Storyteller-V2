@@ -99,8 +99,19 @@ LEDGER_MAX_TONE_TAGS = 5        # Tone descriptors for the current narrative moo
 # Controls how turn history is compressed into summaries for LLM context.
 MEMORY_RECENT_TURNS = 10                # Number of recent turns kept verbatim in hot state
 MEMORY_COMPRESSION_CHUNK_SIZE = 10      # Turns grouped per era summary during compression
-MEMORY_MAX_ERA_SUMMARIES = 5            # Maximum era summaries retained
-MEMORY_ERA_SUMMARY_MAX_CHARS = 300      # Max characters per era summary
+MEMORY_MAX_ERA_SUMMARIES = 20           # Maximum era summaries retained
+MEMORY_ERA_SUMMARY_MAX_CHARS = 800      # Max characters per era summary
+
+# Phase 3.2 tiered memory controls
+MEMORY_HOT_TURNS = 10                   # Full-fidelity near-term turn window
+MEMORY_WARM_TURNS = 50                  # Mid-term retrieval window
+MEMORY_COLD_MAX_SUMMARIES = 20          # Long-tail compressed summaries retained
+MEMORY_COLD_SUMMARY_MAX_CHARS = 800     # Max chars for cold summaries
+MEMORY_CRYSTALLIZED_MAX = 25            # Permanent important moments per campaign
+
+# Phase 3.1 long-campaign performance controls
+MAINTENANCE_AGENT_FREQUENCY = 5         # Run non-critical commit LLM agents every N turns
+NPC_STATES_MAX = 30                     # Cap world_state_json["npc_states"] to most-recently-seen NPCs
 
 # ── Mechanic delta clamps ─────────────────────────────────────────────
 # Maximum per-turn stat change from any single mechanic event.
@@ -251,6 +262,33 @@ DIFFICULTY_PROFILES: dict[str, dict[str, float]] = {
     "easy":   {"dc_modifier": -2, "damage_modifier": 0.75, "hp_modifier": 1.25},
     "normal": {"dc_modifier": 0,  "damage_modifier": 1.0,  "hp_modifier": 1.0},
     "hard":   {"dc_modifier": 2,  "damage_modifier": 1.5,  "hp_modifier": 0.75},
+}
+
+# Phase 4.3: Sandbox impact tiers (choice intent scale -> mechanic difficulty gates).
+# dc_modifier: additive check pressure for higher-world-impact actions.
+SANDBOX_IMPACT_TIERS: dict[str, dict[str, int | str]] = {
+    "ripple": {
+        "dc_modifier": 0,
+        "min_arc_stage": "SETUP",
+        "description": "Local effects only",
+    },
+    "wave": {
+        "dc_modifier": 5,
+        "min_arc_stage": "RISING",
+        "description": "Regional consequences",
+    },
+    "tsunami": {
+        "dc_modifier": 10,
+        "min_arc_stage": "CLIMAX",
+        "description": "World-changing consequences",
+    },
+}
+
+SANDBOX_ARC_STAGE_ORDER: dict[str, int] = {
+    "SETUP": 0,
+    "RISING": 1,
+    "CLIMAX": 2,
+    "RESOLUTION": 3,
 }
 
 # Deep companion system (Phase 5)

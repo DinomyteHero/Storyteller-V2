@@ -66,6 +66,7 @@ class ActionSuggestion(BaseModel):
     companion_reactions: dict[str, int] = Field(default_factory=dict)  # V2.9: {companion_id: affinity_delta}
     risk_factors: list[str] = Field(default_factory=list)  # V2.9: Why is this risky? ["Outnumbered 3-to-1", "No cover"]
     meaning_tag: str = ""  # V2.18: reveal_values|probe_belief|challenge_premise|seek_history|set_boundary|pragmatic|deflect
+    impact_tier: str = "ripple"  # Phase 4.3: ripple|wave|tsunami (sandbox pacing)
 
 
 # --- Character ---
@@ -192,6 +193,8 @@ class GameState(BaseModel):
     final_text: str | None = None
     lore_citations: list[dict] = Field(default_factory=list)  # NarrationCitation-like dicts for transcript
     context_stats: dict | None = None  # Dev-only: token budgeting stats from ContextBudget
+    agent_timings: dict | None = None  # Dev-only: per-node + per-agent timings
+    llm_timings: dict | None = None  # Dev-only: per-role LLM timing aggregates
     warnings: list[str] = Field(default_factory=list)  # Turn warnings (LLM/RAG fallbacks)
     # V6.0: Campaign Bible (loaded from campaigns.campaign_bible_json; read by narrative agents)
     campaign_bible: dict | None = None
@@ -203,7 +206,9 @@ class GameState(BaseModel):
 
     # V2.17: DialogueTurn contract (transient — rebuilt each turn)
     scene_frame: dict | None = None  # SceneFrame snapshot (set by scene_frame node)
+    scene_weight: str | None = None  # STANDARD | ELEVATED | CLIMAX
     gm_context: str | None = None   # Compact GM summary (set by scene_frame node, consumed by Director/ChoiceCrafter)
+    choice_crafter_pre_context: dict | None = None  # Pre-computed context for ChoiceCrafter prompt assembly
     npc_utterance: dict | None = None  # NPCUtterance (set by narrator node)
     player_responses: list[dict] = Field(default_factory=list)  # PlayerResponse list (set by suggestion_refiner)
     dialogue_turn: dict | None = None  # Assembled DialogueTurn (set by commit node)
@@ -227,6 +232,8 @@ class GameState(BaseModel):
                 "final_text": None,
                 "lore_citations": [],
                 "context_stats": None,
+                "agent_timings": None,
+                "llm_timings": None,
                 "warnings": [],
                 # WorldSim-related fields (transient, reset each turn)
                 "world_sim_ran": False,
@@ -243,7 +250,9 @@ class GameState(BaseModel):
                 "validation_notes": [],
                 # V2.17 DialogueTurn fields
                 "scene_frame": None,
+                "scene_weight": None,
                 "gm_context": None,
+                "choice_crafter_pre_context": None,
                 "npc_utterance": None,
                 "player_responses": [],
                 "dialogue_turn": None,

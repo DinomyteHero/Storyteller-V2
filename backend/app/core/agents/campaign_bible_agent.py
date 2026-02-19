@@ -353,6 +353,7 @@ class CampaignBibleAgent:
         setting_rules: Any | None = None,
         themes: list[str] | None = None,
         era_metadata: dict[str, Any] | None = None,
+        returning_legacy: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Generate the campaign bible. Returns a dict matching CampaignBibleOutput schema.
 
@@ -363,6 +364,7 @@ class CampaignBibleAgent:
             setting_rules: SettingRules from the era pack (universe-specific prompt config).
             themes: Optional thematic keywords from the setup request.
             era_metadata: Optional era.yaml metadata dict (summary, tone, key_conflicts).
+            returning_legacy: Optional prior-campaign legacy context for continuity.
         """
         from backend.app.world.era_pack_models import SettingRules
 
@@ -400,6 +402,28 @@ class CampaignBibleAgent:
         themes_text = (
             f"Player-requested themes: {', '.join(themes)}" if themes else ""
         )
+        legacy_text = ""
+        if isinstance(returning_legacy, dict) and returning_legacy:
+            legacy_name = str(returning_legacy.get("character_name") or char_name)
+            rel = returning_legacy.get("key_relationships") or []
+            threads = returning_legacy.get("unresolved_threads") or []
+            emotional_state = str(returning_legacy.get("emotional_state") or "")
+            rel_text = ", ".join(
+                str(r.get("name") or "")
+                for r in rel[:4]
+                if isinstance(r, dict) and str(r.get("name") or "").strip()
+            )
+            thread_text = "; ".join(str(t).strip() for t in threads[:5] if str(t).strip())
+            legacy_text = (
+                "RETURNING CHARACTER CONTEXT:\n"
+                f"{legacy_name} is continuing their story from a previous campaign.\n"
+                f"Key relationships: {rel_text or 'none listed'}\n"
+                f"Unresolved threads: {thread_text or 'none listed'}\n"
+                f"Emotional state: {emotional_state or 'unspecified'}\n\n"
+                "INSTRUCTION: Weave at least 2 unresolved threads into quest arcs. "
+                "Reference at least 1 key relationship as an NPC, mention, or echo. "
+                "Let emotional state influence opening tone.\n"
+            )
 
         system = f"""You are the Campaign Bible Writer for a {sr.setting_name} narrative RPG.
 Your output is the SCREENPLAY BIBLE for a complete campaign — generated once at campaign start.
@@ -488,6 +512,7 @@ JSON SCHEMA:
             f"Starting location id: {starting_location}\n"
             f"Era: {era_label}\n"
             f"{themes_text}\n\n"
+            f"{legacy_text}\n"
             "Generate the full campaign bible. "
             "Make every name, location, and faction specific to this player's story. "
             "The starting location id must appear in the locations array with that exact id value."

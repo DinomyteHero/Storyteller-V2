@@ -125,6 +125,13 @@ legends_timeline:
 #   notable_figures:
 #     - "Character Name (role)"
 
+# Optional: historical canon-character proximity rules.
+# canon_characters:
+#   - name: "Canonical Character"
+#     proximity: cameo   # cameo | interaction | exclusion
+#     locations: [loc-main-hub]
+#     exclusion_events: ["Event Name Where Player Must Be Redirected"]
+
 # --- V3.2: Universe rules (SettingRules) ---
 # These fields control all setting-specific text in agent prompts.
 # Fill them in to prevent cross-universe contamination (e.g., no lightsabers in D&D).

@@ -32,6 +32,12 @@ def prompt_version_id(name: str, version: str = _DEFAULT_VERSION) -> str:
 
 def prompt_registry_snapshot() -> dict[str, str]:
     """Compact prompt version map attached to turn metadata."""
+    def _safe_version(name: str) -> str:
+        try:
+            return prompt_version_id(name)
+        except FileNotFoundError:
+            return "missing"
+
     return {
-        "suggestion_refiner_system": prompt_version_id("suggestion_refiner_system"),
+        "suggestion_refiner_system": _safe_version("suggestion_refiner_system"),
     }

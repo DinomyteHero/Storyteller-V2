@@ -5,6 +5,7 @@ import logging
 import sqlite3
 from typing import Any
 
+from backend.app.content.repository import CONTENT_REPOSITORY
 from backend.app.core.agents import CastingAgent, EncounterManager
 from backend.app.core.agents.base import AgentLLM
 from backend.app.core.encounter_throttle import (
@@ -17,6 +18,104 @@ from backend.app.core.event_store import get_recent_public_rumors
 from backend.app.models.events import Event
 
 logger = logging.getLogger(__name__)
+
+
+def _slugify_name(name: str) -> str:
+    return "-".join(part for part in (name or "").lower().replace("_", " ").split() if part)
+
+
+def _detect_exclusion_trigger(state: dict[str, Any], exclusion_events: list[str]) -> str | None:
+    if not exclusion_events:
+        return None
+    campaign = state.get("campaign") if isinstance(state.get("campaign"), dict) else {}
+    ws = campaign.get("world_state_json") if isinstance(campaign.get("world_state_json"), dict) else {}
+    arc_guidance = state.get("arc_guidance") if isinstance(state.get("arc_guidance"), dict) else {}
+    context_parts = [
+        str(ws.get("current_beat") or ""),
+        str(ws.get("arc_stage") or ""),
+        str(arc_guidance.get("hero_beat") or ""),
+        str(state.get("user_input") or ""),
+    ]
+    haystack = " ".join(context_parts).lower()
+    for event_name in exclusion_events:
+        event = str(event_name or "").strip()
+        if not event:
+            continue
+        if event.lower() in haystack:
+            return event
+    return None
+
+
+def apply_canon_proximity_rules(
+    *,
+    state: dict[str, Any],
+    effective_loc: str | None,
+    present_npcs: list[dict[str, Any]],
+    background_figures: list[str],
+    canon_rules: list[Any],
+) -> tuple[list[dict[str, Any]], list[str], list[str]]:
+    """Enforce historical-mode canon character proximity rules."""
+    campaign = state.get("campaign") if isinstance(state.get("campaign"), dict) else {}
+    ws = campaign.get("world_state_json") if isinstance(campaign.get("world_state_json"), dict) else {}
+    mode = str(ws.get("campaign_mode") or "historical").lower()
+    if mode != "historical" or not canon_rules:
+        return present_npcs, background_figures, []
+
+    present = list(present_npcs or [])
+    bg_figs = [str(x) for x in (background_figures or []) if str(x).strip()]
+    warnings: list[str] = []
+    loc = str(effective_loc or "").strip()
+
+    for rule in canon_rules:
+        name = str(getattr(rule, "name", "") or "").strip()
+        proximity = str(getattr(rule, "proximity", "cameo") or "cameo").lower()
+        rule_locs = [str(x).strip() for x in (getattr(rule, "locations", []) or []) if str(x).strip()]
+        exclusion_events = [str(x).strip() for x in (getattr(rule, "exclusion_events", []) or []) if str(x).strip()]
+        if not name:
+            continue
+        if rule_locs and loc and loc not in rule_locs:
+            continue
+
+        trigger = _detect_exclusion_trigger(state, exclusion_events)
+        if proximity == "exclusion" and trigger:
+            present = [npc for npc in present if str(npc.get("name", "")).strip().lower() != name.lower()]
+            msg = f"[CANON] {name} is canon-protected during '{trigger}'. You are redirected away from that event."
+            warnings.append(msg)
+            bg_figs.append(f"Your orders pull you away from {trigger} before you can intervene directly.")
+            continue
+
+        if proximity == "cameo":
+            present = [npc for npc in present if str(npc.get("name", "")).strip().lower() != name.lower()]
+            cameo_line = f"You spot {name} at a distance, surrounded by events larger than this moment."
+            if cameo_line not in bg_figs:
+                bg_figs.append(cameo_line)
+            continue
+
+        if proximity == "interaction":
+            found = False
+            for npc in present:
+                if str(npc.get("name", "")).strip().lower() == name.lower():
+                    npc["canon_protected"] = True
+                    npc["canon_proximity"] = "interaction"
+                    found = True
+                    break
+            if not found:
+                present.append(
+                    {
+                        "id": f"canon-{_slugify_name(name)}",
+                        "name": name,
+                        "role": "Canon Figure",
+                        "relationship_score": 0,
+                        "location_id": loc or None,
+                        "has_secret_agenda": False,
+                        "canon_protected": True,
+                        "canon_proximity": "interaction",
+                    }
+                )
+            warnings.append(f"[CANON] {name} may appear, but their established fate cannot be altered.")
+
+    dedup_warnings = list(dict.fromkeys(warnings))
+    return present, bg_figs, dedup_warnings
 
 
 def make_encounter_node():
@@ -153,6 +252,25 @@ def make_encounter_node():
             )
         )
         active_rumors = get_recent_public_rumors(conn, campaign_id, limit=3)
+        canon_warnings: list[str] = []
+        try:
+            campaign = state.get("campaign") if isinstance(state.get("campaign"), dict) else {}
+            era_id = str(campaign.get("time_period") or "").strip()
+            era_pack = CONTENT_REPOSITORY.get_pack(era_id) if era_id else None
+            canon_rules = list(getattr(era_pack, "canon_characters", []) or []) if era_pack else []
+            present, background_figures, canon_warnings = apply_canon_proximity_rules(
+                state=state,
+                effective_loc=effective_loc,
+                present_npcs=present,
+                background_figures=list(background_figures or []),
+                canon_rules=canon_rules,
+            )
+        except Exception as e:
+            logger.debug("Canon proximity enforcement skipped (non-fatal): %s", e)
+
+        warnings = list(state.get("warnings") or [])
+        if canon_warnings:
+            warnings.extend(canon_warnings)
         return {
             **state,
             "present_npcs": present,
@@ -160,6 +278,7 @@ def make_encounter_node():
             "throttle_events": throttle_events,
             "active_rumors": active_rumors,
             "background_figures": background_figures,
+            "warnings": warnings,
         }
 
     return encounter_node

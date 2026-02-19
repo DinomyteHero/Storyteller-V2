@@ -15,6 +15,22 @@ export class ApiError extends Error {
   }
 }
 
+export interface HealthDetailResponse {
+  status: 'healthy' | 'degraded';
+  ok: boolean;
+  checks?: {
+    ollama?: {
+      ok: boolean;
+      status?: string;
+      url?: string;
+      message?: string;
+      error?: string;
+      models_loaded?: number;
+    };
+    [key: string]: unknown;
+  };
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
@@ -42,4 +58,8 @@ export async function apiFetch<T>(
   } finally {
     clearTimeout(timeout);
   }
+}
+
+export async function getHealthDetail(timeoutMs: number = 5_000): Promise<HealthDetailResponse> {
+  return apiFetch<HealthDetailResponse>('/health/detail', {}, timeoutMs);
 }

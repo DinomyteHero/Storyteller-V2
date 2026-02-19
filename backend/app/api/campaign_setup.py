@@ -7,6 +7,7 @@ import os
 import random
 import re
 import uuid
+from typing import Any
 
 from fastapi import HTTPException
 
@@ -143,6 +144,43 @@ def _resolve_requested_period(*, setting_id: str | None, period_id: str | None, 
         first = items[0]
         return first["setting_id"], first["period_id"], first["legacy_era_id"]
     raise HTTPException(status_code=500, detail="No content packs discovered")
+
+
+def apply_quick_start_defaults(body: Any) -> Any:
+    """Normalize SetupAutoRequest values for quick-start setup.
+
+    This only fills missing values and does not override explicit user input.
+    """
+    if not bool(getattr(body, "quick_start", False)):
+        return body
+
+    if not getattr(body, "setting_id", None) and not getattr(body, "period_id", None) and not getattr(body, "time_period", None):
+        body.setting_id = "star_wars_legends"
+        body.period_id = "rebellion"
+        body.time_period = "REBELLION"
+
+    player_concept = str(getattr(body, "player_concept", "") or "").strip()
+    if not player_concept:
+        body.player_concept = "A capable drifter trying to survive and do some good."
+
+    if not getattr(body, "player_gender", None):
+        body.player_gender = random.choice(["male", "female"])
+
+    themes = list(getattr(body, "themes", None) or [])
+    if not themes:
+        body.themes = ["duty", "survival", "trust"]
+
+    if not getattr(body, "campaign_mode", None):
+        body.campaign_mode = "historical"
+    if not getattr(body, "campaign_scale", None):
+        body.campaign_scale = "medium"
+    if not getattr(body, "difficulty", None):
+        body.difficulty = "normal"
+
+    if not getattr(body, "starting_location", None):
+        body.randomize_starting_location = True
+
+    return body
 
 def _is_safe_start_location(tags: list[str] | None, threat_level: str | None) -> bool:
     tags_lower = {str(t).strip().lower() for t in (tags or []) if str(t).strip()}

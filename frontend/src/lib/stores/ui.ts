@@ -18,6 +18,14 @@ interface UIPrefs {
   drawerTab: string;
 }
 
+export type OllamaStatus = 'unknown' | 'up' | 'down';
+
+export interface OllamaHealthState {
+  status: OllamaStatus;
+  message: string;
+  checkedAt: number | null;
+}
+
 const DEFAULT_PREFS: UIPrefs = {
   theme: DEFAULT_THEME,
   enableStreaming: true,
@@ -97,3 +105,9 @@ function createUIStore() {
 }
 
 export const ui = createUIStore();
+
+export const ollamaStatus = writable<OllamaHealthState>({
+  status: 'unknown',
+  message: '',
+  checkedAt: null,
+});

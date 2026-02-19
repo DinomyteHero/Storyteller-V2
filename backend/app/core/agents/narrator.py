@@ -26,8 +26,9 @@ from backend.app.core.warnings import add_warning
 
 # ── Sub-module imports (prompt construction) ──────────────────────────────
 from backend.app.core.agents.narrator_prompt import (  # noqa: F401
-    _LOCATION_NARRATIVE_NAMES,
-    _ERA_FALLBACK_ATMOSPHERE,
+    _GENERIC_LOCATION_NAMES,
+    _GENERIC_ATMOSPHERE_FRAGMENTS,
+    _get_atmosphere,
     _humanize_location,
     _build_lore_query,
     _summarize_mechanic_events,
@@ -52,6 +53,7 @@ from backend.app.core.agents.narrator_postprocess import (  # noqa: F401
     _enforce_pov_consistency,
     _citations_from_chunks,
     _parse_llm_narration,
+    get_word_limit_for_scene_weight,
 )
 
 logger = logging.getLogger(__name__)
@@ -171,7 +173,8 @@ class NarratorAgent:
                 cleaned_text = _strip_embedded_suggestions(cleaned_text)
 
                 cleaned_text = _enforce_pov_consistency(cleaned_text)
-                cleaned_text = _truncate_overlong_prose(cleaned_text)
+                max_words = get_word_limit_for_scene_weight(getattr(state, "scene_weight", None))
+                cleaned_text = _truncate_overlong_prose(cleaned_text, max_words=max_words)
                 output = NarrationOutput(
                     text=cleaned_text,
                     citations=output.citations,
@@ -192,7 +195,7 @@ class NarratorAgent:
         # No LLM or LLM failed: deterministic fallback
         # Build a readable narrative fallback (not raw pipeline data)
         mechanic_summary = _summarize_mechanic_events(state)
-        loc = _humanize_location(state.current_location) or "your surroundings"
+        loc = _humanize_location(state.current_location, state) or "your surroundings"
         npcs = state.present_npcs or []
 
         # Check if this is the opening scene
@@ -204,14 +207,10 @@ class NarratorAgent:
         if state.player and getattr(state.player, "name", None):
             pov_name = state.player.name
 
-        # Era-specific atmosphere lines for richer fallback prose
-        era_id = ""
+        # Era-aware atmosphere from era pack (generic fallback if missing)
         campaign = state.campaign or {}
         ws = campaign.get("world_state_json") if isinstance(campaign, dict) else {}
-        if isinstance(ws, dict):
-            era_id = (ws.get("era") or ws.get("era_id") or "").upper()
-
-        era_atmosphere = _ERA_FALLBACK_ATMOSPHERE.get(era_id, _ERA_FALLBACK_ATMOSPHERE["_DEFAULT"])
+        era_atmosphere = _get_atmosphere(state)
 
         if is_opening_fb or opening_tag_fb:
             # Opening scene fallback: more atmospheric
@@ -425,6 +424,9 @@ class NarratorAgent:
             output = _parse_llm_narration(raw, lore_chunks)
             cleaned_text = _strip_structural_artifacts(output.text)
             cleaned_text = _strip_embedded_suggestions(cleaned_text)
+            cleaned_text = _enforce_pov_consistency(cleaned_text)
+            max_words = get_word_limit_for_scene_weight(getattr(state, "scene_weight", None))
+            cleaned_text = _truncate_overlong_prose(cleaned_text, max_words=max_words)
             output = NarrationOutput(
                 text=cleaned_text,
                 citations=output.citations,

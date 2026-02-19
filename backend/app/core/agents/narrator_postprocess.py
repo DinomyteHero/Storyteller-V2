@@ -17,6 +17,18 @@ logger = logging.getLogger(__name__)
 # Type alias (duplicated here for self-containment; canonical definition in narrator.py)
 LoreChunk = dict
 
+SCENE_WORD_LIMITS: dict[str, int] = {
+    "STANDARD": 250,
+    "ELEVATED": 350,
+    "CLIMAX": 450,
+}
+
+
+def get_word_limit_for_scene_weight(scene_weight: str | None) -> int:
+    """Resolve max word budget from scene weight classification."""
+    key = (scene_weight or "STANDARD").strip().upper()
+    return SCENE_WORD_LIMITS.get(key, SCENE_WORD_LIMITS["STANDARD"])
+
 
 def _quote_excerpt(text: str, max_words: int = 20) -> str:
     """Return first max_words words of text."""

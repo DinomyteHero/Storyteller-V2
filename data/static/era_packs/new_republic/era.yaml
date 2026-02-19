@@ -94,6 +94,21 @@ legends_timeline:
     - "Kyp Durron (Jedi student, cautionary tale)"
 
 # V3.2: Universe rules — setting-specific text for agent prompts.
+canon_characters:
+  - name: "Luke Skywalker"
+    proximity: interaction
+    locations: [loc-rebel-base, loc-docking-bay]
+    exclusion_events:
+      - "Jedi Praxeum crisis on Yavin 4"
+  - name: "Leia Organa Solo"
+    proximity: interaction
+    locations: [loc-rebel-base, loc-marketplace]
+  - name: "Grand Admiral Thrawn"
+    proximity: cameo
+    locations: [loc-imperial-outpost, loc-docking-bay]
+    exclusion_events:
+      - "Thrawn campaign command summit"
+
 setting_rules:
   setting_name: "Star Wars Legends"
   setting_genre: "science fantasy"

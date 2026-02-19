@@ -43,6 +43,7 @@ def load_campaign(conn: sqlite3.Connection, campaign_id: str) -> dict | None:
     Companion/alignment state flattened from world_state_json to top-level campaign keys."""
     cur = conn.execute(
         """SELECT id, title, time_period, world_state_json,
+                  player_profile_id, saga_id, COALESCE(saga_chapter, 1) AS saga_chapter,
                   COALESCE(world_time_minutes, 0) AS world_time_minutes
            FROM campaigns WHERE id = ?""",
         (campaign_id,),

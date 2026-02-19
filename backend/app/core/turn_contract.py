@@ -131,7 +131,12 @@ def _sanitize_choices(choices: list[Choice], turn_no: int, has_companions: bool,
     return sanitized[:4]
 
 
-def validate_turn_contract(contract: TurnContract, ledger_facts: dict[str, Any] | None = None) -> list[str]:
+def validate_turn_contract(
+    contract: TurnContract,
+    ledger_facts: dict[str, Any] | None = None,
+    immutable_facts: dict[str, bool] | None = None,
+    historical_lore_label: str = "established lore",
+) -> list[str]:
     errs: list[str] = []
     if not (2 <= len(contract.choices) <= 4):
         errs.append("choices must be 2..4")
@@ -151,7 +156,14 @@ def validate_turn_contract(contract: TurnContract, ledger_facts: dict[str, Any] 
         errs.append("must include at least one risky/progress option")
     if ledger_facts:
         claims = {f.fact_key: f.fact_value for f in contract.state_delta.facts_upsert}
-        errs.extend(contradiction_errors(claims, ledger_facts))
+        errs.extend(
+            contradiction_errors(
+                claims,
+                ledger_facts,
+                immutable_facts=immutable_facts,
+                historical_lore_label=historical_lore_label,
+            )
+        )
     return errs
 
 
@@ -179,6 +191,8 @@ def build_turn_contract(
     suggested_actions: list[ActionSuggestion],
     meta: TurnMeta,
     ledger_facts: dict[str, Any] | None = None,
+    immutable_facts: dict[str, bool] | None = None,
+    historical_lore_label: str = "established lore",
     has_companions: bool = False,
     force_scene_transition: bool = False,
 ) -> TurnContract:
@@ -207,7 +221,7 @@ def build_turn_contract(
     )
 
     # Repair loop (max 2) preserving outcome/state_delta
-    errors = validate_turn_contract(contract, ledger_facts)
+    errors = validate_turn_contract(contract, ledger_facts, immutable_facts, historical_lore_label)
     repair_count = 0
     while errors and repair_count < 2:
         original_outcome = deepcopy(contract.outcome.model_dump(mode="json"))
@@ -218,7 +232,7 @@ def build_turn_contract(
             logger.error("Repair attempted to mutate outcome/state_delta; reverting.")
             contract.outcome = Outcome.model_validate(original_outcome)
             contract.state_delta = StateDelta.model_validate(original_delta)
-        errors = validate_turn_contract(contract, ledger_facts)
+        errors = validate_turn_contract(contract, ledger_facts, immutable_facts, historical_lore_label)
         logger.info("turn_contract_repair campaign_id=%s turn_id=%s repair_count=%s patch_ops=%s errors=%s", campaign_id, turn_id, repair_count, len(patches), errors)
 
     if errors:

@@ -27,6 +27,7 @@ _VALID_MEANINGS = frozenset({
     "offer_alliance", "express_doubt", "invoke_authority",
     "show_vulnerability", "make_demand",
 })
+_VALID_IMPACT_TIERS = frozenset({"ripple", "wave", "tsunami"})
 
 _SYSTEM_PROMPT = """\
 You are the Choice Architect for an interactive narrative RPG (__SETTING_STYLE__).
@@ -56,24 +57,30 @@ Your job: generate exactly 4 player choices that define WHAT THE PLAYER CAN DO N
 5. RISK JUSTIFICATION — If a choice is RISKY or DANGEROUS, the risk must be narratively
    justified in context (e.g., "the guards just changed shifts" or "you're outnumbered").
 
-6. THE LATERAL MOVE — The NEUTRAL choice should ideally be something unexpected that opens
+6. IMPACT TIER — Tag each choice with impact_tier:
+   - ripple: local consequence
+   - wave: regional/faction-level consequence
+   - tsunami: world-changing consequence (rare, major inflection points)
+   Default to ripple unless the action is clearly major.
+
+7. THE LATERAL MOVE — The NEUTRAL choice should ideally be something unexpected that opens
    a new angle the player might not have considered. Surprise them.
 
-7. STAT GATES — When the STAT CONTEXT section indicates a high stat (>= 6), you may
+8. STAT GATES — When the STAT CONTEXT section indicates a high stat (>= 6), you may
    prefix ONE choice with a stat gate like [PERSUADE], [TECH], [COMBAT], [FORCE], etc.
    This signals the choice leverages that character build.
 
-8. OBLIGATIONS — When ACTIVE OBLIGATIONS are listed, at least one choice should reference
+9. OBLIGATIONS — When ACTIVE OBLIGATIONS are listed, at least one choice should reference
    or advance one of them. Players should feel their past decisions matter.
 
-9. LENGTH — Each choice text should be 8-20 words. Concise but specific.
+10. LENGTH — Each choice text should be 8-20 words. Concise but specific.
 
 ## OUTPUT FORMAT
 
 Output ONLY a JSON array of exactly 4 objects. No markdown, no explanation, no wrapping.
 
 [
-  {"text": "string", "tone": "PARAGON|INVESTIGATE|RENEGADE|NEUTRAL", "meaning": "tag", "risk": "SAFE|RISKY|DANGEROUS", "consequence_hint": "specific clause"},
+  {"text": "string", "tone": "PARAGON|INVESTIGATE|RENEGADE|NEUTRAL", "meaning": "tag", "risk": "SAFE|RISKY|DANGEROUS", "impact_tier": "ripple|wave|tsunami", "consequence_hint": "specific clause"},
   ...
 ]
 
@@ -81,6 +88,41 @@ Valid meaning tags: reveal_values, probe_belief, challenge_premise, seek_history
 set_boundary, pragmatic, deflect, offer_alliance, express_doubt, invoke_authority,
 show_vulnerability, make_demand.
 """
+
+
+def _classify_impact_tier(text: str, risk: str = "SAFE") -> str:
+    """Classify impact tier from choice text with conservative defaults."""
+    t = (text or "").lower()
+    risk_u = (risk or "SAFE").upper()
+    tsunami_markers = (
+        "destroy planet",
+        "blow up",
+        "assassinate the emperor",
+        "collapse the regime",
+        "wipe out",
+        "genocide",
+        "galaxy",
+        "world",
+    )
+    wave_markers = (
+        "kill the leader",
+        "assassinate",
+        "take over",
+        "overthrow",
+        "destroy the",
+        "sabotage",
+        "start a war",
+        "declare war",
+        "blackmail",
+        "execute",
+    )
+    if any(marker in t for marker in tsunami_markers):
+        return "tsunami"
+    if any(marker in t for marker in wave_markers):
+        return "wave"
+    if risk_u == "DANGEROUS":
+        return "wave"
+    return "ripple"
 
 
 def _build_context(
@@ -224,6 +266,11 @@ def _parse_choices(raw: str) -> list[dict[str, str]] | None:
         if risk not in ("SAFE", "RISKY", "DANGEROUS"):
             risk = "SAFE"
         item["risk"] = risk
+        # Validate impact tier
+        impact_tier = str(item.get("impact_tier") or "").strip().lower()
+        if impact_tier not in _VALID_IMPACT_TIERS:
+            impact_tier = _classify_impact_tier(item["text"], risk=risk)
+        item["impact_tier"] = impact_tier
         # Ensure consequence_hint exists
         if not item.get("consequence_hint"):
             item["consequence_hint"] = ""
@@ -241,6 +288,7 @@ def _parse_choices(raw: str) -> list[dict[str, str]] | None:
             "tone": "NEUTRAL",
             "meaning": "pragmatic",
             "risk": "SAFE",
+            "impact_tier": "ripple",
             "consequence_hint": "take stock of the situation",
         })
 

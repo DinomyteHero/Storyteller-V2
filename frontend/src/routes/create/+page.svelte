@@ -46,6 +46,12 @@
   let eraCompanions = $state<CompanionPreview[]>([]);
   let loadingCompanions = $state(false);
   let selectedDifficulty = $state<'easy' | 'normal' | 'hard'>('normal');
+  let continueSagaContext = $state<{
+    saga_id: string | null;
+    legacy_id: number | null;
+    player_profile_id: string | null;
+    saga_chapter: number | null;
+  } | null>(null);
   // Character sheet confirmation (phase 2 of setup)
   let setupResult = $state<SetupAutoResponse | null>(null);
   let generatedName = $state('');
@@ -59,6 +65,27 @@
 
   onMount(async () => {
     try {
+      const raw = sessionStorage.getItem('continueSagaContext');
+      if (raw) {
+        const parsed = JSON.parse(raw) as {
+          saga_id?: string | null;
+          legacy_id?: number | null;
+          player_profile_id?: string | null;
+          saga_chapter?: number | null;
+        };
+        continueSagaContext = {
+          saga_id: parsed.saga_id ?? null,
+          legacy_id: parsed.legacy_id ?? null,
+          player_profile_id: parsed.player_profile_id ?? null,
+          saga_chapter: parsed.saga_chapter ?? null,
+        };
+        sessionStorage.removeItem('continueSagaContext');
+      }
+    } catch {
+      continueSagaContext = null;
+    }
+
+    try {
       const [catalogResp, defaultResp] = await Promise.all([
         getContentCatalog(),
         getContentDefault(),
@@ -70,6 +97,16 @@
     } catch {
       // Fallback to legacy hardcoded eras
     }
+  });
+
+  let sagaBannerLabel = $derived.by(() => {
+    if (!continueSagaContext?.saga_id) return '';
+    const shortId = continueSagaContext.saga_id.slice(0, 8);
+    const chapter = continueSagaContext.saga_chapter;
+    if (chapter && chapter > 0) {
+      return `Continuing Saga ${shortId} · Prior chapter ${chapter}`;
+    }
+    return `Continuing Saga ${shortId}`;
   });
 
   // Load backgrounds and species when era changes
@@ -159,6 +196,46 @@
   let speciesStepIdx = $derived(hasSpecies ? 1 : -1);
   let backgroundStepIdx = $derived(hasSpecies ? 2 : 1);
 
+  function randomItem<T>(items: T[]): T | null {
+    if (!items.length) return null;
+    return items[Math.floor(Math.random() * items.length)] ?? null;
+  }
+
+  function buildQuickStartBackgroundSelections(background: EraBackground): {
+    answers: Record<string, number>;
+    concepts: string[];
+    startingLocation: string | null;
+  } {
+    const answers: Record<string, number> = {};
+    const concepts: string[] = [];
+    let startingLocation: string | null = null;
+    let guard = 0;
+
+    while (guard < 64) {
+      guard += 1;
+      const active = getActiveBackgroundQuestions(background, answers);
+      const nextQuestion = active.find((q) => answers[q.id] === undefined);
+      if (!nextQuestion) break;
+
+      if (!nextQuestion.choices.length) {
+        answers[nextQuestion.id] = 0;
+        continue;
+      }
+
+      const chosenIndex = Math.floor(Math.random() * nextQuestion.choices.length);
+      answers[nextQuestion.id] = chosenIndex;
+      const chosen = nextQuestion.choices[chosenIndex];
+      if (chosen?.concept) concepts.push(chosen.concept);
+      const effects = (chosen?.effects ?? {}) as Record<string, unknown>;
+      const hint = effects.location_hint;
+      if (!startingLocation && typeof hint === 'string' && hint.trim()) {
+        startingLocation = hint.trim();
+      }
+    }
+
+    return { answers, concepts, startingLocation };
+  }
+
   function nextStep() {
     creationStep.update((s) => s + 1);
   }
@@ -182,6 +259,16 @@
 
   function handleRandomName() {
     charName.set(randomName());
+  }
+
+  async function submitSetupRequest(request: SetupAutoRequest): Promise<void> {
+    const result = await setupAuto(request);
+    campaignId.set(result.campaign_id);
+    playerId.set(result.player_id);
+    const sheetName = (result.character_sheet?.name as string | undefined) || $charName.trim();
+    generatedName = sheetName;
+    setupResult = result;
+    creationStep.set(999);
   }
 
   // Phase 1: Generate character + campaign, then show the sheet for review.
@@ -234,18 +321,94 @@
         background_id: $selectedBackground?.id ?? null,
         background_answers: bgAnswersForApi,
         player_gender: $charGender,
+        player_profile_id: continueSagaContext?.player_profile_id ?? null,
+        legacy_id: continueSagaContext?.legacy_id ?? null,
+        saga_id: continueSagaContext?.saga_id ?? null,
         difficulty: selectedDifficulty,
         species_id: $charSpecies ?? null,
       };
 
-      const result = await setupAuto(request);
-      campaignId.set(result.campaign_id);
-      playerId.set(result.player_id);
+      await submitSetupRequest(request);
+    } catch (e) {
+      errorMessage = e instanceof Error ? e.message : String(e);
+    } finally {
+      isSubmitting = false;
+    }
+  }
 
-      // Reveal character sheet for player review before story begins.
-      const sheetName = (result.character_sheet?.name as string | undefined) || $charName.trim();
-      generatedName = sheetName;
-      setupResult = result;
+  async function quickStartAdventure() {
+    if (isSubmitting || isStartingAdventure) return;
+    isSubmitting = true;
+    errorMessage = '';
+
+    try {
+      const preferredEra = ERA_OPTIONS.find((o) => o.value === 'REBELLION') ?? ERA_OPTIONS[0];
+      if (!preferredEra) {
+        throw new Error('No playable era is available for Quick Start.');
+      }
+
+      const quickName = randomName();
+      const quickGender: 'male' | 'female' = Math.random() < 0.5 ? 'male' : 'female';
+      const quickPeriodId = preferredEra.value.toLowerCase();
+
+      charName.set(quickName);
+      charGender.set(quickGender);
+      charEra.set(preferredEra.value);
+      charPeriodId.set(quickPeriodId);
+      charSettingId.set(preferredEra.settingId);
+      selectedDifficulty = 'normal';
+
+      const [bgResp, speciesResp] = await Promise.all([
+        getEraBackgrounds(preferredEra.value).catch(() => ({ backgrounds: [] as EraBackground[] })),
+        getEraSpecies(preferredEra.value).catch(() => ({ species: [] as EraSpecies[] })),
+      ]);
+
+      const backgrounds = bgResp.backgrounds ?? [];
+      const speciesList = speciesResp.species ?? [];
+      eraBackgrounds.set(backgrounds);
+      eraSpecies.set(speciesList);
+
+      const pickedBackground = randomItem(backgrounds);
+      const pickedSpecies = randomItem(speciesList);
+      selectedBackground.set(pickedBackground ?? null);
+      charSpecies.set(pickedSpecies?.id ?? null);
+
+      let quickAnswers: Record<string, number> = {};
+      let concepts: string[] = [];
+      let startingLocation: string | null = null;
+      if (pickedBackground) {
+        const built = buildQuickStartBackgroundSelections(pickedBackground);
+        quickAnswers = built.answers;
+        concepts = built.concepts;
+        startingLocation = built.startingLocation;
+      }
+      backgroundAnswers.set(quickAnswers);
+
+      if (!concepts.length) {
+        concepts = ['A determined wanderer stepping into a dangerous opportunity.'];
+      }
+
+      const request: SetupAutoRequest = {
+        setting_id: preferredEra.settingId,
+        period_id: quickPeriodId,
+        time_period: preferredEra.value,
+        genre: null,
+        themes: [],
+        player_concept: concepts.join('; '),
+        starting_location: startingLocation,
+        randomize_starting_location: !startingLocation,
+        background_id: pickedBackground?.id ?? null,
+        background_answers: quickAnswers,
+        player_gender: quickGender,
+        player_profile_id: continueSagaContext?.player_profile_id ?? null,
+        legacy_id: continueSagaContext?.legacy_id ?? null,
+        saga_id: continueSagaContext?.saga_id ?? null,
+        difficulty: 'normal',
+        species_id: pickedSpecies?.id ?? null,
+        quick_start: true,
+      };
+
+      await submitSetupRequest(request);
     } catch (e) {
       errorMessage = e instanceof Error ? e.message : String(e);
     } finally {
@@ -277,6 +440,8 @@
         playerName: trimmedName || sheetName || $charName.trim(),
         era: ($charPeriodId ?? $charEra).toUpperCase(),
         background: $selectedBackground?.name ?? null,
+        sagaId: (setupResult as any).saga_id ?? null,
+        sagaChapter: (setupResult as any).saga_chapter ?? null,
         createdAt: new Date().toISOString(),
         lastPlayedAt: new Date().toISOString(),
         turnCount: 0,
@@ -324,6 +489,13 @@
 
 <div class="creation-container">
   <div class="creation-content">
+    {#if continueSagaContext?.saga_id}
+      <div class="saga-banner card" role="status" aria-live="polite">
+        <div class="saga-banner-title">{sagaBannerLabel}</div>
+        <div class="saga-banner-sub">Legacy context will carry into this campaign's opening threads.</div>
+      </div>
+    {/if}
+
     <!-- Progress bar -->
     <div class="progress-bar">
       {#each Array(Math.min(totalSteps, 8)) as _, i}
@@ -407,7 +579,12 @@
           <button class="btn" onclick={backToMenu}>Back</button>
           <button
             class="btn btn-primary"
-            disabled={!$charName.trim()}
+            disabled={isSubmitting}
+            onclick={quickStartAdventure}
+          >{isSubmitting ? 'Setting up...' : 'Quick Start'}</button>
+          <button
+            class="btn btn-primary"
+            disabled={!$charName.trim() || isSubmitting}
             onclick={nextStep}
           >Continue</button>
         </div>
@@ -766,6 +943,25 @@
   .creation-content {
     max-width: 640px;
     width: 100%;
+  }
+
+  .saga-banner {
+    margin-bottom: 1rem;
+    padding: 0.75rem 0.9rem;
+    text-align: left;
+    border-color: rgba(74, 158, 255, 0.35);
+    background: linear-gradient(135deg, rgba(74, 158, 255, 0.10), rgba(20, 30, 55, 0.20));
+  }
+  .saga-banner-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-heading);
+    letter-spacing: 0.2px;
+  }
+  .saga-banner-sub {
+    margin-top: 0.2rem;
+    font-size: var(--font-small);
+    color: var(--text-secondary);
   }
 
   /* Progress bar */

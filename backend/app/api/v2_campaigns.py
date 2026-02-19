@@ -6,6 +6,7 @@ import logging
 import random
 import uuid
 import time
+import hashlib
 from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
@@ -27,7 +28,14 @@ from backend.app.core.projections import apply_projection
 from backend.app.models.state import GameState
 from backend.app.models.turn_contract import Intent, TurnContract, TurnMeta, TurnDebug
 from backend.app.core.turn_contract import build_turn_contract
-from backend.app.core.truth_ledger import get_facts, ledger_summary, upsert_facts, record_event
+from backend.app.core.truth_ledger import (
+    get_facts,
+    get_facts_with_meta,
+    ledger_summary,
+    upsert_facts,
+    record_event,
+)
+from backend.app.core.episodic_memory import generate_story_summary
 from backend.app.models.events import Event
 from backend.app.core.agents import CampaignBibleAgent, BiographerAgent
 from backend.app.core.story_position import (
@@ -43,13 +51,15 @@ from backend.app.api.campaign_models import (  # noqa: F401
     ContentCatalogEntry, ContentCatalogResponse,
     ContentDefaultResponse, ContentSummaryResponse,
     TurnRequest, PartyStatusItem, TurnResponse,
-    CampaignSummary, CampaignListResponse,
+    CampaignSummary, CampaignListResponse, StorySummaryResponse,
+    SagaCreateRequest, SagaSummary, SagaCampaignSummary, SagaDetailResponse,
 )
 from backend.app.api.campaign_setup import (  # noqa: F401
     DEFAULT_LOCATIONS, NPC_CAST,
     _location_pool,
     _create_npc_cast, _create_npc_cast_from_skeleton,
     _catalog_items, _resolve_requested_period,
+    apply_quick_start_defaults,
     _is_safe_start_location, _pick_start_location_from_pack,
     _deterministic_arc_seed, _generate_arc_seed,
 )
@@ -213,6 +223,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
     conn = _get_conn()
     time.perf_counter()
     try:
+        apply_quick_start_defaults(body)
         try:
             _bible = CampaignBibleAgent(llm=AgentLLM("bible"))
         except Exception as e:
@@ -280,6 +291,19 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         era_metadata = (
             era_pack_for_setup.metadata if (era_pack_for_setup and era_pack_for_setup.metadata) else {}
         )
+        selected_legacy: dict[str, Any] | None = None
+        if body.legacy_id:
+            try:
+                leg_row = conn.execute(
+                    "SELECT legacy_json, saga_id FROM character_legacies WHERE id = ?",
+                    (int(body.legacy_id),),
+                ).fetchone()
+                if leg_row:
+                    selected_legacy = json.loads(leg_row["legacy_json"] or "{}")
+                    if not body.saga_id and leg_row["saga_id"]:
+                        body.saga_id = str(leg_row["saga_id"])
+            except Exception as _legacy_load_err:
+                logger.debug("Legacy preload failed (non-fatal): %s", _legacy_load_err)
         bible_dict = _bible.build(
             player_concept=body.player_concept or "",
             time_period=time_period,
@@ -287,8 +311,38 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
             setting_rules=_setting_rules,
             themes=body.themes,
             era_metadata=dict(era_metadata) if era_metadata else {},
+            returning_legacy=selected_legacy,
         )
         title = bible_dict.get("campaign_title", "New Campaign")
+
+        # Saga linkage (optional)
+        saga_id: str | None = None
+        saga_chapter: int = 1
+        if body.saga_id:
+            saga_row = conn.execute(
+                "SELECT id FROM sagas WHERE id = ?",
+                (body.saga_id,),
+            ).fetchone()
+            if saga_row:
+                saga_id = str(saga_row["id"])
+        if not saga_id and body.player_profile_id:
+            # Continue most recent saga in same universe only when explicitly requested via legacy.
+            if body.legacy_id:
+                saga_row = conn.execute(
+                    """SELECT id FROM sagas
+                       WHERE player_id = ? AND universe_id = ?
+                       ORDER BY updated_at DESC
+                       LIMIT 1""",
+                    (body.player_profile_id, req_setting),
+                ).fetchone()
+                if saga_row:
+                    saga_id = str(saga_row["id"])
+        if saga_id:
+            chapter_row = conn.execute(
+                "SELECT COALESCE(MAX(saga_chapter), 0) AS max_chapter FROM campaigns WHERE saga_id = ?",
+                (saga_id,),
+            ).fetchone()
+            saga_chapter = int((chapter_row["max_chapter"] if chapter_row else 0) or 0) + 1
 
         # Starting location override / randomization (use canonical pool — no locations.yaml needed)
         if era_pack_for_setup and era_pack_for_setup.start_location_pool:
@@ -541,6 +595,11 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         except Exception as _prologue_err:
             logger.warning("PrologueScreenplayAgent failed (non-fatal): %s", _prologue_err)
 
+        canonical_key_events: list[str] = []
+        if (body.campaign_mode or "historical").lower() == "historical":
+            canonical_key_events = _timeline_key_events(era_pack_for_setup)
+            _merge_canon_constraints_into_world_state(world_state, canonical_key_events)
+
         world_state_json_str = json.dumps(world_state)
         from datetime import datetime, timezone  # noqa: E402
         now_str = datetime.now(timezone.utc).isoformat()
@@ -555,6 +614,18 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                 "UPDATE campaigns SET player_profile_id = ? WHERE id = ?",
                 (body.player_profile_id, campaign_id),
             )
+        if saga_id:
+            try:
+                conn.execute(
+                    "UPDATE campaigns SET saga_id = ?, saga_chapter = ? WHERE id = ?",
+                    (saga_id, saga_chapter, campaign_id),
+                )
+                conn.execute(
+                    "UPDATE sagas SET updated_at = datetime('now') WHERE id = ?",
+                    (saga_id,),
+                )
+            except Exception as _saga_link_err:
+                logger.debug("Saga linkage failed (non-fatal): %s", _saga_link_err)
         background = character_sheet.get("background") or ""
 
         # Parse CYOA answers from player_concept if present
@@ -597,6 +668,8 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
             "UPDATE campaigns SET campaign_bible_json = ? WHERE id = ?",
             (json.dumps(bible_dict), campaign_id),
         )
+        if canonical_key_events:
+            _seed_immutable_canon_truth_facts(conn, campaign_id, canonical_key_events)
         conn.commit()
         initial_events = [Event(event_type="FLAG_SET", payload={"key": "campaign_started", "value": True})]
         # Seed the ledger with player background so the arc planner has material from turn 1
@@ -609,7 +682,14 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                 )
         append_events(conn, campaign_id, 1, initial_events)
         apply_projection(conn, campaign_id, initial_events)
-        return SetupAutoResponse(campaign_id=campaign_id, player_id=player_id, skeleton=bible_dict, character_sheet=character_sheet)
+        return SetupAutoResponse(
+            campaign_id=campaign_id,
+            player_id=player_id,
+            skeleton=bible_dict,
+            character_sheet=character_sheet,
+            saga_id=saga_id,
+            saga_chapter=saga_chapter if saga_id else None,
+        )
     except HTTPException:
         raise
     except Exception as e:
@@ -619,7 +699,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
             campaign_id=None,
             turn_number=None,
             agent_name="setup_auto",
-            extra_context={"time_period": era_for_setup, "themes": body.themes},
+            extra_context={"time_period": (body.time_period or body.period_id or body.setting_id), "themes": body.themes},
         )
         raise
     finally:
@@ -800,6 +880,72 @@ def get_campaign_world_state(campaign_id: str) -> dict[str, Any]:
         conn.close()
 
 
+@router.get("/campaigns/{campaign_id}/summary", response_model=StorySummaryResponse)
+def get_campaign_story_summary(campaign_id: str) -> StorySummaryResponse:
+    """Return a quick narrative recap for players returning to a campaign."""
+    conn = _get_conn()
+    try:
+        camp = load_campaign(conn, campaign_id)
+        if camp is None:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        ws = _world_state_dict(camp)
+        summary = generate_story_summary(conn, campaign_id, world_state=ws, max_recent_memories=5)
+        return StorySummaryResponse(campaign_id=campaign_id, **summary)
+    finally:
+        conn.close()
+
+
+class CrystallizeMemoryRequest(BaseModel):
+    turn_number: int
+    summary: str = ""
+    emotional_tag: str = ""
+
+
+@router.post("/campaigns/{campaign_id}/memories/crystallize")
+def crystallize_memory(campaign_id: str, body: CrystallizeMemoryRequest) -> dict[str, Any]:
+    """Manual player/system pin for an important memory turn."""
+    conn = _get_conn()
+    try:
+        if load_campaign(conn, campaign_id) is None:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        row = conn.execute(
+            """SELECT payload_json
+               FROM turn_events
+               WHERE campaign_id = ? AND turn_number = ? AND is_hidden = 0
+               ORDER BY id ASC
+               LIMIT 20""",
+            (campaign_id, body.turn_number),
+        ).fetchall()
+        event_summaries: list[str] = []
+        for item in row:
+            try:
+                payload = json.loads(item["payload_json"] or "{}")
+            except Exception:
+                payload = {}
+            if isinstance(payload, dict):
+                txt = payload.get("text") or payload.get("description")
+                if isinstance(txt, str) and txt.strip():
+                    event_summaries.append(txt.strip())
+        summary = (body.summary or "").strip()
+        if not summary:
+            summary = event_summaries[0] if event_summaries else f"Marked memory from turn {body.turn_number}."
+        from backend.app.core.episodic_memory import EpisodicMemory  # noqa: E402
+        epi = EpisodicMemory(conn, campaign_id)
+        epi.add_crystallized_memory(
+            turn_number=body.turn_number,
+            memory_type="player_marked",
+            summary=summary,
+            full_text=" ".join(event_summaries)[:1200],
+            npcs_involved=[],
+            location=None,
+            emotional_tag=(body.emotional_tag or "").strip() or None,
+        )
+        conn.commit()
+        return {"campaign_id": campaign_id, "turn_number": body.turn_number, "status": "ok"}
+    finally:
+        conn.close()
+
+
 @router.get("/campaigns/{campaign_id}/locations")
 def get_campaign_locations(campaign_id: str) -> dict[str, Any]:
     """Return merged locations (era pack + generated) for the campaign world map."""
@@ -915,6 +1061,87 @@ def _world_state_dict(camp: dict) -> dict:
     return ws if isinstance(ws, dict) else {}
 
 
+def _timeline_key_events(era_pack: Any | None) -> list[str]:
+    """Extract canonical timeline events from era pack (legends or setting timeline)."""
+    if era_pack is None:
+        return []
+    timeline = getattr(era_pack, "legends_timeline", None) or getattr(era_pack, "setting_timeline", None) or {}
+    if not isinstance(timeline, dict):
+        return []
+    events = timeline.get("key_events") or []
+    out: list[str] = []
+    for event in events:
+        text = str(event or "").strip()
+        if text:
+            out.append(text)
+    return out
+
+
+def _historical_lore_label(era_pack: Any | None) -> str:
+    if era_pack is not None and hasattr(era_pack, "setting_rules"):
+        return str(getattr(era_pack.setting_rules, "historical_lore_label", "") or "established lore")
+    return "established lore"
+
+
+def _merge_canon_constraints_into_world_state(world_state: dict[str, Any], key_events: list[str]) -> None:
+    """Expose canon constraints in narrator-visible ledger fields."""
+    if not key_events:
+        return
+    ledger = world_state.get("ledger")
+    if not isinstance(ledger, dict):
+        ledger = {}
+    established = list(ledger.get("established_facts") or [])
+    constraints = list(ledger.get("constraints") or [])
+    for event in key_events[:8]:
+        fact_line = f"Canon: {event}"
+        constraint_line = f"Immutable canon event: {event}"
+        if fact_line not in established:
+            established.append(fact_line)
+        if constraint_line not in constraints:
+            constraints.append(constraint_line)
+    ledger["established_facts"] = established
+    ledger["constraints"] = constraints
+    world_state["ledger"] = ledger
+
+
+def _seed_immutable_canon_truth_facts(
+    conn,
+    campaign_id: str,
+    key_events: list[str],
+) -> None:
+    """Persist historical canon events into truth_facts as immutable records."""
+    if not key_events:
+        return
+    from backend.app.models.turn_contract import Fact  # noqa: E402
+
+    facts = []
+    for event in key_events:
+        digest = hashlib.sha1(event.encode("utf-8")).hexdigest()[:10]
+        facts.append(Fact(fact_key=f"canon_event_{digest}", fact_value=event))
+    upsert_facts(conn, campaign_id, "setup", facts, is_immutable=True)
+
+
+def _inject_truth_constraints_into_state(conn, campaign_id: str, state: GameState) -> None:
+    """Mirror immutable truth facts into world_state ledger for narrator constraints."""
+    if not isinstance(state.campaign, dict):
+        return
+    ws = state.campaign.get("world_state_json")
+    if not isinstance(ws, dict):
+        ws = {}
+    facts, immutable = get_facts_with_meta(conn, campaign_id)
+    immutable_lines = []
+    for key, is_imm in immutable.items():
+        if not is_imm:
+            continue
+        val = facts.get(key)
+        if isinstance(val, str):
+            immutable_lines.append(val)
+        else:
+            immutable_lines.append(f"{key}: {val}")
+    _merge_canon_constraints_into_world_state(ws, immutable_lines)
+    state.campaign["world_state_json"] = ws
+
+
 def _active_objectives(conn, campaign_id: str) -> list[dict]:
     rows = conn.execute(
         "SELECT id, title, description, progress_json, status FROM objectives WHERE campaign_id = ? AND status = 'active' ORDER BY updated_at DESC LIMIT 5",
@@ -972,6 +1199,7 @@ def post_turn(
     try:
         _ensure_campaign_and_player(conn, campaign_id, player_id)
         state = build_initial_gamestate(conn, campaign_id, player_id)
+        _inject_truth_constraints_into_state(conn, campaign_id, state)
         if body.intent is not None:
             state.user_input = body.intent.user_utterance or json.dumps(body.intent.model_dump(mode="json"))
         else:
@@ -1084,15 +1312,26 @@ def post_turn(
                 news_feed_out = [item if isinstance(item, dict) else getattr(item, "model_dump", lambda **kw: item)(mode="json") for item in nf[:NEWS_FEED_MAX]]
 
         context_stats_out = None
+        agent_timings_out = None
         if DEV_CONTEXT_STATS and result.context_stats:
             context_stats_out = result.context_stats
+        if DEV_CONTEXT_STATS:
+            merged_timings = {}
+            if getattr(result, "agent_timings", None):
+                merged_timings.update(result.agent_timings or {})
+            if getattr(result, "llm_timings", None):
+                merged_timings["llm"] = result.llm_timings
+            if merged_timings:
+                agent_timings_out = merged_timings
         warnings_out = getattr(result, "warnings", None) or []
 
         camp_live = load_campaign(conn, campaign_id) or {}
         beats_remaining, scene_transition_note, force_scene_transition = _decrement_beats(conn, campaign_id, camp_live)
         ws_live = _world_state_dict(camp_live)
         mode = str(ws_live.get("mode") or "SIM").upper()
-        ledger_facts = get_facts(conn, campaign_id)
+        ledger_facts, immutable_facts = get_facts_with_meta(conn, campaign_id)
+        setting_rules_live = ws_live.get("setting_rules") if isinstance(ws_live.get("setting_rules"), dict) else {}
+        historical_label = str((setting_rules_live or {}).get("historical_lore_label") or "established lore")
         objectives = _active_objectives(conn, campaign_id)
         if not objectives:
             _seed_default_objective(conn, campaign_id)
@@ -1119,6 +1358,8 @@ def post_turn(
                 prompt_versions=prompt_registry_snapshot(),
             ),
             ledger_facts=ledger_facts,
+            immutable_facts=immutable_facts,
+            historical_lore_label=historical_label,
             has_companions=bool((camp or {}).get("party")),
             force_scene_transition=force_scene_transition,
         )
@@ -1208,6 +1449,7 @@ def post_turn(
             faction_reputation=faction_reputation_out,
             news_feed=news_feed_out,
             context_stats=context_stats_out,
+            agent_timings=agent_timings_out,
             warnings=warnings_out,
             dialogue_turn=getattr(result, "dialogue_turn", None),
             turn_contract=turn_contract,
@@ -1289,9 +1531,9 @@ def _run_pre_narrator_pipeline(conn, state: GameState) -> dict:
 
 
 def _run_post_narrator_pipeline(conn, state_dict: dict, final_text: str, lore_citations: list) -> dict:
-    """Run narrative validation + suggestion refinement + commit after streaming completes."""
+    """Run narrative validation + choice crafting + commit after streaming completes."""
     from backend.app.core.nodes.narrative_validator import narrative_validator_node  # noqa: E402
-    from backend.app.core.nodes.suggestion_refiner import make_suggestion_refiner_node  # noqa: E402
+    from backend.app.core.nodes.choice_crafter_node import make_choice_crafter_node  # noqa: E402
     from backend.app.core.nodes.commit import make_commit_node  # noqa: E402
 
     state_dict["final_text"] = final_text
@@ -1299,8 +1541,8 @@ def _run_post_narrator_pipeline(conn, state_dict: dict, final_text: str, lore_ci
 
     state_dict = narrative_validator_node(state_dict)
 
-    suggestion_refiner = make_suggestion_refiner_node()
-    state_dict = suggestion_refiner(state_dict)
+    choice_crafter = make_choice_crafter_node()
+    state_dict = choice_crafter(state_dict)
 
     commit_node = make_commit_node()
     state_dict = commit_node(state_dict)
@@ -1348,12 +1590,14 @@ def post_turn_stream(
                 _truncate_overlong_prose,
                 _enforce_pov_consistency,
             )
+            from backend.app.core.agents.narrator_postprocess import get_word_limit_for_scene_weight  # noqa: E402
             from backend.app.core.agents import NarratorAgent  # noqa: E402
             from backend.app.core.agents.base import AgentLLM  # noqa: E402
             from backend.app.core.nodes.narrator import _is_high_stakes_combat  # noqa: E402
             from backend.app.rag.kg_retriever import KGRetriever  # noqa: E402
 
             state = build_initial_gamestate(conn, campaign_id, player_id)
+            _inject_truth_constraints_into_state(conn, campaign_id, state)
             if body.intent is not None:
                 state.user_input = body.intent.user_utterance or json.dumps(body.intent.model_dump(mode="json"))
             else:
@@ -1452,7 +1696,8 @@ def post_turn_stream(
             final_text = _strip_structural_artifacts(accumulated)
             final_text = _strip_embedded_suggestions(final_text)
             final_text = _enforce_pov_consistency(final_text)
-            final_text = _truncate_overlong_prose(final_text)
+            max_words = get_word_limit_for_scene_weight(pre_state.get("scene_weight"))
+            final_text = _truncate_overlong_prose(final_text, max_words=max_words)
 
             # Append companion banter if available
             campaign_data = dict(pre_state.get("campaign") or {})
@@ -1507,6 +1752,9 @@ def post_turn_stream(
                 objectives = _active_objectives(conn, campaign_id)
             if scene_transition_note:
                 warnings_out.append(scene_transition_note)
+            ledger_facts, immutable_facts = get_facts_with_meta(conn, campaign_id)
+            setting_rules_live = ws_live.get("setting_rules") if isinstance(ws_live.get("setting_rules"), dict) else {}
+            historical_label = str((setting_rules_live or {}).get("historical_lore_label") or "established lore")
 
             turn_contract = build_turn_contract(
                 mode=str(ws_live.get("mode") or "SIM").upper(),
@@ -1525,7 +1773,9 @@ def post_turn_stream(
                     passage_id=ws_live.get("current_passage_id"),
                     prompt_versions=prompt_registry_snapshot(),
                 ),
-                ledger_facts=get_facts(conn, campaign_id),
+                ledger_facts=ledger_facts,
+                immutable_facts=immutable_facts,
+                historical_lore_label=historical_label,
                 has_companions=bool((camp or {}).get("party")),
                 force_scene_transition=force_scene_transition,
             )
@@ -1553,6 +1803,14 @@ def post_turn_stream(
                 "dialogue_turn": getattr(result_gs, "dialogue_turn", None),
                 "turn_contract": turn_contract.model_dump(mode="json"),
             }
+            if DEV_CONTEXT_STATS:
+                merged_timings = {}
+                if getattr(result_gs, "agent_timings", None):
+                    merged_timings.update(result_gs.agent_timings or {})
+                if getattr(result_gs, "llm_timings", None):
+                    merged_timings["llm"] = result_gs.llm_timings
+                if merged_timings:
+                    done_payload["agent_timings"] = merged_timings
             logger.info("turn_complete node=turn_stream campaign_id=%s turn_id=%s latency_ms=%s validation_errors=%s repair_count=%s", campaign_id, turn_contract.turn_id, int((time.perf_counter()-start_ts)*1000), len((turn_contract.debug.validation_errors if turn_contract.debug else [])), (turn_contract.debug.repair_count if turn_contract.debug else 0))
             yield f"data: {json.dumps(done_payload)}\n\n"
 
@@ -1684,6 +1942,123 @@ def get_player_legacy(player_profile_id: str) -> dict[str, Any]:
         conn.close()
 
 
+@router.post("/sagas", response_model=SagaSummary)
+def create_saga(body: SagaCreateRequest) -> SagaSummary:
+    """Create a saga container for linked campaigns."""
+    conn = _get_conn()
+    try:
+        saga_id = str(uuid.uuid4())
+        conn.execute(
+            """INSERT INTO sagas (id, player_id, universe_id, title, created_at, updated_at)
+               VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))""",
+            (saga_id, body.player_id, body.universe_id, body.title),
+        )
+        conn.commit()
+        row = conn.execute(
+            "SELECT id, player_id, universe_id, title, created_at, updated_at FROM sagas WHERE id = ?",
+            (saga_id,),
+        ).fetchone()
+        return SagaSummary(
+            saga_id=str(row["id"]),
+            player_id=str(row["player_id"]),
+            universe_id=str(row["universe_id"]),
+            title=str(row["title"]),
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
+            campaign_count=0,
+        )
+    finally:
+        conn.close()
+
+
+@router.get("/player/{player_profile_id}/sagas")
+def list_sagas(player_profile_id: str) -> dict[str, Any]:
+    """List sagas for a player, with campaign counts."""
+    conn = _get_conn()
+    try:
+        rows = conn.execute(
+            """SELECT s.id, s.player_id, s.universe_id, s.title, s.created_at, s.updated_at,
+                      COUNT(c.id) AS campaign_count
+               FROM sagas s
+               LEFT JOIN campaigns c ON c.saga_id = s.id
+               WHERE s.player_id = ?
+               GROUP BY s.id, s.player_id, s.universe_id, s.title, s.created_at, s.updated_at
+               ORDER BY s.updated_at DESC""",
+            (player_profile_id,),
+        ).fetchall()
+        return {
+            "sagas": [
+                SagaSummary(
+                    saga_id=str(r["id"]),
+                    player_id=str(r["player_id"]),
+                    universe_id=str(r["universe_id"]),
+                    title=str(r["title"]),
+                    created_at=r["created_at"],
+                    updated_at=r["updated_at"],
+                    campaign_count=int(r["campaign_count"] or 0),
+                ).model_dump(mode="json")
+                for r in rows
+            ]
+        }
+    finally:
+        conn.close()
+
+
+@router.get("/sagas/{saga_id}", response_model=SagaDetailResponse)
+def get_saga_detail(saga_id: str) -> SagaDetailResponse:
+    """Fetch saga metadata and ordered campaign timeline."""
+    conn = _get_conn()
+    try:
+        saga = conn.execute(
+            "SELECT id, player_id, universe_id, title, created_at, updated_at FROM sagas WHERE id = ?",
+            (saga_id,),
+        ).fetchone()
+        if not saga:
+            raise HTTPException(status_code=404, detail="Saga not found")
+        campaigns = conn.execute(
+            """SELECT c.id, c.title, c.time_period, c.saga_chapter, c.updated_at,
+                      cl.legacy_json
+               FROM campaigns c
+               LEFT JOIN character_legacies cl ON cl.campaign_id = c.id
+               WHERE c.saga_id = ?
+               ORDER BY c.saga_chapter ASC, c.updated_at ASC""",
+            (saga_id,),
+        ).fetchall()
+        items: list[SagaCampaignSummary] = []
+        for row in campaigns:
+            excerpt = None
+            try:
+                if row["legacy_json"]:
+                    legacy_doc = json.loads(row["legacy_json"])
+                    excerpt = str(legacy_doc.get("crystallized_memories_summary") or "")[:220] or None
+            except Exception:
+                excerpt = None
+            items.append(
+                SagaCampaignSummary(
+                    campaign_id=str(row["id"]),
+                    title=str(row["title"]),
+                    time_period=str(row["time_period"]) if row["time_period"] else None,
+                    saga_chapter=int(row["saga_chapter"] or 1),
+                    updated_at=row["updated_at"],
+                    legacy_excerpt=excerpt,
+                )
+            )
+        return SagaDetailResponse(
+            saga=SagaSummary(
+                saga_id=str(saga["id"]),
+                player_id=str(saga["player_id"]),
+                universe_id=str(saga["universe_id"]),
+                title=str(saga["title"]),
+                created_at=saga["created_at"],
+                updated_at=saga["updated_at"],
+                campaign_count=len(items),
+            ),
+            campaigns=items,
+        )
+    finally:
+        conn.close()
+
+
 @router.post("/campaigns/{campaign_id}/complete")
 def complete_campaign(campaign_id: str, body: CompleteCampaignRequest) -> dict[str, Any]:
     """Mark a campaign as completed and save legacy data for cross-campaign influence."""
@@ -1707,6 +2082,8 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest) -> dict[s
             except json.JSONDecodeError:
                 ws = {}
         ws = ws if isinstance(ws, dict) else {}
+        saga_id = campaign.get("saga_id")
+        saga_chapter = int(campaign.get("saga_chapter") or 1)
 
         arc_stage_reached = (
             ws.get("arc_state", {}).get("current_stage", "SETUP")
@@ -1781,6 +2158,52 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest) -> dict[s
                 now_str,
             ),
         )
+        character_name = "Unknown Hero"
+        try:
+            p_row = conn.execute(
+                "SELECT name FROM characters WHERE campaign_id = ? AND role = 'Player' LIMIT 1",
+                (campaign_id,),
+            ).fetchone()
+            if p_row and p_row["name"]:
+                character_name = str(p_row["name"])
+        except Exception:
+            pass
+
+        character_legacy_doc: dict[str, Any] = {}
+        character_legacy_id: int | None = None
+        try:
+            from backend.app.core.agents.legacy_agent import LegacyAgent  # noqa: E402
+            cryst_rows = conn.execute(
+                """SELECT summary
+                   FROM crystallized_memories
+                   WHERE campaign_id = ?
+                   ORDER BY turn_number DESC
+                   LIMIT 8""",
+                (campaign_id,),
+            ).fetchall()
+            crystallized_summaries = [str(r["summary"]) for r in cryst_rows if r and r["summary"]]
+            character_legacy_doc = LegacyAgent().generate(
+                character_name=character_name,
+                saga_chapter=saga_chapter,
+                world_state=ws,
+                outcome_summary=body.outcome_summary,
+                character_fate=body.character_fate,
+                crystallized_summaries=crystallized_summaries,
+            )
+            _ins = conn.execute(
+                """INSERT INTO character_legacies (player_id, campaign_id, saga_id, legacy_json, created_at)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (
+                    profile_id,
+                    campaign_id,
+                    saga_id,
+                    json.dumps(character_legacy_doc),
+                    now_str,
+                ),
+            )
+            character_legacy_id = int(getattr(_ins, "lastrowid", 0) or 0) or None
+        except Exception as _char_legacy_err:
+            logger.warning("Character legacy generation failed (non-fatal): %s", _char_legacy_err)
         conn.commit()
         return {
             "status": "completed",
@@ -1788,6 +2211,11 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest) -> dict[s
             "campaign_id": campaign_id,
             "recommended_next_scale": recommended_next_scale,
             "next_campaign_pitch": next_campaign_pitch,
+            "character_legacy": character_legacy_doc,
+            "character_legacy_id": character_legacy_id,
+            "player_profile_id": profile_id,
+            "saga_id": saga_id,
+            "saga_chapter": saga_chapter,
         }
     finally:
         conn.close()

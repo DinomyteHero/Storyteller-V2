@@ -93,6 +93,21 @@ legends_timeline:
     - "Nom Anor (Vong executor, master of infiltration)"
 
 # V3.2: Universe rules — setting-specific text for agent prompts.
+canon_characters:
+  - name: "Luke Skywalker"
+    proximity: interaction
+    locations: [loc-rebel-base, loc-refugee-camp]
+    exclusion_events:
+      - "Siege of Coruscant war council"
+  - name: "Jacen Solo"
+    proximity: cameo
+    locations: [loc-refugee-camp, loc-safe-house]
+  - name: "Supreme Overlord Shimrra"
+    proximity: exclusion
+    locations: [loc-imperial-outpost]
+    exclusion_events:
+      - "Yuuzhan Vong throne enclave"
+
 setting_rules:
   setting_name: "Star Wars Legends"
   setting_genre: "science fantasy"

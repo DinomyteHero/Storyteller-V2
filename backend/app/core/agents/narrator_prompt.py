@@ -26,80 +26,88 @@ LoreChunk = dict
 VoiceSnippet = dict
 
 
-_LOCATION_NARRATIVE_NAMES: dict[str, str] = {
-    "loc-cantina": "a cantina",
-    "loc-tavern": "a cantina",  # legacy alias
+_GENERIC_LOCATION_NAMES: dict[str, str] = {
+    "loc-cantina": "the tavern",
+    "loc-tavern": "the tavern",
     "loc-marketplace": "the marketplace",
-    "loc-market": "the marketplace",  # legacy alias
-    "loc-docking-bay": "the docking bay",
-    "loc-docks": "the docking bay",  # legacy alias
+    "loc-market": "the marketplace",
+    "loc-docking-bay": "the docks",
+    "loc-docks": "the docks",
     "loc-lower-streets": "the lower streets",
-    "loc-street": "the lower streets",  # legacy alias
-    "loc-hangar": "the hangar bay",
-    "loc-spaceport": "the spaceport",
+    "loc-street": "the lower streets",
+    "loc-hangar": "the hangar",
+    "loc-spaceport": "the transit hub",
     "loc-command-center": "the command center",
-    "loc-med-bay": "the med bay",
-    "loc-jedi-temple": "the Jedi Temple",
+    "loc-med-bay": "the infirmary",
 }
 
-# Era-specific atmosphere fragments for deterministic fallback prose.
-# Each era provides opening, ambient, tension, calm, and hook lines
-# so fallback text still feels era-appropriate rather than generic.
-_ERA_FALLBACK_ATMOSPHERE: dict[str, dict[str, str]] = {
-    "REBELLION": {
-        "opening": "The air{planet_str} carried the weight of a galaxy at war — ozone, engine grease, and the faint charge of a rebellion burning slow.",
-        "ambient": "The hum of distant engines blended with the static crackle of a comm relay cycling through encrypted channels.",
-        "tension": "Stormtrooper boot-steps echoed somewhere close, and the air tightened like a drawn bowstring.",
-        "calm": "For a fleeting moment the war felt distant — just the hiss of recycled air and the amber glow of a status panel.",
-        "hook": "Somewhere in the static between stars, the next chapter waited. The Rebellion never truly rested.",
-    },
-    "LEGACY": {
-        "opening": "The air{planet_str} tasted of old wars and new ambitions — duracrete dust and the metallic tang of a fractured galaxy rebuilding itself.",
-        "ambient": "Holoscreens flickered between propaganda feeds and market prices, a galaxy still deciding what shape it wanted to take.",
-        "tension": "Old allegiances stirred beneath the surface, and the silence felt like the breath before a detonator's click.",
-        "calm": "The corridor was quiet. Somewhere beyond the viewport, stars turned slowly, indifferent to the politics below.",
-        "hook": "The galaxy's wounds were still fresh, and every handshake concealed a knife. The legacy era demanded vigilance.",
-    },
-    "NEW_REPUBLIC": {
-        "opening": "The air{planet_str} hummed with the cautious optimism of a galaxy learning to breathe without an Emperor's boot on its throat.",
-        "ambient": "Senate broadcasts competed with cantina music, and the New Republic's banners hung alongside scorch marks that no one had bothered to scrub away.",
-        "tension": "Freedom was fragile. The remnants of Empire lurked in the Outer Rim, and not every ally had clean hands.",
-        "calm": "Sunlight streamed through a viewport, catching dust motes that drifted like possibilities in the new order's early days.",
-        "hook": "Peace was a promise, not a guarantee. The New Republic needed people willing to hold the line while the galaxy rebuilt.",
-    },
-    "NEW_JEDI_ORDER": {
-        "opening": "The air{planet_str} pulsed with something older than politics — the Force, stirring like a tide that had waited a generation to return.",
-        "ambient": "Training sabers hummed in distant courtyards, and the scent of ancient texts mingled with the green of newly planted gardens around the academy.",
-        "tension": "A tremor rippled through the Force — not danger, exactly, but a warning. The dark side never slept for long.",
-        "calm": "The Force settled like still water, and for a breath the galaxy's noise faded to a single clear note of balance.",
-        "hook": "The Jedi were returning, but the galaxy's memory was long. Trust would be earned one lightsaber at a time.",
-    },
-    "_DEFAULT": {
-        "opening": "The air{planet_str} carried the weight of a galaxy in motion.",
-        "ambient": "The hum of life-support systems provided a steady undertone to the scene.",
-        "tension": "The air felt tense, charged with unspoken urgency.",
-        "calm": "The moment was calm, expectant.",
-        "hook": "Something stirred at the edge of awareness. The story began here.",
-    },
+_GENERIC_ATMOSPHERE_FRAGMENTS: dict[str, str] = {
+    "opening": "The air{planet_str} carried the weight of recent events.",
+    "ambient": "Background noise filled the space - voices, machinery, and the rhythm of daily life.",
+    "tension": "Something felt wrong. The atmosphere tightened.",
+    "calm": "For a moment, everything was still.",
+    "hook": "The next chapter waited, just beyond the threshold.",
+}
+
+_SCENE_SENTENCE_GUIDANCE: dict[str, str] = {
+    "STANDARD": "Write 5-8 vivid sentences.",
+    "ELEVATED": "Write 6-10 vivid sentences. This is an important moment.",
+    "CLIMAX": "Write 8-12 immersive, dramatic sentences. This is a pivotal moment in the story.",
 }
 
 
-def _humanize_location(loc_id: str | None) -> str:
-    """Convert a raw location ID into a narrative-friendly Star Wars name.
+def _get_era_pack(state: GameState):
+    """Load the active era pack when possible."""
+    from backend.app.content.repository import CONTENT_REPOSITORY
 
-    Uses a known lookup table first, then falls back to generic cleanup.
-    Examples: loc-cantina -> a cantina, loc-docking-bay -> the docking bay.
-    """
+    campaign = getattr(state, "campaign", None) or {}
+    era_id = (campaign.get("time_period") or campaign.get("era") or "").strip()
+    if not era_id:
+        return None
+    try:
+        return CONTENT_REPOSITORY.get_pack(era_id)
+    except Exception:
+        return None
+
+
+def _resolve_location_name(loc_id: str, state: GameState | None = None) -> str:
+    """Resolve a location ID to display text, preferring era-pack locations."""
+    if state is not None:
+        era_pack = _get_era_pack(state)
+        if era_pack is not None:
+            for loc in getattr(era_pack, "locations", []) or []:
+                loc_ref = getattr(loc, "id", None) if not isinstance(loc, dict) else loc.get("id")
+                if loc_ref == loc_id:
+                    loc_name = getattr(loc, "name", None) if not isinstance(loc, dict) else loc.get("name")
+                    if loc_name:
+                        return str(loc_name)
+    return _GENERIC_LOCATION_NAMES.get(loc_id.lower(), loc_id.replace("loc-", "").replace("-", " "))
+
+
+def _get_atmosphere(state: GameState) -> dict[str, str]:
+    """Load atmosphere fragments from era pack, with generic fallback."""
+    era_pack = _get_era_pack(state)
+    if era_pack is not None:
+        fragments = getattr(era_pack, "atmosphere_fragments", None)
+        if isinstance(fragments, dict) and fragments:
+            return {**_GENERIC_ATMOSPHERE_FRAGMENTS, **fragments}
+        if hasattr(fragments, "model_dump"):
+            data = fragments.model_dump(mode="json")
+            if isinstance(data, dict):
+                return {**_GENERIC_ATMOSPHERE_FRAGMENTS, **data}
+    return dict(_GENERIC_ATMOSPHERE_FRAGMENTS)
+
+
+def _humanize_location(loc_id: str | None, state: GameState | None = None) -> str:
+    """Convert a raw location ID into a narrative-friendly location name."""
     if not loc_id:
         return ""
     raw = loc_id.strip()
     if not raw:
         return ""
-    # Check known narrative names first
-    display = _LOCATION_NARRATIVE_NAMES.get(raw.lower())
-    if display:
+    display = _resolve_location_name(raw, state)
+    if display and display != raw:
         return display
-    # Fallback: strip prefix and format
     cleaned = raw
     for prefix in ("loc-", "loc_", "location-", "location_"):
         if cleaned.lower().startswith(prefix):
@@ -108,12 +116,16 @@ def _humanize_location(loc_id: str | None) -> str:
     cleaned = cleaned.replace("-", " ").replace("_", " ").strip()
     if not cleaned:
         return raw
-    # If single common word, add article
     words = cleaned.split()
     if len(words) == 1:
         return f"the {cleaned}"
     return cleaned.title()
 
+
+def _scene_sentence_guidance(state: GameState) -> str:
+    """Return scene-weight-sensitive sentence guidance for the narrator prompt."""
+    weight = str(getattr(state, "scene_weight", None) or "STANDARD").upper()
+    return _SCENE_SENTENCE_GUIDANCE.get(weight, _SCENE_SENTENCE_GUIDANCE["STANDARD"])
 
 def _build_lore_query(state: GameState) -> str:
     """Build a lore retrieval query from location, user input, and mechanic summary."""
@@ -177,7 +189,7 @@ def _collect_character_ids(state: GameState) -> list[str]:
 
 def _build_story_state_summary(state: GameState) -> str:
     """Build story state summary (never trimmed)."""
-    loc = _humanize_location(state.current_location) or "the scene"
+    loc = _humanize_location(state.current_location, state) or "the scene"
     campaign_id = state.campaign_id or ""
     npcs = state.present_npcs or []
     npc_names_list = [n.get("name") for n in npcs if n.get("name")]
@@ -512,6 +524,13 @@ def _build_prompt(
     from backend.app.core.setting_context import get_setting_rules
     _sr = get_setting_rules(state.model_dump(mode="json") if hasattr(state, "model_dump") else (state if isinstance(state, dict) else {}))
     _faction_examples = ", ".join(_sr.example_factions) if _sr.example_factions else "various factions"
+    _genre = (_sr.setting_genre or "speculative").strip()
+    if _genre.lower() == "science fantasy":
+        _voice_reference = "Channel Kreia, Atton, Jolee Bindo."
+    else:
+        _voice_reference = f"Channel the narrative voice of classic {_genre} fiction."
+
+    sentence_guidance = _scene_sentence_guidance(state)
 
     # V2.15: Narrator writes ONLY prose. Suggestions are generated deterministically
     # by the Director node using generate_suggestions() — no LLM involvement.
@@ -537,7 +556,7 @@ def _build_prompt(
         "  reframe (offer a different lens), warn (hint at consequences), or reveal (share something personal).\n"
         "- Include ONE 'tell' — a repeated mannerism (a pause, a gesture, a speech pattern) that makes the NPC feel real.\n"
         "  Examples: 'pauses before answering', 'jaw tightens', 'eyes narrow', 'voice drops half a register'.\n"
-        "- The dialogue should make the player THINK, not just react. Channel Kreia, Atton, Jolee Bindo.\n"
+        f"- The dialogue should make the player THINK, not just react. {_voice_reference}\n"
         "- Philosophical depth comes from SUBTEXT, not length. 1-4 lines max.\n"
         "- The NPC must speak ON TOPIC (the scene's topic from context).\n"
         "- Do NOT repeat information already in the prose — the dialogue should ADD something new.\n\n"
@@ -557,18 +576,18 @@ def _build_prompt(
             "You are the narrator for a story game. THIS IS THE OPENING SCENE — the very first moment the player experiences.\n\n"
             "PERSPECTIVE: Write in close third-person POV through the player character (see 'POV Character' in context). "
             "Everything is filtered through THEIR senses and emotions. Use their name. "
-            "Example: 'Tycho felt the heat of the cantina hit him as he stepped inside.' NOT 'The cantina was hot.'\n\n"
+            "Example: 'Tycho felt the heat of the room hit him as he stepped inside.' NOT 'The room was hot.'\n\n"
             "Your job is to write a CINEMATIC INTRODUCTION that:\n"
             "1. ORIENTS THE PLAYER FIRST: Before anything happens, ground them. Where are they? What do they see and feel? "
             "Start with atmosphere and location — the player needs to know where they are before things happen.\n"
             "2. INTRODUCES NPCS NATURALLY: When an NPC appears, briefly describe them visually. "
-            "Example: 'A scarred Twi'lek in a pilot's jacket leaned against the bar — an officer, by the look of the insignia.' "
+            "Example: 'A scarred figure in a worn jacket leaned against the bar - an officer, by the look of the insignia.' "
             "Do NOT reference NPCs by name as if the player already knows them, unless the backstory says they do.\n"
             "3. CREATES A HOOK: Something happens that invites the player to act. Keep it simple — a conversation overheard, "
             "a figure approaching, a problem visible in the scene.\n"
             "4. DOES NOT ASSUME PLAYER ACTIONS: Describe what they perceive, not what they do. End with a moment that invites a choice. "
             "NEVER narrate the player character taking actions without player input — describe what they sense, not what they decide.\n"
-            "5. Write 5-8 vivid sentences. Keep it grounded — this is the BEGINNING, not the middle of an action sequence.\n"
+            f"5. {sentence_guidance} Keep it grounded - this is the BEGINNING, not the middle of an action sequence.\n"
             "6. Write as flowing prose paragraphs (2-3 paragraphs, separated by blank lines). "
             "Do NOT split the narrative into labeled sections like "
             "'Scene Description:' or 'Suggested Actions:'. Blend setting, atmosphere, character motivation, "
@@ -590,9 +609,9 @@ def _build_prompt(
             "- FACTION NEUTRALITY: Do NOT assume the player's allegiance. The player may choose to side "
             f"with ANY faction ({_faction_examples}, independent). Narrate the world "
             "as presenting opportunities from multiple sides. Do not frame one faction as 'the good guys'.\n"
-            "  * BAD: 'Ozzel, from wanted posters' (assumes anti-Empire stance)\n"
-            "  * GOOD: 'an Imperial officer — Ozzel, by the rank insignia'\n"
-            "  * BAD: 'the Rebel smuggler Hero knew' (assumes Rebel sympathy)\n"
+            "  * BAD: 'Captain Vale, from wanted posters' (assumes hostility)\n"
+            "  * GOOD: 'an officer - Captain Vale, by the rank insignia'\n"
+            "  * BAD: 'the freedom fighter Hero trusted' (assumes sympathy)\n"
             "  * GOOD: 'a smuggler Hero had crossed paths with before'\n"
             "- LORE: Use the provided lore context to enrich the scene. If lore context is empty, do NOT claim canon facts; use atmosphere and sensory detail instead.\n"
             "- VOICE: When characters speak, match their voice to provided voice snippets if available.\n"
@@ -627,7 +646,7 @@ def _build_prompt(
             "5. TONE: Adjust tone based on character's current_mood and stress_level. High stress (>7) = shorter sentences, sensory overload. Low stress = more reflective prose.\n"
             "6. RUMORS: Subtly reference background rumors if appropriate, but do not derail the scene.\n"
             "7. VOICE: When characters speak, match their voice to provided voice snippets if available.\n"
-            "8. Output 5-8 sentences of narrative prose ending with an evocative moment.\n"
+            f"8. {sentence_guidance} End with an evocative moment.\n"
             "9. Write as flowing prose paragraphs (2-3 paragraphs, separated by blank lines). "
             "Never split output into sections, headers, or labeled blocks. "
             "The narrative should read like a page from a novel: setting, consequences, NPC reactions, and tension "
@@ -639,14 +658,14 @@ def _build_prompt(
             "Do NOT end with a summary or restatement. End on something that makes the player want to act.\n\n"
             "NPC REACTIONS (CRITICAL):\n"
             "- NPCs are NOT robots. When something significant happens, show their EMOTIONAL response.\n"
-            "- Use body language, facial expressions, voice tone: 'Her jaw tightened', 'His hand drifted to his blaster', "
-            "'The Wookiee let out a low growl', 'Lando's smile faltered for just a moment'.\n"
+            "- Use body language, facial expressions, voice tone: 'Her jaw tightened', 'His hand drifted to his weapon', "
+            "'A nearby ally let out a low growl', 'A confident smile faltered for just a moment'.\n"
             "- If the player confronts someone, show them reacting — flinching, going pale, getting angry, stepping back.\n"
             "- If an NPC offers a deal, show investment: leaning forward, lowering voice, glancing around nervously.\n"
             "- If surprised, show SURPRISE — widened eyes, a sharp intake of breath, stumbling over words.\n\n"
             "MECHANIC ACTION NARRATION (CRITICAL):\n"
             "- When the MechanicResult reports an action (attack, sneak, persuade, intimidate), you MUST narrate the action itself.\n"
-            "- COMBAT: describe the fight — blaster fire, ducking behind cover, the crack of impact, adrenaline.\n"
+            "- COMBAT: describe the fight - weapon fire, ducking behind cover, the crack of impact, adrenaline.\n"
             "- STEALTH failure: describe getting caught — a guard turns, a spotlight catches them, a door alarm triggers.\n"
             "- INTIMIDATION: describe the confrontation — getting in someone's face, slamming a fist on a table, the room going quiet.\n"
             "- Do NOT skip the action and jump to aftermath. Show the MOMENT of action as it unfolds.\n\n"
@@ -662,9 +681,9 @@ def _build_prompt(
             "- FACTION NEUTRALITY: Do NOT assume the player's allegiance. The player may choose to side "
             f"with ANY faction ({_faction_examples}, independent). Narrate the world "
             "as presenting opportunities from multiple sides. Do not frame one faction as 'the good guys'.\n"
-            "  * BAD: 'Ozzel, from wanted posters' (assumes anti-Empire stance)\n"
-            "  * GOOD: 'an Imperial officer — Ozzel, by the rank insignia'\n"
-            "  * BAD: 'the Rebel smuggler Hero knew' (assumes Rebel sympathy)\n"
+            "  * BAD: 'Captain Vale, from wanted posters' (assumes hostility)\n"
+            "  * GOOD: 'an officer - Captain Vale, by the rank insignia'\n"
+            "  * BAD: 'the freedom fighter Hero trusted' (assumes sympathy)\n"
             "  * GOOD: 'a smuggler Hero had crossed paths with before'\n"
             "- Only describe outcomes from Mechanic as facts. Do not invent mechanical results.\n"
             "- Only state character-history specifics if those facts appear in retrieved voice/lore citations. Otherwise, phrase uncertainty.\n"
@@ -721,3 +740,4 @@ def _build_prompt(
     if include_budget:
         return system_prompt_final, user_prompt, budget_report
     return system_prompt_final, user_prompt
+

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { runTurn, getTranscript, completeCampaign } from '$lib/api/campaigns';
+  import { runTurn, getTranscript, completeCampaign, getStorySummary } from '$lib/api/campaigns';
   import { streamTurn } from '$lib/api/sse';
   import {
     campaignId, playerId, lastTurnResponse, transcript,
@@ -16,14 +16,14 @@
     isStreaming, streamedText, streamError, showCursor,
     startStreaming, appendToken, finishStreaming, failStreaming, resetStreaming
   } from '$lib/stores/streaming';
-  import { ui } from '$lib/stores/ui';
+  import { ui, ollamaStatus } from '$lib/stores/ui';
   import { humanizeLocation, formatTimeDelta, safeInt } from '$lib/utils/format';
   import { parseNarrative } from '$lib/utils/narrative';
   import { startTypewriter } from '$lib/utils/typewriter';
   import { announce, trapFocus } from '$lib/utils/a11y';
   import { TONE_ICONS, TONE_LABELS } from '$lib/utils/constants';
   import { touchCampaign } from '$lib/stores/campaigns';
-  import type { ActionSuggestion, TurnResponse, TranscriptTurn } from '$lib/api/types';
+  import type { ActionSuggestion, StorySummaryResponse, TurnResponse, TranscriptTurn } from '$lib/api/types';
 
   // V3.0: KOTOR-soul components
   import DialogueWheel from '$lib/components/choices/DialogueWheel.svelte';
@@ -45,10 +45,18 @@
   let drawerEl: HTMLElement | undefined = $state();
   let showPreviously = $state(false);
   let isCompleting = $state(false);
+  let isEngineUnavailable = $derived($ollamaStatus.status === 'down');
 
   // V4.1: Free text input state
   let freeTextInput = $state('');
   let freeTextEl: HTMLTextAreaElement | undefined = $state();
+  let showForgeInput = $state(false);
+
+  // Phase 2.4: Story So Far summary state
+  let storySummary = $state<StorySummaryResponse | null>(null);
+  let storySummaryLoading = $state(false);
+  let storySummaryError = $state('');
+  let showStorySoFar = $state(false);
 
   // V4.1: Consequence overlay state (shown once per turn for TRIUMPH/DESPAIR/HP_CRITICAL)
   let shownConsequenceForTurn = $state(-1);
@@ -119,6 +127,7 @@
     // Baseline unread count so items already in the feed when resuming don't show as new
     markIntelRead();
     fetchTranscript();
+    fetchStorySoFarSummary();
     announce('Game loaded. Use number keys 1 through 4 to select choices.');
 
     // Phase 2.4: Check for opening crawl in world state (shown once per campaign)
@@ -152,6 +161,20 @@
       transcript.set(result.turns ?? []);
     } catch {
       // Non-critical — journal just won't have history
+    }
+  }
+
+  async function fetchStorySoFarSummary() {
+    const cId = $campaignId;
+    if (!cId) return;
+    storySummaryLoading = true;
+    storySummaryError = '';
+    try {
+      storySummary = await getStorySummary(cId);
+    } catch {
+      storySummaryError = 'Unable to load story summary right now.';
+    } finally {
+      storySummaryLoading = false;
     }
   }
 
@@ -222,7 +245,7 @@
   // V3.0: check both DialogueTurn player_responses (primary) and suggested_actions (fallback)
   let hasChoices = $derived($playerResponses.length > 0 || $suggestedActions.length > 0);
   let choicesReady = $derived(
-    !$isStreaming && !isSendingTurn && hasChoices && !typewriterActive
+    !$isStreaming && !isSendingTurn && hasChoices && !typewriterActive && !isEngineUnavailable
   );
 
   // Auto-scroll narrative to bottom on new content
@@ -309,6 +332,17 @@
     const inInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
     if (inInput && e.key !== 'Escape') return;
 
+    // 5/F toggles "Forge Your Own Path"
+    if ((e.key === '5' || e.key.toLowerCase() === 'f') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      showForgeInput = !showForgeInput;
+      if (showForgeInput) {
+        announce('Option 5: Forge your own path.');
+        setTimeout(() => freeTextEl?.focus(), 0);
+      }
+      return;
+    }
+
     // 1-4 for choices — works with both DialogueTurn (primary) and ActionSuggestion (fallback)
     if (choicesReady) {
       const num = parseInt(e.key);
@@ -361,6 +395,7 @@
 
   /** V4.1: Populate the free text input (from approach card click — does NOT submit). */
   function handleApproachPopulate(text: string) {
+    showForgeInput = true;
     freeTextInput = text;
     freeTextEl?.focus();
   }
@@ -368,14 +403,14 @@
   /** V4.1: Submit from the free text input. */
   async function handleFreeTextSubmit() {
     const text = freeTextInput.trim();
-    if (!text || isSendingTurn || $isStreaming) return;
+    if (!text || isSendingTurn || $isStreaming || isEngineUnavailable) return;
     freeTextInput = '';
     await handleChoiceInput(text, text);
   }
 
   /** V3.0: Unified choice handler — accepts string input from DialogueWheel or keyboard shortcuts. */
   async function handleChoiceInput(userInput: string, label: string) {
-    if (isSendingTurn || $isStreaming) return;
+    if (isSendingTurn || $isStreaming || isEngineUnavailable) return;
     const cId = $campaignId;
     const pId = $playerId;
     if (!cId || !pId) return;
@@ -408,6 +443,7 @@
         if (finalResponse?.turn_contract) {
           lastTurnResponse.set(finalResponse);
           fetchTranscript();
+          fetchStorySoFarSummary();
         } else {
           // Retry deterministic non-stream endpoint if stream fails or ends without done payload
           const result = await runTurn(cId, pId, userInput);
@@ -417,12 +453,14 @@
           result.warnings = [...(result.warnings ?? []), msg];
           lastTurnResponse.set(result);
           fetchTranscript();
+          fetchStorySoFarSummary();
           finishStreaming();
         }
       } else {
         const result = await runTurn(cId, pId, userInput);
         lastTurnResponse.set(result);
         fetchTranscript();
+        fetchStorySoFarSummary();
       }
       // Update campaign in local registry
       touchCampaign(cId, $turnNumber);
@@ -535,6 +573,57 @@
 
   <!-- ======================== MAIN CONTENT ======================== -->
   <main class="gameplay-main" aria-label="Game narrative and choices">
+    <!-- Phase 2.4: Story So Far summary -->
+    <section class="story-so-far card" aria-label="Story so far">
+      <button
+        class="story-so-far-toggle"
+        onclick={() => { showStorySoFar = !showStorySoFar; if (!storySummary && !storySummaryLoading) fetchStorySoFarSummary(); }}
+        aria-expanded={showStorySoFar}
+        aria-controls="story-so-far-content"
+      >
+        <span class="story-so-far-title">Story So Far</span>
+        <span class="story-so-far-meta">
+          {storySummary?.arc_stage ?? 'SETUP'}{storySummary?.current_beat ? ` • ${storySummary.current_beat}` : ''}
+        </span>
+      </button>
+      {#if showStorySoFar}
+        <div class="story-so-far-content fade-in" id="story-so-far-content" role="region" aria-live="polite">
+          {#if storySummaryLoading}
+            <div class="empty-state">Loading summary...</div>
+          {:else if storySummaryError}
+            <div class="warning-item">{storySummaryError}</div>
+          {:else if storySummary}
+            {#if storySummary.open_threads.length > 0}
+              <div class="story-block">
+                <div class="story-label">Open Threads</div>
+                {#each storySummary.open_threads as thread}
+                  <div class="story-line">• {thread}</div>
+                {/each}
+              </div>
+            {/if}
+            {#if storySummary.active_quests.length > 0}
+              <div class="story-block">
+                <div class="story-label">Active Quests</div>
+                {#each storySummary.active_quests as quest}
+                  <div class="story-line">• {quest}</div>
+                {/each}
+              </div>
+            {/if}
+            {#if storySummary.recent_memories.length > 0}
+              <div class="story-block">
+                <div class="story-label">Recent Moments</div>
+                {#each storySummary.recent_memories as memory}
+                  <div class="story-line">• {memory}</div>
+                {/each}
+              </div>
+            {:else}
+              <div class="empty-state">No prior turns yet. Your story begins now.</div>
+            {/if}
+          {/if}
+        </div>
+      {/if}
+    </section>
+
     <!-- "Previously..." accordion -->
     {#if previousTurns.length > 0 && !isOpeningScene}
       <div class="previously-section">
@@ -654,41 +743,58 @@
 
     <!-- V4.1: Approach cards (horizontal scroll) + free text input -->
     {#if choicesReady || (!isSendingTurn && !$isStreaming)}
-      <div class="action-zone">
+      <div class="action-zone" class:engine-unavailable={isEngineUnavailable} class:forge-active={showForgeInput}>
         {#if choicesReady}
-          <ApproachCards
-            playerResponses={$playerResponses}
-            suggestedActions={$suggestedActions}
-            animKey={choiceAnimKey}
-            onPopulate={handleApproachPopulate}
-            activeObligations={$activeObligations}
-          />
+          <div class="approach-cards-wrap" class:dimmed={showForgeInput}>
+            <ApproachCards
+              playerResponses={$playerResponses}
+              suggestedActions={$suggestedActions}
+              animKey={choiceAnimKey}
+              onPopulate={handleApproachPopulate}
+              activeObligations={$activeObligations}
+            />
+          </div>
         {/if}
 
-        <div class="free-input-row">
-          <textarea
-            bind:this={freeTextEl}
-            bind:value={freeTextInput}
-            class="free-text-input"
-            placeholder="What do you do?"
-            rows="2"
-            disabled={isSendingTurn || $isStreaming}
-            aria-label="Describe your action"
-            onkeydown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey && freeTextInput.trim()) {
-                e.preventDefault();
-                handleFreeTextSubmit();
-              }
-            }}
-          ></textarea>
+        <div class="forge-panel">
           <button
-            class="act-btn"
-            disabled={!freeTextInput.trim() || isSendingTurn || $isStreaming}
-            onclick={handleFreeTextSubmit}
-            aria-label="Submit action"
+            class="forge-toggle"
+            onclick={() => { showForgeInput = !showForgeInput; if (showForgeInput) setTimeout(() => freeTextEl?.focus(), 0); }}
+            aria-expanded={showForgeInput}
+            aria-controls="forge-path-input"
+            aria-keyshortcuts="5,F"
+            aria-label="Option 5: Forge your own path"
           >
-            ACT
+            <span class="forge-title">Option 5: Forge Your Own Path</span>
+            <span class="forge-subtitle">Describe your own action instead</span>
           </button>
+          {#if showForgeInput}
+            <div class="free-input-row" id="forge-path-input">
+              <textarea
+                bind:this={freeTextEl}
+                bind:value={freeTextInput}
+                class="free-text-input"
+                placeholder="Describe your own action..."
+                rows="3"
+                disabled={isSendingTurn || $isStreaming || isEngineUnavailable}
+                aria-label="Option 5: Forge your own path input"
+                onkeydown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey && freeTextInput.trim()) {
+                    e.preventDefault();
+                    handleFreeTextSubmit();
+                  }
+                }}
+              ></textarea>
+              <button
+                class="act-btn"
+                disabled={!freeTextInput.trim() || isSendingTurn || $isStreaming || isEngineUnavailable}
+                onclick={handleFreeTextSubmit}
+                aria-label="Submit forged action"
+              >
+                ACT
+              </button>
+            </div>
+          {/if}
         </div>
       </div>
     {/if}
@@ -1243,10 +1349,59 @@
     gap: 10px;
   }
 
+  .approach-cards-wrap.dimmed {
+    opacity: 0.55;
+    transition: opacity 0.18s ease;
+  }
+
+  .action-zone.engine-unavailable {
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .forge-panel {
+    border: 1px solid rgba(118, 176, 255, 0.25);
+    border-radius: 10px;
+    background: rgba(10, 18, 40, 0.45);
+    padding: 10px;
+  }
+
+  .forge-toggle {
+    width: 100%;
+    border: 1px solid rgba(118, 176, 255, 0.25);
+    border-radius: 8px;
+    background: rgba(14, 25, 52, 0.7);
+    color: var(--text-primary);
+    text-align: left;
+    padding: 10px 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .forge-toggle:hover {
+    border-color: rgba(140, 190, 255, 0.45);
+  }
+
+  .forge-title {
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: #b8d6ff;
+  }
+
+  .forge-subtitle {
+    font-size: var(--font-small);
+    color: var(--text-muted);
+  }
+
   .free-input-row {
     display: flex;
     gap: 8px;
     align-items: flex-end;
+    margin-top: 10px;
   }
 
   .free-text-input {
@@ -1323,6 +1478,69 @@
       padding: 10px 14px;
       font-size: 0.68rem;
     }
+  }
+
+  .story-so-far {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-color: rgba(118, 176, 255, 0.28);
+    background: rgba(11, 23, 50, 0.72);
+  }
+
+  .story-so-far-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid rgba(118, 176, 255, 0.22);
+    background: rgba(12, 22, 45, 0.55);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    gap: 8px;
+  }
+
+  .story-so-far-title {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-size: 0.76rem;
+    color: #b7d4ff;
+  }
+
+  .story-so-far-meta {
+    font-size: var(--font-small);
+    color: var(--text-secondary);
+  }
+
+  .story-so-far-content {
+    margin-top: 10px;
+    border-top: 1px solid rgba(118, 176, 255, 0.15);
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .story-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .story-label {
+    color: var(--text-heading);
+    font-size: var(--font-small);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+  }
+
+  .story-line {
+    font-size: var(--font-small);
+    color: var(--text-secondary);
+    line-height: 1.45;
   }
 
   /* ======================== LOADING ======================== */

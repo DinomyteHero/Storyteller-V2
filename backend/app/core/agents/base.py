@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import json
 import logging
+import time
+from contextvars import ContextVar
 from typing import Any, Iterator, Protocol
 
 from backend.app.config import MODEL_CONFIG
@@ -18,6 +20,36 @@ class LLMProvider(Protocol):
     def generate(self, system_prompt: str, user_prompt: str) -> str: ...
 
 logger = logging.getLogger(__name__)
+_LLM_TIMINGS: ContextVar[dict[str, list[float]]] = ContextVar("llm_timings", default={})
+
+
+def reset_llm_timings() -> None:
+    """Reset per-turn LLM timing collection."""
+    _LLM_TIMINGS.set({})
+
+
+def get_llm_timings() -> dict[str, Any]:
+    """Return summarized LLM timings collected for the current turn."""
+    raw = _LLM_TIMINGS.get() or {}
+    summary: dict[str, Any] = {}
+    for role, samples in raw.items():
+        if not samples:
+            continue
+        summary[role] = {
+            "count": len(samples),
+            "total_s": round(sum(samples), 3),
+            "max_s": round(max(samples), 3),
+            "avg_s": round(sum(samples) / len(samples), 3),
+        }
+    return summary
+
+
+def _record_llm_timing(role: str, elapsed: float) -> None:
+    data = dict(_LLM_TIMINGS.get() or {})
+    samples = list(data.get(role) or [])
+    samples.append(elapsed)
+    data[role] = samples
+    _LLM_TIMINGS.set(data)
 
 
 class LLMResult(str):
@@ -83,6 +115,23 @@ class AgentLLM:
         else:
             raise TypeError(f"Provider {type(client).__name__} has no streaming method")
 
+    def _call_provider_timed(
+        self,
+        client: Any,
+        user_prompt: str,
+        system_prompt: str,
+        json_mode: bool = False,
+        call_label: str = "",
+    ) -> str:
+        start = time.perf_counter()
+        try:
+            return self._call_provider(client, user_prompt, system_prompt, json_mode=json_mode)
+        finally:
+            elapsed = time.perf_counter() - start
+            _record_llm_timing(self._role, elapsed)
+            label = f" [{call_label}]" if call_label else ""
+            logger.info("LLM call [%s]%s completed in %.2fs", self._role, label, elapsed)
+
     def _try_fallback_client(self) -> Any | None:
         """Create a fallback client if configured. Returns None if not available."""
         fallback_provider = self._config.get("fallback_provider")
@@ -121,14 +170,26 @@ class AgentLLM:
             raise
 
         try:
-            raw = self._call_provider(client, user_prompt, system_prompt, json_mode=json_mode)
+            raw = self._call_provider_timed(
+                client,
+                user_prompt,
+                system_prompt,
+                json_mode=json_mode,
+                call_label="primary",
+            )
         except Exception:
             # V3.0: Try fallback provider before giving up
             fallback = self._try_fallback_client()
             if fallback:
                 logger.warning("AgentLLM %s: primary failed, trying fallback provider", self._role)
                 try:
-                    raw = self._call_provider(fallback, user_prompt, system_prompt, json_mode=json_mode)
+                    raw = self._call_provider_timed(
+                        fallback,
+                        user_prompt,
+                        system_prompt,
+                        json_mode=json_mode,
+                        call_label="fallback",
+                    )
                 except Exception as e2:
                     logger.exception("AgentLLM %s: fallback provider also failed", self._role)
                     raise e2
@@ -153,7 +214,13 @@ class AgentLLM:
             "Your previous response was not valid JSON. Output ONLY a single valid JSON object, no markdown or extra text."
         )
         try:
-            raw2 = self._call_provider(client, user_prompt + "\n\n" + correction, system_prompt, json_mode=True)
+            raw2 = self._call_provider_timed(
+                client,
+                user_prompt + "\n\n" + correction,
+                system_prompt,
+                json_mode=True,
+                call_label="json_repair",
+            )
         except Exception:
             logger.exception("AgentLLM %s: LLM call failed on JSON repair", self._role)
             raise
@@ -186,7 +253,13 @@ class AgentLLM:
             raise
 
         try:
-            yield from self._stream_provider(client, user_prompt, system_prompt)
+            start = time.perf_counter()
+            try:
+                yield from self._stream_provider(client, user_prompt, system_prompt)
+            finally:
+                elapsed = time.perf_counter() - start
+                _record_llm_timing(self._role, elapsed)
+                logger.info("LLM stream [%s] completed in %.2fs", self._role, elapsed)
         except Exception:
             logger.exception("AgentLLM %s: streaming LLM call failed", self._role)
             raise

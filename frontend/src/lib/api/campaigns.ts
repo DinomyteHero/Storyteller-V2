@@ -8,6 +8,7 @@ import type {
   TurnRequest,
   TurnResponse,
   TranscriptResponse,
+  StorySummaryResponse,
 } from './types';
 
 export async function setupAuto(req: SetupAutoRequest): Promise<SetupAutoResponse> {
@@ -61,6 +62,14 @@ export async function getTranscript(
   );
 }
 
+export async function getStorySummary(
+  campaignId: string
+): Promise<StorySummaryResponse> {
+  return apiFetch<StorySummaryResponse>(
+    `/v2/campaigns/${campaignId}/summary`
+  );
+}
+
 export async function getWorldState(
   campaignId: string
 ): Promise<Record<string, unknown>> {
@@ -82,6 +91,11 @@ export interface CompleteCampaignResponse {
   campaign_id: string;
   recommended_next_scale: string;
   next_campaign_pitch: string;
+  character_legacy?: Record<string, unknown>;
+  character_legacy_id?: number | null;
+  player_profile_id?: string | null;
+  saga_id?: string | null;
+  saga_chapter?: number | null;
 }
 
 export async function completeCampaign(

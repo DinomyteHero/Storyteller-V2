@@ -446,6 +446,36 @@ def _derive_objective(user_input: str, action_class: str | None) -> str:
     return text
 
 
+def _compute_scene_weight(
+    *,
+    arc_stage: str,
+    world_state: dict[str, Any],
+    mechanic_result: dict[str, Any] | None,
+    state: dict[str, Any],
+) -> str:
+    """Classify scene weight used by narrator pacing and truncation limits."""
+    beat = str(world_state.get("current_beat") or "").upper()
+    stage = (arc_stage or "SETUP").upper()
+    has_companion_event = bool(state.get("companion_event"))
+
+    events = (mechanic_result or {}).get("events") or []
+    has_combat = False
+    for event in events:
+        if isinstance(event, dict):
+            etype = str(event.get("event_type") or event.get("type") or "").upper()
+        else:
+            etype = str(getattr(event, "event_type", "") or getattr(event, "type", "")).upper()
+        if etype in {"COMBAT", "ATTACK", "DAMAGE"}:
+            has_combat = True
+            break
+
+    if beat in {"ORDEAL", "RESURRECTION"} or stage == "CLIMAX":
+        return "CLIMAX"
+    if has_companion_event or has_combat or beat in {"APPROACH_INMOST_CAVE", "REWARD"}:
+        return "ELEVATED"
+    return "STANDARD"
+
+
 def scene_frame_node(state: dict[str, Any]) -> dict[str, Any]:
     """Build SceneFrame from accumulated state. Pure Python, no side effects."""
     location_id = state.get("current_location") or ""
@@ -603,6 +633,24 @@ def scene_frame_node(state: dict[str, Any]) -> dict[str, Any]:
         world_state=world_state,
         party_state=party_state if isinstance(party_state, dict) else None,
     )
+    scene_weight = _compute_scene_weight(
+        arc_stage=arc_stage,
+        world_state=world_state,
+        mechanic_result=mechanic_result if isinstance(mechanic_result, dict) else None,
+        state=state,
+    )
+
+    choice_crafter_pre_context = {
+        "location": location_id or "here",
+        "npc_descriptions": [f"{ref.name} ({ref.role})" for ref in npc_refs],
+        "topic_primary": topic_primary,
+        "subtext": subtext,
+        "npc_agenda": npc_agenda,
+        "arc_stage": arc_stage,
+        "tension_level": str(arc_guidance.get("tension_level", "")),
+        "director_intent": str(state.get("director_instructions") or "")[:300],
+        "gm_context": gm_context,
+    }
 
     frame = SceneFrame(
         location_id=location_id,
@@ -628,8 +676,15 @@ def scene_frame_node(state: dict[str, Any]) -> dict[str, Any]:
         topic_primary,
         scene_hash,
     )
+    choice_crafter_pre_context["scene_frame"] = frame.model_dump(mode="json")
 
-    updated = {**state, "scene_frame": frame.model_dump(mode="json"), "gm_context": gm_context}
+    updated = {
+        **state,
+        "scene_frame": frame.model_dump(mode="json"),
+        "scene_weight": scene_weight,
+        "gm_context": gm_context,
+        "choice_crafter_pre_context": choice_crafter_pre_context,
+    }
 
     # V2.20: Attempt banter injection (uses scene_frame pressure for safety check)
     try:

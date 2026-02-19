@@ -14,6 +14,17 @@
     campaign_id: string;
     recommended_next_scale: string;
     next_campaign_pitch: string;
+    character_legacy?: {
+      character_name?: string;
+      emotional_state?: string;
+      unresolved_threads?: string[];
+      key_relationships?: Array<{ name?: string; relationship?: string; sentiment?: string }>;
+      crystallized_memories_summary?: string;
+    };
+    character_legacy_id?: number | null;
+    player_profile_id?: string | null;
+    saga_id?: string | null;
+    saga_chapter?: number | null;
   }
 
   let data = $state<CompletionData | null>(null);
@@ -44,6 +55,19 @@
     goto('/create');
   }
 
+  function continueSaga() {
+    if (!data?.saga_id) return;
+    const payload = {
+      saga_id: data.saga_id,
+      legacy_id: data.character_legacy_id ?? null,
+      player_profile_id: data.player_profile_id ?? null,
+      saga_chapter: data.saga_chapter ?? null,
+    };
+    sessionStorage.setItem('continueSagaContext', JSON.stringify(payload));
+    resetGame();
+    goto('/create');
+  }
+
   function backToMenu() {
     resetGame();
     goto('/');
@@ -55,6 +79,7 @@
       ? data.recommended_next_scale.charAt(0).toUpperCase() + data.recommended_next_scale.slice(1)
       : 'Medium'
   );
+  const legacy = $derived(data?.character_legacy ?? null);
 </script>
 
 {#if data}
@@ -118,6 +143,42 @@
       </section>
     {/if}
 
+    <!-- Character Legacy -->
+    {#if legacy}
+      <section class="section card">
+        <h2 class="section-heading">Character Legacy</h2>
+        {#if legacy.character_name}
+          <p><strong>{legacy.character_name}</strong></p>
+        {/if}
+        {#if legacy.emotional_state}
+          <p class="legacy-text">{legacy.emotional_state}</p>
+        {/if}
+        {#if legacy.unresolved_threads && legacy.unresolved_threads.length > 0}
+          <div class="legacy-list">
+            <h3>Unresolved Threads</h3>
+            <ul>
+              {#each legacy.unresolved_threads as thread}
+                <li>{thread}</li>
+              {/each}
+            </ul>
+          </div>
+        {/if}
+        {#if legacy.key_relationships && legacy.key_relationships.length > 0}
+          <div class="legacy-list">
+            <h3>Key Relationships</h3>
+            <ul>
+              {#each legacy.key_relationships.slice(0, 4) as rel}
+                <li>{rel.name} {rel.relationship ? `(${rel.relationship})` : ''}</li>
+              {/each}
+            </ul>
+          </div>
+        {/if}
+        {#if legacy.crystallized_memories_summary}
+          <p class="legacy-text">{legacy.crystallized_memories_summary}</p>
+        {/if}
+      </section>
+    {/if}
+
     <!-- Next Campaign Pitch -->
     {#if data.next_campaign_pitch}
       <section class="section card pitch-card">
@@ -132,6 +193,9 @@
     <!-- Actions -->
     <div class="actions">
       <button class="btn" onclick={backToMenu}>Main Menu</button>
+      {#if data.saga_id}
+        <button class="btn" onclick={continueSaga}>Continue Saga</button>
+      {/if}
       <button class="btn btn-primary" onclick={startNewCampaign}>New Campaign</button>
     </div>
   </div>
@@ -318,6 +382,25 @@
   .pitch-meta {
     font-size: 0.8rem;
     color: var(--text-muted, #6b7280);
+  }
+
+  .legacy-text {
+    color: var(--text-primary, #f3f4f6);
+    line-height: 1.5;
+  }
+
+  .legacy-list h3 {
+    margin: 0.75rem 0 0.35rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary, #9ca3af);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .legacy-list ul {
+    margin: 0;
+    padding-left: 1.15rem;
+    color: var(--text-primary, #f3f4f6);
   }
 
   /* Actions */

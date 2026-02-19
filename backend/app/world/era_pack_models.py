@@ -886,6 +886,28 @@ class EraCompanion(BaseModel):
     metadata: Dict[str, object] = Field(default_factory=dict)
 
 
+
+class AtmosphereFragments(BaseModel):
+    """Narrative fallback atmosphere snippets for narrator degraded mode."""
+    model_config = ConfigDict(extra="forbid")
+
+    opening: str = "The air{planet_str} carried the weight of recent events."
+    ambient: str = "Background noise filled the space - voices, machinery, and the rhythm of daily life."
+    tension: str = "Something felt wrong. The atmosphere tightened."
+    calm: str = "For a moment, everything was still."
+    hook: str = "The next chapter waited, just beyond the threshold."
+
+
+class CanonCharacterRule(BaseModel):
+    """Historical-mode proximity rules for canon characters."""
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    proximity: Literal["cameo", "interaction", "exclusion"] = "cameo"
+    locations: List[str] = Field(default_factory=list)
+    exclusion_events: List[str] = Field(default_factory=list)
+
+
 class SettingRules(BaseModel):
     """Universe-specific text carried through the pipeline to prevent cross-setting contamination.
 
@@ -942,12 +964,18 @@ class EraPack(BaseModel):
     companions: List[EraCompanion] = Field(default_factory=list)
     faction_relationships: Dict[str, Any] | None = None
     style_ref: str | None = None
+    legends_timeline: Dict[str, Any] | None = None
+    setting_timeline: Dict[str, Any] | None = None
     # V3.1: Per-pack background figures for universe modularity
     background_figures: Dict[str, List[str]] = Field(default_factory=dict)
     # V3.1: Setting name for prompts (e.g. "Star Wars Legends", "Harry Potter")
     setting_name: str | None = None
     # V3.2: Universe rules — all setting-specific text for agent prompts
     setting_rules: SettingRules = Field(default_factory=SettingRules)
+    # Era-specific fallback narration fragments (optional).
+    atmosphere_fragments: AtmosphereFragments | None = None
+    # Phase 4.2: historical-mode canon character presence rules.
+    canon_characters: List[CanonCharacterRule] = Field(default_factory=list)
     # Phase 0.1: species catalog
     species: List[EraSpecies] = Field(default_factory=list)
     # Phase 1.4: item catalog
