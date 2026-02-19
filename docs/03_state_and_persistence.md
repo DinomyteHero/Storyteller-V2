@@ -475,6 +475,6 @@ Called by the Commit node via `process_quests_for_turn(world_state, era, turn_nu
 | 0016 | suggestion_cache table |
 | 0017 | starships table |
 | 0018 | player_profiles table (cross-campaign legacy) |
-| 0019 | Passage mode support columns |
+| 0019 | TurnContract schema additions |
 | 0020 | Campaign turn versioning + world_time_minutes |
 | 0021 | episodic_memories.summary_embedding column |

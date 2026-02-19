@@ -151,6 +151,8 @@ class TurnResponse(BaseModel):
     consequence_type: str | None = None
     # V4.1: Present NPCs enriched with MemoryAgent state (emotional_state, agenda)
     active_npc_contexts: list[dict] | None = None
+    # Living-world signal: True when WorldSimNode ran this turn (new intel may be in news_feed)
+    world_sim_ran: bool = False
 
 
 class CampaignSummary(BaseModel):

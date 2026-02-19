@@ -1,62 +1,90 @@
+# ============================================================
+# rebellion/era.yaml — Age of Rebellion Era Pack Manifest (V6.0 Minimal)
+# ============================================================
+# V6.0: Era packs now contain ONLY what is needed for character creation.
+# Campaign content (NPCs, companions, factions, locations, quests) is generated
+# at setup time by CampaignBibleAgent and stored in campaigns.campaign_bible_json.
+#
+# Files in this directory:
+#   era.yaml       — This manifest (setting rules, metadata, start pool)
+#   backgrounds.yaml — CYOA character backgrounds (required for character creation)
+#   species.yaml   — Playable species + stat bonuses (required for character creation)
+# ============================================================
+
 era_id: REBELLION
+schema_version: 3
 style_ref: data/style/rebellion_style.md
-schema_version: 2
+
+# Minimal file index — only character creation essentials
 file_index:
   era: era.yaml
-  locations: locations.yaml
-  npcs: npcs.yaml
-  factions: factions.yaml
   backgrounds: backgrounds.yaml
-  namebanks: namebanks.yaml
-  quests: quests.yaml
-  events: events.yaml
-  rumors: rumors.yaml
-  meters: meters.yaml
-  facts: facts.yaml
-  companions: companions.yaml
+  species: species.yaml
+
+# Canonical starting location archetypes — used by BiographerAgent to pick a starting point.
+# CampaignBibleAgent generates rich named versions of these locations for each campaign.
 start_location_pool:
-- loc-cantina
-- loc-bazaar_market
-- loc-safe_house
-- loc-yavin_base
-global_event_templates: []
-travel_graph: []
-default_scene_pacing: {}
+  - loc-cantina
+  - loc-docking-bay
+  - loc-safe-house
+  - loc-marketplace
+
 metadata:
   display_name: Age of Rebellion
   time_period: 0–4 ABY (Legends)
   calendar_note: After the Battle of Yavin (0 ABY); before the fall of the Empire at Endor and beyond.
-  summary: 'The galaxy lives under the boot of the Galactic Empire. The Emperor rules from the throne
-
+  summary: >
+    The galaxy lives under the boot of the Galactic Empire. The Emperor rules from the throne
     world of Coruscant; his enforcer, Darth Vader, hunts the last of the Jedi and crushes
-
     dissent. The Death Star has made rebellion unthinkable—until a band of rebels steal
-
     its plans and strike the first blow at Yavin. In the shadows, the Alliance to Restore
-
     the Republic runs a fragile network of cells: starfighter pilots, spies, and idealists
-
     who believe the Republic can rise again. Smugglers and crime lords thrive in the
-
     margins, selling to both sides. It is an age of hope and terror, of hidden bases and
-
     Imperial crackdowns, where one wrong move can burn a cell and one act of courage
-
     can change the fate of the galaxy.
-
-    '
   tone: Gritty hope; underdog resistance; imperial oppression; found family; moral stakes.
   key_conflicts:
-  - 'Alliance vs. Empire: asymmetric war, intelligence and morale as much as firepower.'
-  - 'Jedi legacy vs. Imperial purge: the last guardians in hiding; the Force as secret and weapon.'
-  - 'Outer Rim lawlessness: Hutts, smugglers, and bounty hunters in the Empire''s shadow.'
+    - "Alliance vs. Empire: asymmetric war, intelligence and morale as much as firepower."
+    - "Jedi legacy vs. Imperial purge: the last guardians in hiding; the Force as secret and weapon."
+    - "Outer Rim lawlessness: Hutts, smugglers, and bounty hunters in the Empire's shadow."
   themes:
-  - Restoration of the Republic and freedom versus order through fear.
-  - 'Sacrifice and compartmentalization: rebels who never know the full picture.'
-  - 'Technology and myth: the Death Star as symbol of terror; the Force as forbidden hope.'
+    - Restoration of the Republic and freedom versus order through fear.
+    - "Sacrifice and compartmentalization: rebels who never know the full picture."
+    - "Technology and myth: the Death Star as symbol of terror; the Force as forbidden hope."
+
+# Legends timeline reference — used by CampaignBibleAgent to generate era-accurate content.
+# Provides the galactic context seed without requiring ingested lore files.
+legends_timeline:
+  era_start: "0 BBY (Battle of Yavin)"
+  era_end: "4 ABY (Battle of Endor)"
+  key_events:
+    - "0 BBY: Death Star destroyed at the Battle of Yavin by Luke Skywalker"
+    - "3 ABY: Battle of Hoth — Empire strikes back, Echo Base falls"
+    - "3 ABY: Luke Skywalker learns Darth Vader is his father above Cloud City"
+    - "4 ABY: Battle of Endor — Emperor Palpatine and Darth Vader killed, Empire collapses"
+  galactic_state: >
+    The Galactic Empire controls most of known space through fear and military power.
+    The Alliance to Restore the Republic is a fragile coalition of cells, fighting an
+    asymmetric war with limited resources. Smugglers, bounty hunters, and crime lords
+    fill the cracks between Imperial reach and Rebel secrecy.
+  notable_locations:
+    - "Yavin 4 (Rebel base, Battle of Yavin)"
+    - "Hoth (Echo Base)"
+    - "Tatooine (Outer Rim desert world, smuggler routes)"
+    - "Nar Shaddaa (Smuggler's Moon, Hutt Cartel hub)"
+    - "Cloud City, Bespin (tibanna gas platform)"
+    - "Coruscant (Imperial capital)"
+    - "Mos Eisley (wretched hive, spaceport)"
+  notable_figures:
+    - "Luke Skywalker (Jedi-in-training, Alliance hero)"
+    - "Darth Vader (Sith Lord, enforcer of the Emperor)"
+    - "Princess Leia Organa (Rebel leader)"
+    - "Han Solo (smuggler, reluctant hero)"
+    - "Emperor Palpatine (ruler of the Galactic Empire)"
+    - "Jabba the Hutt (crime lord, Tatooine)"
 
 # V3.2: Universe rules — setting-specific text for agent prompts.
-# These defaults match Star Wars Legends. Override per-setting to prevent cross-universe contamination.
 setting_rules:
   setting_name: "Star Wars Legends"
   setting_genre: "science fantasy"
@@ -65,7 +93,7 @@ setting_rules:
   director_role: "the Director for an interactive Star Wars story engine"
   suggestion_style: "a Star Wars KOTOR-style game"
   common_species: ["Human", "Twi'lek", "Rodian", "Wookiee", "Zabrak", "Bothan", "Chiss"]
-  example_factions: ["Rebellion", "Empire", "Hutt Cartel"]
+  example_factions: ["Alliance to Restore the Republic", "Galactic Empire", "Hutt Cartel"]
   historical_lore_label: "established Star Wars Legends lore"
   bypass_methods: ["force", "force_dark", "sith_amulet"]
   fallback_background: "A traveler in a vast galaxy."

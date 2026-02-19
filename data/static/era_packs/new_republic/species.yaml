@@ -1,0 +1,127 @@
+# new_republic/species.yaml — Playable species for the Age of the New Republic era.
+# Used during character creation only. Stat bonuses are applied on top of the base stat array.
+# Generated campaign content (companions, NPCs) can use any species via CampaignBibleAgent.
+
+species:
+  - id: species-human
+    name: Human
+    description: >
+      The most numerous and adaptable species in the galaxy. In the New Republic era,
+      humans occupy every position from New Republic senators to Imperial remnant commanders
+      to Jedi academy students. The face of galactic politics is still largely human,
+      which is itself a source of growing political tension.
+    cultural_notes: No cultural bias — humans are found in every faction and profession.
+    common_homeworlds: [Coruscant, Corellia, Tatooine, Alderaan (destroyed)]
+    typical_traits: [Adaptable, Ambitious, Politically-aware]
+    stat_bonus:
+      General: 1
+    narrative_hooks:
+      - "The Rebellion you fought in is becoming the institution you have to believe in."
+      - "You remember the Empire. That memory shapes every decision you make."
+
+  - id: species-twilek
+    name: "Twi'lek"
+    description: >
+      Twi'leks emerge from the New Republic era with bitter experience: Ryloth was occupied,
+      many were enslaved, and the Republic's liberation came with its own costs. A generation
+      of Twi'leks grew up knowing both oppression and the strange grief of liberation.
+    cultural_notes: >
+      Twi'leks communicate subtle meaning through lekku movement alongside speech.
+      Many carry generational trauma from Hutt Cartel exploitation and Imperial occupation.
+    common_homeworlds: [Ryloth]
+    typical_traits: [Perceptive, Charismatic, Resilient]
+    stat_bonus:
+      Charisma: 1
+      Stealth: 1
+    narrative_hooks:
+      - "The New Republic freed Ryloth. You're still deciding what that means."
+      - "You read the room before you enter it. That's not paranoia — it's survival."
+
+  - id: species-rodian
+    name: Rodian
+    description: >
+      Rodians in the New Republic era find themselves at a crossroads: the mercenary and
+      bounty hunter trades that sustained many clans during the Empire are now subject to
+      New Republic law, while clan honor demands fulfilling contracts regardless.
+    cultural_notes: Hunting prowess determines social status. Clan ties override galactic politics.
+    common_homeworlds: [Rodia]
+    typical_traits: [Precise, Tenacious, Clan-loyal]
+    stat_bonus:
+      Combat: 1
+      Stealth: 1
+    narrative_hooks:
+      - "A contract is a contract. The New Republic's feelings about it are irrelevant."
+      - "Your clan lost people in the war. You track what matters."
+
+  - id: species-wookiee
+    name: Wookiee
+    description: >
+      Wookiees fought for the Rebellion and remember the Empire's enslavement of Kashyyyk
+      with righteous fury. Now nominally free, Kashyyyk still rebuilds and Wookiees across
+      the galaxy carry life-debts, political alliances, and long memories.
+    cultural_notes: >
+      The life-debt (honored obligation to someone who saved your life) is sacred.
+      Wookiees have long memories and do not forgive Imperial collaborators easily.
+    common_homeworlds: [Kashyyyk]
+    typical_traits: [Loyal, Ferocious, Enduring]
+    stat_bonus:
+      Combat: 2
+    narrative_hooks:
+      - "A life-debt follows you across the galaxy. You wouldn't have it any other way."
+      - "Kashyyyk is free. Freedom doesn't erase what was done there."
+
+  - id: species-zabrak
+    name: Zabrak
+    description: >
+      Zabraks were among the first to resist Imperial domination and paid dearly for it.
+      In the New Republic era, Zabrak communities are rebuilding, and their fierce
+      independence makes them both natural allies of the New Republic and uncomfortable
+      within it — they don't take orders well from any government.
+    cultural_notes: >
+      Zabrak facial tattoos mark clan affiliation and life achievements.
+      Submission to external authority, even friendly authority, doesn't come naturally.
+    common_homeworlds: [Iridonia, Dathomir]
+    typical_traits: [Determined, Independent, Resilient]
+    stat_bonus:
+      Combat: 1
+      General: 1
+    narrative_hooks:
+      - "You survived the Empire by refusing to yield. The New Republic is still learning what that means."
+      - "The marks on your face tell a story they haven't earned the right to know."
+
+  - id: species-bothan
+    name: Bothan
+    description: >
+      The Bothans' sacrifice at the Battle of Endor — "Many Bothans died to bring us this
+      information" — gave them significant political capital in the New Republic. The Bothan
+      Spynet is now an officially tolerated intelligence asset, which suits the Bothans perfectly.
+    cultural_notes: >
+      Information is power, and the Bothans have more of it than anyone admits.
+      Their political influence in the New Republic Senate is disproportionate to their numbers.
+    common_homeworlds: [Bothawui]
+    typical_traits: [Cunning, Perceptive, Politically-minded]
+    stat_bonus:
+      Charisma: 1
+      Tech: 1
+    narrative_hooks:
+      - "Your people died to end the Empire. You intend to collect on that debt."
+      - "The New Republic Senate is a board game. You know where all the pieces are."
+
+  - id: species-chiss
+    name: Chiss
+    description: >
+      The Chiss Ascendancy maintained studied neutrality during the Galactic Civil War,
+      but Grand Admiral Thrawn's campaigns put Chiss in an uncomfortable spotlight.
+      Individual Chiss in New Republic space must navigate suspicion and fascination
+      in equal measure — everyone knows what Thrawn was.
+    cultural_notes: >
+      Chiss favor formal register in speech and consider emotional displays undisciplined.
+      Thrawn's legacy creates complicated social dynamics with both humans and other species.
+    common_homeworlds: [Csilla]
+    typical_traits: [Analytical, Disciplined, Strategic]
+    stat_bonus:
+      Tech: 1
+      General: 1
+    narrative_hooks:
+      - "Everyone assumes you know Thrawn. You have decided not to correct them."
+      - "You left the Ascendancy. The galaxy's chaos was more interesting than its order."

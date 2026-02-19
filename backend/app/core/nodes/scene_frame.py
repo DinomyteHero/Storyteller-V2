@@ -271,6 +271,60 @@ def _derive_pressure(world_state: dict) -> dict:
     return pressure
 
 
+def _build_gm_context(
+    player_objective: str,
+    immediate_situation: str,
+    arc_guidance: dict,
+    world_state: dict,
+    party_state: dict | None,
+) -> str:
+    """Build a compact GM context summary injected into Director and ChoiceCrafter.
+
+    Produces a 5-6 line text block with what a real GM would keep in mind this turn:
+    scene goal, arc stage, active threads, pending consequences, and companion tensions.
+    """
+    lines = ["== GM CONTEXT (this turn) =="]
+
+    if immediate_situation:
+        lines.append(f"Situation: {immediate_situation}")
+    if player_objective:
+        lines.append(f"Goal: {player_objective}")
+
+    # Arc stage and active threads
+    arc_stage = arc_guidance.get("arc_stage", "SETUP")
+    tension = arc_guidance.get("tension_level", "CALM")
+    priority_threads = arc_guidance.get("priority_threads") or []
+    if priority_threads:
+        threads_str = " | ".join(str(t) for t in priority_threads[:2])
+        lines.append(f"Arc: {arc_stage} ({tension}) — {threads_str}")
+    else:
+        lines.append(f"Arc: {arc_stage} / Tension: {tension}")
+
+    # Pending consequences from ledger
+    ledger = world_state.get("ledger") or {} if isinstance(world_state, dict) else {}
+    consequence_hints = (ledger.get("consequence_hints") or []) if isinstance(ledger, dict) else []
+    if consequence_hints:
+        hints_str = "; ".join(str(h) for h in consequence_hints[:2])
+        lines.append(f"Pending: {hints_str}")
+
+    # Companion tensions (low-influence companions are volatile)
+    if party_state and isinstance(party_state, dict):
+        companion_states = party_state.get("companion_states") or {}
+        tense_comps = []
+        if isinstance(companion_states, dict):
+            for cid, cstate in companion_states.items():
+                if isinstance(cstate, dict):
+                    influence = int(cstate.get("influence", 0) or 0)
+                    if influence < -10:
+                        tense_comps.append(f"{cid} (hostile)")
+                    elif influence < 20:
+                        tense_comps.append(f"{cid} (wary)")
+        if tense_comps:
+            lines.append(f"Companion tension: {', '.join(tense_comps[:2])}")
+
+    return "\n".join(lines)
+
+
 def _build_voice_profile(npc: dict) -> dict:
     """Build a compact voice_profile dict from NPC data (era pack / companion).
 
@@ -540,6 +594,16 @@ def scene_frame_node(state: dict[str, Any]) -> dict[str, Any]:
         world_state = {}
     pressure = _derive_pressure(world_state)
 
+    # GM Context Object — compact unified summary for Director and ChoiceCrafter
+    party_state = world_state.get("party_state") if isinstance(world_state, dict) else None
+    gm_context = _build_gm_context(
+        player_objective=player_objective,
+        immediate_situation=immediate_situation,
+        arc_guidance=arc_guidance,
+        world_state=world_state,
+        party_state=party_state if isinstance(party_state, dict) else None,
+    )
+
     frame = SceneFrame(
         location_id=location_id,
         location_name=location_name,
@@ -565,7 +629,7 @@ def scene_frame_node(state: dict[str, Any]) -> dict[str, Any]:
         scene_hash,
     )
 
-    updated = {**state, "scene_frame": frame.model_dump(mode="json")}
+    updated = {**state, "scene_frame": frame.model_dump(mode="json"), "gm_context": gm_context}
 
     # V2.20: Attempt banter injection (uses scene_frame pressure for safety check)
     try:

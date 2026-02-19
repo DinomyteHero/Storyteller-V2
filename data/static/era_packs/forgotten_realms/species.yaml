@@ -1,0 +1,133 @@
+# forgotten_realms/species.yaml — Playable species for the Forgotten Realms era.
+# Used during character creation only. Stat bonuses are applied on top of the base stat array.
+# Generated campaign content (companions, NPCs) can use any species via CampaignBibleAgent.
+
+species:
+  - id: species-human
+    name: Human
+    description: >
+      Humans are the most numerous people of Faerûn, found on every trade road and in
+      every court from Waterdeep to Calimshan. Human ambition — for glory, for wealth,
+      for meaning — drives most of the Sword Coast's politics. Their short lives make
+      them urgent and adaptable in ways that sometimes frustrates their longer-lived allies.
+    cultural_notes: No cultural bias — humans occupy every social stratum and faction.
+    common_homeworlds: [Waterdeep, Baldur's Gate, Neverwinter, Cormyr]
+    typical_traits: [Ambitious, Adaptable, Diverse]
+    stat_bonus:
+      General: 1
+    narrative_hooks:
+      - "Your family has lived in this city for three generations. That means something here."
+      - "Humans are everywhere and trusted by no one completely. You use both facts."
+
+  - id: species-elf
+    name: Elf
+    description: >
+      Elves have watched human civilization rise and fall and rise again. Moon elves walk
+      among human cities; sun elves guard ancient forests; drow lurk in the Underdark.
+      An elf adventurer in 1492 DR carries centuries of perspective that can be a gift or
+      a burden, depending on how urgently the present demands attention.
+    cultural_notes: >
+      Elves experience time differently and can seem detached to short-lived races.
+      The Retreat — many elves departing Faerûn for Evermeet — left gaps in forest communities.
+    common_homeworlds: ["Evereska", "Myth Drannor (ruined)", "Evermeet (distant)"]
+    typical_traits: [Perceptive, Graceful, Long-memoried]
+    stat_bonus:
+      General: 1
+      Stealth: 1
+    narrative_hooks:
+      - "You remember when that ruin was a city. That makes you useful and unsettling."
+      - "Most of your kind have retreated to Evermeet. You stayed. That's a choice worth examining."
+
+  - id: species-dwarf
+    name: Dwarf
+    description: >
+      Dwarves measure their worth in craftsmanship, clan, and the weight of stone above them.
+      The great dwarven holds of the North — Mithral Hall, Citadel Adbar — have survived
+      orc invasions and undead incursions that would have broken other cultures. Dwarves
+      adventuring on the surface are either seeking something lost or escaping something old.
+    cultural_notes: >
+      Clan lineage and craft guild membership define social standing.
+      Grudges are maintained in written books across generations.
+    common_homeworlds: ["Mithral Hall", "Citadel Adbar", "Citadel Felbarr"]
+    typical_traits: [Stalwart, Craftsman, Stubborn]
+    stat_bonus:
+      Combat: 1
+      General: 1
+    narrative_hooks:
+      - "The grudge book says your clan is owed a debt. You intend to collect it."
+      - "You left the mountain. Your kin think you're looking for something. They're right."
+
+  - id: species-halfling
+    name: Halfling
+    description: >
+      Halflings move through the world with a gift for finding comfort and hospitality in
+      unlikely places. Lightfoot halflings have integrated into human communities across
+      the Sword Coast; stout halflings prefer insular communities in the countryside.
+      Halfling adventurers are often driven by curiosity or circumstance — rarely glory.
+    cultural_notes: >
+      Halflings prize community, food, and knowing one's neighbors.
+      Their luck is a genuine cultural phenomenon that confounds scholars.
+    common_homeworlds: ["The Shire-like villages of the Sword Coast countryside", "Luiren (southern)"]
+    typical_traits: [Resourceful, Fortunate, Practical]
+    stat_bonus:
+      Stealth: 1
+      General: 1
+    narrative_hooks:
+      - "You're half the size of everyone here. They keep underestimating you. You stopped correcting them."
+      - "Home is wherever you decide to stop walking. You haven't decided yet."
+
+  - id: species-half-elf
+    name: Half-Elf
+    description: >
+      Half-elves belong fully to neither human nor elven society — and have learned to
+      make that marginality into an asset. They see patterns both groups miss. They build
+      alliances across divides that neither pure-blood race would attempt. On the Sword
+      Coast, half-elves often serve as diplomats, information brokers, or wanderers.
+    cultural_notes: >
+      Half-elves typically develop an independent identity rather than claiming either heritage fully.
+      They adapt to social contexts with unusual ease — a skill born of necessity.
+    common_homeworlds: [Waterdeep, Baldur's Gate, "anywhere trade routes run"]
+    typical_traits: [Diplomatic, Perceptive, Adaptable]
+    stat_bonus:
+      Charisma: 1
+      General: 1
+    narrative_hooks:
+      - "You don't fully belong to either world. You've turned that into a vocation."
+      - "Humans see your elven blood. Elves see your humanity. You see everything they miss."
+
+  - id: species-tiefling
+    name: Tiefling
+    description: >
+      Tieflings carry the visible mark of an infernal bloodline — horns, a tail, unsettling
+      eyes — and face distrust accordingly. In Faerûn, tieflings are not inherently evil,
+      but explaining that to a frightened farmer is its own adventure. The city of Neverwinter
+      and some quarters of Waterdeep are more tolerant; the countryside less so.
+    cultural_notes: >
+      Tieflings learn to read suspicion and hostility as survival skills.
+      Many develop either a thick skin or an elaborate persona — sometimes both.
+    common_homeworlds: [Neverwinter, Waterdeep, "no specific homeland"]
+    typical_traits: [Cunning, Resilient, Guarded]
+    stat_bonus:
+      Charisma: 1
+      General: 1
+    narrative_hooks:
+      - "You've spent your life proving you're not your bloodline. That is a tiresome project."
+      - "People fear you before you speak. You've learned to use the first impression they've already formed."
+
+  - id: species-gnome
+    name: Gnome
+    description: >
+      Gnomes — whether forest gnomes with their affinity for illusion or rock gnomes
+      obsessed with mechanical invention — approach the world with relentless curiosity.
+      The great gnome settlements of Lantan were devastated in the Spellplague; survivors
+      scattered across Faerûn carrying technical knowledge and a certain ancestral grief.
+    cultural_notes: >
+      Gnomes are persistent to the point of maddening. They remember technical details
+      with perfect accuracy and social niceties with selective imprecision.
+    common_homeworlds: ["Blingdenstone (deep gnomes)", "Lantan (largely destroyed)", "scattered enclaves"]
+    typical_traits: [Inventive, Curious, Precise]
+    stat_bonus:
+      Tech: 2
+    narrative_hooks:
+      - "You have seventeen theories about why that mechanism failed. You will test all seventeen."
+      - "Lantan is gone. Everything your people built is in your head now. You will not waste it."

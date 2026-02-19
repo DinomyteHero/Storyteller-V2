@@ -377,6 +377,11 @@ class DirectorAgent:
                     label = key.replace("act_", "Act ").replace("_", " ").title()
                     base += f"\n- {label}: {val}"
 
+        # V6.0: GM Context Object — compact unified summary from scene_frame_node
+        gm_context = getattr(state, "gm_context", None) or ""
+        if gm_context:
+            base += f"\n\n{gm_context}"
+
         directives = directives_from_style_context(style_context, min_count=2)
         if directives:
             story_state_summary = base + "\n" + "\n".join(f"- {d}" for d in directives[:4])

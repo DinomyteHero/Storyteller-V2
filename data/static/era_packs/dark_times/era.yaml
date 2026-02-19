@@ -1,71 +1,107 @@
+# ============================================================
+# dark_times/era.yaml — The Dark Times Era Pack Manifest (V6.0 Minimal)
+# ============================================================
+# V6.0: Era packs now contain ONLY what is needed for character creation.
+# Campaign content (NPCs, companions, factions, locations, quests) is generated
+# at setup time by CampaignBibleAgent and stored in campaigns.campaign_bible_json.
+#
+# Files in this directory:
+#   era.yaml       — This manifest (setting rules, metadata, start pool)
+#   backgrounds.yaml — CYOA character backgrounds (required for character creation)
+#   species.yaml   — Playable species + stat bonuses (required for character creation)
+# ============================================================
+
 era_id: DARK_TIMES
+schema_version: 3
 style_ref: data/style/era/dark_times_style.md
+
+# Minimal file index — only character creation essentials
 file_index:
   era: era.yaml
-  locations: locations.yaml
-  npcs: npcs.yaml
-  factions: factions.yaml
   backgrounds: backgrounds.yaml
-  namebanks: namebanks.yaml
-  quests: quests.yaml
-  events: events.yaml
-  rumors: rumors.yaml
-  meters: meters.yaml
-  facts: facts.yaml
-  companions: companions.yaml
   species: species.yaml
-  items: items.yaml
-  moments: moments.yaml
-  codex: codex.yaml
-schema_version: 3
+
+# Canonical starting location archetypes — used by BiographerAgent to pick a starting point.
+# CampaignBibleAgent generates rich named versions of these locations for each campaign.
 start_location_pool:
-- loc-cantina
-- loc-bazaar_market
-- loc-safe_house
-- loc-yavin_base
-global_event_templates: []
-travel_graph: []
-default_scene_pacing: {}
+  - loc-cantina
+  - loc-docking-bay
+  - loc-safe-house
+  - loc-marketplace
+
 metadata:
   display_name: The Dark Times
-  time_period: 19-0 BBY (Legends)
-  calendar_note: From Order 66 to the opening spark of Rebellion.
-  summary: The Republic is dead and the Empire rules by fear. Surviving Jedi are hunted,
-    clone veterans are discarded, and systems submit under garrisons and surveillance.
-    Criminal syndicates and desperate resistance networks thrive in the cracks between
-    Imperial crackdowns. Every act of compassion is dangerous, and every witness might
-    be an informant.
-  tone: Paranoid oppression; clandestine resistance; survival noir.
+  time_period: 19–0 BBY (Legends)
+  calendar_note: From Order 66 to the opening spark of Rebellion at the Battle of Yavin.
+  summary: >
+    The Republic is dead. Order 66 shattered the Jedi Order overnight, and the Emperor
+    rules from Coruscant with absolute authority. Clone veterans are discarded as the
+    new Stormtrooper Corps takes shape. Surviving Jedi are hunted by the Inquisitorius —
+    dark side enforcers who track the last Force-sensitives across the galaxy. Systems
+    submit under garrisons and surveillance networks. Criminal syndicates and desperate
+    resistance cells thrive in the cracks between Imperial crackdowns. Every act of
+    compassion is dangerous, and every witness might be an informant.
+  tone: Paranoid oppression; clandestine resistance; survival noir; grief and endurance.
   key_conflicts:
-  - Imperial security state vs. hidden survivors and dissidents.
-  - Jedi fugitives vs. Inquisitors and propaganda machinery.
-  - Local survival economies vs. extractive military occupation.
+    - "Imperial security state vs. hidden survivors and dissidents: surveillance, informants, and garrisoned worlds."
+    - "Inquisitorius vs. Jedi fugitives: hunters and hunted across the Outer Rim."
+    - "Local survival economies vs. extractive military occupation: resistance born from desperation."
   themes:
-  - Identity under persecution.
-  - Moral courage in small, deniable acts.
-  - Memory of the Republic versus normalization of tyranny.
+    - Identity under persecution — who you pretend to be to survive.
+    - Moral courage in small, deniable acts.
+    - Memory of the Republic versus normalization of tyranny.
+
+# Legends timeline reference — used by CampaignBibleAgent to generate era-accurate content.
+legends_timeline:
+  era_start: "19 BBY (Order 66 / Fall of the Republic)"
+  era_end: "0 BBY (Battle of Yavin)"
+  key_events:
+    - "19 BBY: Order 66 executed — clone troopers turn on Jedi across the galaxy"
+    - "19 BBY: Galactic Empire proclaimed; Palpatine becomes Emperor"
+    - "19 BBY: Darth Vader seals the Jedi Temple, hunts survivors"
+    - "18 BBY: Inquisitorius established to hunt Force-sensitives"
+    - "14 BBY: Great Jedi Purge continues; most surviving Jedi killed or in hiding"
+    - "10 BBY: Imperial Academy system fully operational; recruitment propaganda intensifies"
+    - "5 BBY: Outer Rim resistance cells begin forming precursors to the Rebel Alliance"
+    - "2 BBY: Phoenix Cell and other rebel groups unify under Mon Mothma"
+    - "1 BBY: Saw Gerrera's partisans steal Death Star plans on Scarif"
+    - "0 BBY: Alliance to Restore the Republic formally declared; Battle of Yavin"
+  galactic_state: >
+    The Galactic Empire controls the known galaxy through fear, military occupation,
+    and the systematic dismantling of all competing power structures. The Senate is
+    a rubber stamp. Regional governors with military backing replaced elected officials.
+    Surviving Jedi are scattered, hunted, and forced to abandon the Force or risk
+    exposure. Criminal syndicates fill the vacuum left by collapsed trade networks.
+    Small resistance cells exist but are unconnected, uncoordinated, and brutally suppressed.
+  notable_locations:
+    - "Coruscant (Imperial capital, Inquisitorius headquarters)"
+    - "Mustafar (Vader's fortress)"
+    - "Lothal (Imperial-occupied Outer Rim world)"
+    - "Malachor (ancient Sith world)"
+    - "Nar Shaddaa (Smuggler's Moon, underworld refuge)"
+    - "Tatooine (lawless Outer Rim, Hutt territory)"
+    - "Jedha (kyber crystal world, Imperial mining operation)"
+    - "Scarif (Imperial data vault)"
+  notable_figures:
+    - "Darth Vader (Sith Lord, primary Jedi hunter)"
+    - "Emperor Palpatine (ruler of the Galactic Empire)"
+    - "The Grand Inquisitor (head of Inquisitorius)"
+    - "Obi-Wan Kenobi (Jedi Master, in exile on Tatooine)"
+    - "Yoda (Jedi Grand Master, in exile on Dagobah)"
+    - "Mon Mothma (Imperial Senator, secret rebel organizer)"
+    - "Bail Organa (Alderaan Senator, Alliance founder)"
+    - "Saw Gerrera (partisan resistance leader)"
+
+# V3.2: Universe rules — setting-specific text for agent prompts.
 setting_rules:
-  setting_name: Star Wars Legends
-  setting_genre: science fantasy
-  biographer_role: a biographer for a Star Wars narrative RPG
-  architect_role: the World Architect for a Star Wars narrative RPG
-  director_role: the Director for an interactive Star Wars story engine
-  suggestion_style: a Star Wars KOTOR-style game
-  common_species:
-  - Human
-  - Twi'lek
-  - Rodian
-  - Wookiee
-  - Zabrak
-  - Bothan
-  - Chiss
-  example_factions:
-  - Rebellion
-  - Empire
-  - Hutt Cartel
-  historical_lore_label: established Star Wars Legends lore
-  bypass_methods:
-  - force
-  - force_dark
-  - sith_amulet
-  fallback_background: A traveler in a vast galaxy.
+  setting_name: "Star Wars Legends"
+  setting_genre: "science fantasy"
+  biographer_role: "a biographer for a Star Wars narrative RPG"
+  architect_role: "the World Architect for a Star Wars narrative RPG"
+  director_role: "the Director for an interactive Star Wars story engine"
+  suggestion_style: "a Star Wars KOTOR-style game"
+  common_species: ["Human", "Twi'lek", "Rodian", "Wookiee", "Zabrak", "Bothan", "Chiss"]
+  example_factions: ["Galactic Empire", "Inquisitorius", "Hutt Cartel", "nascent Rebel cells"]
+  historical_lore_label: "established Star Wars Legends lore"
+  bypass_methods: ["force", "force_dark", "sith_amulet"]
+  fallback_background: "A survivor in a galaxy that punishes survival."
