@@ -76,7 +76,7 @@ class GameState(BaseModel):
 
 ## SQLite Database Schema
 
-Schema is applied via `backend/app/db/migrate.py`, which runs all SQL files in `backend/app/db/migrations/` in order. **33 migrations** are currently applied (0001 through 0033).
+Schema is applied via `backend/app/db/migrate.py`, which runs all SQL files in `backend/app/db/migrations/` in order. **34 migrations** are currently applied (0001 through 0034, with 0024 absent — the sequence jumps from 0023 to 0025).
 
 ### Core Tables
 
@@ -636,3 +636,6 @@ Called by the Commit node via `process_quests_for_turn(world_state, era, turn_nu
 | 0031 | turn_snapshots table (world state snapshots for rewind/undo) |
 | 0032 | npc_states table — normalized from world_state_json (V7.0 schema extraction) |
 | 0033 | quest_entries table — normalized from world_state_json (V7.0 schema extraction) |
+| 0034 | generated_era_packs table |
+
+> **Note:** Migration 0024 does not exist — the numbering jumps from 0023 to 0025.

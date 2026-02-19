@@ -60,7 +60,7 @@ python -m ingestion.ingest_lore --input ./data/lore/...
 
 ---
 
-## Turn Pipeline Call Graph (V5.0)
+## Turn Pipeline Call Graph (V7.0)
 
 Full call graph for an `intent=ACTION` turn:
 
@@ -168,7 +168,16 @@ graph.run_turn(conn, state)
        ├─ core/quest_tracker.py:process_quests_for_turn(world_state, era, ...)
        │    └─ content/repository.py:CONTENT_REPOSITORY.get_pack(era_id)
        ├─ core/truth_ledger.py:upsert_facts(conn, campaign_id, turn_id, facts)
-       └─ state_loader.py:build_initial_gamestate(conn, ...)  [reload from DB]
+       ├─ [V7.0] turn_snapshots: write world state snapshot for rewind
+       ├─ [V7.0] core/canon_scheduler.py: check/record canon events (Historical mode)
+       ├─ [V7.0] core/consequence_propagator.py: process ripple/wave/tsunami consequences
+       ├─ state_loader.py:build_initial_gamestate(conn, ...)  [reload from DB]
+       └─ [V7.0 POST-COMMIT] core/deferred_agents.py:run_deferred_maintenance()
+            ├─ agents/memory_agent.py:MemoryAgent (every turn with prose + NPCs)
+            ├─ agents/quest_weaver_agent.py:QuestWeaverAgent (maintenance turns)
+            ├─ agents/progression_agent.py:ProgressionAgent (maintenance turns)
+            └─ agents/psych_archivist_agent.py:PsychArchivistAgent (maintenance turns)
+            └─ writes to pending_world_state_patches table (applied on next turn load)
 ```
 
 ---

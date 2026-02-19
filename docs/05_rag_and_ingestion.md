@@ -242,7 +242,7 @@ Two retrieval modes:
 
 Pure vector similarity search with optional tag boosting. Results whose tags overlap with requested `style_tags` are sorted first.
 
-#### Layered Retrieval (V2.8): `retrieve_style_layered()`
+#### Layered Retrieval: `retrieve_style_layered()`
 
 ### Are `data/style/base`, `data/style/era`, and `data/style/genre` deprecated?
 

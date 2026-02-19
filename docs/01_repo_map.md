@@ -105,6 +105,9 @@ Storyteller AI/
         turn_contract.py         # Turn contract builders/validators
         llm_provider.py          # LLM client abstraction layer
         prologue_engine.py       # Campaign opening / prologue engine (V5.0)
+        canon_scheduler.py       # Historical timeline canon event scheduler (V7.0)
+        consequence_propagator.py  # Sandbox consequence propagation: ripple/wave/tsunami tiers (V7.0)
+        deferred_agents.py       # Post-commit deferred maintenance agent runner (V7.0)
       db/                        # SQLite schema + migration runner
         schema.sql               # Reference schema
         migrations/              # Migrations 0001-0021
@@ -194,13 +197,11 @@ Storyteller AI/
     static/
       era_packs/                 # Era pack YAML files (deterministic world content)
         _template/               # Reference structure for authoring new packs
-        dark_times/              # Playable period pack
-        rebellion/               # Playable period pack
-        new_republic/            # Playable period pack
-        new_jedi_order/          # Playable period pack
-          era.yaml, companions.yaml, quests.yaml, meters.yaml, npcs.yaml,
-          namebanks.yaml, factions.yaml, events.yaml, locations.yaml,
-          rumors.yaml, facts.yaml, backgrounds.yaml
+        dark_times/              # Skeleton pack (era.yaml, backgrounds.yaml, species.yaml)
+        rebellion/               # Starter pack (era.yaml, backgrounds.yaml, species.yaml, canon_events.json)
+        new_republic/            # Skeleton pack (era.yaml, backgrounds.yaml, species.yaml, canon_events.json)
+        new_jedi_order/          # Skeleton pack (era.yaml, backgrounds.yaml, species.yaml)
+        forgotten_realms/        # Setting-agnostic proof (era.yaml, backgrounds.yaml, species.yaml)
       starships.yaml             # Starship database
       SETTING_PACK_PROMPT_TEMPLATE.md
       STYLE_PROMPT_TEMPLATE.md
@@ -218,7 +219,10 @@ Storyteller AI/
   QUICKSTART.md                  # Quick setup path
 
   docs/                          # All reference documentation
-    00_overview.md – 09_call_graph.md  # Internal design docs (sequential learning path)
+    00_overview.md – 10_agent_execution_matrix.md  # Internal design docs (sequential learning path)
+    HYBRID_CLOUD_SETUP.md        # Hybrid local+cloud LLM configuration guide
+    RELEASE_CHECKLIST.md         # Pre-release verification checklist
+    OPERATIONS_RUNBOOK.md        # Incident playbooks and operational procedures
 ```
 
 ## Entry Points
@@ -314,6 +318,15 @@ graph LR
     kg --> db
     truth --> db
 ```
+
+## V7.0 New Modules Summary
+
+| Module | Purpose |
+| ------- | ------- |
+| `backend/app/core/canon_scheduler.py` | Historical timeline scheduler — loads canon events from era packs, records triggered events, surfaces via arc_guidance |
+| `backend/app/core/consequence_propagator.py` | Sandbox consequence propagation — ripple/wave/tsunami impact tiers with multi-turn duration tracking |
+| `backend/app/core/deferred_agents.py` | Post-commit deferred maintenance agent runner — MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist |
+| `backend/app/db/connection.py` | WAL mode connection factory — `PRAGMA journal_mode=WAL` + `PRAGMA busy_timeout=5000` |
 
 ## V5.0 New Modules Summary
 

@@ -9,7 +9,7 @@ Storyteller AI is a **local-first, setting-agnostic narrative RPG engine** power
 V7.0 builds on the V5.0 architecture with production-readiness improvements:
 - **Hybrid cloud LLM routing** — Quality-critical roles (Director, Narrator, ChoiceCrafter, Mechanic) can be routed to Anthropic Claude for faster, higher-quality responses; structural roles stay local
 - **Deferred maintenance agents** — MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist run post-commit via `pending_world_state_patches` table, reducing transaction hold time from 10-20s to <2s
-- **Shared pipeline executor** — Single `run_turn_stepwise()` eliminates streaming/non-streaming path drift
+- **Shared pipeline executor** — `run_turn()` via `_run_pipeline_with_timings()` with `get_pre_narrator_steps()`/`get_post_narrator_steps()` helpers eliminates streaming/non-streaming path drift
 - **SQLite WAL mode** — `journal_mode=WAL` + `busy_timeout=5000` for concurrent read safety
 - **Historical timeline scheduler** — Canon event system with era pack-defined events and immutable truth facts
 - **Sandbox consequence propagation** — Ripple/wave/tsunami impact tiers with multi-turn follow-on effects
@@ -44,7 +44,7 @@ The result is a narrative game that feels alive — persistent companions, facti
 | Component | Technology |
 | ----------- | ----------- |
 | Backend | FastAPI + Uvicorn |
-| Pipeline | LangGraph `StateGraph` (13-node pipeline) |
+| Pipeline | LangGraph `StateGraph` (13 nodes in ACTION path, 14 total including META) |
 | Persistence | SQLite (event sourcing + projections) |
 | Vector DB | LanceDB (lore, style, character voice RAG) |
 | Embeddings | `sentence-transformers/all-MiniLM-L6-v2` (local, 384-dim) |
@@ -85,7 +85,7 @@ Streaming (`/turn_stream`) and non-streaming (`/turn`) paths now share the same 
 | **EraMoments (V5.0)** | Scripted narrative triggers in era packs. Fire once on condition: companion affinity, arc stage, location, quest, alignment. |
 | **Hub/Downtime (V5.0)** | Hub locations (cantinas, safehouses) unlock: rest, gather intel, resupply, companion conversations. |
 | **Quest Tracker (V5.0)** | Deterministic quest state machine. Stage-based progression with multiple resolution paths. |
-| **Companion System** | 108 YAML-defined companions. Banter, inter-party tensions, companion-initiated quests. |
+| **Companion System** | 108 companions defined in `data/companions.yaml`. Banter, inter-party tensions, companion-initiated quests. |
 | **PartyState (V5.0)** | Multi-axis companion relationships: influence, trust, respect, fear. Backward-compatible. |
 | **Truth Ledger (V5.0)** | SQLite-backed fact store. `contradiction_errors()` detects narrative inconsistencies. |
 | **Psychology System** | Player `psych_profile`: current_mood, stress_level, active_trauma. Influences narration tone. |
@@ -115,30 +115,35 @@ Era Packs are YAML bundles that define a playable setting period. The system is 
 
 **Shipped packs:**
 
-| Pack | Period |
-| ------ | ------- |
-| `dark_times` | Late Republic collapse / Imperial rise |
-| `rebellion` | Galactic Civil War (canonical reference pack) |
-| `new_republic` | Post-Endor New Republic transition |
-| `new_jedi_order` | Yuuzhan Vong war |
-| `_template` | Reference structure for authoring new packs |
+| Pack | Period | Status |
+| ------ | ------- | ------- |
+| `rebellion` | Galactic Civil War | Starter pack (`era.yaml`, `backgrounds.yaml`, `species.yaml`, `canon_events.json`) |
+| `dark_times` | Late Republic collapse / Imperial rise | Skeleton (`era.yaml`, `backgrounds.yaml`, `species.yaml`) |
+| `new_republic` | Post-Endor New Republic transition | Skeleton (`era.yaml`, `backgrounds.yaml`, `species.yaml`, `canon_events.json`) |
+| `new_jedi_order` | Yuuzhan Vong war | Skeleton (`era.yaml`, `backgrounds.yaml`, `species.yaml`) |
+| `forgotten_realms` | D&D Forgotten Realms (setting-agnostic proof) | Skeleton (`era.yaml`, `backgrounds.yaml`, `species.yaml`) |
+| `_template` | Reference structure for authoring new packs | Skeleton |
 
-**Era Pack files:**
+> **Note:** Most era packs are currently skeleton stubs containing only `era.yaml`, `backgrounds.yaml`, and `species.yaml`. The full era pack schema supports up to 12 YAML files (see below), but only the files listed above are shipped per pack. Companion definitions are centralized in `data/companions.yaml` (108 entries).
+
+**Era Pack file schema (full — not all files required):**
 
 ```text
 data/static/era_packs/{era_id}/
-  era.yaml           # Metadata, tone, galactic state, SettingRules
+  era.yaml           # Metadata, tone, galactic state, SettingRules (required)
+  backgrounds.yaml   # Character creation origin stories (required)
+  species.yaml       # Playable species definitions (required)
   companions.yaml    # Recruitable party members (species, voice, motivation)
   npcs.yaml          # Non-player characters with personality profiles
   locations.yaml     # Playable locations with services and access points
   quests.yaml        # Stage-based quest definitions with conditions
   factions.yaml      # Political/military factions with reputation tiers
-  moments.yaml       # Scripted EraMoment triggers (V5.0)
-  backgrounds.yaml   # Character creation origin stories
+  moments.yaml       # Scripted EraMoment triggers
   namebanks.yaml     # Procedural name generation
   events.yaml        # World events
   rumors.yaml        # NPC-spread rumors
   facts.yaml         # Established world facts
+  canon_events.json  # Historical timeline events (Historical mode)
 ```
 
 ### Authoring a New Era Pack
@@ -274,7 +279,7 @@ curl http://localhost:8000/health/detail
 - **Event Sourcing** — Append-only `turn_events` + projections. State always reconstructable from event log.
 - **Single Transaction Boundary** — Only `CommitNode` calls `conn.commit()`. Pipeline failures before Commit leave no partial state.
 - **Deferred Maintenance Agents** — Heavy maintenance agents (Memory, QuestWeaver, Progression, PsychArchivist) run post-commit via `pending_world_state_patches`, keeping transaction hold time under 2 seconds.
-- **Shared Pipeline Executor** — `run_turn_stepwise()` with narrator callback hook ensures streaming and non-streaming paths execute identical node sequences.
+- **Shared Pipeline Executor** — `run_turn()` via `_run_pipeline_with_timings()` with `get_pre_narrator_steps()`/`get_post_narrator_steps()` helpers ensures streaming and non-streaming paths execute identical node sequences.
 - **Hybrid Cloud Routing** — Quality-critical roles route to cloud (Anthropic Claude); structural roles stay local (Ollama). See `docs/HYBRID_CLOUD_SETUP.md`.
 - **Snapshot-Based Rewind** — `turn_snapshots` table stores world state per turn. `POST /campaigns/{id}/rewind?to_turn=N` atomically restores state.
 - **Canon Event Scheduler** — Historical mode campaigns enforce era-defined canon events via `canon_scheduler.py` with immutable truth facts.
@@ -302,7 +307,6 @@ curl http://localhost:8000/health/detail
 | [`docs/09_call_graph.md`](docs/09_call_graph.md) | Full turn call graph, per-turn vs conditional execution |
 | [`docs/10_agent_execution_matrix.md`](docs/10_agent_execution_matrix.md) | Agent execution frequency and classification matrix |
 | [`docs/HYBRID_CLOUD_SETUP.md`](docs/HYBRID_CLOUD_SETUP.md) | Hybrid local+cloud LLM configuration guide with cost estimates |
-| [`docs/PRODUCTION_EXECUTION_PLAN.md`](docs/PRODUCTION_EXECUTION_PLAN.md) | Production readiness execution plan |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | Pre-release verification checklist |
 | [`docs/OPERATIONS_RUNBOOK.md`](docs/OPERATIONS_RUNBOOK.md) | Incident playbooks and operational procedures |
 | [`QUICKSTART.md`](QUICKSTART.md) | Step-by-step setup, model pulls, first campaign |

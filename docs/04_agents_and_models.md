@@ -1,6 +1,8 @@
 # 04 — Agents & LLM Plumbing
 
-## Agent Summary (Current — V5.0)
+## Agent Summary (Current — V7.0)
+
+> **V7.0 change:** MemoryAgent, QuestWeaverAgent, ProgressionAgent, and PsychArchivistAgent now run as **deferred maintenance agents** post-commit via `deferred_agents.py`. They write to the `pending_world_state_patches` table rather than directly modifying world state during the turn transaction. This reduces transaction hold time from 10-20s to ~2s on maintenance turns.
 
 | Component | File | Deterministic? | LLM? | Authoritative? | Output | Fallback Behavior |
 | ----------- | ------ | :---: | :---: | :---: | ------- | --------- |
@@ -30,7 +32,7 @@
 
 ## Authoritative vs Non-Authoritative Agents
 
-**V5.0 introduces a distinction between authoritative and non-authoritative LLM agents:**
+**The system distinguishes between authoritative and non-authoritative LLM agents (introduced V5.0):**
 
 ### Authoritative Agents
 These agents produce output that is required for the pipeline to continue. On failure (after one retry), they raise `AgentFailureError`, which is caught at the graph level by `run_turn()` and returned as a structured error to the player.
@@ -65,7 +67,7 @@ def authoritative_call(agent_name: str, fn: Callable, *args, **kwargs):
 
 ## Per-Role LLM Configuration
 
-Each agent role can be independently configured via environment variables:
+Each agent role can be independently configured via environment variables. V7.0 adds per-role cloud provider routing — see `docs/HYBRID_CLOUD_SETUP.md` for full configuration guide.
 
 ```bash
 # Pattern: STORYTELLER_{ROLE}_{CONFIG}

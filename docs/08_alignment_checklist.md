@@ -44,7 +44,7 @@ Legend:
 
 | Feature | Status | Notes |
 | --------- | -------- | ------- |
-| **Shared pipeline executor** — streaming and non-streaming paths use same node sequence | 🆕 ✅ | `run_turn_stepwise()` in `graph.py` with narrator callback hook. Eliminates dual-path drift risk. |
+| **Shared pipeline executor** — streaming and non-streaming paths use same node sequence | 🆕 ✅ | `run_turn()` via `_run_pipeline_with_timings()` with `get_pre_narrator_steps()`/`get_post_narrator_steps()` helpers in `graph.py`. Eliminates dual-path drift risk. |
 | **Deferred maintenance agents** — heavy agents run post-commit | 🆕 ✅ | MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist write to `pending_world_state_patches`. Applied on next turn load. |
 | **SQLite WAL mode** — concurrent read safety | 🆕 ✅ | `PRAGMA journal_mode=WAL` + `PRAGMA busy_timeout=5000` in connection factory. |
 | **Snapshot-based rewind** — undo to any previous turn | 🆕 ✅ | `turn_snapshots` table + `POST /campaigns/{id}/rewind?to_turn=N` endpoint. Atomic restore. |

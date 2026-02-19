@@ -2,11 +2,11 @@
 
 ## What the System Does
 
-Storyteller AI (current codebase, project version 0.1.0, engine version V5.0) is a text-based RPG engine that runs a turn-by-turn narrative loop driven by a **LangGraph state-machine pipeline**. A player selects from KOTOR-style dialogue-wheel choices; the engine classifies the input, resolves mechanics, fires any scripted narrative moments, simulates off-screen world events, generates dramatic pacing instructions, and produces final prose narration — all in a single turn.
+Storyteller AI (current codebase, project version 0.1.0, engine version V7.0) is a text-based RPG engine that runs a turn-by-turn narrative loop driven by a **LangGraph state-machine pipeline**. A player selects from KOTOR-style dialogue-wheel choices; the engine classifies the input, resolves mechanics, fires any scripted narrative moments, simulates off-screen world events, generates dramatic pacing instructions, and produces final prose narration — all in a single turn.
 
 The "Living World" mechanic is the core differentiator: every player action costs in-game time (in minutes). When accumulated time crosses a configurable tick boundary (default 4 hours), a **WorldSim** node fires a deterministic faction simulation (with optional LLM-driven world narrative) that moves NPC factions, generates rumors, and feeds a Mass Effect-style news briefing system — making the world feel alive even when the player isn't directly interacting with those factions.
 
-**V5.0 is a setting-agnostic architecture.** Agents no longer hardcode universe names, species, or factions. All setting-specific content comes from `SettingRules` (stored in `world_state_json["setting_rules"]`) and era pack YAML files, loaded via the `ContentRepository` singleton.
+**V5.0 introduced setting-agnostic architecture; V7.0 adds production-readiness.** Agents no longer hardcode universe names, species, or factions. All setting-specific content comes from `SettingRules` (stored in `world_state_json["setting_rules"]`) and era pack YAML files, loaded via the `ContentRepository` singleton. V7.0 adds hybrid cloud LLM routing, deferred maintenance agents, shared pipeline executor, SQLite WAL mode, snapshot-based rewind, canon event scheduling, sandbox consequence propagation, schema extraction, and accessibility features.
 
 ## Key Design Principles
 
@@ -17,7 +17,10 @@ The "Living World" mechanic is the core differentiator: every player action cost
 | **Deterministic Mechanic** | The `MechanicAgent` uses zero LLM calls. All dice rolls, DC computation, time costs, and event generation are pure Python. This guarantees reproducible gameplay mechanics regardless of model quality. |
 | **LLM-Driven Choices (V5.0)** | The `ChoiceCrafterNode` replaced the deterministic `SuggestionRefiner`. Player choices are now fully LLM-generated from the Narrator's prose, scene context, and arc state. This is an authoritative node — on failure it raises `AgentFailureError`, surfaced as a structured error to the player. |
 | **Event Sourcing** | The source of truth is an append-only event log (`turn_events` table). Normalized tables (`characters`, `inventory`, `campaigns.world_state_json`) are projections derived from events via `apply_projection()`. |
-| **Per-Role LLM Config** | Agent configuration is per-role via environment variables (`STORYTELLER_{ROLE}_MODEL`). Multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:4b` for lightweight roles (Architect, Casting, Biographer, KG, ChoiceCrafter). |
+| **Per-Role LLM Config** | Agent configuration is per-role via environment variables (`STORYTELLER_{ROLE}_MODEL`, `STORYTELLER_{ROLE}_PROVIDER`). Multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:4b` for lightweight roles (Architect, Casting, Biographer, KG, ChoiceCrafter). V7.0 adds per-role cloud provider routing (e.g., `anthropic` for quality-critical roles). |
+| **Deferred Maintenance Agents (V7.0)** | Heavy maintenance agents (MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist) run post-commit via `pending_world_state_patches` table, reducing transaction hold time from 10-20s to ~2s. |
+| **Shared Pipeline Executor (V7.0)** | `run_turn()` via `_run_pipeline_with_timings()` with `get_pre_narrator_steps()`/`get_post_narrator_steps()` helpers ensures streaming and non-streaming paths execute identical node sequences. |
+| **SQLite WAL Mode (V7.0)** | `PRAGMA journal_mode=WAL` + `PRAGMA busy_timeout=5000` enabled in `backend/app/db/connection.py` for concurrent read safety. |
 | **Graceful Degradation (non-authoritative)** | Non-authoritative pipeline nodes (Mechanic, WorldSim, Companion, Arc Planner, etc.) have deterministic fallbacks and never halt the turn. Authoritative LLM nodes (Narrator, ChoiceCrafter) raise `AgentFailureError` on failure, caught at the graph level. |
 | **Prose-Only Narrator** | The Narrator writes only prose (5-8 sentences, max 250 words). Choices are never embedded in narration. Post-processing strips structural artifacts and enforces word-count limits. |
 | **Psychology System** | Each player character has a `psych_profile` (current_mood, stress_level, active_trauma) that influences narration tone, Director suggestions, and companion reactions. |
@@ -44,6 +47,12 @@ The "Living World" mechanic is the core differentiator: every player action cost
 | **Era Transitions** | REBELLION, NEW_REPUBLIC, NEW_JEDI_ORDER, LEGACY era detection with transition events and era summaries. |
 | **Episodic Memory** | Compressed narrative memories stored in `episodic_memories` table. Retrieved for Director/Narrator context grounding. |
 | **Starship Acquisition** | No starting ships; earned in-story via quest/purchase/salvage/faction/theft. `STARSHIP_ACQUIRED` event handler. No ship = NPC transport. |
+| **Snapshot Rewind (V7.0)** | `turn_snapshots` table stores world state per turn. `POST /campaigns/{id}/rewind?to_turn=N` atomically restores state. |
+| **Canon Event Scheduler (V7.0)** | Historical mode campaigns enforce era-defined canon events via `canon_scheduler.py` with immutable truth facts. |
+| **Consequence Propagation (V7.0)** | `consequence_propagator.py` with ripple/wave/tsunami impact tiers creating multi-turn follow-on effects. |
+| **Schema Extraction (V7.0)** | NPC states extracted to `npc_states` table (migration 0032); quest entries to `quest_entries` table (migration 0033). |
+| **Turn Idempotency (V7.0)** | `Idempotency-Key` header on turn endpoints prevents duplicate commits on retry. |
+| **Saga System (V7.0)** | `sagas` + `character_legacies` tables. Campaigns grouped by player-owned saga with chapter ordering. |
 | **Personality Profiles** | NPC characterization via personality profile blocks injected into Director/Narrator prompts. |
 | **Deterministic Faction Engine** | No LLM calls. Faction reputation tracking, NPC movement (20% chance per tick), faction-aware goals in `npc_states`. |
 | **Knowledge Graph** | Optional KG extraction from lore. Entity resolution, triple store, synthesis summaries for runtime retrieval. |
@@ -57,7 +66,7 @@ graph TD
         API["POST /v2/campaigns/{id}/turn"]
     end
 
-    subgraph "LangGraph Pipeline (graph.py) — V5.0"
+    subgraph "LangGraph Pipeline (graph.py) — V7.0"
         R[Router Node] --> | META| META[Meta Node]
         R --> | TALK| ENC[Encounter Node]
         R --> | ACTION| MECH[Mechanic Node]
@@ -83,6 +92,7 @@ graph TD
 
     subgraph "LLM Providers"
         Ollama[Ollama Local]
+        Cloud[Cloud Providers<br/>Anthropic/OpenAI<br/>V7.0 Hybrid]
     end
 
     subgraph "Content Layer"
@@ -105,7 +115,7 @@ graph TD
     COMMIT --> API
 ```
 
-## Pipeline Topology (V5.0)
+## Pipeline Topology (V7.0)
 
 **ACTION / TALK path:**
 ```
@@ -118,9 +128,14 @@ router → meta → commit → END
 ```
 
 **Key changes from previous versions:**
-- `moments` node added between `companion_reaction` and `arc_planner` (EraMoment trigger system)
-- `suggestion_refiner` replaced by `choice_crafter` (authoritative LLM; no deterministic fallback)
-- `run_turn()` catches `AgentFailureError` and returns structured error in `GameState`
+- `moments` node added between `companion_reaction` and `arc_planner` (EraMoment trigger system, V5.0)
+- `suggestion_refiner` replaced by `choice_crafter` (authoritative LLM; no deterministic fallback, V5.0)
+- `run_turn()` catches `AgentFailureError` and returns structured error in `GameState` (V5.0)
+- Shared pipeline executor via `_run_pipeline_with_timings()` with `get_pre_narrator_steps()`/`get_post_narrator_steps()` helpers eliminates streaming/non-streaming path drift (V7.0)
+- Deferred maintenance agents run post-commit via `pending_world_state_patches` table (V7.0)
+- Turn snapshots written after each commit for rewind support (V7.0)
+- Canon event checking for Historical mode campaigns (V7.0)
+- Consequence propagation with ripple/wave/tsunami impact tiers (V7.0)
 
 ## Quickstart
 
@@ -179,7 +194,7 @@ curl -X POST "http://localhost:8000/v2/campaigns/{campaign_id}/turn?player_id={p
 | Primary DB | SQLite (event sourcing + projections) |
 | Vector DB | LanceDB (RAG retrieval) |
 | Embeddings | `sentence-transformers/all-MiniLM-L6-v2` (384-dim, swappable via `EMBEDDING_MODEL` env) |
-| Default LLM | Ollama (local; multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:4b` for Architect/Casting/Biographer/KG/ChoiceCrafter, `qwen3:8b` for Mechanic/Ingestion, `nomic-embed-text` for embedding) |
+| Default LLM | Ollama (local; multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:4b` for Architect/Casting/Biographer/KG/ChoiceCrafter, `qwen3:8b` for Mechanic/Ingestion, `nomic-embed-text` for embedding). V7.0: per-role cloud routing via `STORYTELLER_{ROLE}_PROVIDER` (Anthropic, OpenAI, OpenAI-compatible). |
 | Frontend | SvelteKit (`frontend/`) |
-| Tests | 467+ passing (`pytest`) |
-| Engine Version | V5.0 (setting-agnostic, authoritative LLM choices, EraMoments, Hub system, Quest Tracker, Truth Ledger) |
+| Tests | `pytest` suite (run `python -m pytest backend/tests -q` for current count) |
+| Engine Version | V7.0 (V5.0 setting-agnostic base + hybrid cloud routing, deferred agents, shared pipeline executor, WAL mode, rewind/undo, canon scheduler, consequence propagation, schema extraction, accessibility) |

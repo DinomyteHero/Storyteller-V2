@@ -68,26 +68,19 @@ Notes:
 
 ### Character Voice Facets (Not Functional - Do Not Use)
 
-```powershell
-# DO NOT RUN - produces unusable output
-
-The implementation is incomplete - it uses deterministic heuristics (modal verb counts, sentence length) instead of LLM-based character voice analysis. The system works fine without character facets.
+The implementation is incomplete — it uses deterministic heuristics (modal verb counts, sentence length) instead of LLM-based character voice analysis. The system works fine without character facets.
 
 ### Query
 
 ```powershell
-
 python -m ingestion.query --query "..." --k 5 --era LOTF --source_type novel --db ./data/lancedb
-
-```text
+```
 
 Example (Rebellion):
 
 ```powershell
-
 python -m ingestion.query --query "ISB tactics" --k 5 --era REBELLION --db ./data/lancedb
-
-```text
+```
 
 ## Chunking and Metadata
 

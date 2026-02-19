@@ -1,4 +1,4 @@
-# Quick Start Guide — Storyteller AI V5.0
+# Quick Start Guide — Storyteller AI V7.0
 
 This guide covers setup, configuration, and running your first campaign.
 
@@ -12,7 +12,7 @@ This guide covers setup, configuration, and running your first campaign.
 
 ### Required Ollama Models
 
-Pull these before starting (matches V5.0 default role configuration):
+Pull these before starting (matches V7.0 default role configuration):
 
 ```bash
 # Quality-critical roles (Director + Narrator)
@@ -81,7 +81,7 @@ ERA_PACK_DIR=./data/static/era_packs
 # Ollama endpoint
 OLLAMA_BASE_URL=http://127.0.0.1:11434
 
-# Per-role LLM model config (V5.0 defaults)
+# Per-role LLM model config (V7.0 defaults)
 STORYTELLER_DIRECTOR_MODEL=mistral-nemo:latest
 STORYTELLER_NARRATOR_MODEL=mistral-nemo:latest
 STORYTELLER_ARCHITECT_MODEL=qwen3:4b
@@ -95,7 +95,7 @@ ENABLE_PROCEDURAL_NPCS=1       # Fallback NPC generation
 STORYTELLER_DEV_MODE=1
 ```
 
-**V5.0 note:** `ENABLE_SUGGESTION_REFINER` is no longer used. The `ChoiceCrafterAgent` handles all player choice generation and is always active.
+**Note:** `ENABLE_SUGGESTION_REFINER` is no longer used. The `ChoiceCrafterAgent` handles all player choice generation and is always active (since V5.0).
 
 ---
 
@@ -268,11 +268,11 @@ python -m storyteller extract-knowledge --era rebellion --db ./data/storyteller.
 
 ---
 
-## V5.0 Feature Notes
+## Feature Notes
 
 ### EraMoments
 
-EraMoments are scripted narrative triggers defined in `data/static/era_packs/{era}/moments.yaml`. They fire once when conditions are met (companion affinity, arc stage, location, quest completion, alignment). No configuration needed — they activate automatically during turns.
+EraMoments are scripted narrative triggers defined in `data/static/era_packs/{era}/moments.yaml` (when present in the era pack). They fire once when conditions are met (companion affinity, arc stage, location, quest completion, alignment). No configuration needed — they activate automatically during turns. Era packs without a `moments.yaml` file silently skip this system.
 
 ### Hub/Downtime Mode
 
@@ -280,7 +280,15 @@ Hub locations (cantinas, safehouses, guild halls) automatically activate downtim
 
 ### Quest Tracker
 
-Quests defined in `data/static/era_packs/{era}/quests.yaml` activate and progress automatically based on turn events, location, NPCs met, and actions taken. Quest status is tracked in `world_state_json["quest_log"]` and updated each turn by the Commit node.
+Quests defined in `data/static/era_packs/{era}/quests.yaml` (when present) activate and progress automatically based on turn events, location, NPCs met, and actions taken. Quest status is tracked in `world_state_json["quest_log"]` and updated each turn by the Commit node.
+
+### Deferred Maintenance Agents (V7.0)
+
+Heavy maintenance agents (MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist) run post-commit via `pending_world_state_patches` table. This reduces transaction hold time from 10-20s to ~2s on maintenance turns. Patches are applied on next turn load via `apply_pending_patches()`.
+
+### Rewind/Undo (V7.0)
+
+`POST /v2/campaigns/{campaign_id}/rewind?to_turn=N` restores world state from the `turn_snapshots` table and deletes all turn data after turn N. Only turns committed after V7.0 deployment have snapshots.
 
 ### AgentFailureError
 

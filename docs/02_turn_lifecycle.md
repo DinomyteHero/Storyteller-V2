@@ -9,7 +9,15 @@ A single turn flows through a LangGraph `StateGraph` that is compiled once on fi
 - `suggestion_refiner` replaced by `choice_crafter` (authoritative LLM; no deterministic fallback)
 - `run_turn()` now catches `AgentFailureError` from authoritative agents and returns a structured error in `GameState`
 
-## Pipeline Topology (V5.0)
+**V7.0 changes:**
+- Shared pipeline executor via `_run_pipeline_with_timings()` — streaming and non-streaming paths share the same node sequence via `get_pre_narrator_steps()`/`get_post_narrator_steps()`
+- Deferred maintenance agents (MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist) run post-commit via `deferred_agents.py`, writing to `pending_world_state_patches` table
+- Turn snapshots written to `turn_snapshots` table after each successful commit (rewind support)
+- Canon event checking for Historical mode campaigns via `canon_scheduler.py`
+- Consequence propagation via `consequence_propagator.py` (ripple/wave/tsunami tiers)
+- Turn idempotency via `Idempotency-Key` header and `turn_idempotency` table
+
+## Pipeline Topology (V7.0)
 
 ```mermaid
 flowchart TD
@@ -320,6 +328,17 @@ In one SQLite transaction, Commit:
 11. Upserts truth ledger facts via `truth_ledger.upsert_facts()`
 
 After commit, it reloads and returns a refreshed `GameState` from the DB so the API response is consistent with persisted data.
+
+**V7.0 post-commit operations:**
+12. Writes a turn snapshot to `turn_snapshots` table (rewind support)
+13. Checks and records canon events for Historical mode campaigns via `canon_scheduler.py`
+14. Processes consequence propagation via `consequence_propagator.py` (ripple/wave/tsunami tiers)
+15. Runs deferred maintenance agents via `deferred_agents.py`:
+    - `MemoryAgent` — long-term memory management
+    - `QuestWeaverAgent` — quest narrative generation (on maintenance turns)
+    - `ProgressionAgent` — player/story progression tracking (on maintenance turns)
+    - `PsychArchivistAgent` — psychology profile updates (on maintenance turns)
+    These agents write to the `pending_world_state_patches` table rather than directly modifying world state. Patches are applied on the next turn load via `apply_pending_patches()`.
 
 ---
 

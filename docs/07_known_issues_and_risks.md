@@ -27,7 +27,7 @@ Last updated: V7.0 architecture revision.
 | ------- | -------- | ----------- |
 | Commit-path latency variability on heavy maintenance turns | ✅ Resolved | Deferred agents pattern (`pending_world_state_patches` table) moves MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivistAgent out of the critical transaction path |
 | world_state_json is a single large JSON blob (partial) | ✅ Mitigated | NPC states extracted to `npc_states` table (migration 0032). Quest entries extracted to `quest_entries` table (migration 0033). Remaining fields still in blob but these were the largest growth areas |
-| Streaming/non-streaming pipeline drift risk | ✅ Resolved | Shared pipeline executor (`run_turn_stepwise()` in graph.py) with narrator callback hook eliminates dual-path maintenance burden |
+| Streaming/non-streaming pipeline drift risk | ✅ Resolved | Shared pipeline executor (`_run_pipeline_with_timings()` in graph.py) with `get_pre_narrator_steps()`/`get_post_narrator_steps()` helpers eliminates dual-path maintenance burden |
 | SQLite WAL mode not enabled | ✅ Resolved | `PRAGMA journal_mode=WAL` and `PRAGMA busy_timeout=5000` added to connection factory |
 | No undo/rewind capability | ✅ Resolved | Snapshot-based rewind via `turn_snapshots` table + `POST /campaigns/{id}/rewind` endpoint |
 | No historical timeline enforcement | ✅ Resolved | Canon event scheduler (`canon_scheduler.py`) with era packs + immutable truth facts |
@@ -54,19 +54,7 @@ When authoritative agents fail (`Narrator`/`ChoiceCrafter`), the turn is aborted
 
 ---
 
-### ~~2. Commit-path latency variability on heavy maintenance turns~~ RESOLVED V7.0
-
-Deferred agents pattern moves heavy maintenance agents out of the critical transaction. See "Resolved in V7.0" table above.
-
----
-
-### ~~3. world_state_json is a single large JSON blob~~ MITIGATED V7.0
-
-NPC states and quest entries extracted to normalized tables (migrations 0032, 0033). Remaining fields still in blob. WAL mode enabled. See "Resolved in V7.0" table above.
-
----
-
-### 4. Encounter throttling state is persisted in world_state_json, not in a dedicated table
+### 2. Encounter throttling state is persisted in world_state_json, not in a dedicated table
 
 **Severity:** Low
 
@@ -78,7 +66,7 @@ NPC states and quest entries extracted to normalized tables (migrations 0032, 00
 
 ---
 
-### 5. KG extraction is offline-only, not integrated into the live pipeline
+### 3. KG extraction is offline-only, not integrated into the live pipeline
 
 **Severity:** Low
 
@@ -90,7 +78,7 @@ NPC states and quest entries extracted to normalized tables (migrations 0032, 00
 
 ---
 
-### 6. Era pack `moments` field: not all era packs define moments
+### 4. Era pack `moments` field: not all era packs define moments
 
 **Severity:** Low
 
@@ -102,7 +90,7 @@ NPC states and quest entries extracted to normalized tables (migrations 0032, 00
 
 ---
 
-### 7. PartyState backward compatibility: legacy fields written but may drift
+### 5. PartyState backward compatibility: legacy fields written but may drift
 
 **Severity:** Low
 
@@ -114,7 +102,7 @@ NPC states and quest entries extracted to normalized tables (migrations 0032, 00
 
 ---
 
-### 8. LanceDB vector tables may not exist on fresh install
+### 6. LanceDB vector tables may not exist on fresh install
 
 **Severity:** Medium (setup)
 
@@ -126,7 +114,7 @@ NPC states and quest entries extracted to normalized tables (migrations 0032, 00
 
 ---
 
-### 9. No streaming support for MetaNode responses
+### 7. No streaming support for MetaNode responses
 
 **Severity:** Low
 
@@ -135,6 +123,28 @@ NPC states and quest entries extracted to normalized tables (migrations 0032, 00
 **Risk:** Meta responses (help, status) are returned in full synchronously. Consistent with the rest of the pipeline for META intent, but SSE stream consumers may expect at least one chunk.
 
 **Workaround:** Frontend handles META responses as full-text (no streaming needed for meta).
+
+---
+
+### 8. Era packs are mostly skeleton stubs
+
+**Severity:** Medium
+
+**Evidence:** `data/static/era_packs/` — all 6 era pack directories contain only 3-4 files (`era.yaml`, `backgrounds.yaml`, `species.yaml`, and optionally `canon_events.json`). The full schema supports 12+ YAML files per pack (companions, npcs, locations, quests, factions, moments, namebanks, events, rumors, facts).
+
+**Risk:** Many world systems that depend on era pack data (EraMoments, QuestTracker, hub locations, faction engine, encounter NPC selection from Bible) will not function for era packs missing those YAML files. Companion definitions are centralized in `data/companions.yaml` (108 entries) rather than per-pack.
+
+**Workaround:** Use the `rebellion` pack as the most complete starting point. Missing YAML files cause the corresponding systems to gracefully degrade (empty NPC pools, no moments, no quests, etc.).
+
+---
+
+### 9. Migration numbering gap at 0024
+
+**Severity:** Low
+
+**Evidence:** `backend/app/db/migrations/` — the sequence jumps from `0023_truth_immutable.sql` to `0025_memory_tiers.sql`. No `0024_*.sql` file exists.
+
+**Risk:** Cosmetic only. The migration runner processes files in lexicographic order and does not require consecutive numbering.
 
 ---
 
