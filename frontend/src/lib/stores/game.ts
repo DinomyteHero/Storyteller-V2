@@ -4,7 +4,7 @@
  * Holds the current campaign ID, player ID, and the last turn response.
  * Memory only — not persisted to localStorage.
  */
-import { writable, derived } from 'svelte/store';
+import { writable, derived, get } from 'svelte/store';
 import type {
   TurnResponse, TranscriptTurn,
   DialogueTurn, SceneFrame, NPCUtterance, PlayerResponse, NpcContext
@@ -66,6 +66,28 @@ export const newsFeed = derived(
   lastTurnResponse,
   ($resp) => $resp?.news_feed ?? null
 );
+
+// ---------------------------------------------------------------------------
+// Living-world unread intel tracking
+// ---------------------------------------------------------------------------
+
+/**
+ * Number of news feed items the player has "seen" (i.e. opened the Comms tab).
+ * Set to the current feed length whenever the player views the Comms tab.
+ * Call markIntelRead(currentFeedLength) to synchronise.
+ */
+export const lastSeenFeedLength = writable<number>(0);
+
+/** Count of news items that arrived since the player last viewed the Comms tab. */
+export const unreadIntelCount = derived(
+  [newsFeed, lastSeenFeedLength],
+  ([$newsFeed, $lastSeen]) => Math.max(0, ($newsFeed?.length ?? 0) - $lastSeen)
+);
+
+/** Call when the player opens or views the Comms tab. */
+export function markIntelRead(): void {
+  lastSeenFeedLength.set(get(newsFeed)?.length ?? 0);
+}
 
 /** Derived: warnings from last turn. */
 export const warnings = derived(
@@ -140,4 +162,5 @@ export function resetGame(): void {
   playerId.set(null);
   lastTurnResponse.set(null);
   transcript.set([]);
+  lastSeenFeedLength.set(0);
 }

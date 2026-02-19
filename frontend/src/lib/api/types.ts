@@ -171,6 +171,8 @@ export interface TurnResponse {
   active_npc_contexts?: NpcContext[] | null;
   // V5.0: Active narrative obligations from ContinuityAgent ledger
   active_obligations?: string[] | null;
+  // Living-world signal: true when WorldSimNode ran this turn
+  world_sim_ran?: boolean;
 }
 
 export interface TurnContract {

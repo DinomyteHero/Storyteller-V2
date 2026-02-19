@@ -1214,6 +1214,7 @@ def post_turn(
             turn_contract=turn_contract,
             consequence_type=consequence_type_out,
             active_npc_contexts=active_npc_contexts_out,
+            world_sim_ran=bool(getattr(result, "world_sim_ran", False)),
         )
     except HTTPException:
         # Re-raise HTTP exceptions (e.g., 404 from _ensure_campaign_and_player)

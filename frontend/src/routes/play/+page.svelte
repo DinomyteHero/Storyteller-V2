@@ -10,6 +10,7 @@
     isGameActive, resetGame,
     dialogueTurn, sceneFrame, npcUtterance, playerResponses, questLog,
     consequenceType, activeNpcContexts, activeObligations,
+    unreadIntelCount, markIntelRead,
   } from '$lib/stores/game';
   import {
     isStreaming, streamedText, streamError, showCursor,
@@ -54,6 +55,30 @@
   let showConsequenceOverlay = $state(false);
   let pendingConsequenceType = $state<string | null>(null);
 
+  // Living-world: inline intel strip shown below narrative when world_sim_ran
+  let inlineIntelDismissed = $state(false);
+  let inlineIntelTimeout: ReturnType<typeof setTimeout> | null = null;
+  let prevNewsFeedLength = $state(0);
+
+  // Derived: the latest news item to surface (only when world sim fired and there's something new)
+  let inlineIntelItem = $derived.by(() => {
+    const resp = $lastTurnResponse;
+    if (!resp?.world_sim_ran) return null;
+    const feed = $newsFeed;
+    if (!feed || feed.length === 0) return null;
+    return feed[0]; // newest item is first
+  });
+
+  // Reset dismiss state whenever a new intel item arrives
+  $effect(() => {
+    const item = inlineIntelItem;
+    if (item) {
+      inlineIntelDismissed = false;
+      if (inlineIntelTimeout) clearTimeout(inlineIntelTimeout);
+      inlineIntelTimeout = setTimeout(() => { inlineIntelDismissed = true; }, 7000);
+    }
+  });
+
   // V3.2: Detect campaign conclusion readiness from warnings
   let conclusionReady = $derived(
     ($lastTurnResponse?.warnings ?? []).some(w => w.includes('[CONCLUSION_READY]'))
@@ -75,6 +100,12 @@
   let openingCrawlText = $state('');
   let openingCrawlTitle = $state('Episode I');
 
+  function openCommsDrawer() {
+    ui.openDrawer('comms');
+    markIntelRead();
+    inlineIntelDismissed = true;
+  }
+
   // Redirect to menu if no active game
   onMount(async () => {
     if (!$isGameActive) {
@@ -85,6 +116,8 @@
     if ($isStreaming) {
       finishStreaming();
     }
+    // Baseline unread count so items already in the feed when resuming don't show as new
+    markIntelRead();
     fetchTranscript();
     announce('Game loaded. Use number keys 1 through 4 to select choices.');
 
@@ -443,6 +476,9 @@
         aria-expanded={$ui.drawerOpen}
       >
         ≡
+        {#if !$ui.drawerOpen && $unreadIntelCount > 0}
+          <span class="hamburger-intel-dot" aria-label="{$unreadIntelCount} unread intel"></span>
+        {/if}
       </button>
       {#if hudData}
         <div class="pill" role="status" aria-label="Location: {hudData.location}">
@@ -599,6 +635,23 @@
       {/if}
     </div>
 
+    <!-- Living-world: inline intel strip (shown when world sim ran & player hasn't dismissed) -->
+    {#if inlineIntelItem && !inlineIntelDismissed && !($ui.drawerOpen && $ui.drawerTab === 'comms')}
+      <div class="inline-intel-strip" role="alert" aria-live="polite">
+        <div class="intel-strip-content">
+          <span class="intel-strip-source">[{inlineIntelItem.source_tag}]</span>
+          {#if inlineIntelItem.urgency === 'HIGH'}
+            <span class="intel-urgency-badge">URGENT</span>
+          {/if}
+          <span class="intel-strip-headline">{inlineIntelItem.headline}</span>
+        </div>
+        <div class="intel-strip-actions">
+          <button class="btn intel-view-btn" onclick={openCommsDrawer}>View Intel</button>
+          <button class="btn intel-dismiss-btn" onclick={() => { inlineIntelDismissed = true; }} aria-label="Dismiss intel notification">✕</button>
+        </div>
+      </div>
+    {/if}
+
     <!-- V4.1: Approach cards (horizontal scroll) + free text input -->
     {#if choicesReady || (!isSendingTurn && !$isStreaming)}
       <div class="action-zone">
@@ -718,13 +771,16 @@
           <button
             class="drawer-tab"
             class:active={$ui.drawerTab === tab}
-            onclick={() => ui.setDrawerTab(tab)}
+            onclick={() => { ui.setDrawerTab(tab); if (tab === 'comms') markIntelRead(); }}
             role="tab"
             aria-selected={$ui.drawerTab === tab}
             aria-controls="drawer-panel-{tab}"
             id="drawer-tab-{tab}"
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {#if tab === 'comms' && $unreadIntelCount > 0}
+              <span class="tab-badge" aria-label="{$unreadIntelCount} unread">{$unreadIntelCount}</span>
+            {/if}
           </button>
         {/each}
       </div>
@@ -1947,6 +2003,116 @@
   .warning-item,
   .companion-card-drawer {
     border-bottom-color: rgba(120, 171, 237, 0.25);
+  }
+
+  /* ======================== Living-world surfacing ======================== */
+
+  /* HUD hamburger intel dot */
+  .hud-hamburger {
+    position: relative;
+  }
+  .hamburger-intel-dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    box-shadow: 0 0 6px var(--accent-glow);
+    animation: intel-pulse 2s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes intel-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Drawer tab unread badge */
+  .tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    padding: 0 4px;
+    margin-left: 5px;
+    vertical-align: middle;
+  }
+
+  /* Inline intel strip */
+  .inline-intel-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 14px;
+    margin: 8px 0;
+    background: var(--hud-pill-bg);
+    border-left: 3px solid var(--accent-primary);
+    border-radius: 4px;
+    animation: intel-slide-in 0.3s ease;
+    flex-wrap: wrap;
+  }
+  @keyframes intel-slide-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .intel-strip-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  .intel-strip-source {
+    font-size: var(--font-caption);
+    color: var(--accent-primary);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .intel-urgency-badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--bg-primary);
+    background: var(--tone-renegade, #e05560);
+    padding: 2px 5px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .intel-strip-headline {
+    font-size: var(--font-small);
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .intel-strip-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .intel-view-btn {
+    font-size: var(--font-caption);
+    padding: 4px 10px;
+    color: var(--accent-primary);
+    border-color: var(--accent-primary);
+    background: transparent;
+  }
+  .intel-dismiss-btn {
+    font-size: var(--font-caption);
+    padding: 4px 8px;
+    color: var(--text-muted);
+    border-color: var(--border-subtle);
+    background: transparent;
   }
 
 </style>
