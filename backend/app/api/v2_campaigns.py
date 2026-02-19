@@ -28,7 +28,6 @@ from backend.app.models.state import GameState
 from backend.app.models.turn_contract import Intent, TurnContract, TurnMeta, TurnDebug
 from backend.app.core.turn_contract import build_turn_contract
 from backend.app.core.truth_ledger import get_facts, ledger_summary, upsert_facts, record_event
-from backend.app.core.passages.engine import load_episode, render_template, build_choices, apply_choice
 from backend.app.models.events import Event
 from backend.app.core.agents import CampaignBibleAgent, BiographerAgent
 from backend.app.core.story_position import (
@@ -1793,129 +1792,6 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest) -> dict[s
     finally:
         conn.close()
 
-class StartPassageRequest(BaseModel):
-    pack_id: str
-    mode: str = "PASSAGE"
-
-
-class ChooseRequest(BaseModel):
-    choice_id: str | None = None
-    intent: Intent | None = None
-
-
-@router.post("/campaigns/{campaign_id}/start_passage")
-def start_passage(campaign_id: str, body: StartPassageRequest) -> dict[str, Any]:
-    conn = _get_conn()
-    start_ts = time.perf_counter()
-    try:
-        camp = load_campaign(conn, campaign_id)
-        if camp is None:
-            raise HTTPException(status_code=404, detail="Campaign not found")
-        try:
-            episode = load_episode(body.pack_id)
-        except Exception as exc:
-            logger.warning("passage_pack_load_failed campaign_id=%s pack_id=%s error=%s", campaign_id, body.pack_id, exc)
-            return {
-                "campaign_id": campaign_id,
-                "mode": body.mode.upper(),
-                "passage_id": "fallback_missing_pack",
-                "title": "Passage Pack Missing",
-                "display_text": "Passage content is unavailable. Continue in simulation mode or install a valid passage pack.",
-                "choices": [
-                    {"id": "fallback_info", "label": "Gather intel safely", "intent": {"intent_type": "INVESTIGATE", "target_ids": {}, "params": {}}, "risk": "low", "cost": {"time_minutes": 5}},
-                    {"id": "fallback_push", "label": "Push the mission forward", "intent": {"intent_type": "FIGHT", "target_ids": {}, "params": {}}, "risk": "high", "cost": {"time_minutes": 8}},
-                ],
-                "error": f"passage_pack_invalid:{body.pack_id}",
-            }
-        ws = _world_state_dict(camp)
-        ws["mode"] = body.mode.upper()
-        ws["passage_pack_id"] = body.pack_id
-        ws["current_passage_id"] = episode.get("start_passage_id")
-        ws.setdefault("flags", {})
-        ws.setdefault("beats_remaining", 4)
-        conn.execute("UPDATE campaigns SET world_state_json = ? WHERE id = ?", (json.dumps(ws), campaign_id))
-        conn.commit()
-        passage = (episode.get("passages") or {}).get(ws["current_passage_id"], {})
-        text = render_template(passage.get("text_template", ""), ws)
-        payload = {
-            "campaign_id": campaign_id,
-            "mode": ws["mode"],
-            "passage_id": ws["current_passage_id"],
-            "title": passage.get("title", ""),
-            "display_text": text,
-            "choices": [c.model_dump(mode="json") for c in build_choices(passage, ws)],
-            "ledger_summary": ledger_summary(conn, campaign_id),
-        }
-        logger.info("passage_start node=start_passage campaign_id=%s passage_id=%s latency_ms=%s", campaign_id, ws.get("current_passage_id"), int((time.perf_counter()-start_ts)*1000))
-        return payload
-    finally:
-        conn.close()
-
-
-@router.post("/campaigns/{campaign_id}/choose")
-def choose_passage(campaign_id: str, body: ChooseRequest) -> dict[str, Any]:
-    conn = _get_conn()
-    start_ts = time.perf_counter()
-    try:
-        camp = load_campaign(conn, campaign_id)
-        if camp is None:
-            raise HTTPException(status_code=404, detail="Campaign not found")
-        ws = _world_state_dict(camp)
-        pack_id = ws.get("passage_pack_id")
-        passage_id = ws.get("current_passage_id")
-        if not pack_id or not passage_id:
-            raise HTTPException(status_code=400, detail="Passage mode not started")
-        try:
-            episode = load_episode(pack_id)
-        except Exception as exc:
-            logger.warning("passage_pack_load_failed campaign_id=%s pack_id=%s error=%s", campaign_id, pack_id, exc)
-            fallback = TurnContract(
-                mode=(ws.get("mode") or "PASSAGE"),
-                campaign_id=campaign_id,
-                turn_id=f"{campaign_id}_p_fallback",
-                display_text="Passage branch unavailable. Falling back to safe deterministic choices.",
-                scene_goal="Recover narrative continuity",
-                obstacle="Missing passage content",
-                stakes="Maintain campaign continuity",
-                outcome={"category": "PARTIAL", "consequences": ["Fallback branch used."], "tags": ["fallback"]},
-                state_delta={"time_minutes": 1},
-                choices=[
-                    {"id": "fallback_info", "label": "Gather intel safely", "intent": {"intent_type": "INVESTIGATE", "target_ids": {}, "params": {}}, "risk": "low", "cost": {"time_minutes": 5}},
-                    {"id": "fallback_push", "label": "Push the mission forward", "intent": {"intent_type": "FIGHT", "target_ids": {}, "params": {}}, "risk": "high", "cost": {"time_minutes": 8}},
-                ],
-                meta=TurnMeta(passage_id="fallback_missing_pack", beats_remaining=int(ws.get("beats_remaining", 4)), prompt_versions=prompt_registry_snapshot()),
-                debug=TurnDebug(validation_errors=[f"passage_pack_invalid:{pack_id}"], repaired=False, repair_count=0),
-            )
-            return {"turn_contract": fallback.model_dump(mode="json")}
-        choice_id = body.choice_id
-        if not choice_id and body.intent and body.intent.target_ids.get("passage_id"):
-            choice_id = body.intent.target_ids["passage_id"].split(":")[-1]
-        if not choice_id:
-            raise HTTPException(status_code=400, detail="choice_id or intent required")
-        next_passage_id, outcome, delta = apply_choice(episode, passage_id, choice_id, ws)
-        ws["current_passage_id"] = next_passage_id
-        conn.execute("UPDATE campaigns SET world_state_json = ? WHERE id = ?", (json.dumps(ws), campaign_id))
-        conn.commit()
-        nxt = (episode.get("passages") or {}).get(next_passage_id, {})
-        text = render_template(nxt.get("text_template", ""), ws)
-        turn = TurnContract(
-            mode=(ws.get("mode") or "PASSAGE"),
-            campaign_id=campaign_id,
-            turn_id=f"{campaign_id}_p_{next_passage_id}",
-            display_text=text,
-            scene_goal=nxt.get("title") or "Advance the story",
-            obstacle="Branching story pressure",
-            stakes="Episode trajectory and objective outcomes",
-            outcome=outcome,
-            state_delta=delta,
-            choices=build_choices(nxt, ws),
-            meta=TurnMeta(passage_id=next_passage_id, beats_remaining=int(ws.get("beats_remaining", 4)), active_objectives=_active_objectives(conn, campaign_id), prompt_versions=prompt_registry_snapshot()),
-            debug=TurnDebug(),
-        )
-        logger.info("passage_choose node=choose campaign_id=%s turn_id=%s latency_ms=%s", campaign_id, turn.turn_id, int((time.perf_counter()-start_ts)*1000))
-        return {"turn_contract": turn.model_dump(mode="json")}
-    finally:
-        conn.close()
 
 
 # ---------------------------------------------------------------------------

@@ -60,8 +60,6 @@
 ### Campaign progression helpers
 
 - `POST /v2/campaigns/{campaign_id}/complete`
-- `POST /v2/campaigns/{campaign_id}/start_passage`
-- `POST /v2/campaigns/{campaign_id}/choose`
 
 ## Starship Endpoints
 

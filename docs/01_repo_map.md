@@ -105,9 +105,6 @@ Storyteller AI/
         turn_contract.py         # Turn contract builders/validators
         llm_provider.py          # LLM client abstraction layer
         prologue_engine.py       # Campaign opening / prologue engine (V5.0)
-        passage_engine.py        # Static passage loading
-        passages/                # Passage system engine (V5.0)
-          engine.py              # Passage execution engine
       db/                        # SQLite schema + migration runner
         schema.sql               # Reference schema
         migrations/              # Migrations 0001-0021
@@ -123,14 +120,13 @@ Storyteller AI/
           0016_suggestion_cache.sql
           0017_starships.sql
           0018_player_profiles.sql  # Cross-campaign legacy
-          0019_turn_contract_passages.sql  # Passage mode support
+          0019_turn_contract_passages.sql  # TurnContract schema additions
           0020_campaign_turn_versioning.sql  # Turn versioning + world time
           0021_episodic_memory_embedding.sql  # Memory embeddings
       models/                    # Pydantic models
         state.py                 # GameState, CharacterSheet, ActionSuggestion
         narration.py             # TurnResponse, narration models
         starship.py              # Starship model
-        director_schemas.py      # Director output schemas
         turn_contract.py         # TurnContract + Fact + component models
         news.py                  # News feed models (rumors_to_news_feed)
       rag/                       # LanceDB retrieval + ingestion helpers
@@ -357,4 +353,3 @@ graph LR
 | `backend/app/core/story_position.py` | Story position tracking for arc progression |
 | `backend/app/core/text_utils.py` | Shared text utility functions |
 | `backend/app/core/prologue_engine.py` | Campaign opening/prologue engine |
-| `backend/app/core/passages/engine.py` | Passage execution engine |

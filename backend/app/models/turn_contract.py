@@ -7,11 +7,11 @@ from pydantic import BaseModel, Field
 
 
 IntentType = Literal[
-    "TALK", "MOVE", "FIGHT", "SNEAK", "HACK", "INVESTIGATE", "REST", "BUY", "USE_ITEM", "FORCE", "PASSAGE"
+    "TALK", "MOVE", "FIGHT", "SNEAK", "HACK", "INVESTIGATE", "REST", "BUY", "USE_ITEM", "FORCE"
 ]
 OutcomeCategory = Literal["CRIT_FAIL", "FAIL", "PARTIAL", "SUCCESS", "CRIT_SUCCESS"]
 RiskLevel = Literal["low", "med", "high"]
-GameMode = Literal["SIM", "PASSAGE", "HYBRID"]
+GameMode = Literal["SIM", "HYBRID"]
 
 
 class Fact(BaseModel):
