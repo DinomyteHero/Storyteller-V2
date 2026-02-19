@@ -9,6 +9,7 @@ import type {
   TurnResponse,
   TranscriptResponse,
   StorySummaryResponse,
+  CampaignListResponse,
 } from './types';
 
 export async function setupAuto(req: SetupAutoRequest): Promise<SetupAutoResponse> {
@@ -70,6 +71,15 @@ export async function getStorySummary(
   );
 }
 
+export async function listCampaigns(
+  limit: number = 100,
+  offset: number = 0,
+): Promise<CampaignListResponse> {
+  return apiFetch<CampaignListResponse>(
+    `/v2/campaigns?limit=${limit}&offset=${offset}`
+  );
+}
+
 export async function getWorldState(
   campaignId: string
 ): Promise<Record<string, unknown>> {
@@ -113,6 +123,17 @@ export async function completeCampaign(
       }),
     },
     60_000
+  );
+}
+
+export async function rewindCampaign(
+  campaignId: string,
+  toTurn: number,
+): Promise<{ rewound_to: number; turns_deleted: number; previous_turn: number }> {
+  return apiFetch(
+    `/v2/campaigns/${campaignId}/rewind?to_turn=${toTurn}`,
+    { method: 'POST' },
+    30_000
   );
 }
 

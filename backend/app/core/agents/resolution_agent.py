@@ -412,27 +412,39 @@ class ResolutionAgent:
             state.campaign_id, state.turn_number, user_input[:60],
         )
 
-        raw_text = self._llm.complete(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            json_mode=True,
-        )
+        # V7.0: Outer retry (2 attempts) wrapping the LLM call + JSON parse.
+        # The inner AgentLLM.complete() already retries once for JSON repair,
+        # giving us effectively 4 total attempts (2 outer x 2 inner).
+        last_error: Exception | None = None
+        for attempt in range(2):
+            try:
+                raw_text = self._llm.complete(
+                    system_prompt=system_prompt,
+                    user_prompt=user_prompt,
+                    json_mode=True,
+                )
 
-        try:
-            raw_json = json.loads(ensure_json(raw_text))
-        except (json.JSONDecodeError, TypeError, ValueError) as exc:
-            logger.error(
-                "ResolutionAgent: JSON parse failed after LLM retry: %s. Raw (truncated): %r",
-                exc, str(raw_text)[:300],
-            )
-            raise ValueError(
-                f"ResolutionAgent: LLM returned unparseable JSON. "
-                f"Raw (truncated): {str(raw_text)[:200]}"
-            ) from exc
+                raw_json = json.loads(ensure_json(raw_text))
+                result = _normalize_output(raw_json, state)
+                logger.info(
+                    "ResolutionAgent: %s | %s | %s | success=%s (attempt=%d)",
+                    result.action_type, result.difficulty, result.dice_result, result.success, attempt + 1,
+                )
+                return result
+            except (json.JSONDecodeError, TypeError, ValueError) as exc:
+                last_error = exc
+                if attempt == 0:
+                    logger.warning(
+                        "ResolutionAgent: attempt %d failed (JSON parse): %s. Retrying...",
+                        attempt + 1, exc,
+                    )
+                    continue
+                logger.error(
+                    "ResolutionAgent: all attempts failed. Last error: %s. Raw (truncated): %r",
+                    exc, str(raw_text)[:300] if 'raw_text' in dir() else "N/A",
+                )
 
-        result = _normalize_output(raw_json, state)
-        logger.info(
-            "ResolutionAgent: %s | %s | %s | success=%s",
-            result.action_type, result.difficulty, result.dice_result, result.success,
+        raise ValueError(
+            f"ResolutionAgent: LLM returned unparseable JSON after 2 attempts. "
+            f"Last error: {last_error}"
         )
-        return result

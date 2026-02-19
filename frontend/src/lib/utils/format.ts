@@ -1,16 +1,16 @@
 /**
- * Formatting utilities — ported from the legacy Python UI.
+ * Formatting utilities ported from the legacy Python UI.
  */
 import { LOCATION_DISPLAY_NAMES } from './constants';
 
 /**
- * Convert a raw location ID into a readable Star Wars-appropriate name.
+ * Convert a raw location ID into a readable display name.
  * Uses a known lookup table first, then falls back to generic cleanup.
  */
 export function humanizeLocation(locId: string | null | undefined): string {
-  if (!locId || locId === '—') return '—';
+  if (!locId || locId === '-') return '-';
   const raw = locId.trim();
-  if (!raw) return '—';
+  if (!raw) return '-';
 
   // Check known display names
   const display = LOCATION_DISPLAY_NAMES[raw.toLowerCase()];

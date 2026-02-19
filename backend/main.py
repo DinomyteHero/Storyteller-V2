@@ -6,6 +6,7 @@ from collections import defaultdict as _defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -47,21 +48,41 @@ CORS_ALLOW_ORIGINS = _parse_cors_allowlist(os.environ.get("STORYTELLER_CORS_ALLO
 
 def _collect_environment_diagnostics() -> dict:
     """Collect structured environment diagnostics for /health/detail."""
+    import sqlite3
     import httpx
-    from backend.app.config import resolve_vectordb_path, ERA_PACK_DIR, DATA_ROOT
+    from backend.app.config import (
+        resolve_vectordb_path,
+        ERA_PACK_DIR,
+        DATA_ROOT,
+        LORE_TABLE_NAME,
+        STYLE_TABLE_NAME,
+        CHARACTER_VOICE_TABLE_NAME,
+    )
 
     checks: dict[str, dict] = {}
 
     ollama_url = os.environ.get("OLLAMA_BASE_URL", os.environ.get("OLLAMA_HOST", "http://localhost:11434"))
+    model_names: list[str] = []
     try:
         resp = httpx.get(f"{ollama_url}/api/tags", timeout=5.0)
-        models = [m.get("name", "") for m in resp.json().get("models", [])]
+        model_names = [m.get("name", "") for m in resp.json().get("models", [])]
+        required_models = sorted({
+            str((cfg or {}).get("model") or "").strip()
+            for cfg in MODEL_CONFIG.values()
+            if str((cfg or {}).get("model") or "").strip()
+        })
+        loaded_roots = {m.split(":", 1)[0] for m in model_names}
+        missing_required = [
+            m for m in required_models if m.split(":", 1)[0] not in loaded_roots
+        ]
         checks["ollama"] = {
-            "ok": True,
+            "ok": len(missing_required) == 0,
             "status": "reachable",
             "url": ollama_url,
-            "models_loaded": len(models),
-            "message": "Ollama is reachable.",
+            "models_loaded": len(model_names),
+            "required_models": required_models,
+            "missing_required_models": missing_required,
+            "message": "Ollama is reachable." if not missing_required else "Ollama reachable, but some configured models are missing.",
         }
     except Exception as e:
         checks["ollama"] = {
@@ -80,6 +101,7 @@ def _collect_environment_diagnostics() -> dict:
 
     # LanceDB table existence and row counts
     lancedb_tables: dict[str, Any] = {}
+    required_vector_tables = [LORE_TABLE_NAME, STYLE_TABLE_NAME, CHARACTER_VOICE_TABLE_NAME]
     lancedb_ok = False
     if vdb.exists():
         try:
@@ -93,14 +115,30 @@ def _collect_environment_diagnostics() -> dict:
                     lancedb_tables[tname] = {"rows": row_count, "ok": row_count > 0}
                 except Exception as _te:
                     lancedb_tables[tname] = {"rows": 0, "ok": False, "error": str(_te)}
-            lancedb_ok = len(table_names) > 0 and any(
-                t.get("ok", False) for t in lancedb_tables.values()
-            )
+            vector_ready: dict[str, dict[str, Any]] = {}
+            for tname in required_vector_tables:
+                table_info = lancedb_tables.get(tname)
+                vector_ready[tname] = {
+                    "exists": bool(table_info),
+                    "rows": int((table_info or {}).get("rows", 0)),
+                    "ok": bool(table_info and table_info.get("ok", False)),
+                }
+            lancedb_ok = all(item["ok"] for item in vector_ready.values())
         except Exception as _ldb_err:
             lancedb_tables["_error"] = {"ok": False, "error": str(_ldb_err)}
+            vector_ready = {
+                tname: {"exists": False, "rows": 0, "ok": False}
+                for tname in required_vector_tables
+            }
+    else:
+        vector_ready = {
+            tname: {"exists": False, "rows": 0, "ok": False}
+            for tname in required_vector_tables
+        }
     checks["lancedb_tables"] = {
         "ok": lancedb_ok,
         "path": str(vdb),
+        "required": vector_ready,
         "tables": lancedb_tables,
     }
 
@@ -127,7 +165,58 @@ def _collect_environment_diagnostics() -> dict:
         "configured_roles": sorted(list(MODEL_CONFIG.keys())),
     }
 
-    overall_ok = all(v.get("ok", False) for v in checks.values())
+    # Migration/readiness + DB mode health checks
+    db_checks: dict[str, Any] = {"path": str(DEFAULT_DB_PATH), "ok": False}
+    migration_checks: dict[str, Any] = {"ok": False}
+    try:
+        conn = sqlite3.connect(DEFAULT_DB_PATH)
+        try:
+            journal_mode_row = conn.execute("PRAGMA journal_mode").fetchone()
+            checkpoint_row = conn.execute("PRAGMA wal_checkpoint(PASSIVE)").fetchone()
+            db_checks = {
+                "ok": True,
+                "path": str(DEFAULT_DB_PATH),
+                "journal_mode": str((journal_mode_row or ["unknown"])[0]).lower(),
+                "checkpoint": {
+                    "busy": int((checkpoint_row or [0, 0, 0])[0]),
+                    "log": int((checkpoint_row or [0, 0, 0])[1]),
+                    "checkpointed": int((checkpoint_row or [0, 0, 0])[2]),
+                },
+            }
+            required_tables = [
+                "campaigns",
+                "characters",
+                "turn_events",
+                "truth_facts",
+                "truth_events",
+                "turn_idempotency",
+            ]
+            missing_tables: list[str] = []
+            for tname in required_tables:
+                exists = conn.execute(
+                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
+                    (tname,),
+                ).fetchone()
+                if not exists:
+                    missing_tables.append(tname)
+            migration_checks = {
+                "ok": len(missing_tables) == 0,
+                "required_tables": required_tables,
+                "missing_tables": missing_tables,
+            }
+        finally:
+            conn.close()
+    except Exception as db_err:
+        db_checks = {"ok": False, "path": str(DEFAULT_DB_PATH), "error": str(db_err)}
+        migration_checks = {"ok": False, "error": str(db_err)}
+
+    checks["db_mode"] = db_checks
+    checks["migrations"] = migration_checks
+
+    critical_checks = ["ollama", "data_root", "era_packs", "db_mode", "migrations"]
+    overall_ok = all(bool((checks.get(k) or {}).get("ok")) for k in critical_checks)
+    if not checks.get("lancedb_tables", {}).get("ok", False):
+        overall_ok = False
     return {"ok": overall_ok, "checks": checks}
 
 def _validate_environment() -> None:
@@ -183,6 +272,9 @@ async def lifespan(app: FastAPI):
             )
     apply_schema(DEFAULT_DB_PATH)
     _validate_environment()
+    # Probe cloud providers if any roles are configured for cloud
+    from backend.app.core.cloud_health import check_cloud_providers
+    check_cloud_providers()
     logger.info(
         "API startup complete (dev_mode=%s, auth=%s, db=%s)",
         DEV_MODE,
@@ -201,6 +293,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def request_id_middleware(request: Request, call_next):
+    """Attach a request id for end-to-end log correlation."""
+    request_id = (request.headers.get("X-Request-ID", "") or "").strip() or uuid4().hex
+    request.state.request_id = request_id
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    return response
 
 
 def _extract_token(request: Request) -> str:

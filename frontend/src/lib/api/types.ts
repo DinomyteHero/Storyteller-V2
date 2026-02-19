@@ -174,6 +174,17 @@ export interface TurnResponse {
   active_obligations?: string[] | null;
   // Living-world signal: true when WorldSimNode ran this turn
   world_sim_ran?: boolean;
+  // V7.0: Mechanic resolution notes (dice, difficulty, success for player transparency)
+  mechanic_notes?: MechanicNotes | null;
+}
+
+export interface MechanicNotes {
+  action_type: string;
+  dice_result: string | null;
+  difficulty: string | null;
+  success: boolean | null;
+  outcome_summary: string | null;
+  critical_outcome: string | null;
 }
 
 export interface TurnContract {
@@ -236,6 +247,7 @@ export interface TurnRequest {
   intent?: Intent;
   debug?: boolean;
   include_state?: boolean;
+  idempotency_key?: string;
 }
 
 export interface TranscriptTurn {
@@ -258,8 +270,25 @@ export interface StorySummaryResponse {
   active_quests: string[];
 }
 
+export interface CampaignSummary {
+  campaign_id: string;
+  title: string;
+  time_period?: string | null;
+  player_id?: string | null;
+  player_name?: string | null;
+  saga_id?: string | null;
+  saga_chapter?: number | null;
+  current_turn: number;
+  updated_at?: string | null;
+}
+
+export interface CampaignListResponse {
+  items: CampaignSummary[];
+}
+
 export interface SSEEvent {
-  type: 'token' | 'done' | 'error';
+  type: 'token' | 'done' | 'error' | 'narrator_done';
+  request_id?: string;
   text?: string;
   message?: string;
   // done event includes full TurnResponse fields
@@ -278,6 +307,8 @@ export interface SSEEvent {
   // V2.17: DialogueTurn contract
   dialogue_turn?: DialogueTurn | null;
   turn_contract?: TurnContract | null;
+  // V7.0: Mechanic notes
+  mechanic_notes?: MechanicNotes | null;
 }
 
 export interface EraBackground {

@@ -3,12 +3,15 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import random
 import uuid
 import time
 import hashlib
+import threading
+from contextlib import contextmanager
 from typing import Any
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -68,6 +71,12 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/v2", tags=["v2-campaigns"])
 
+_TURN_IDEMPOTENCY_HEADER = "Idempotency-Key"
+_MAX_IDEMPOTENCY_KEY_LEN = 128
+MAX_USER_INPUT_CHARS = int(os.environ.get("STORYTELLER_MAX_USER_INPUT_CHARS", "4000"))
+_campaign_turn_locks: dict[str, threading.Lock] = {}
+_campaign_turn_locks_guard = threading.Lock()
+
 
 
 def _get_conn():
@@ -81,6 +90,138 @@ def _ensure_campaign_and_player(conn, campaign_id: str, player_id: str) -> None:
         raise HTTPException(status_code=404, detail="Campaign not found")
     if load_player_by_id(conn, campaign_id, player_id) is None:
         raise HTTPException(status_code=404, detail="Player not found")
+
+
+def _canonicalize_turn_request(body: TurnRequest) -> dict[str, Any]:
+    if body.intent is not None:
+        intent_payload = body.intent.model_dump(mode="json")
+    else:
+        intent_payload = None
+    return {
+        "user_input": body.user_input or "",
+        "intent": intent_payload,
+        "debug": bool(body.debug),
+        "include_state": bool(body.include_state),
+    }
+
+
+def _validate_turn_input_limits(body: TurnRequest) -> None:
+    user_input = (body.user_input or "")
+    intent_utterance = ""
+    if body.intent is not None:
+        intent_utterance = str(body.intent.user_utterance or "")
+    if len(user_input) > MAX_USER_INPUT_CHARS or len(intent_utterance) > MAX_USER_INPUT_CHARS:
+        raise HTTPException(
+            status_code=413,
+            detail=f"user_input exceeds max allowed length ({MAX_USER_INPUT_CHARS} chars).",
+        )
+
+
+def _turn_request_hash(body: TurnRequest) -> str:
+    payload = _canonicalize_turn_request(body)
+    raw = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _resolve_idempotency_key(request: Request | None, body: TurnRequest) -> str | None:
+    header_key = ""
+    if request is not None:
+        header_key = (request.headers.get(_TURN_IDEMPOTENCY_HEADER, "") or "").strip()
+    body_key = (body.idempotency_key or "").strip()
+    key = header_key or body_key
+    if not key:
+        return None
+    if len(key) > _MAX_IDEMPOTENCY_KEY_LEN:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Idempotency key too long (max {_MAX_IDEMPOTENCY_KEY_LEN} chars).",
+        )
+    return key
+
+
+@contextmanager
+def _campaign_turn_lock(campaign_id: str):
+    with _campaign_turn_locks_guard:
+        lock = _campaign_turn_locks.setdefault(campaign_id, threading.Lock())
+    acquired = lock.acquire(blocking=False)
+    if not acquired:
+        raise HTTPException(
+            status_code=409,
+            detail="A turn is already in progress for this campaign. Retry after it finishes.",
+        )
+    try:
+        yield
+    finally:
+        lock.release()
+
+
+def _idempotency_lookup(
+    conn,
+    campaign_id: str,
+    player_id: str,
+    endpoint: str,
+    idempotency_key: str,
+    request_hash: str,
+) -> dict[str, Any] | None:
+    row = conn.execute(
+        """SELECT request_hash, status, response_json
+           FROM turn_idempotency
+           WHERE campaign_id = ? AND player_id = ? AND endpoint = ? AND idempotency_key = ?""",
+        (campaign_id, player_id, endpoint, idempotency_key),
+    ).fetchone()
+    if not row:
+        return None
+    existing_hash = str(row["request_hash"] or "")
+    if existing_hash != request_hash:
+        raise HTTPException(
+            status_code=409,
+            detail="Idempotency key reuse with different request payload is not allowed.",
+        )
+    status = str(row["status"] or "processing")
+    if status != "completed":
+        raise HTTPException(
+            status_code=409,
+            detail="An identical request is already processing. Retry shortly.",
+        )
+    try:
+        payload = json.loads(row["response_json"] or "{}")
+    except Exception:
+        payload = {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _idempotency_begin(
+    conn,
+    campaign_id: str,
+    player_id: str,
+    endpoint: str,
+    idempotency_key: str,
+    request_hash: str,
+) -> None:
+    conn.execute(
+        """INSERT INTO turn_idempotency
+           (campaign_id, player_id, endpoint, idempotency_key, request_hash, status, response_json)
+           VALUES (?, ?, ?, ?, ?, 'processing', NULL)""",
+        (campaign_id, player_id, endpoint, idempotency_key, request_hash),
+    )
+    conn.commit()
+
+
+def _idempotency_complete(
+    conn,
+    campaign_id: str,
+    player_id: str,
+    endpoint: str,
+    idempotency_key: str,
+    payload: dict[str, Any],
+) -> None:
+    conn.execute(
+        """UPDATE turn_idempotency
+           SET status = 'completed', response_json = ?, updated_at = datetime('now')
+           WHERE campaign_id = ? AND player_id = ? AND endpoint = ? AND idempotency_key = ?""",
+        (json.dumps(payload), campaign_id, player_id, endpoint, idempotency_key),
+    )
+    conn.commit()
 
 
 
@@ -814,6 +955,8 @@ def list_campaigns(limit: int = Query(25, ge=1, le=200), offset: int = Query(0, 
                 c.id AS campaign_id,
                 c.title AS title,
                 c.time_period AS time_period,
+                c.saga_id AS saga_id,
+                c.saga_chapter AS saga_chapter,
                 p.id AS player_id,
                 p.name AS player_name,
                 COALESCE(
@@ -841,6 +984,8 @@ def list_campaigns(limit: int = Query(25, ge=1, le=200), offset: int = Query(0, 
                 time_period=r["time_period"],
                 player_id=r["player_id"],
                 player_name=r["player_name"],
+                saga_id=r["saga_id"],
+                saga_chapter=int(r["saga_chapter"]) if r["saga_chapter"] is not None else None,
                 current_turn=int(r["current_turn"] or 0),
                 updated_at=r["updated_at"],
             )
@@ -1189,15 +1334,48 @@ def _pad_suggestions_for_ui(actions: list) -> list:
 def post_turn(
     campaign_id: str,
     player_id: str = Query(..., description="Player character ID"),
+    request: Request = None,
     body: TurnRequest | None = None,
 ):
     """Run one turn. Returns narrated_text, suggested_actions (padded), player_sheet, inventory, quest_log. state optional."""
     if body is None:
         body = TurnRequest(user_input="")
+    _validate_turn_input_limits(body)
     conn = _get_conn()
     start_ts = time.perf_counter()
+    request_id = getattr(request.state, "request_id", "unknown") if request is not None else "unknown"
+    endpoint_key = "turn"
+    idempotency_key = _resolve_idempotency_key(request, body)
+    request_hash = _turn_request_hash(body) if idempotency_key else ""
+    idempotency_started = False
+    idempotency_completed = False
+    turn_lock_ctx = _campaign_turn_lock(campaign_id)
+    turn_lock_acquired = False
     try:
+        turn_lock_ctx.__enter__()
+        turn_lock_acquired = True
         _ensure_campaign_and_player(conn, campaign_id, player_id)
+        if idempotency_key:
+            cached_payload = _idempotency_lookup(
+                conn=conn,
+                campaign_id=campaign_id,
+                player_id=player_id,
+                endpoint=endpoint_key,
+                idempotency_key=idempotency_key,
+                request_hash=request_hash,
+            )
+            if cached_payload:
+                return TurnResponse(**cached_payload)
+            _idempotency_begin(
+                conn=conn,
+                campaign_id=campaign_id,
+                player_id=player_id,
+                endpoint=endpoint_key,
+                idempotency_key=idempotency_key,
+                request_hash=request_hash,
+            )
+            idempotency_started = True
+
         state = build_initial_gamestate(conn, campaign_id, player_id)
         _inject_truth_constraints_into_state(conn, campaign_id, state)
         if body.intent is not None:
@@ -1373,7 +1551,15 @@ def post_turn(
             })
         conn.commit()
 
-        logger.info("turn_complete node=post_turn campaign_id=%s turn_id=%s latency_ms=%s validation_errors=%s repair_count=%s", campaign_id, turn_contract.turn_id, int((time.perf_counter()-start_ts)*1000), len((turn_contract.debug.validation_errors if turn_contract.debug else [])), (turn_contract.debug.repair_count if turn_contract.debug else 0))
+        logger.info(
+            "turn_complete node=post_turn request_id=%s campaign_id=%s turn_id=%s latency_ms=%s validation_errors=%s repair_count=%s",
+            request_id,
+            campaign_id,
+            turn_contract.turn_id,
+            int((time.perf_counter() - start_ts) * 1000),
+            len((turn_contract.debug.validation_errors if turn_contract.debug else [])),
+            (turn_contract.debug.repair_count if turn_contract.debug else 0),
+        )
 
         # V4.1: Extract consequence_type from mechanic_result
         consequence_type_out: str | None = None
@@ -1382,6 +1568,20 @@ def post_turn(
             consequence_type_out = getattr(mr, "consequence_type", None) or (
                 mr.get("consequence_type") if isinstance(mr, dict) else None
             )
+
+        # V7.0: Build mechanic_notes for player transparency
+        mechanic_notes_out: dict | None = None
+        if mr is not None:
+            _mr_dict = mr if isinstance(mr, dict) else (mr.model_dump(mode="json") if hasattr(mr, "model_dump") else {})
+            if _mr_dict.get("action_type") and _mr_dict["action_type"] != "IDLE":
+                mechanic_notes_out = {
+                    "action_type": _mr_dict.get("action_type"),
+                    "dice_result": _mr_dict.get("dice_result"),
+                    "difficulty": _mr_dict.get("difficulty"),
+                    "success": _mr_dict.get("success"),
+                    "outcome_summary": _mr_dict.get("outcome_summary"),
+                    "critical_outcome": _mr_dict.get("critical_outcome"),
+                }
 
         # V4.1: Build active_npc_contexts — present NPCs enriched with MemoryAgent state
         active_npc_contexts_out: list[dict] | None = None
@@ -1434,7 +1634,7 @@ def post_turn(
             except Exception:
                 pass  # spoken reactions are non-critical
 
-        return TurnResponse(
+        response_payload = TurnResponse(
             narrated_text=result.final_text or "",
             suggested_actions=suggested_actions,
             player_sheet=player_sheet,
@@ -1456,7 +1656,19 @@ def post_turn(
             consequence_type=consequence_type_out,
             active_npc_contexts=active_npc_contexts_out,
             world_sim_ran=bool(getattr(result, "world_sim_ran", False)),
+            mechanic_notes=mechanic_notes_out,
         )
+        if idempotency_key:
+            _idempotency_complete(
+                conn=conn,
+                campaign_id=campaign_id,
+                player_id=player_id,
+                endpoint=endpoint_key,
+                idempotency_key=idempotency_key,
+                payload=response_payload.model_dump(mode="json"),
+            )
+            idempotency_completed = True
+        return response_payload
     except HTTPException:
         # Re-raise HTTP exceptions (e.g., 404 from _ensure_campaign_and_player)
         raise
@@ -1472,6 +1684,18 @@ def post_turn(
         )
         raise
     finally:
+        if idempotency_key and idempotency_started and not idempotency_completed:
+            try:
+                conn.execute(
+                    """DELETE FROM turn_idempotency
+                       WHERE campaign_id = ? AND player_id = ? AND endpoint = ? AND idempotency_key = ? AND status = 'processing'""",
+                    (campaign_id, player_id, endpoint_key, idempotency_key),
+                )
+                conn.commit()
+            except Exception:
+                pass
+        if turn_lock_acquired:
+            turn_lock_ctx.__exit__(None, None, None)
         conn.close()
 
 
@@ -1483,69 +1707,46 @@ def post_turn(
 def _run_pre_narrator_pipeline(conn, state: GameState) -> dict:
     """Run pipeline nodes up to (but not including) Narrator.
 
-    Calls each node function directly on the state dict, replicating the
-    LangGraph topology without using graph.invoke(). This allows the SSE
-    endpoint to stream the Narrator separately.
+    Uses the canonical step registry from graph.py to ensure this stays
+    in sync with the non-streaming pipeline. Any new node added to the
+    pipeline will automatically be picked up here.
 
     Returns the state dict ready for Narrator input.
     """
     from backend.app.core.nodes import state_to_dict  # noqa: E402
     from backend.app.core.nodes.router import router_node  # noqa: E402
-    from backend.app.core.nodes.mechanic import make_mechanic_node  # noqa: E402
-    from backend.app.core.nodes.encounter import make_encounter_node  # noqa: E402
-    from backend.app.core.nodes.world_sim import make_world_sim_node  # noqa: E402
-    from backend.app.core.nodes.companion import companion_reaction_node  # noqa: E402
-    from backend.app.core.nodes.arc_planner import arc_planner_node  # noqa: E402
-    from backend.app.core.nodes.scene_frame import scene_frame_node  # noqa: E402
-    from backend.app.core.nodes.director import make_director_node  # noqa: E402
+    from backend.app.core.graph import get_pre_narrator_steps  # noqa: E402
 
     s = state_to_dict(state)
     s["__runtime_conn"] = conn
 
-    # Router
+    # Router (always runs first)
     s = router_node(s)
 
     # META shortcut: return early so caller handles META path
     if s.get("intent") == "META":
         return s
 
-    # TALK skips Mechanic, goes to Encounter
-    if s.get("intent") != "TALK":
-        mechanic_node = make_mechanic_node()
-        s = mechanic_node(s)
-
-    encounter_node = make_encounter_node()
-    s = encounter_node(s)
-
-    world_sim_node = make_world_sim_node()
-    s = world_sim_node(s)
-
-    s = companion_reaction_node(s)
-    s = arc_planner_node(s)
-    s = scene_frame_node(s)
-
-    director_node = make_director_node()
-    s = director_node(s)
+    # Run canonical pre-narrator steps (Mechanic→...→Director)
+    for _name, fn in get_pre_narrator_steps(s.get("intent", "ACTION")):
+        s = fn(s)
 
     return s
 
 
 def _run_post_narrator_pipeline(conn, state_dict: dict, final_text: str, lore_citations: list) -> dict:
-    """Run narrative validation + choice crafting + commit after streaming completes."""
-    from backend.app.core.nodes.narrative_validator import narrative_validator_node  # noqa: E402
-    from backend.app.core.nodes.choice_crafter_node import make_choice_crafter_node  # noqa: E402
-    from backend.app.core.nodes.commit import make_commit_node  # noqa: E402
+    """Run narrative validation + choice crafting + commit after streaming completes.
+
+    Uses the canonical step registry from graph.py to ensure this stays
+    in sync with the non-streaming pipeline.
+    """
+    from backend.app.core.graph import get_post_narrator_steps  # noqa: E402
 
     state_dict["final_text"] = final_text
     state_dict["lore_citations"] = lore_citations
 
-    state_dict = narrative_validator_node(state_dict)
-
-    choice_crafter = make_choice_crafter_node()
-    state_dict = choice_crafter(state_dict)
-
-    commit_node = make_commit_node()
-    state_dict = commit_node(state_dict)
+    for _name, fn in get_post_narrator_steps():
+        state_dict = fn(state_dict)
 
     return state_dict
 
@@ -1554,6 +1755,7 @@ def _run_post_narrator_pipeline(conn, state_dict: dict, final_text: str, lore_ci
 def post_turn_stream(
     campaign_id: str,
     player_id: str = Query(..., description="Player character ID"),
+    request: Request = None,
     body: TurnRequest | None = None,
 ):
     """Stream narration via Server-Sent Events.
@@ -1570,9 +1772,14 @@ def post_turn_stream(
     """
     if body is None:
         body = TurnRequest(user_input="")
+    _validate_turn_input_limits(body)
 
     conn = _get_conn()
     start_ts = time.perf_counter()
+    request_id = getattr(request.state, "request_id", "unknown") if request is not None else "unknown"
+    endpoint_key = "turn_stream"
+    idempotency_key = _resolve_idempotency_key(request, body)
+    request_hash = _turn_request_hash(body) if idempotency_key else ""
 
     # Validate campaign/player before starting the stream
     try:
@@ -1582,7 +1789,13 @@ def post_turn_stream(
         raise
 
     def event_stream():
+        idempotency_started = False
+        idempotency_completed = False
+        turn_lock_ctx = _campaign_turn_lock(campaign_id)
+        turn_lock_acquired = False
         try:
+            turn_lock_ctx.__enter__()
+            turn_lock_acquired = True
             from backend.app.core.nodes import dict_to_state  # noqa: E402
             from backend.app.core.agents.narrator import (  # noqa: E402
                 _strip_structural_artifacts,
@@ -1595,6 +1808,31 @@ def post_turn_stream(
             from backend.app.core.agents.base import AgentLLM  # noqa: E402
             from backend.app.core.nodes.narrator import _is_high_stakes_combat  # noqa: E402
             from backend.app.rag.kg_retriever import KGRetriever  # noqa: E402
+
+            if idempotency_key:
+                cached_payload = _idempotency_lookup(
+                    conn=conn,
+                    campaign_id=campaign_id,
+                    player_id=player_id,
+                    endpoint=endpoint_key,
+                    idempotency_key=idempotency_key,
+                    request_hash=request_hash,
+                )
+                if cached_payload:
+                    done_cached = dict(cached_payload)
+                    done_cached.setdefault("type", "done")
+                    done_cached.setdefault("request_id", request_id)
+                    yield f"data: {json.dumps(done_cached)}\n\n"
+                    return
+                _idempotency_begin(
+                    conn=conn,
+                    campaign_id=campaign_id,
+                    player_id=player_id,
+                    endpoint=endpoint_key,
+                    idempotency_key=idempotency_key,
+                    request_hash=request_hash,
+                )
+                idempotency_started = True
 
             state = build_initial_gamestate(conn, campaign_id, player_id)
             _inject_truth_constraints_into_state(conn, campaign_id, state)
@@ -1617,7 +1855,28 @@ def post_turn_stream(
                 result_gs = dict_to_state(result_dict)
                 raw_actions = result_gs.suggested_actions or []
                 suggested_actions = _pad_suggestions_for_ui(raw_actions)
-                yield f"data: {json.dumps({'type': 'done', 'narrated_text': result_gs.final_text or '', 'suggested_actions': [a.model_dump(mode='json') if hasattr(a, 'model_dump') else a for a in suggested_actions]})}\n\n"
+                meta_done = {
+                    "type": "done",
+                    "request_id": request_id,
+                    "narrated_text": result_gs.final_text or "",
+                    "suggested_actions": [
+                        a.model_dump(mode="json") if hasattr(a, "model_dump") else a
+                        for a in suggested_actions
+                    ],
+                }
+                if idempotency_key:
+                    replay_payload = dict(meta_done)
+                    replay_payload.pop("type", None)
+                    _idempotency_complete(
+                        conn=conn,
+                        campaign_id=campaign_id,
+                        player_id=player_id,
+                        endpoint=endpoint_key,
+                        idempotency_key=idempotency_key,
+                        payload=replay_payload,
+                    )
+                    idempotency_completed = True
+                yield f"data: {json.dumps(meta_done)}\n\n"
                 return
 
             # Stream Narrator
@@ -1690,6 +1949,9 @@ def post_turn_stream(
             for token in narrator.generate_stream(gs, kg_context=kg_context):
                 accumulated += token
                 yield f"data: {json.dumps({'type': 'token', 'text': token})}\n\n"
+
+            # Signal narrator is done; post-processing begins
+            yield f"data: {json.dumps({'type': 'narrator_done'})}\n\n"
 
             # Post-process accumulated text
             # V2.15: Post-process streamed prose (no suggestion extraction needed)
@@ -1787,8 +2049,26 @@ def post_turn_stream(
                 })
             conn.commit()
 
+            # V7.0: Build mechanic_notes for streaming done payload
+            _stream_mr = result_gs.mechanic_result
+            _stream_mechanic_notes: dict | None = None
+            if _stream_mr is not None:
+                _smr = _stream_mr if isinstance(_stream_mr, dict) else (
+                    _stream_mr.model_dump(mode="json") if hasattr(_stream_mr, "model_dump") else {}
+                )
+                if _smr.get("action_type") and _smr["action_type"] != "IDLE":
+                    _stream_mechanic_notes = {
+                        "action_type": _smr.get("action_type"),
+                        "dice_result": _smr.get("dice_result"),
+                        "difficulty": _smr.get("difficulty"),
+                        "success": _smr.get("success"),
+                        "outcome_summary": _smr.get("outcome_summary"),
+                        "critical_outcome": _smr.get("critical_outcome"),
+                    }
+
             done_payload = {
                 "type": "done",
+                "request_id": request_id,
                 "narrated_text": final_text,
                 "suggested_actions": [
                     a.model_dump(mode="json") if hasattr(a, "model_dump") else a
@@ -1802,6 +2082,7 @@ def post_turn_stream(
                 "warnings": warnings_out,
                 "dialogue_turn": getattr(result_gs, "dialogue_turn", None),
                 "turn_contract": turn_contract.model_dump(mode="json"),
+                "mechanic_notes": _stream_mechanic_notes,
             }
             if DEV_CONTEXT_STATS:
                 merged_timings = {}
@@ -1811,13 +2092,52 @@ def post_turn_stream(
                     merged_timings["llm"] = result_gs.llm_timings
                 if merged_timings:
                     done_payload["agent_timings"] = merged_timings
-            logger.info("turn_complete node=turn_stream campaign_id=%s turn_id=%s latency_ms=%s validation_errors=%s repair_count=%s", campaign_id, turn_contract.turn_id, int((time.perf_counter()-start_ts)*1000), len((turn_contract.debug.validation_errors if turn_contract.debug else [])), (turn_contract.debug.repair_count if turn_contract.debug else 0))
+            logger.info(
+                "turn_complete node=turn_stream request_id=%s campaign_id=%s turn_id=%s latency_ms=%s validation_errors=%s repair_count=%s",
+                request_id,
+                campaign_id,
+                turn_contract.turn_id,
+                int((time.perf_counter() - start_ts) * 1000),
+                len((turn_contract.debug.validation_errors if turn_contract.debug else [])),
+                (turn_contract.debug.repair_count if turn_contract.debug else 0),
+            )
+            if idempotency_key:
+                replay_payload = dict(done_payload)
+                replay_payload.pop("type", None)
+                _idempotency_complete(
+                    conn=conn,
+                    campaign_id=campaign_id,
+                    player_id=player_id,
+                    endpoint=endpoint_key,
+                    idempotency_key=idempotency_key,
+                    payload=replay_payload,
+                )
+                idempotency_completed = True
             yield f"data: {json.dumps(done_payload)}\n\n"
 
+        except HTTPException as e:
+            yield f"data: {json.dumps({'type': 'error', 'request_id': request_id, 'message': str(e.detail)})}\n\n"
         except Exception as e:
-            logger.exception("SSE turn_stream failed node=turn_stream campaign_id=%s latency_ms=%s", campaign_id, int((time.perf_counter()-start_ts)*1000))
-            yield f"data: {json.dumps({'type': 'error', 'message': f'Stream failed; retrying via non-stream endpoint is recommended. Details: {str(e)[:160]}'})}\n\n"
+            logger.exception(
+                "SSE turn_stream failed node=turn_stream request_id=%s campaign_id=%s latency_ms=%s",
+                request_id,
+                campaign_id,
+                int((time.perf_counter() - start_ts) * 1000),
+            )
+            yield f"data: {json.dumps({'type': 'error', 'request_id': request_id, 'message': f'Stream failed; retrying via non-stream endpoint is recommended. Details: {str(e)[:160]}'})}\n\n"
         finally:
+            if idempotency_key and idempotency_started and not idempotency_completed:
+                try:
+                    conn.execute(
+                        """DELETE FROM turn_idempotency
+                           WHERE campaign_id = ? AND player_id = ? AND endpoint = ? AND idempotency_key = ? AND status = 'processing'""",
+                        (campaign_id, player_id, endpoint_key, idempotency_key),
+                    )
+                    conn.commit()
+                except Exception:
+                    pass
+            if turn_lock_acquired:
+                turn_lock_ctx.__exit__(None, None, None)
             conn.close()
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
@@ -2055,6 +2375,21 @@ def get_saga_detail(saga_id: str) -> SagaDetailResponse:
             ),
             campaigns=items,
         )
+    finally:
+        conn.close()
+
+
+@router.post("/campaigns/{campaign_id}/rewind")
+def rewind_campaign(campaign_id: str, to_turn: int = Query(..., ge=1, description="Turn number to rewind to (inclusive)")) -> dict[str, Any]:
+    """Rewind a campaign to a previous turn. Deletes all data for turns after to_turn
+    and restores world state from the snapshot at that turn."""
+    conn = _get_conn()
+    try:
+        from backend.app.core.rewind import rewind_campaign_to_turn
+        result = rewind_campaign_to_turn(conn, campaign_id, to_turn)
+        return result
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     finally:
         conn.close()
 

@@ -112,6 +112,7 @@ class TurnRequest(BaseModel):
     intent: Intent | None = None
     debug: bool = False
     include_state: bool = False
+    idempotency_key: str | None = None
 
 
 class PartyStatusItem(BaseModel):
@@ -162,6 +163,8 @@ class TurnResponse(BaseModel):
     active_npc_contexts: list[dict] | None = None
     # Living-world signal: True when WorldSimNode ran this turn (new intel may be in news_feed)
     world_sim_ran: bool = False
+    # V7.0: Mechanic resolution notes (dice, difficulty, success for player transparency)
+    mechanic_notes: dict | None = None
 
 
 class CampaignSummary(BaseModel):
@@ -171,6 +174,8 @@ class CampaignSummary(BaseModel):
     time_period: str | None = None
     player_id: str | None = None
     player_name: str | None = None
+    saga_id: str | None = None
+    saga_chapter: int | None = None
     current_turn: int = 0
     updated_at: str | None = None
 

@@ -60,6 +60,24 @@ def load_campaign(conn: sqlite3.Connection, campaign_id: str) -> dict | None:
             ws = {}
     if not isinstance(ws, dict):
         ws = {}
+    # Apply deferred maintenance agent patches (V7.0: transaction slimming)
+    try:
+        from backend.app.core.deferred_agents import apply_pending_patches
+        ws = apply_pending_patches(conn, campaign_id, ws)
+    except Exception as _patch_err:
+        logger.warning("Deferred patch application failed (non-fatal): %s", _patch_err)
+    # Phase 4.1: Hydrate NPC states from normalized table
+    try:
+        from backend.app.core.npc_state_store import load_into_world_state
+        load_into_world_state(conn, campaign_id, ws)
+    except Exception as _npc_load_err:
+        logger.warning("NPC state hydration failed (non-fatal): %s", _npc_load_err)
+    # Phase 4.2: Hydrate quest entries from normalized table
+    try:
+        from backend.app.core.quest_store import load_into_world_state as load_quests_into_ws
+        load_quests_into_ws(conn, campaign_id, ws)
+    except Exception as _quest_load_err:
+        logger.warning("Quest entry hydration failed (non-fatal): %s", _quest_load_err)
     d["world_state_json"] = ws
     d["world_time_minutes"] = int(d.get("world_time_minutes") or 0)
     # Flatten companion/alignment state to top-level campaign keys

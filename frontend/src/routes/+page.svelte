@@ -3,28 +3,73 @@
   import { ui } from '$lib/stores/ui';
   import { campaignId, playerId, lastTurnResponse } from '$lib/stores/game';
   import { THEME_NAMES } from '$lib/themes/tokens';
-  import { getSavedCampaigns, removeCampaign, type SavedCampaign } from '$lib/stores/campaigns';
-  import { getState, getTranscript } from '$lib/api/campaigns';
+  import {
+    getSavedCampaigns,
+    getSavedCampaignMap,
+    patchCampaignCache,
+    removeCampaign,
+    type SavedCampaign,
+  } from '$lib/stores/campaigns';
+  import { getState, getTranscript, listCampaigns } from '$lib/api/campaigns';
   import { transcript } from '$lib/stores/game';
   import { ERA_LABELS } from '$lib/utils/constants';
+  import type { CampaignSummary as ApiCampaignSummary } from '$lib/api/types';
 
   let showSettings = $state(false);
   let showLoadModal = $state(false);
   let savedCampaigns = $state<SavedCampaign[]>([]);
   let loadingCampaignId = $state<string | null>(null);
+  let loadingCampaignList = $state(false);
+  let listingFromCacheOnly = $state(false);
   let loadError = $state('');
 
   function handleNewCampaign() {
     goto('/create');
   }
 
-  function handleLoadCampaign() {
-    savedCampaigns = getSavedCampaigns();
+  function _mergeCampaignFromApi(item: ApiCampaignSummary, localMap: Record<string, SavedCampaign>): SavedCampaign {
+    const cached = localMap[item.campaign_id];
+    const now = new Date().toISOString();
+    const merged: SavedCampaign = {
+      campaignId: item.campaign_id,
+      playerId: item.player_id ?? cached?.playerId ?? '',
+      playerName: item.player_name ?? cached?.playerName ?? 'Unknown',
+      era: (item.time_period ?? cached?.era ?? '').toUpperCase(),
+      background: cached?.background ?? null,
+      sagaId: item.saga_id ?? cached?.sagaId ?? null,
+      sagaChapter: item.saga_chapter ?? cached?.sagaChapter ?? null,
+      sagaTitle: cached?.sagaTitle ?? null,
+      createdAt: cached?.createdAt ?? now,
+      lastPlayedAt: item.updated_at ?? cached?.lastPlayedAt ?? now,
+      turnCount: Number(item.current_turn ?? cached?.turnCount ?? 0),
+    };
+    patchCampaignCache(merged);
+    return merged;
+  }
+
+  async function handleLoadCampaign() {
+    loadingCampaignList = true;
+    listingFromCacheOnly = false;
     loadError = '';
+    try {
+      const localMap = getSavedCampaignMap();
+      const server = await listCampaigns(100, 0);
+      savedCampaigns = (server.items ?? []).map((item) => _mergeCampaignFromApi(item, localMap));
+    } catch (e) {
+      listingFromCacheOnly = true;
+      savedCampaigns = getSavedCampaigns();
+      loadError = `Backend campaign list unavailable. Showing local cache only. ${e instanceof Error ? e.message : ''}`.trim();
+    } finally {
+      loadingCampaignList = false;
+    }
     showLoadModal = true;
   }
 
   async function resumeCampaign(campaign: SavedCampaign) {
+    if (!campaign.playerId) {
+      loadError = 'This campaign is missing a player id and cannot be resumed.';
+      return;
+    }
     loadingCampaignId = campaign.campaignId;
     loadError = '';
 
@@ -60,7 +105,7 @@
       }
 
       showLoadModal = false;
-      goto('/play');
+      goto('/play?resumed=1');
     } catch (e) {
       loadError = e instanceof Error ? e.message : String(e);
     } finally {
@@ -102,7 +147,7 @@
     <!-- Title block -->
     <div class="title-block">
       <h1 class="game-title">Storyteller AI</h1>
-      <p class="subtitle">An Interactive Star Wars Narrative</p>
+      <p class="subtitle">An Interactive Narrative Adventure</p>
     </div>
 
     <!-- Menu buttons -->
@@ -119,7 +164,7 @@
     </div>
 
     <!-- Version -->
-    <p class="version-tag">v2.16 — KOTOR-Style Interactive Fiction</p>
+    <p class="version-tag">v2.16 - Setting-Agnostic Interactive Fiction</p>
   </div>
 </div>
 
@@ -141,7 +186,9 @@
         <div class="error-banner" role="alert">{loadError}</div>
       {/if}
 
-      {#if savedCampaigns.length === 0}
+      {#if loadingCampaignList}
+        <p class="empty-state">Loading campaigns...</p>
+      {:else if savedCampaigns.length === 0}
         <p class="empty-state">No saved campaigns found. Start a new campaign first!</p>
       {:else}
         <div class="campaign-list">
@@ -160,30 +207,32 @@
                     <div class="campaign-details">
                       <span class="campaign-era">{ERA_LABELS[campaign.era] ?? campaign.era}</span>
                       {#if campaign.background}
-                        <span class="campaign-bg">· {campaign.background}</span>
+                        <span class="campaign-bg">- {campaign.background}</span>
                       {/if}
                     </div>
                     <div class="campaign-meta">
                       <span>{campaign.turnCount} {campaign.turnCount === 1 ? 'turn' : 'turns'}</span>
-                      <span>·</span>
+                      <span>-</span>
                       <span>{formatDate(campaign.lastPlayedAt)}</span>
                     </div>
                   </div>
                   <div class="campaign-actions">
                     <button
                       class="btn btn-primary campaign-resume press-scale"
-                      disabled={loadingCampaignId !== null}
+                      disabled={loadingCampaignId !== null || !campaign.playerId}
                       onclick={() => resumeCampaign(campaign)}
                     >
                       {loadingCampaignId === campaign.campaignId ? 'Loading...' : 'Resume'}
                     </button>
-                    <button
-                      class="btn campaign-delete press-scale"
-                      disabled={loadingCampaignId !== null}
-                      onclick={() => deleteCampaign(campaign.campaignId)}
-                      title="Remove from list"
-                      aria-label="Remove {campaign.playerName} from saved campaigns"
-                    >✕</button>
+                    {#if listingFromCacheOnly}
+                      <button
+                        class="btn campaign-delete press-scale"
+                        disabled={loadingCampaignId !== null}
+                        onclick={() => deleteCampaign(campaign.campaignId)}
+                        title="Remove from local cache"
+                        aria-label="Remove {campaign.playerName} from local cache"
+                      >X</button>
+                    {/if}
                   </div>
                 </div>
               {/each}
@@ -223,6 +272,20 @@
           {#each THEME_NAMES as name}
             <option value={name}>{name}</option>
           {/each}
+        </select>
+      </div>
+
+      <div class="setting-group">
+        <label for="font-scale-select">Text Size</label>
+        <select
+          id="font-scale-select"
+          value={String($ui.fontScale ?? 1.0)}
+          onchange={(e) => ui.setFontScale(parseFloat((e.target as HTMLSelectElement).value))}
+        >
+          <option value="0.8">Small (80%)</option>
+          <option value="1.0">Normal (100%)</option>
+          <option value="1.2">Large (120%)</option>
+          <option value="1.5">Extra Large (150%)</option>
         </select>
       </div>
 

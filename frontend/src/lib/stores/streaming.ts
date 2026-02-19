@@ -2,7 +2,7 @@
  * Streaming state store — SSE turn streaming.
  *
  * Tracks whether we're currently streaming, the accumulated text,
- * and any error state. Memory only.
+ * post-stream processing state, and any error state. Memory only.
  */
 import { writable, derived } from 'svelte/store';
 
@@ -18,6 +18,9 @@ export const streamError = writable<string | null>(null);
 /** Whether streaming completed successfully (done event received). */
 export const streamDone = writable(false);
 
+/** Whether post-stream processing is in progress (choice crafting, commit). */
+export const isProcessingChoices = writable(false);
+
 /** Derived: whether we should show the streaming cursor. */
 export const showCursor = derived(
   [isStreaming, streamDone],
@@ -30,6 +33,7 @@ export function resetStreaming(): void {
   streamedText.set('');
   streamError.set(null);
   streamDone.set(false);
+  isProcessingChoices.set(false);
 }
 
 /** Start a new streaming session. */
@@ -37,6 +41,7 @@ export function startStreaming(): void {
   streamedText.set('');
   streamError.set(null);
   streamDone.set(false);
+  isProcessingChoices.set(false);
   isStreaming.set(true);
 }
 
@@ -45,14 +50,21 @@ export function appendToken(text: string): void {
   streamedText.update((current) => current + text);
 }
 
-/** Mark streaming as complete. */
+/** Mark narrator streaming as complete; begin post-stream processing. */
 export function finishStreaming(): void {
   streamDone.set(true);
   isStreaming.set(false);
+  isProcessingChoices.set(true);
+}
+
+/** Mark post-stream processing (choices + commit) as complete. */
+export function finishProcessing(): void {
+  isProcessingChoices.set(false);
 }
 
 /** Mark streaming as failed. */
 export function failStreaming(error: string): void {
   streamError.set(error);
   isStreaming.set(false);
+  isProcessingChoices.set(false);
 }

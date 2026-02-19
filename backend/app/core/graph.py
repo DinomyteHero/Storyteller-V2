@@ -100,6 +100,60 @@ def _get_compiled_graph():
     return _COMPILED_GRAPH
 
 
+def get_pipeline_steps(intent: str) -> list[tuple[str, Any]]:
+    """Return the canonical ordered list of (name, node_fn) for a given intent.
+
+    This is the SINGLE SOURCE OF TRUTH for pipeline topology. Both the
+    non-streaming path (`_run_pipeline_with_timings`) and the streaming path
+    (`_run_pre_narrator_pipeline` / `_run_post_narrator_pipeline`) MUST use
+    this function to ensure they stay in sync when new nodes are added.
+
+    Returns:
+        List of (node_name, node_function) tuples in execution order.
+    """
+    if intent == "META":
+        return [
+            ("meta", meta_node),
+            ("commit", make_commit_node()),
+        ]
+
+    steps: list[tuple[str, Any]] = []
+    if intent != "TALK":
+        steps.append(("mechanic", make_mechanic_node()))
+    steps.extend([
+        ("encounter", make_encounter_node()),
+        ("world_sim", make_world_sim_node()),
+        ("companion_reaction", companion_reaction_node),
+        ("moments", moments_node),
+        ("arc_planner", arc_planner_node),
+        ("scene_frame", scene_frame_node),
+        ("director", make_director_node()),
+        ("narrator", make_narrator_node()),
+        ("narrative_validator", narrative_validator_node),
+        ("choice_crafter", make_choice_crafter_node()),
+        ("commit", make_commit_node()),
+    ])
+    return steps
+
+
+def get_pre_narrator_steps(intent: str) -> list[tuple[str, Any]]:
+    """Return pipeline steps BEFORE the narrator node (for streaming path)."""
+    steps = get_pipeline_steps(intent)
+    return [(name, fn) for name, fn in steps if name == "narrator"][0:0] or [
+        (name, fn) for name, fn in steps
+        if name not in ("narrator", "narrative_validator", "choice_crafter", "commit")
+    ]
+
+
+def get_post_narrator_steps() -> list[tuple[str, Any]]:
+    """Return pipeline steps AFTER the narrator node (for streaming path)."""
+    return [
+        ("narrative_validator", narrative_validator_node),
+        ("choice_crafter", make_choice_crafter_node()),
+        ("commit", make_commit_node()),
+    ]
+
+
 def _run_pipeline_with_timings(state: dict[str, Any]) -> dict[str, Any]:
     """Execute the turn pipeline step-by-step while collecting per-node timings."""
     timings: dict[str, float] = {}
@@ -111,23 +165,10 @@ def _run_pipeline_with_timings(state: dict[str, Any]) -> dict[str, Any]:
         return out
 
     s = _time_step("router", router_node, state)
-    if s.get("intent") == "META":
-        s = _time_step("meta", meta_node, s)
-        s = _time_step("commit", make_commit_node(), s)
-    else:
-        if s.get("intent") != "TALK":
-            s = _time_step("mechanic", make_mechanic_node(), s)
-        s = _time_step("encounter", make_encounter_node(), s)
-        s = _time_step("world_sim", make_world_sim_node(), s)
-        s = _time_step("companion_reaction", companion_reaction_node, s)
-        s = _time_step("moments", moments_node, s)
-        s = _time_step("arc_planner", arc_planner_node, s)
-        s = _time_step("scene_frame", scene_frame_node, s)
-        s = _time_step("director", make_director_node(), s)
-        s = _time_step("narrator", make_narrator_node(), s)
-        s = _time_step("narrative_validator", narrative_validator_node, s)
-        s = _time_step("choice_crafter", make_choice_crafter_node(), s)
-        s = _time_step("commit", make_commit_node(), s)
+    intent = s.get("intent", "ACTION")
+
+    for name, fn in get_pipeline_steps(intent):
+        s = _time_step(name, fn, s)
 
     s["agent_timings"] = timings
     llm_timings = get_llm_timings()

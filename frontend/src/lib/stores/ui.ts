@@ -16,6 +16,8 @@ interface UIPrefs {
   showDebug: boolean;
   drawerOpen: boolean;
   drawerTab: string;
+  // Phase 5.1: Accessibility — font scale multiplier
+  fontScale: number;  // 0.8 | 1.0 | 1.2 | 1.5
 }
 
 export type OllamaStatus = 'unknown' | 'up' | 'down';
@@ -33,6 +35,7 @@ const DEFAULT_PREFS: UIPrefs = {
   showDebug: false,
   drawerOpen: false,
   drawerTab: 'character',
+  fontScale: 1.0,
 };
 
 function loadPrefs(): UIPrefs {
@@ -100,6 +103,10 @@ function createUIStore() {
 
     setDrawerTab(tab: string) {
       update((s) => ({ ...s, drawerTab: tab }));
+    },
+
+    setFontScale(scale: number) {
+      update((s) => ({ ...s, fontScale: scale }));
     },
   };
 }

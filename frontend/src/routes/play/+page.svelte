@@ -1,7 +1,8 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
   import { onMount } from 'svelte';
-  import { runTurn, getTranscript, completeCampaign, getStorySummary } from '$lib/api/campaigns';
+  import { runTurn, getTranscript, completeCampaign, getStorySummary, rewindCampaign } from '$lib/api/campaigns';
   import { streamTurn } from '$lib/api/sse';
   import {
     campaignId, playerId, lastTurnResponse, transcript,
@@ -13,8 +14,8 @@
     unreadIntelCount, markIntelRead,
   } from '$lib/stores/game';
   import {
-    isStreaming, streamedText, streamError, showCursor,
-    startStreaming, appendToken, finishStreaming, failStreaming, resetStreaming
+    isStreaming, streamedText, streamError, showCursor, isProcessingChoices,
+    startStreaming, appendToken, finishStreaming, finishProcessing, failStreaming, resetStreaming
   } from '$lib/stores/streaming';
   import { ui, ollamaStatus } from '$lib/stores/ui';
   import { humanizeLocation, formatTimeDelta, safeInt } from '$lib/utils/format';
@@ -36,8 +37,13 @@
   import ApproachCards from '$lib/components/choices/ApproachCards.svelte';
   import NpcIdentityStrip from '$lib/components/narrative/NpcIdentityStrip.svelte';
   import ConsequenceOverlay from '$lib/components/game/ConsequenceOverlay.svelte';
+  // V7.0: Mechanic transparency
+  import MechanicNotes from '$lib/components/game/MechanicNotes.svelte';
   // Phase 2.4: Opening crawl
   import OpeningCrawl from '$lib/components/narrative/OpeningCrawl.svelte';
+  // Phase 5.2: Onboarding tutorial
+  import TutorialOverlay from '$lib/components/onboarding/TutorialOverlay.svelte';
+  import { onboarding, showTutorial } from '$lib/stores/onboarding';
   import { apiFetch } from '$lib/api/client';
 
   let isSendingTurn = $state(false);
@@ -47,16 +53,46 @@
   let isCompleting = $state(false);
   let isEngineUnavailable = $derived($ollamaStatus.status === 'down');
 
+  // Phase 3.4: Rewind/Undo state
+  let showRewindConfirm = $state(false);
+  let isRewinding = $state(false);
+  let rewindError = $state('');
+
   // V4.1: Free text input state
   let freeTextInput = $state('');
   let freeTextEl: HTMLTextAreaElement | undefined = $state();
   let showForgeInput = $state(false);
+  let lastSubmittedInput = $state('');
+  let canRetryLastAction = $state(false);
 
   // Phase 2.4: Story So Far summary state
   let storySummary = $state<StorySummaryResponse | null>(null);
   let storySummaryLoading = $state(false);
   let storySummaryError = $state('');
   let showStorySoFar = $state(false);
+
+  // V7.0: Save confirmation toast state
+  let showSaveConfirm = $state(false);
+  let saveConfirmTimer: ReturnType<typeof setTimeout> | null = null;
+  // Phase 5.3: Persistent save confidence
+  let lastSavedAt = $state<number | null>(null);
+  let saveAgoText = $state('');
+  let saveAgoInterval: ReturnType<typeof setInterval> | null = null;
+
+  function flashSaveConfirm() {
+    showSaveConfirm = true;
+    lastSavedAt = Date.now();
+    if (saveConfirmTimer) clearTimeout(saveConfirmTimer);
+    saveConfirmTimer = setTimeout(() => { showSaveConfirm = false; }, 2500);
+  }
+
+  function updateSaveAgo() {
+    if (!lastSavedAt) { saveAgoText = ''; return; }
+    const sec = Math.floor((Date.now() - lastSavedAt) / 1000);
+    if (sec < 10) saveAgoText = 'just now';
+    else if (sec < 60) saveAgoText = `${sec}s ago`;
+    else saveAgoText = `${Math.floor(sec / 60)}m ago`;
+  }
 
   // V4.1: Consequence overlay state (shown once per turn for TRIUMPH/DESPAIR/HP_CRITICAL)
   let shownConsequenceForTurn = $state(-1);
@@ -90,6 +126,10 @@
   // V3.2: Detect campaign conclusion readiness from warnings
   let conclusionReady = $derived(
     ($lastTurnResponse?.warnings ?? []).some(w => w.includes('[CONCLUSION_READY]'))
+  );
+  let agentFailureDetected = $derived(
+    ($lastTurnResponse?.narrated_text ?? '').includes('[SYSTEM] A narrative agent failed')
+      || ($lastTurnResponse?.warnings ?? []).some(w => w.includes('[AGENT_FAILURE]'))
   );
 
   // Typewriter state
@@ -128,7 +168,19 @@
     markIntelRead();
     fetchTranscript();
     fetchStorySoFarSummary();
+    // V7.0: Auto-expand Story So Far when resuming an existing campaign
+    if ($page.url.searchParams.get('resumed') === '1' && $turnNumber > 1) {
+      showStorySoFar = true;
+    }
     announce('Game loaded. Use number keys 1 through 4 to select choices.');
+
+    // Phase 5.3: Tick the "saved X ago" text every 10s
+    saveAgoInterval = setInterval(updateSaveAgo, 10_000);
+
+    // Phase 5.2: Start onboarding tutorial for brand-new campaigns (turn <= 1, not resumed)
+    if ($turnNumber <= 1 && $page.url.searchParams.get('resumed') !== '1' && $showTutorial) {
+      onboarding.start();
+    }
 
     // Phase 2.4: Check for opening crawl in world state (shown once per campaign)
     const cid = $campaignId;
@@ -151,6 +203,10 @@
         }
       }
     }
+
+    return () => {
+      if (saveAgoInterval) clearInterval(saveAgoInterval);
+    };
   });
 
   async function fetchTranscript() {
@@ -226,9 +282,9 @@
   let sceneSubtitle = $derived.by(() => {
     if (!hudData) return '';
     const parts: string[] = [];
-    if (hudData.planet && hudData.planet !== '—') parts.push(hudData.planet);
-    if (hudData.location && hudData.location !== '—') parts.push(hudData.location);
-    return parts.join(' — ');
+    if (hudData.planet && hudData.planet !== '-') parts.push(hudData.planet);
+    if (hudData.location && hudData.location !== '-') parts.push(hudData.location);
+    return parts.join(' - ');
   });
 
   // Is this the opening scene? (for mission briefing card)
@@ -416,6 +472,8 @@
     if (!cId || !pId) return;
 
     isSendingTurn = true;
+    lastSubmittedInput = userInput;
+    canRetryLastAction = false;
     resetStreaming();
     typewriterCancel?.();
     typewriterActive = false;
@@ -432,9 +490,12 @@
         for await (const event of streamTurn(cId, pId, userInput)) {
           if (event.type === 'token' && event.text) {
             appendToken(event.text);
+          } else if (event.type === 'narrator_done') {
+            // Narrator finished; post-processing (choice crafting + commit) in progress
+            finishStreaming();
           } else if (event.type === 'done') {
             finalResponse = event as unknown as TurnResponse;
-            finishStreaming();
+            finishProcessing();
           } else if (event.type === 'error') {
             streamErrored = true;
             failStreaming(event.message ?? 'Stream error');
@@ -442,6 +503,8 @@
         }
         if (finalResponse?.turn_contract) {
           lastTurnResponse.set(finalResponse);
+          canRetryLastAction = false;
+          flashSaveConfirm();
           fetchTranscript();
           fetchStorySoFarSummary();
         } else {
@@ -452,6 +515,7 @@
             : 'Streaming ended early. Recovered via non-stream request.';
           result.warnings = [...(result.warnings ?? []), msg];
           lastTurnResponse.set(result);
+          canRetryLastAction = false;
           fetchTranscript();
           fetchStorySoFarSummary();
           finishStreaming();
@@ -459,6 +523,11 @@
       } else {
         const result = await runTurn(cId, pId, userInput);
         lastTurnResponse.set(result);
+        canRetryLastAction = !!(
+          (result?.narrated_text ?? '').includes('[SYSTEM] A narrative agent failed')
+          || (result?.warnings ?? []).some(w => w.includes('[AGENT_FAILURE]'))
+        );
+        if (!canRetryLastAction) flashSaveConfirm();
         fetchTranscript();
         fetchStorySoFarSummary();
       }
@@ -466,10 +535,17 @@
       touchCampaign(cId, $turnNumber);
     } catch (e) {
       failStreaming(e instanceof Error ? e.message : String(e));
+      canRetryLastAction = true;
       announce('An error occurred while processing your choice.');
     } finally {
       isSendingTurn = false;
     }
+  }
+
+  async function retryLastAction() {
+    const retryText = lastSubmittedInput.trim();
+    if (!retryText || isSendingTurn || $isStreaming || isEngineUnavailable) return;
+    await handleChoiceInput(retryText, retryText);
   }
 
   function handleQuit() {
@@ -570,6 +646,14 @@
       >✕</button>
     </div>
   </header>
+
+  <!-- Phase 5.3: Save confidence strip -->
+  {#if lastSavedAt}
+    <div class="save-confidence" role="status" aria-label="Save status">
+      <span class="save-dot"></span>
+      Saved {saveAgoText} &middot; Turn {$turnNumber > 1 ? $turnNumber - 1 : 1}{$lastTurnResponse?.arc_stage ? ` \u00B7 ${$lastTurnResponse.arc_stage}` : ''}
+    </div>
+  {/if}
 
   <!-- ======================== MAIN CONTENT ======================== -->
   <main class="gameplay-main" aria-label="Game narrative and choices">
@@ -717,9 +801,30 @@
         </div>
       {/if}
 
+      <!-- V7.0: Mechanic Notes (collapsible, below narrative) -->
+      {#if $lastTurnResponse?.mechanic_notes && !$isStreaming && !typewriterActive}
+        <MechanicNotes notes={$lastTurnResponse.mechanic_notes} />
+      {/if}
+
       {#if $streamError}
         <div class="error-banner" style="margin-top: 16px;" role="alert">
-          {$streamError}
+          <div>{$streamError}</div>
+          {#if canRetryLastAction && !isEngineUnavailable}
+            <button class="btn btn-primary press-scale" style="margin-top: 10px;" onclick={retryLastAction}>
+              Retry Last Action
+            </button>
+          {/if}
+        </div>
+      {/if}
+
+      {#if agentFailureDetected}
+        <div class="error-banner" style="margin-top: 16px;" role="alert">
+          <div>Narrative processing failed for the previous turn.</div>
+          {#if lastSubmittedInput && !isEngineUnavailable}
+            <button class="btn btn-primary press-scale" style="margin-top: 10px;" onclick={retryLastAction}>
+              Retry Last Action
+            </button>
+          {/if}
         </div>
       {/if}
     </div>
@@ -738,6 +843,16 @@
           <button class="btn intel-view-btn" onclick={openCommsDrawer}>View Intel</button>
           <button class="btn intel-dismiss-btn" onclick={() => { inlineIntelDismissed = true; }} aria-label="Dismiss intel notification">✕</button>
         </div>
+      </div>
+    {/if}
+
+    <!-- V7.0: Post-stream thinking indicator -->
+    {#if $isProcessingChoices && !choicesReady}
+      <div class="thinking-indicator" role="status" aria-live="polite">
+        <span class="thinking-dots" aria-hidden="true">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </span>
+        <span class="thinking-label">Weighing your options...</span>
       </div>
     {/if}
 
@@ -839,6 +954,57 @@
         >
           {isCompleting ? 'Completing...' : 'Complete Campaign'}
         </button>
+      </div>
+    {/if}
+
+    <!-- Phase 3.4: Rewind button (shown when turn > 1 and not actively in a turn) -->
+    {#if $turnNumber > 1 && !isSendingTurn && !$isStreaming && !typewriterActive}
+      <div class="rewind-zone">
+        {#if !showRewindConfirm}
+          <button
+            class="btn btn-rewind"
+            onclick={() => { showRewindConfirm = true; rewindError = ''; }}
+            disabled={isRewinding}
+          >
+            Undo Last Turn
+          </button>
+        {:else}
+          <div class="rewind-confirm card" role="alertdialog" aria-label="Confirm undo">
+            <p class="rewind-text">Rewind to turn {$turnNumber - 1}? This cannot be undone.</p>
+            {#if rewindError}
+              <p class="rewind-error">{rewindError}</p>
+            {/if}
+            <div class="rewind-actions">
+              <button
+                class="btn btn-danger press-scale"
+                disabled={isRewinding}
+                onclick={async () => {
+                  if (!$campaignId) return;
+                  isRewinding = true;
+                  rewindError = '';
+                  try {
+                    await rewindCampaign($campaignId, $turnNumber - 1);
+                    showRewindConfirm = false;
+                    // Reload the page to get fresh state
+                    window.location.reload();
+                  } catch (e) {
+                    rewindError = e instanceof Error ? e.message : String(e);
+                    isRewinding = false;
+                  }
+                }}
+              >
+                {isRewinding ? 'Rewinding...' : 'Confirm Undo'}
+              </button>
+              <button
+                class="btn btn-secondary press-scale"
+                onclick={() => { showRewindConfirm = false; }}
+                disabled={isRewinding}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        {/if}
       </div>
     {/if}
 
@@ -1140,6 +1306,16 @@
       onDismiss={() => { showConsequenceOverlay = false; pendingConsequenceType = null; }}
     />
   {/if}
+
+  <!-- V7.0: Save confirmation toast -->
+  {#if showSaveConfirm}
+    <div class="save-toast" role="status" aria-live="polite">
+      Progress saved
+    </div>
+  {/if}
+
+  <!-- Phase 5.2: Onboarding tutorial overlay -->
+  <TutorialOverlay />
 </div>
 {/if}
 
@@ -2333,4 +2509,143 @@
     background: transparent;
   }
 
+  /* V7.0: Post-stream thinking indicator */
+  .thinking-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    color: var(--text-muted);
+    font-size: var(--font-body);
+    font-style: italic;
+    animation: fadeInThinking 0.3s ease-in;
+  }
+  @keyframes fadeInThinking {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .thinking-dots {
+    display: flex;
+    gap: 4px;
+  }
+  .thinking-dots .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    opacity: 0.4;
+    animation: dotPulse 1.4s ease-in-out infinite;
+  }
+  .thinking-dots .dot:nth-child(2) { animation-delay: 0.2s; }
+  .thinking-dots .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dotPulse {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+  /* V7.0: Save confirmation toast */
+  .save-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    padding: 8px 16px;
+    background: var(--bg-panel);
+    color: var(--text-muted);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    font-size: var(--font-caption);
+    opacity: 0.85;
+    pointer-events: none;
+    z-index: 100;
+    animation: saveToastFade 2.5s ease-in-out forwards;
+  }
+  @keyframes saveToastFade {
+    0% { opacity: 0; transform: translateY(8px); }
+    15% { opacity: 0.85; transform: translateY(0); }
+    75% { opacity: 0.85; }
+    100% { opacity: 0; }
+  }
+
+  /* Phase 5.3: Save confidence strip */
+  .save-confidence {
+    text-align: center;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    padding: 3px 12px;
+    letter-spacing: 0.3px;
+    opacity: 0.7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .save-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-secondary, #66bb6a);
+    flex-shrink: 0;
+  }
+
+  /* Phase 3.4: Rewind/Undo */
+  .rewind-zone {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  .btn-rewind {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.8rem;
+    background: transparent;
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+    color: var(--color-muted, #6b7280);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .btn-rewind:hover {
+    color: var(--color-text-secondary, #9ca3af);
+    border-color: var(--color-text-secondary, #9ca3af);
+  }
+
+  .rewind-confirm {
+    padding: 0.75rem 1rem;
+    text-align: center;
+    max-width: 320px;
+    animation: fadeInThinking 0.2s ease forwards;
+  }
+
+  .rewind-text {
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-secondary, #9ca3af);
+  }
+
+  .rewind-error {
+    font-size: 0.7rem;
+    color: #f87171;
+    margin-bottom: 0.5rem;
+  }
+
+  .rewind-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .btn-danger {
+    background: rgba(200, 50, 50, 0.2);
+    border: 1px solid rgba(200, 50, 50, 0.4);
+    color: #f87171;
+  }
+
+  .btn-danger:hover {
+    background: rgba(200, 50, 50, 0.3);
+  }
+
 </style>
+

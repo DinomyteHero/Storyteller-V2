@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import logging
 import sqlite3
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -179,8 +179,18 @@ def make_commit_node():
         mechanic_result = state.get("mechanic_result") or {}
         final_text = state.get("final_text")
         suggested_actions = state.get("suggested_actions") or []
+        commit_started_at = time.perf_counter()
+        _segment_last = commit_started_at
+        commit_segments: dict[str, float] = {}
+
+        def _mark_segment(name: str) -> None:
+            nonlocal _segment_last
+            now = time.perf_counter()
+            commit_segments[name] = round(now - _segment_last, 3)
+            _segment_last = now
 
         next_turn_number = 0
+        run_maintenance_agents = False
         events: list[Event] = [
             Event(event_type="TURN", payload={"user_input": user_input}, is_hidden=True),
         ]
@@ -252,6 +262,7 @@ def make_commit_node():
                                 is_hidden=True,
                             )
                         )
+            _mark_segment("reserve_turn_and_prepare_events")
             _raw_ws = (state.get("campaign") or {}).get("world_state_json")
             world_state = dict(_raw_ws) if isinstance(_raw_ws, dict) else {}
             if state.get("world_sim_ran") and state.get("world_sim_factions_update") is not None:
@@ -282,6 +293,58 @@ def make_commit_node():
                     mechanic_result=mechanic_result,
                     events=_cont_events,
                 )
+            # V7.0: Historical Timeline Scheduler — check and trigger canon events.
+            _campaign_mode = world_state.get("campaign_mode") or "sandbox"
+            _era_id = world_state.get("era_id") or (camp.get("time_period") or "").upper().replace(" ", "_")
+            if _campaign_mode == "historical" and _era_id and intent != "META":
+                try:
+                    from backend.app.core.canon_scheduler import check_canon_events
+                    _arc_stage = world_state.get("arc_stage") or state.get("arc_stage") or "SETUP"
+                    _triggered = check_canon_events(
+                        conn=conn,
+                        campaign_id=campaign_id,
+                        era_id=_era_id,
+                        campaign_mode=_campaign_mode,
+                        arc_stage=_arc_stage,
+                        turn_number=next_turn_number,
+                    )
+                    if _triggered:
+                        # Surface triggered events as warnings so they reach the player
+                        for _ce in _triggered:
+                            _ce_title = _ce.get("title", "Canon Event")
+                            state.setdefault("warnings", []).append(
+                                f"[CANON EVENT] {_ce_title}: {_ce.get('event_text', '')[:200]}"
+                            )
+                except Exception as _canon_exc:
+                    logger.warning("Canon event check failed (non-fatal): %s", _canon_exc)
+
+            # Phase 3.2: Sandbox Consequence Propagation
+            if _campaign_mode != "historical" and intent != "META":
+                try:
+                    from backend.app.core.consequence_propagator import (
+                        tick_consequences,
+                        create_consequence,
+                    )
+                    # Tick down existing consequences
+                    tick_consequences(world_state)
+                    # Create new consequence for wave/tsunami actions
+                    _narrative_facts = mechanic_result.get("narrative_facts") or []
+                    _impact_tier = "ripple"
+                    for _fact in _narrative_facts:
+                        if "Sandbox impact tier: tsunami" in str(_fact):
+                            _impact_tier = "tsunami"
+                            break
+                        elif "Sandbox impact tier: wave" in str(_fact):
+                            _impact_tier = "wave"
+                            break
+                    if _impact_tier in ("wave", "tsunami"):
+                        _action_summary = mechanic_result.get("outcome_summary") or user_input[:200]
+                        _arc_stage = world_state.get("arc_stage") or state.get("arc_stage") or "SETUP"
+                        create_consequence(world_state, _impact_tier, _action_summary, _arc_stage)
+                except Exception as _cons_exc:
+                    logger.warning("Consequence propagation failed (non-fatal): %s", _cons_exc)
+
+            _mark_segment("continuity_and_world_state_updates")
             # V2.5: project stress changes to characters.psych_profile (authoritative).
             stress_delta = int(mechanic_result.get("stress_delta", 0))
             if stress_delta != 0:
@@ -404,28 +467,9 @@ def make_commit_node():
                     _known.add(npc_name)
             world_state["known_npcs"] = sorted(_known)
 
-            # V5.0: NPC narrative memory — authoritative LLM agent.
-            # Part of Group 2 (parallel with QuestWeaver). Runs after ContinuityAgent.
-            from backend.app.core.agents.memory_agent import MemoryAgent  # noqa: E402
-            _present_npcs = state.get("present_npcs") or []
-            _mem_events = [
-                {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
-                for e in events
-            ] if _present_npcs and final_text else []
+            _mark_segment("projection_prep_and_arc_updates")
 
-            def _run_memory_agent():
-                if _present_npcs and final_text:
-                    authoritative_call(
-                        "MemoryAgent",
-                        MemoryAgent().update,
-                        world_state=world_state,
-                        final_text=final_text,
-                        turn_number=next_turn_number,
-                        present_npcs=_present_npcs,
-                        events=_mem_events,
-                    )
-
-            # V3.0: Quest tracking — check entry/stage conditions after events committed
+            # V3.0: Quest tracking — deterministic entry/stage conditions (stays in-transaction)
             try:
                 from backend.app.core.quest_tracker import process_quests_for_turn  # noqa: E402
                 quest_era = str(camp.get("time_period") or camp.get("era") or "REBELLION").strip()
@@ -453,7 +497,6 @@ def make_commit_node():
                             if "completed" in qn.lower():
                                 quest_title = qn.replace("Quest completed: ", "")
                                 facts.append(f"Resolved: {quest_title}")
-                                # Remove matching open thread
                                 threads = [t for t in threads if quest_title.lower() not in t.lower()]
                             elif "New quest" in qn:
                                 quest_title = qn.replace("New quest: ", "")
@@ -468,177 +511,29 @@ def make_commit_node():
             except Exception as _quest_err:
                 logger.warning("Quest tracking failed (non-fatal): %s", _quest_err)
 
-            # V5.0: QuestWeaverAgent — authoritative dynamic quest system.
-            # Part of Group 2 (parallel with MemoryAgent). Runs after ContinuityAgent.
-            from backend.app.core.agents.quest_weaver_agent import QuestWeaverAgent  # noqa: E402
-            _qw_events = [
-                {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
-                for e in events
-            ] if final_text and intent != "META" else []
-            # Collect quest warnings in a thread-safe list for parallel execution
-            _quest_warnings: list[str] = []
-
-            def _run_quest_weaver():
-                if not run_maintenance_agents:
-                    return
-                if not (final_text and intent != "META"):
-                    return
-                _qw = QuestWeaverAgent()
-                # Evaluate active dynamic quests against this turn's prose
-                _dq = world_state.get("dynamic_quests") or []
-                _active_dq = [q for q in _dq if q.get("status") == "active"]
-                if _active_dq:
-                    _dq_notifications = authoritative_call(
-                        "QuestWeaverAgent.evaluate",
-                        _qw.evaluate_completion,
-                        world_state=world_state,
-                        final_text=final_text,
-                        events=_qw_events,
-                    )
-                    for _dqn in (_dq_notifications or []):
-                        _quest_warnings.append(f"[QUEST] {_dqn}")
-                # Generate new dynamic quests when the active count is low
-                _active_count = sum(
-                    1 for q in (world_state.get("dynamic_quests") or [])
-                    if q.get("status") == "active"
-                )
-                _should_gen = (
-                    next_turn_number % 10 == 0
-                    or _active_count == 0
-                )
-                if _should_gen:
-                    _campaign_ws = (state.get("campaign") or {}).get("world_state_json") or {}
-                    _arc = (_campaign_ws.get("arc_state") or {}).get("current_stage", "SETUP")
-                    _recent_narr = ""
-                    _recent_list = state.get("recent_narrative") or []
-                    if _recent_list:
-                        _recent_narr = "\n".join(_recent_list[-2:])[:600]
-                    _new_quests = authoritative_call(
-                        "QuestWeaverAgent.generate",
-                        _qw.generate,
-                        world_state=world_state,
-                        arc_stage=_arc,
-                        player_location=state.get("current_location") or "",
-                        turn_number=next_turn_number,
-                        recent_narrative=_recent_narr,
-                    )
-                    for _nq in (_new_quests or []):
-                        _quest_warnings.append(f"[QUEST] New quest: {_nq.get('title', '?')}")
-
-            # V5.0 Group 2: Run MemoryAgent + QuestWeaverAgent in parallel.
-            # These agents mutate different keys in world_state (npc_states vs dynamic_quests)
-            # and do NOT use the SQLite connection, so parallel execution is safe.
-            _group2_errors: list[AgentFailureError] = []
-            with ThreadPoolExecutor(max_workers=2, thread_name_prefix="commit_g2") as _pool:
-                _futures = {
-                    _pool.submit(_run_memory_agent): "MemoryAgent",
-                    _pool.submit(_run_quest_weaver): "QuestWeaverAgent",
-                }
-                for fut in as_completed(_futures):
-                    try:
-                        fut.result()
-                    except AgentFailureError as afe:
-                        _group2_errors.append(afe)
-            if _group2_errors:
-                raise _group2_errors[0]
-            # Merge quest warnings from parallel thread
-            if _quest_warnings:
-                _existing_warnings = list(state.get("warnings") or [])
-                _existing_warnings.extend(_quest_warnings)
-                state["warnings"] = _existing_warnings
-
-            # V5.0 Group 3: Sequential agents that use SQLite connection.
-            # ProgressionAgent — authoritative narrative stat growth.
-            # Dynamic frequency: every 5 turns during RISING/CLIMAX, every 10 otherwise.
-            from backend.app.core.agents.progression_agent import ProgressionAgent  # noqa: E402
-            _arc_g = state.get("arc_guidance") or {}
-            _arc_state = _arc_g.get("arc_state") or {} if isinstance(_arc_g, dict) else {}
-            _current_arc_stage = _arc_state.get("current_stage", "SETUP") if isinstance(_arc_state, dict) else "SETUP"
-            _progression_interval = 5 if _current_arc_stage in ("RISING", "CLIMAX") else 10
-            if (
-                run_maintenance_agents
-                and final_text
-                and intent != "META"
-                and next_turn_number % _progression_interval == 0
-            ):
-                _prog_player = state.get("player")
-                _prog_stats: dict = {}
-                _prog_psych: dict = {}
-                _prog_bg = ""
-                if isinstance(_prog_player, dict):
-                    _prog_stats = dict(_prog_player.get("stats") or {})
-                    _prog_psych = dict(_prog_player.get("psych_profile") or {})
-                    _prog_bg = str(_prog_player.get("background") or "")
-                elif _prog_player is not None:
-                    _prog_stats = dict(getattr(_prog_player, "stats", None) or {})
-                    _prog_psych = dict(getattr(_prog_player, "psych_profile", None) or {})
-                    _prog_bg = str(getattr(_prog_player, "background", None) or "")
-                _prog_narr = "\n".join((state.get("recent_narrative") or [])[-2:])[:600]
-                _prog_notif = authoritative_call(
-                    "ProgressionAgent",
-                    ProgressionAgent().advance,
-                    world_state=world_state,
-                    player_stats=_prog_stats,
-                    psych_profile=_prog_psych,
-                    background=_prog_bg,
-                    turn_number=next_turn_number,
-                    recent_narrative=_prog_narr,
-                    conn=conn,
-                    campaign_id=campaign_id,
-                    player_id=player_id,
-                )
-                if _prog_notif:
-                    _existing_warnings = list(state.get("warnings") or [])
-                    _existing_warnings.append(f"[PROGRESSION] {_prog_notif}")
-                    state["warnings"] = _existing_warnings
-
-            # PsychArchivistAgent — authoritative psychological arc update every ~5 turns.
-            from backend.app.core.agents.psych_archivist_agent import PsychArchivistAgent  # noqa: E402
-            if run_maintenance_agents and final_text and intent != "META":
-                _psych_player = state.get("player")
-                _psych_profile: dict = {}
-                _psych_bg = ""
-                if isinstance(_psych_player, dict):
-                    _psych_profile = dict(_psych_player.get("psych_profile") or {})
-                    _psych_bg = str(_psych_player.get("background") or "")
-                elif _psych_player is not None:
-                    _psych_profile = dict(
-                        getattr(_psych_player, "psych_profile", None) or {}
-                    )
-                    _psych_bg = str(getattr(_psych_player, "background", None) or "")
-                _psych_narr = "\n".join((state.get("recent_narrative") or [])[-2:])[:700]
-                _psych_events = [
-                    {
-                        "event_type": ensure_event(e).event_type,
-                        "payload": ensure_event(e).payload or {},
-                    }
-                    for e in events
-                ]
-                _arc_stage = (
-                    arc_guidance.get("arc_stage")
-                    if isinstance(arc_guidance, dict)
-                    else None
-                ) or "SETUP"
-                authoritative_call(
-                    "PsychArchivistAgent",
-                    PsychArchivistAgent().update,
-                    world_state=world_state,
-                    current_psych_profile=_psych_profile,
-                    background=_psych_bg,
-                    turn_number=next_turn_number,
-                    recent_narrative=_psych_narr,
-                    events=_psych_events,
-                    arc_stage=_arc_stage,
-                    conn=conn,
-                    campaign_id=campaign_id,
-                    player_id=player_id,
-                )
+            # V7.0: LLM maintenance agents (Memory, QuestWeaver, Progression, PsychArchivist)
+            # are now DEFERRED to run post-commit via deferred_agents.py.
+            # This reduces transaction lock time from 10-20s to ~2s on maintenance turns.
+            # Their world_state mutations are stored as patches and applied on next turn load.
+            _mark_segment("maintenance_agents_deferred")
 
             _touch_and_cap_npc_states(
                 world_state=world_state,
                 present_npcs=[n for n in (state.get("present_npcs") or []) if isinstance(n, dict)],
                 turn_number=next_turn_number,
             )
+            # Phase 4.1: Sync NPC states to normalized table.
+            try:
+                from backend.app.core.npc_state_store import sync_from_world_state as _sync_npc
+                _sync_npc(conn, campaign_id, world_state, next_turn_number)
+            except Exception as _npc_sync_err:
+                logger.warning("NPC state table sync failed (non-fatal): %s", _npc_sync_err)
+            # Phase 4.2: Sync quest entries to normalized table.
+            try:
+                from backend.app.core.quest_store import sync_from_world_state as _sync_quests
+                _sync_quests(conn, campaign_id, world_state, next_turn_number)
+            except Exception as _quest_sync_err:
+                logger.warning("Quest entry table sync failed (non-fatal): %s", _quest_sync_err)
 
             # V5.0: NPC persistent memory — authoritative (deterministic, not LLM).
             from backend.app.core.npc_memory import (  # noqa: E402
@@ -674,10 +569,21 @@ def make_commit_node():
             except Exception as _story_pos_err:
                 logger.warning("Story-position advance failed (non-fatal): %s", _story_pos_err)
 
+            _ws_json_str = json.dumps(world_state)
             conn.execute(
                 "UPDATE campaigns SET world_state_json = ? WHERE id = ?",
-                (json.dumps(world_state), campaign_id),
+                (_ws_json_str, campaign_id),
             )
+            # Phase 3.4: Store world_state snapshot for rewind capability.
+            try:
+                conn.execute(
+                    """INSERT OR REPLACE INTO turn_snapshots
+                       (campaign_id, turn_number, world_state_json)
+                       VALUES (?, ?, ?)""",
+                    (campaign_id, next_turn_number, _ws_json_str),
+                )
+            except Exception as _snap_err:
+                logger.warning("Snapshot write failed (non-fatal): %s", _snap_err)
             append_events(conn, campaign_id, next_turn_number, events, commit=False)
             apply_projection(conn, campaign_id, events, commit=False)
             for e in throttle_events:
@@ -705,6 +611,7 @@ def make_commit_node():
                 final_suggestions,
                 commit=False,
             )
+            _mark_segment("persist_events_projection_rendered_turn")
             # Episodic memory: store turn summary for long-term recall
             try:
                 from backend.app.core.episodic_memory import EpisodicMemory  # noqa: E402
@@ -795,6 +702,7 @@ def make_commit_node():
                 logger.debug("Codex discovery failed (non-fatal): %s", _codex_err)
 
             conn.commit()
+            _mark_segment("episodic_codex_and_db_commit")
         except Exception as e:
             conn.rollback()
             log_error_with_context(
@@ -806,6 +714,47 @@ def make_commit_node():
                 extra_context={"intent": intent, "user_input": user_input[:100] if user_input else None},
             )
             raise
+
+        # V7.0: Fire deferred maintenance agents AFTER commit (outside transaction).
+        # These LLM agents (Memory, QuestWeaver, Progression, PsychArchivist) run in
+        # a background thread and write their world_state patches for next-turn merge.
+        if run_maintenance_agents and final_text and intent != "META":
+            import copy as _copy
+            from backend.app.core.deferred_agents import run_deferred_maintenance  # noqa: E402
+            from backend.app.config import DEFAULT_DB_PATH as _db_path  # noqa: E402
+            _events_snapshot = [
+                {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
+                for e in events
+            ]
+            _state_snapshot = {
+                "final_text": final_text,
+                "intent": intent,
+                "present_npcs": state.get("present_npcs") or [],
+                "recent_narrative": state.get("recent_narrative") or [],
+                "player": state.get("player"),
+                "current_location": state.get("current_location"),
+            }
+            run_deferred_maintenance(
+                db_path=_db_path,
+                campaign_id=campaign_id,
+                player_id=player_id,
+                turn_number=next_turn_number,
+                world_state_snapshot=_copy.deepcopy(world_state),
+                state_snapshot=_state_snapshot,
+                events_snapshot=_events_snapshot,
+                arc_guidance=arc_guidance if isinstance(arc_guidance, dict) else {},
+            )
+            _mark_segment("deferred_agents_launched")
+
+        total_commit = round(time.perf_counter() - commit_started_at, 3)
+        commit_segments["total"] = total_commit
+        merged_agent_timings = dict(state.get("agent_timings") or {})
+        merged_agent_timings["commit"] = {
+            "turn_number": int(next_turn_number or 0),
+            "maintenance_turn": bool(run_maintenance_agents),
+            "segments": commit_segments,
+        }
+        state["agent_timings"] = merged_agent_timings
 
         refreshed = build_initial_gamestate(conn, campaign_id, player_id)
         refreshed_dict = refreshed.model_dump(mode="json")

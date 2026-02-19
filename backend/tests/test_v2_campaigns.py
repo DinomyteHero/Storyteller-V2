@@ -238,6 +238,16 @@ class TestV2OneTurn(unittest.TestCase):
         self.assertIn("validation_failures", body)
         self.assertIsInstance(body["validation_failures"], list)
 
+    def test_turn_rejects_oversized_user_input(self):
+        with patch("backend.app.api.v2_campaigns.MAX_USER_INPUT_CHARS", 10):
+            r = self.client.post(
+                f"/v2/campaigns/{self.campaign_id}/turn",
+                params={"player_id": self.player_id},
+                json={"user_input": "x" * 11},
+            )
+        self.assertEqual(r.status_code, 413, r.text)
+        self.assertIn("max allowed length", r.text)
+
     def test_list_campaigns_includes_resume_metadata(self):
         r = self.client.get("/v2/campaigns")
         self.assertEqual(r.status_code, 200, r.text)

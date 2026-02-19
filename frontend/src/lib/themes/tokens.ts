@@ -261,12 +261,50 @@ export const OLD_REPUBLIC: ThemeTokens = {
   panelPadding: '14px 16px',
 };
 
+export const HIGH_CONTRAST: ThemeTokens = {
+  name: 'High Contrast',
+  className: 'theme-high-contrast',
+  bgApp: '#000000',
+  bgPanel: '#0a0a0a',
+  bgInput: '#111111',
+  bgOverlay: '#000000',
+  borderPanel: '#ffffff',
+  borderAccent: '#ffff00',
+  borderSubtle: 'rgba(255, 255, 255, 0.5)',
+  textPrimary: '#ffffff',
+  textSecondary: '#e0e0e0',
+  textMuted: '#b0b0b0',
+  textHeading: '#ffff00',
+  accentPrimary: '#ffff00',
+  accentSecondary: '#00ccff',
+  accentGlow: 'rgba(255, 255, 0, 0.3)',
+  accentDanger: '#ff4444',
+  hudPillBg: '#111111',
+  hudPillBorder: '#ffffff',
+  hudScanlineOpacity: '0.0',
+  choiceHoverBorder: '#ffff00',
+  choiceHoverGlow: '0 0 8px rgba(255, 255, 0, 0.5)',
+  toneParagon: '#00ccff',
+  toneInvestigate: '#ffff00',
+  toneRenegade: '#ff4444',
+  toneNeutral: '#cccccc',
+  fontNarrative: '1.12rem',
+  fontBody: '1.0rem',
+  fontCaption: '0.9rem',
+  fontHeading: '1.2rem',
+  fontSmall: '0.85rem',
+  lineHeightNarrative: '1.75',
+  panelRadius: '4px',
+  panelPadding: '16px 18px',
+};
+
 export const THEMES: Record<string, ThemeTokens> = {
   'Old Republic': OLD_REPUBLIC,
   'Clean Dark': CLEAN_DARK,
   'Rebel Amber': REBEL_AMBER,
   'Alliance Blue': ALLIANCE_BLUE,
   'Holocron Archive': HOLOCRON_ARCHIVE,
+  'High Contrast': HIGH_CONTRAST,
 };
 
 export const DEFAULT_THEME = 'Old Republic';

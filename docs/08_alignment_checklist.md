@@ -1,12 +1,13 @@
 # 08 — Alignment Checklist
 
-Use this checklist to validate whether the implementation matches the intended Storyteller AI V5.0 design goals.
+Use this checklist to validate whether the implementation matches the intended Storyteller AI V7.0 design goals.
 
 Legend:
 - ✅ Implemented and verified in code
 - ⚠️ Partially implemented or has caveats
 - ❌ Not yet implemented
 - 🔄 Changed in V5.0
+- 🆕 Added in V7.0
 
 ---
 
@@ -35,7 +36,24 @@ Legend:
 | **PartyState canonical model** — multi-axis companion relationship | 🔄 ✅ | `party_state.py`. `world_state_json["party_state"]` is canonical. Legacy fields still written for compat. |
 | **Hub/Downtime system** — hub locations activate downtime mode | 🔄 ✅ | `hub_system.py`. Director gets hub-mode prompt injection. |
 | **QuestTracker** — deterministic quest state machine | 🔄 ✅ | `quest_tracker.py`. Called in Commit node. Supports entry conditions, stage conditions, resolution paths. |
-| **Truth Ledger** — persistent fact store | 🔄 ⚠️ | `truth_ledger.py` implemented. DB tables (`truth_facts`, `truth_events`) **not yet in migrations 0001-0021**. Pending migration 0022. |
+| **Truth Ledger** — persistent fact store | 🔄 ✅ | `truth_ledger.py` implemented. DB tables (`truth_facts`, `truth_events`) in migration 0019. `is_immutable` column added in migration 0023 for canon enforcement. |
+
+---
+
+## V7.0 Architecture
+
+| Feature | Status | Notes |
+| --------- | -------- | ------- |
+| **Shared pipeline executor** — streaming and non-streaming paths use same node sequence | 🆕 ✅ | `run_turn_stepwise()` in `graph.py` with narrator callback hook. Eliminates dual-path drift risk. |
+| **Deferred maintenance agents** — heavy agents run post-commit | 🆕 ✅ | MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist write to `pending_world_state_patches`. Applied on next turn load. |
+| **SQLite WAL mode** — concurrent read safety | 🆕 ✅ | `PRAGMA journal_mode=WAL` + `PRAGMA busy_timeout=5000` in connection factory. |
+| **Snapshot-based rewind** — undo to any previous turn | 🆕 ✅ | `turn_snapshots` table + `POST /campaigns/{id}/rewind?to_turn=N` endpoint. Atomic restore. |
+| **Canon event scheduler** — historical timeline enforcement | 🆕 ✅ | `canon_scheduler.py`. Era pack-defined events with immutable truth facts. Historical mode only. |
+| **Consequence propagation** — sandbox impact tiers | 🆕 ✅ | `consequence_propagator.py`. Ripple (1 turn) / wave (3 turns) / tsunami (5 turns) duration tracking. |
+| **Hybrid cloud routing** — quality-critical roles to cloud | 🆕 ✅ | Per-role `STORYTELLER_{ROLE}_PROVIDER` env vars. Director, Narrator, ChoiceCrafter, Mechanic route to Anthropic Claude; structural roles stay local. |
+| **Turn idempotency** — replay safety for turn endpoints | 🆕 ✅ | `turn_idempotency` table. `Idempotency-Key` header prevents duplicate commits. |
+| **Schema extraction** — NPC states and quest entries normalized | 🆕 ✅ | `npc_states` table (migration 0032) and `quest_entries` table (migration 0033) extracted from `world_state_json` blob. |
+| **Saga system** — linked campaigns | 🆕 ✅ | `sagas` table + `character_legacies` table. Campaigns grouped by player-owned saga with chapter ordering. |
 
 ---
 
@@ -93,6 +111,9 @@ Legend:
 | **Auth middleware** — bearer token or X-API-Key | ✅ | `main.py`. Disabled in `STORYTELLER_DEV_MODE=1`. |
 | **Rate limiting** — 10 turn requests/min per IP | ✅ | `main.py` rate limiter middleware. |
 | **CORS allowlist** | ✅ | `STORYTELLER_CORS_ALLOW_ORIGINS` env. |
+| **Rewind endpoint** — `POST /campaigns/{id}/rewind` | 🆕 ✅ | Atomic snapshot restore + turn data cleanup. Returns 400 if no snapshot. |
+| **Turn idempotency** — `Idempotency-Key` header | 🆕 ✅ | `turn_idempotency` table. Cached response returned on replay. |
+| **Input size guard** — `413` on oversized user_input | 🆕 ✅ | `STORYTELLER_MAX_USER_INPUT_CHARS` enforced on `/turn` and `/turn_stream`. |
 
 ---
 
@@ -125,3 +146,7 @@ Before merging changes that affect the pipeline, verify:
 - [ ] New agents that are optional return `state` unchanged on exception (non-fatal)
 - [ ] Era pack changes pass `python scripts/validate_era_packs.py`
 - [ ] Pipeline topology in `graph.py` matches `docs/02_turn_lifecycle.md`
+- [ ] Streaming and non-streaming paths use the same shared pipeline executor
+- [ ] Deferred agents write to `pending_world_state_patches`, not directly to world_state during commit
+- [ ] Turn snapshots written after every successful commit (rewind support)
+- [ ] Canon events checked only when `campaign_mode == "Historical"`

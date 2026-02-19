@@ -2,19 +2,22 @@
 
 Storyteller AI is a **local-first, setting-agnostic narrative RPG engine** powered by a FastAPI backend, SvelteKit frontend, and a LangGraph pipeline that orchestrates deterministic game systems with LLM-powered storytelling.
 
-**Current Engine Version: V5.0**
+**Current Engine Version: V7.0**
 
 **Project version 0.1.0**
 
-V5.0 is a major architecture revision introducing:
-- **Setting-agnostic design** — no hardcoded universe names in agents; all setting content comes from Era Packs and `SettingRules`
-- **Authoritative LLM choices** — `ChoiceCrafterAgent` (LLM-driven) replaces the deterministic SuggestionRefiner
-- **EraMoments system** — scripted narrative triggers defined in era packs
-- **Hub/Downtime system** — hub locations activate downtime mode with rest, intel, and companion options
-- **Quest Tracker** — deterministic quest state machine with stage-based completion
-- **Truth Ledger** — SQLite-backed persistent fact store with contradiction detection
-- **PartyState model** — multi-axis companion relationships (influence, trust, respect, fear)
-- **ContentRepository** — thread-safe singleton for era pack loading
+V7.0 builds on the V5.0 architecture with production-readiness improvements:
+- **Hybrid cloud LLM routing** — Quality-critical roles (Director, Narrator, ChoiceCrafter, Mechanic) can be routed to Anthropic Claude for faster, higher-quality responses; structural roles stay local
+- **Deferred maintenance agents** — MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist run post-commit via `pending_world_state_patches` table, reducing transaction hold time from 10-20s to <2s
+- **Shared pipeline executor** — Single `run_turn_stepwise()` eliminates streaming/non-streaming path drift
+- **SQLite WAL mode** — `journal_mode=WAL` + `busy_timeout=5000` for concurrent read safety
+- **Historical timeline scheduler** — Canon event system with era pack-defined events and immutable truth facts
+- **Sandbox consequence propagation** — Ripple/wave/tsunami impact tiers with multi-turn follow-on effects
+- **Rewind/undo capability** — Snapshot-based rewind via `turn_snapshots` table + REST endpoint
+- **Schema extraction** — NPC states and quest entries extracted from JSON blob to indexed tables
+- **Accessibility** — High Contrast (WCAG AAA) theme, font scaling (0.8x-1.5x), comprehensive aria labels
+- **Onboarding tutorial** — 5-step guided walkthrough for first-time players
+- **UX polish** — Post-stream "Weighing options" indicator, save confidence display, mechanic notes panel, resume auto-expand
 
 ---
 
@@ -49,15 +52,17 @@ The result is a narrative game that feels alive — persistent companions, facti
 | Frontend | SvelteKit 5.0 + TypeScript |
 | Content | YAML Era Packs (locations, NPCs, companions, quests, factions, moments) |
 
-### Pipeline Topology (V5.0)
+### Pipeline Topology (V7.0)
 
 ```
-router → mechanic → encounter → world_sim → companion_reaction → moments
-       → arc_planner → scene_frame → director → narrator → narrative_validator
-       → choice_crafter → commit → END
+router -> mechanic -> encounter -> world_sim -> companion_reaction -> moments
+       -> arc_planner -> scene_frame -> director -> narrator -> narrative_validator
+       -> choice_crafter -> commit -> END
 ```
 
-**3 LLM calls per normal turn** (Director + Narrator + ChoiceCrafter). 4 on WorldSim turns. 0 for mechanics, routing, and companion reactions.
+Baseline is **3 LLM calls per normal turn** (Director + Narrator + ChoiceCrafter), with additional periodic maintenance-agent calls in commit-heavy turns. Mechanics, routing, and companion reactions remain deterministic.
+
+Streaming (`/turn_stream`) and non-streaming (`/turn`) paths now share the same pre-narrator node sequence and use `choice_crafter` post-narrator.
 
 ---
 
@@ -197,6 +202,7 @@ DEV_CONTEXT_STATS=0            # Include RAG context stats in API response
 
 # Development
 STORYTELLER_DEV_MODE=1         # Disable auth (dev only)
+STORYTELLER_MAX_USER_INPUT_CHARS=4000  # Input limit enforced on /turn and /turn_stream
 ```
 
 Cloud LLM per role (optional):
@@ -263,17 +269,19 @@ curl http://localhost:8000/health/detail
 
 ---
 
-## Architecture Highlights (V5.0)
+## Architecture Highlights (V7.0)
 
 - **Event Sourcing** — Append-only `turn_events` + projections. State always reconstructable from event log.
 - **Single Transaction Boundary** — Only `CommitNode` calls `conn.commit()`. Pipeline failures before Commit leave no partial state.
+- **Deferred Maintenance Agents** — Heavy maintenance agents (Memory, QuestWeaver, Progression, PsychArchivist) run post-commit via `pending_world_state_patches`, keeping transaction hold time under 2 seconds.
+- **Shared Pipeline Executor** — `run_turn_stepwise()` with narrator callback hook ensures streaming and non-streaming paths execute identical node sequences.
+- **Hybrid Cloud Routing** — Quality-critical roles route to cloud (Anthropic Claude); structural roles stay local (Ollama). See `docs/HYBRID_CLOUD_SETUP.md`.
+- **Snapshot-Based Rewind** — `turn_snapshots` table stores world state per turn. `POST /campaigns/{id}/rewind?to_turn=N` atomically restores state.
+- **Canon Event Scheduler** — Historical mode campaigns enforce era-defined canon events via `canon_scheduler.py` with immutable truth facts.
+- **Consequence Propagation** — Sandbox impact tiers (ripple/wave/tsunami) create multi-turn follow-on consequences tracked in world state.
+- **Schema Extraction** — NPC states and quest entries extracted from `world_state_json` blob to indexed `npc_states` and `quest_entries` tables.
 - **Authoritative vs Non-Authoritative** — Narrator and ChoiceCrafter raise `AgentFailureError` on failure. All other agents degrade gracefully.
 - **Setting-Agnostic Agents** — All agents use `get_setting_rules(state)` / `SettingRules` — no hardcoded universe names.
-- **ContentRepository** — Thread-safe singleton (`threading.RLock`) keyed by `(setting_id, period_id)`. Loaded lazily, cached app-lifetime.
-- **ChoiceCrafter (authoritative)** — LLM-driven choice generation. No deterministic fallback. Rich context: scene frame, NPC utterance, arc, companion, consequence hints.
-- **EraMoments** — Once-only triggers defined in era YAML. Inject `narrative_beat` into Director instructions via `moments_node`.
-- **PartyState** — Canonical multi-axis companion model in `world_state_json["party_state"]`. Legacy fields still written for backward compatibility.
-- **QuestTracker** — Deterministic state machine. Supports entry conditions, stage completion conditions, and branching resolution paths.
 - **JSON Reliability** — LLM JSON calls use `ensure_json()` with 3-attempt repair + retry via `json_repair.py`.
 
 ---
@@ -284,14 +292,19 @@ curl http://localhost:8000/health/detail
 | ----- | -------- |
 | [`docs/00_overview.md`](docs/00_overview.md) | System overview, design principles, feature highlights, pipeline topology |
 | [`docs/01_repo_map.md`](docs/01_repo_map.md) | Complete directory structure, all modules, entry points |
-| [`docs/02_turn_lifecycle.md`](docs/02_turn_lifecycle.md) | Node-by-node pipeline walkthrough (V5.0) |
+| [`docs/02_turn_lifecycle.md`](docs/02_turn_lifecycle.md) | Node-by-node pipeline walkthrough |
 | [`docs/03_state_and_persistence.md`](docs/03_state_and_persistence.md) | Event sourcing, DB schema, world_state_json, migrations |
 | [`docs/04_agents_and_models.md`](docs/04_agents_and_models.md) | Agent roles, authoritative vs non-authoritative, LLM config, Pydantic models |
 | [`docs/05_rag_and_ingestion.md`](docs/05_rag_and_ingestion.md) | RAG pipeline, ingestion format support, style lanes |
 | [`docs/06_api_and_routes.md`](docs/06_api_and_routes.md) | REST API endpoints, request/response models, SSE streaming |
-| [`docs/07_known_issues_and_risks.md`](docs/07_known_issues_and_risks.md) | Active issues, resolved issues, risks |
-| [`docs/08_alignment_checklist.md`](docs/08_alignment_checklist.md) | V5.0 architectural invariants verification |
+| [`docs/07_known_issues_and_risks.md`](docs/07_known_issues_and_risks.md) | Active issues, resolved issues (V5.0 + V7.0), risks |
+| [`docs/08_alignment_checklist.md`](docs/08_alignment_checklist.md) | Architectural invariants verification (V5.0 + V7.0) |
 | [`docs/09_call_graph.md`](docs/09_call_graph.md) | Full turn call graph, per-turn vs conditional execution |
+| [`docs/10_agent_execution_matrix.md`](docs/10_agent_execution_matrix.md) | Agent execution frequency and classification matrix |
+| [`docs/HYBRID_CLOUD_SETUP.md`](docs/HYBRID_CLOUD_SETUP.md) | Hybrid local+cloud LLM configuration guide with cost estimates |
+| [`docs/PRODUCTION_EXECUTION_PLAN.md`](docs/PRODUCTION_EXECUTION_PLAN.md) | Production readiness execution plan |
+| [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | Pre-release verification checklist |
+| [`docs/OPERATIONS_RUNBOOK.md`](docs/OPERATIONS_RUNBOOK.md) | Incident playbooks and operational procedures |
 | [`QUICKSTART.md`](QUICKSTART.md) | Step-by-step setup, model pulls, first campaign |
 
 ---
@@ -299,3 +312,5 @@ curl http://localhost:8000/health/detail
 ## License
 
 See LICENSE file for details.
+
+

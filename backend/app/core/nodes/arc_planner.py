@@ -21,6 +21,8 @@ from backend.app.constants import (
     CONCLUSION_MIN_RESOLUTION_TURNS,
     CONCLUSION_RESOLVED_RATIO,
     HERO_JOURNEY_BEATS,
+    INTERLUDE_MAX_TURNS,
+    INTERLUDE_PACING_HINT,
     NPC_ARCHETYPES,
     SCALE_DOWN_SCORE_THRESHOLD,
     SCALE_ORDER,
@@ -374,13 +376,30 @@ def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
         stage_start_turn = turn_number
         logger.info("Arc transition: %s -> %s at turn %d", current_stage, arc_stage, turn_number)
 
+    # Phase 3.3: Between-Arc Interlude — decompression turns on RESOLUTION→SETUP.
+    # Interlude state is tracked in arc_state and overrides pacing for 1-2 turns.
+    interlude_active = False
+    interlude_turns_remaining = 0
+    _interlude_state = arc_state.get("interlude_remaining", 0) if isinstance(arc_state, dict) else 0
+    if transition_occurred and current_stage == "RESOLUTION" and arc_stage == "SETUP":
+        # Entering interlude at start of new arc
+        _interlude_state = INTERLUDE_MAX_TURNS
+        logger.info("Interlude started: %d turns of decompression", _interlude_state)
+    if _interlude_state > 0:
+        interlude_active = True
+        interlude_turns_remaining = _interlude_state - 1  # Will be persisted for next turn
+
     tension_level = _determine_tension(arc_stage, ledger)
+    if interlude_active:
+        tension_level = "CALM"
 
     # Priority threads: top 2 from open_threads
     open_threads = ledger.get("open_threads") or []
     priority_threads = open_threads[:2]
 
     pacing_hint = _PACING_HINTS.get(arc_stage, "")
+    if interlude_active:
+        pacing_hint = INTERLUDE_PACING_HINT
     suggested_weight = _WEIGHTS_BY_STAGE.get(
         arc_stage, {"SOCIAL": 0.33, "EXPLORE": 0.34, "COMMIT": 0.33}
     )
@@ -451,10 +470,13 @@ def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
         "archetype_hints": archetype_hints,
         # Era transition flag
         "era_transition_pending": era_transition_pending,
+        # Phase 3.3: Interlude state
+        "interlude_active": interlude_active,
         # Arc state for persistence (Commit node picks this up)
         "arc_state": {
             "current_stage": arc_stage,
             "stage_start_turn": stage_start_turn,
+            "interlude_remaining": interlude_turns_remaining,
         },
     }
 

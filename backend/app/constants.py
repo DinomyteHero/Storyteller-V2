@@ -112,6 +112,10 @@ MEMORY_CRYSTALLIZED_MAX = 25            # Permanent important moments per campai
 # Phase 3.1 long-campaign performance controls
 MAINTENANCE_AGENT_FREQUENCY = 5         # Run non-critical commit LLM agents every N turns
 NPC_STATES_MAX = 30                     # Cap world_state_json["npc_states"] to most-recently-seen NPCs
+COMMIT_GROUP2_MAX_WORKERS = 2           # Parallel worker count for MemoryAgent + QuestWeaverAgent
+PROGRESSION_INTERVAL_BASE = 10          # Progression cadence outside high-intensity arc stages
+PROGRESSION_INTERVAL_HIGH_INTENSITY = 5 # Progression cadence during RISING/CLIMAX
+QUEST_WEAVER_GENERATION_INTERVAL = 10   # Dynamic quest generation cadence (turn-based)
 
 # ── Mechanic delta clamps ─────────────────────────────────────────────
 # Maximum per-turn stat change from any single mechanic event.
@@ -290,6 +294,32 @@ SANDBOX_ARC_STAGE_ORDER: dict[str, int] = {
     "CLIMAX": 2,
     "RESOLUTION": 3,
 }
+
+# ── Historical Timeline Scheduler (Phase 3.1) ────────────────────────
+# How many turns ahead to look when surfacing upcoming canon events to Director.
+CANON_EVENT_LOOKAHEAD_TURNS = 3
+# Maximum canon events to trigger in a single turn (prevent event storms).
+CANON_EVENT_MAX_PER_TURN = 1
+
+# ── Consequence Propagation (Phase 3.2) ──────────────────────────────
+# Duration in turns that follow-on effects last per impact tier.
+CONSEQUENCE_DURATION: dict[str, int] = {
+    "ripple": 1,    # Local: fades after 1 turn
+    "wave": 3,      # Regional: echoes for 3 turns
+    "tsunami": 5,   # World-changing: reverberates for 5 turns
+}
+# Maximum active consequences per campaign (prevent unbounded growth).
+CONSEQUENCE_MAX_ACTIVE = 8
+
+# ── Between-Arc Interludes (Phase 3.3) ──────────────────────────────
+# Low-stakes decompression turns between RESOLUTION → SETUP transition.
+INTERLUDE_MIN_TURNS = 1
+INTERLUDE_MAX_TURNS = 2
+INTERLUDE_PACING_HINT = (
+    "INTERLUDE: Low stakes. Focus on character reflection, companion conversations, "
+    "camp scenes, shopping, or downtime activities. No combat or major plot advancement. "
+    "Let the player decompress before the next arc begins."
+)
 
 # Deep companion system (Phase 5)
 COMPANION_ARC_STRANGER_MAX = -10

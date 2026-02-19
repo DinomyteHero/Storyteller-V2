@@ -1,9 +1,8 @@
 /**
- * Campaign save/load — localStorage-backed campaign registry.
+ * Campaign local cache metadata (supplemental to backend list API).
  *
- * Since there's no backend "list campaigns" endpoint, we track
- * campaign IDs locally. Each entry stores just enough info to
- * display in a "Load Campaign" list and resume via the state endpoint.
+ * Backend `/v2/campaigns` is the source of truth for campaign existence and
+ * resume identifiers. This store only persists lightweight UI metadata.
  */
 import { browser } from '$app/environment';
 
@@ -22,6 +21,20 @@ export interface SavedCampaign {
   createdAt: string; // ISO timestamp
   lastPlayedAt: string; // ISO timestamp
   turnCount: number;
+}
+
+export interface CampaignCachePatch {
+  campaignId: string;
+  playerId?: string;
+  playerName?: string;
+  era?: string;
+  background?: string | null;
+  sagaId?: string | null;
+  sagaChapter?: number | null;
+  sagaTitle?: string | null;
+  createdAt?: string;
+  lastPlayedAt?: string;
+  turnCount?: number;
 }
 
 function loadRegistry(): SavedCampaign[] {
@@ -80,5 +93,51 @@ export function touchCampaign(campaignId: string, turnCount: number): void {
 /** Remove a campaign from the local registry. */
 export function removeCampaign(campaignId: string): void {
   const campaigns = loadRegistry().filter((c) => c.campaignId !== campaignId);
+  saveRegistry(campaigns);
+}
+
+/** Get campaigns keyed by campaignId for fast merge with backend API data. */
+export function getSavedCampaignMap(): Record<string, SavedCampaign> {
+  const out: Record<string, SavedCampaign> = {};
+  for (const c of loadRegistry()) out[c.campaignId] = c;
+  return out;
+}
+
+/** Upsert partial metadata for a campaign into local cache. */
+export function patchCampaignCache(patch: CampaignCachePatch): void {
+  const campaigns = loadRegistry();
+  const idx = campaigns.findIndex((c) => c.campaignId === patch.campaignId);
+  const now = new Date().toISOString();
+
+  const fallback: SavedCampaign = {
+    campaignId: patch.campaignId,
+    playerId: patch.playerId ?? '',
+    playerName: patch.playerName ?? 'Unknown',
+    era: patch.era ?? '',
+    background: patch.background ?? null,
+    sagaId: patch.sagaId ?? null,
+    sagaChapter: patch.sagaChapter ?? null,
+    sagaTitle: patch.sagaTitle ?? null,
+    createdAt: patch.createdAt ?? now,
+    lastPlayedAt: patch.lastPlayedAt ?? now,
+    turnCount: patch.turnCount ?? 0,
+  };
+
+  if (idx >= 0) {
+    campaigns[idx] = {
+      ...campaigns[idx],
+      ...patch,
+      campaignId: campaigns[idx].campaignId,
+      playerId: patch.playerId ?? campaigns[idx].playerId,
+      playerName: patch.playerName ?? campaigns[idx].playerName,
+      era: patch.era ?? campaigns[idx].era,
+      background: patch.background ?? campaigns[idx].background,
+      createdAt: patch.createdAt ?? campaigns[idx].createdAt,
+      lastPlayedAt: patch.lastPlayedAt ?? campaigns[idx].lastPlayedAt,
+      turnCount: patch.turnCount ?? campaigns[idx].turnCount,
+    };
+  } else {
+    campaigns.unshift(fallback);
+  }
   saveRegistry(campaigns);
 }

@@ -76,7 +76,7 @@ class GameState(BaseModel):
 
 ## SQLite Database Schema
 
-Schema is applied via `backend/app/db/migrate.py`, which runs all SQL files in `backend/app/db/migrations/` in order. **21 migrations** are currently applied.
+Schema is applied via `backend/app/db/migrate.py`, which runs all SQL files in `backend/app/db/migrations/` in order. **33 migrations** are currently applied (0001 through 0033).
 
 ### Core Tables
 
@@ -218,22 +218,169 @@ player_profiles (
 )
 ```
 
-#### `npc_states`
+#### `npc_states` (V7.0 — extracted from world_state_json)
 
-Deterministic NPC location and goal tracking.
+Normalized NPC state, indexed for per-NPC queries. Extracted from `world_state_json["npc_states"]` on each commit; hydrated back into world_state on load.
 
 ```sql
 npc_states (
-    campaign_id TEXT,
-    npc_id TEXT,
-    location_id TEXT,
-    planet_id TEXT,
-    mood TEXT,
-    active_goals_json TEXT,
-    last_seen_turn INTEGER,
-    PRIMARY KEY (campaign_id, npc_id)
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    campaign_id TEXT NOT NULL,
+    npc_id TEXT NOT NULL,
+    npc_name TEXT NOT NULL DEFAULT '',
+    state_json TEXT NOT NULL DEFAULT '{}',
+    last_seen_turn INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id),
+    UNIQUE (campaign_id, npc_id)
 )
 ```
+
+#### `quest_entries` (V7.0 — extracted from world_state_json)
+
+Normalized quest entries, indexed for per-quest queries. Extracted from `world_state_json["quest_log"]` on each commit.
+
+```sql
+quest_entries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    campaign_id TEXT NOT NULL,
+    quest_id TEXT NOT NULL,
+    quest_title TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'active',   -- active|completed|failed|abandoned
+    quest_json TEXT NOT NULL DEFAULT '{}',
+    created_turn INTEGER NOT NULL DEFAULT 0,
+    updated_turn INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id),
+    UNIQUE (campaign_id, quest_id)
+)
+```
+
+#### `turn_idempotency` (V7.0)
+
+Idempotency ledger for `/turn` and `/turn_stream` replay safety. Prevents duplicate commits when the same request is retried.
+
+```sql
+turn_idempotency (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    campaign_id TEXT NOT NULL,
+    player_id TEXT NOT NULL,
+    endpoint TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL,
+    request_hash TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'processing',  -- processing | completed
+    response_json TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(campaign_id, player_id, endpoint, idempotency_key)
+)
+```
+
+#### `pending_world_state_patches` (V7.0)
+
+Deferred maintenance agent output. Agents that run post-commit (MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist) write JSON patches here. Applied on next turn load via `apply_pending_patches()`.
+
+```sql
+pending_world_state_patches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    campaign_id TEXT NOT NULL,
+    turn_number INTEGER NOT NULL,
+    agent_name TEXT NOT NULL,
+    patch_json TEXT NOT NULL,
+    applied INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
+)
+```
+
+#### `canon_events` (V7.0)
+
+Tracks which canon events have been triggered in a campaign (Historical mode only). Static event definitions live in `data/static/era_packs/{era_id}/canon_events.json`.
+
+```sql
+canon_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    campaign_id TEXT NOT NULL,
+    era_id TEXT NOT NULL,
+    event_id TEXT NOT NULL,
+    triggered_at_turn INTEGER NOT NULL,
+    arc_stage TEXT NOT NULL,           -- SETUP|RISING|CLIMAX|RESOLUTION
+    event_text TEXT NOT NULL,
+    is_immutable INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id),
+    UNIQUE (campaign_id, event_id)
+)
+```
+
+#### `turn_snapshots` (V7.0)
+
+World state snapshots per turn for rewind/undo capability. Stored after each successful commit.
+
+```sql
+turn_snapshots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    campaign_id TEXT NOT NULL,
+    turn_number INTEGER NOT NULL,
+    world_state_json TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id),
+    UNIQUE (campaign_id, turn_number)
+)
+```
+
+#### `crystallized_memories` (V7.0)
+
+High-signal memories that remain retrievable regardless of compression in long-running campaigns.
+
+```sql
+crystallized_memories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    campaign_id TEXT NOT NULL,
+    turn_number INTEGER NOT NULL,
+    memory_type TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    full_text TEXT,
+    npcs_involved TEXT DEFAULT '[]',
+    location TEXT,
+    emotional_tag TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
+)
+```
+
+#### `character_legacies` (V7.0)
+
+Structured character legacy snapshots for saga continuity across linked campaigns.
+
+```sql
+character_legacies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id TEXT NOT NULL,
+    campaign_id TEXT NOT NULL,
+    saga_id TEXT,
+    legacy_json TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
+)
+```
+
+#### `sagas` (V7.0)
+
+Saga hierarchy for linked campaigns. Campaigns can be grouped into player-owned sagas.
+
+```sql
+sagas (
+    id TEXT PRIMARY KEY,
+    player_id TEXT NOT NULL,
+    universe_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+)
+```
+
+Adds `saga_id` and `saga_chapter` columns to the `campaigns` table.
 
 #### Knowledge Graph Tables (Optional)
 
@@ -478,3 +625,14 @@ Called by the Commit node via `process_quests_for_turn(world_state, era, turn_nu
 | 0019 | TurnContract schema additions |
 | 0020 | Campaign turn versioning + world_time_minutes |
 | 0021 | episodic_memories.summary_embedding column |
+| 0022 | campaigns.campaign_bible_json column (CampaignBible output) |
+| 0023 | truth_facts.is_immutable column (historical canon enforcement) |
+| 0025 | crystallized_memories table (high-signal memory preservation) |
+| 0026 | character_legacies table (saga continuity snapshots) |
+| 0027 | sagas table + campaigns.saga_id/saga_chapter columns |
+| 0028 | turn_idempotency table (replay safety for /turn endpoints) |
+| 0029 | pending_world_state_patches table (deferred maintenance agents) |
+| 0030 | canon_events table (historical timeline event triggers) |
+| 0031 | turn_snapshots table (world state snapshots for rewind/undo) |
+| 0032 | npc_states table — normalized from world_state_json (V7.0 schema extraction) |
+| 0033 | quest_entries table — normalized from world_state_json (V7.0 schema extraction) |

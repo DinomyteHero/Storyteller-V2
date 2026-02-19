@@ -1,6 +1,8 @@
-"""App config: per-role model selection (Ollama-only), DB/table constants, env overrides.
+"""App config: per-role model selection, hybrid cloud presets, DB/table constants, env overrides.
 
 Specialist swapping: only one local model loaded per agent call to avoid >12GB VRAM.
+Hybrid cloud: quality-critical roles (director, narrator, choice_crafter, mechanic) can be
+routed to cloud (Anthropic Claude) via STORYTELLER_{ROLE}_PROVIDER env vars for lower latency.
 Per-role env overrides: STORYTELLER_{ROLE}_PROVIDER, STORYTELLER_{ROLE}_MODEL,
 STORYTELLER_{ROLE}_BASE_URL (fallback: {ROLE}_*).
 """
@@ -116,6 +118,34 @@ def _model_config() -> dict[str, dict[str, str]]:
 
 
 MODEL_CONFIG = _model_config()
+
+# Hybrid cloud presets: recommended per-role provider configs for routing
+# quality-critical roles to cloud while keeping structural roles on local Ollama.
+# Cost estimates assume Anthropic Claude Sonnet pricing (~$3/$15 per 1M in/out tokens).
+# See docs/HYBRID_CLOUD_SETUP.md for full setup guide.
+HYBRID_CLOUD_PRESETS: dict[str, dict[str, dict[str, str]]] = {
+    # Budget: only Narrator on cloud (~$0.012/turn)
+    "budget": {
+        "narrator": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+    },
+    # Balanced: quality-critical quartet on cloud (~$0.022/turn)
+    "balanced": {
+        "director": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+        "narrator": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+        "choice_crafter": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+        "mechanic": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+    },
+    # Quality: all narrative + strategic roles on cloud (~$0.045/turn)
+    "quality": {
+        "director": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+        "narrator": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+        "choice_crafter": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+        "mechanic": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+        "companion_system": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+        "bible": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+        "prologue": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+    },
+}
 
 # Hardware profile presets: suggested model assignments by GPU tier.
 # Only one model is loaded at a time (specialist swapping), so the

@@ -1,0 +1,121 @@
+{
+  "era_id": "REBELLION",
+  "schema_version": 1,
+  "description": "Historical canon events for the Age of Rebellion (0-4 ABY). These events fire at specific arc stages to anchor the campaign in Star Wars Legends timeline.",
+  "events": [
+    {
+      "id": "rebellion_yavin_aftermath",
+      "title": "Aftermath of the Battle of Yavin",
+      "arc_stage": "SETUP",
+      "trigger_turn_min": 1,
+      "trigger_turn_max": 5,
+      "event_text": "Word spreads across the galaxy: the Death Star has been destroyed at Yavin. The Empire tightens its grip in response, launching crackdowns on suspected Rebel sympathizers. Imperial patrols double across Outer Rim hyperspace lanes.",
+      "immutable_facts": [
+        "The Death Star was destroyed at the Battle of Yavin",
+        "The Empire is conducting widespread crackdowns on Rebel cells"
+      ],
+      "director_hint": "Reference Imperial paranoia and tightened security. News of Yavin should feel like a distant spark of hope mixed with fear of reprisal.",
+      "campaign_mode": "historical"
+    },
+    {
+      "id": "rebellion_imperial_retaliation",
+      "title": "Imperial Retaliation Sweeps",
+      "arc_stage": "SETUP",
+      "trigger_turn_min": 4,
+      "trigger_turn_max": 8,
+      "event_text": "Imperial Intelligence launches Operation Ringbreaker — systematic sweeps targeting known Rebel supply lines and recruitment cells. Several Alliance safe houses go dark overnight.",
+      "immutable_facts": [
+        "Imperial Intelligence is running Operation Ringbreaker against Rebel cells"
+      ],
+      "director_hint": "The player should feel the Empire's reach closing in. Safe contacts may have gone silent. Supply runs are riskier.",
+      "campaign_mode": "historical"
+    },
+    {
+      "id": "rebellion_echo_base_established",
+      "title": "Echo Base Established on Hoth",
+      "arc_stage": "RISING",
+      "trigger_turn_min": 8,
+      "trigger_turn_max": 15,
+      "event_text": "The Alliance relocates its main base to the ice planet Hoth. Rumors of a hidden Rebel command center reach the player through trusted contacts. The Rebellion is regrouping after Yavin, but Imperial probe droids are everywhere.",
+      "immutable_facts": [
+        "The Alliance has established Echo Base on Hoth",
+        "Imperial probe droids are searching for the Rebel base"
+      ],
+      "director_hint": "The Rebellion is in a dangerous holding pattern — growing stronger but not yet ready for a direct confrontation. Logistics, supply runs, and intelligence gathering are critical.",
+      "campaign_mode": "historical"
+    },
+    {
+      "id": "rebellion_hoth_battle",
+      "title": "The Battle of Hoth",
+      "arc_stage": "RISING",
+      "trigger_turn_min": 12,
+      "trigger_turn_max": 20,
+      "event_text": "The Empire discovers Echo Base. AT-AT walkers storm the Rebel defenses on Hoth. The Alliance is routed — transports flee under ion cannon cover while Rogue Squadron buys time. The Rebellion scatters across the galaxy.",
+      "immutable_facts": [
+        "Echo Base on Hoth has been discovered and overrun by the Empire",
+        "The Alliance fleet has scattered after the Battle of Hoth"
+      ],
+      "director_hint": "This is a dark moment. Allies are scattered, communications are compromised, and the Empire seems unstoppable. The player should feel the desperation of a fragmented Rebellion.",
+      "campaign_mode": "historical"
+    },
+    {
+      "id": "rebellion_cloud_city_betrayal",
+      "title": "Betrayal at Cloud City",
+      "arc_stage": "CLIMAX",
+      "trigger_turn_min": 16,
+      "trigger_turn_max": 25,
+      "event_text": "Rumors reach the underworld: Darth Vader laid a trap at Cloud City on Bespin. Han Solo has been frozen in carbonite and handed to the bounty hunter Boba Fett. Luke Skywalker barely escaped after a devastating confrontation with Vader.",
+      "immutable_facts": [
+        "Han Solo has been captured and frozen in carbonite at Cloud City",
+        "Luke Skywalker confronted Darth Vader at Cloud City and was defeated"
+      ],
+      "director_hint": "The stakes are personal now. Heroes can fall. The Empire's power feels absolute. Channel this into the player's own story — their allies and objectives are similarly at risk.",
+      "campaign_mode": "historical"
+    },
+    {
+      "id": "rebellion_jabba_rescue",
+      "title": "Rescue at Jabba's Palace",
+      "arc_stage": "CLIMAX",
+      "trigger_turn_min": 20,
+      "trigger_turn_max": 30,
+      "event_text": "Word spreads through smuggler networks: Han Solo has been rescued from Jabba the Hutt's palace on Tatooine. Jabba is dead. Luke Skywalker — now calling himself a Jedi Knight — orchestrated the rescue.",
+      "immutable_facts": [
+        "Han Solo has been rescued from Jabba the Hutt",
+        "Jabba the Hutt is dead",
+        "Luke Skywalker has declared himself a Jedi Knight"
+      ],
+      "director_hint": "Hope is returning. A Jedi walks the galaxy again. The final confrontation with the Empire feels inevitable. The player should sense momentum shifting.",
+      "campaign_mode": "historical"
+    },
+    {
+      "id": "rebellion_endor_briefing",
+      "title": "The Endor Briefing",
+      "arc_stage": "CLIMAX",
+      "trigger_turn_min": 24,
+      "trigger_turn_max": 35,
+      "event_text": "The Alliance has obtained intelligence on a second, even larger Death Star being constructed above the forest moon of Endor. Mon Mothma calls the entire fleet together for an all-or-nothing assault. 'Many Bothans died to bring us this information.'",
+      "immutable_facts": [
+        "A second Death Star is under construction above Endor",
+        "The Alliance is preparing an all-out assault on the second Death Star"
+      ],
+      "director_hint": "The endgame approaches. Everything the player has built leads to this moment. Weave their personal story into the larger galactic conflict.",
+      "campaign_mode": "historical"
+    },
+    {
+      "id": "rebellion_endor_victory",
+      "title": "The Battle of Endor",
+      "arc_stage": "RESOLUTION",
+      "trigger_turn_min": 28,
+      "trigger_turn_max": 999,
+      "event_text": "The second Death Star has been destroyed. Emperor Palpatine is dead. Darth Vader — redeemed in his final moments — is gone. Across the galaxy, celebrations erupt as the news spreads. The Empire's grip is broken. A New Republic rises from the ashes of rebellion.",
+      "immutable_facts": [
+        "The second Death Star has been destroyed at the Battle of Endor",
+        "Emperor Palpatine is dead",
+        "Darth Vader has been redeemed and is dead",
+        "The Galactic Empire's central command structure has collapsed"
+      ],
+      "director_hint": "Victory and its aftermath. The player's personal arc should resolve against the backdrop of galactic liberation. What does freedom mean after years of fighting?",
+      "campaign_mode": "historical"
+    }
+  ]
+}

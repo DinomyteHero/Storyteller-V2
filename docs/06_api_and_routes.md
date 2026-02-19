@@ -60,6 +60,8 @@
 ### Campaign progression helpers
 
 - `POST /v2/campaigns/{campaign_id}/complete`
+- `POST /v2/campaigns/{campaign_id}/rewind?to_turn=N` — Rewind campaign to turn N. Restores world state from `turn_snapshots` and deletes all turn data after turn N. Returns 400 if no snapshot exists for the target turn.
+- `POST /v2/campaigns/{campaign_id}/prologue/complete` — Mark prologue complete and build origin_context manifest
 
 ## Starship Endpoints
 
@@ -81,3 +83,24 @@
 - campaign tuning (`campaign_mode`, `campaign_scale`, `difficulty`)
 - optional background/CYOA selections (`background_id`, `background_answers`)
 - optional cross-campaign profile linking (`player_profile_id`)
+
+## V7.0 Request/Response Notes
+
+### Idempotency
+
+Turn endpoints (`/turn`, `/turn_stream`) support an `Idempotency-Key` header. If the same key is resubmitted, the server returns the cached response from `turn_idempotency` without re-executing the pipeline. Status transitions: `processing` → `completed`.
+
+### Rewind
+
+`POST /v2/campaigns/{campaign_id}/rewind?to_turn=N` atomically:
+1. Restores `world_state_json` from `turn_snapshots` at turn N
+2. Deletes `turn_events`, `rendered_turns`, `turn_snapshots`, and related data for turns > N
+3. Resets `campaigns.turn_number` to N
+
+Returns 400 if no snapshot exists for the target turn (only turns after V7.0 deployment have snapshots).
+
+### Turn Response Additions
+
+`TurnResponse` (in `campaign_models.py`) includes:
+- `mechanic_notes` — Dice result, difficulty, success/failure, and tone from ResolutionAgent (when an action resolves)
+- `agent_timings` — Per-agent execution timings (when `DEV_CONTEXT_STATS=1`)

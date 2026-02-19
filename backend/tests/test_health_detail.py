@@ -16,3 +16,6 @@ def test_health_detail_shape():
     assert 'vector_db_path' in checks
     assert 'era_packs' in checks
     assert 'llm_roles' in checks
+    assert 'db_mode' in checks
+    assert 'migrations' in checks
+    assert 'lancedb_tables' in checks

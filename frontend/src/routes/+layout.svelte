@@ -16,6 +16,9 @@
     return themeToCssVars(theme);
   });
 
+  // Phase 5.1: Font scale CSS variable
+  let fontScaleStyle = $derived(`font-size: ${($ui.fontScale ?? 1.0) * 100}%;`);
+
   // Track route for page transitions - key changes re-trigger entrance animation
   let routeKey = $derived($page.url.pathname);
   let healthPoll: ReturnType<typeof setInterval> | null = null;
@@ -81,8 +84,8 @@
   <title>Storyteller AI</title>
 </svelte:head>
 
-<!-- Inject theme CSS variables on body via a global style tag -->
-{@html `<style>body { ${themeStyle} }</style>`}
+<!-- Inject theme CSS variables and font scale on body via a global style tag -->
+{@html `<style>body { ${themeStyle} } html { ${fontScaleStyle} }</style>`}
 
 <div class="app-shell">
   {#if $ollamaStatus.status === 'down'}

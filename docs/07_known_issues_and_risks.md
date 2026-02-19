@@ -2,7 +2,7 @@
 
 This is a **living** list of code-evidenced issues and risks in the current repo state.
 
-Last updated: V5.0 architecture revision.
+Last updated: V7.0 architecture revision.
 
 ---
 
@@ -18,46 +18,51 @@ Last updated: V5.0 architecture revision.
 | No hub/downtime mode | ✅ Resolved | `hub_system.py` added; Director gets hub context injection (V5.0) |
 | Content loading not thread-safe | ✅ Resolved | `ContentRepository` singleton with `threading.RLock` (V5.0) |
 | Truth Ledger tables (truth_facts, truth_events) missing from migrations | Resolved | Tables exist in `backend/app/db/migrations/0019_turn_contract_passages.sql` |
+| Streaming path diverged from non-stream path for moments/choice generation | ✅ Resolved | `/turn_stream` now includes `moments_node` in pre-narrator pipeline and uses `choice_crafter` post-narrator |
+| Campaign resume list relied on local-only storage | ✅ Resolved | Frontend load flow is backend-first via `/v2/campaigns`; local storage is cache metadata only |
+
+## Resolved in V7.0
+
+| Issue | Status | Resolution |
+| ------- | -------- | ----------- |
+| Commit-path latency variability on heavy maintenance turns | ✅ Resolved | Deferred agents pattern (`pending_world_state_patches` table) moves MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivistAgent out of the critical transaction path |
+| world_state_json is a single large JSON blob (partial) | ✅ Mitigated | NPC states extracted to `npc_states` table (migration 0032). Quest entries extracted to `quest_entries` table (migration 0033). Remaining fields still in blob but these were the largest growth areas |
+| Streaming/non-streaming pipeline drift risk | ✅ Resolved | Shared pipeline executor (`run_turn_stepwise()` in graph.py) with narrator callback hook eliminates dual-path maintenance burden |
+| SQLite WAL mode not enabled | ✅ Resolved | `PRAGMA journal_mode=WAL` and `PRAGMA busy_timeout=5000` added to connection factory |
+| No undo/rewind capability | ✅ Resolved | Snapshot-based rewind via `turn_snapshots` table + `POST /campaigns/{id}/rewind` endpoint |
+| No historical timeline enforcement | ✅ Resolved | Canon event scheduler (`canon_scheduler.py`) with era packs + immutable truth facts |
+| No consequence propagation for sandbox actions | ✅ Resolved | `consequence_propagator.py` with ripple/wave/tsunami duration tracking |
+| Post-stream UI dead gap (no indicator between narrator finish and choices ready) | ✅ Resolved | `isProcessingChoices` store + "Weighing your options..." indicator |
+| No save confirmation feedback | ✅ Resolved | Save toast + persistent save confidence strip in HUD |
+| Mechanic output invisible to players | ✅ Resolved | `MechanicNotes` component with collapsible panel showing dice/difficulty/outcome |
 
 ---
 
 ## Active Issues
 
-### 1. ChoiceCrafterNode: No graceful degradation on authoritative failure
+### 1. Authoritative agent failures still require user retry
 
 **Severity:** Medium
 
 **Evidence:** `backend/app/core/nodes/choice_crafter_node.py`
 
-When `ChoiceCrafterAgent` fails after retry, `AgentFailureError` is raised and caught by `run_turn()`. The turn returns `final_text` with an error message and **empty `suggested_actions`**. The player sees a `[SYSTEM]` error and cannot continue without retrying the turn.
+When authoritative agents fail (`Narrator`/`ChoiceCrafter`), the turn is aborted pre-commit and the UI receives failure markers. The play UI now surfaces an explicit **Retry Last Action** affordance, but there is still no deterministic fallback narrative/choice payload.
 
-**Risk:** If the ChoiceCrafter LLM endpoint is unavailable (Ollama down), every turn fails — even if the Narrator succeeded.
+**Risk:** If required LLM endpoints are unavailable (for example, Ollama down), turn progression pauses until service recovery.
 
-**Workaround:** None at runtime. Fix: Add a minimal deterministic fallback (4 generic action stubs) when `AgentFailureError` is caught, rather than returning empty choices.
-
----
-
-### 2. apply_projection() is O(N) over full event history
-
-**Severity:** Medium (performance)
-
-**Evidence:** `backend/app/core/state_reducer.py` — replays ALL events from the beginning of the campaign on every turn.
-
-**Risk:** For long campaigns (1000+ turns), projection time grows linearly. This blocks the turn response.
-
-**Workaround:** The system works correctly for campaigns up to ~200 turns. For longer campaigns, a snapshot-based projection (periodic checkpoint + replay from checkpoint) would be needed.
+**Workaround:** Retry from UI after service recovers.
 
 ---
 
-### 3. world_state_json is a single large JSON blob
+### ~~2. Commit-path latency variability on heavy maintenance turns~~ RESOLVED V7.0
 
-**Severity:** Low-Medium
+Deferred agents pattern moves heavy maintenance agents out of the critical transaction. See "Resolved in V7.0" table above.
 
-**Evidence:** `backend/app/db/migrations/0001_init.sql` — `world_state_json TEXT`
+---
 
-**Risk:** Concurrent writes to `world_state_json` are not safe in multi-threaded scenarios (though FastAPI/uvicorn workers serialize requests per campaign). Any partial failure during Commit that writes JSON but doesn't commit the transaction could leave the column out of sync. SQLite's WAL mode mitigates data loss risk.
+### ~~3. world_state_json is a single large JSON blob~~ MITIGATED V7.0
 
-**Mitigation:** Single transaction boundary in Commit node prevents partial writes. Foreign key constraints and WAL mode enabled.
+NPC states and quest entries extracted to normalized tables (migrations 0032, 0033). Remaining fields still in blob. WAL mode enabled. See "Resolved in V7.0" table above.
 
 ---
 
@@ -160,4 +165,6 @@ Narrator and ChoiceCrafter use JSON-mode LLM calls. Malformed JSON from the LLM 
 Not all agents have been fully migrated to use `get_setting_rules(state)`. Some prompt templates may still contain Star Wars-specific references.
 
 **Mitigation:** V5.0 makes this the default; future agents must use `SettingRules`. Existing agents are progressively being updated.
+
+
 

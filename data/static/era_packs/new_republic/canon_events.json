@@ -1,0 +1,63 @@
+{
+  "era_id": "NEW_REPUBLIC",
+  "schema_version": 1,
+  "description": "Historical canon events for the New Republic era (5-19 ABY).",
+  "events": [
+    {
+      "id": "nr_concordance",
+      "title": "The Galactic Concordance",
+      "arc_stage": "SETUP",
+      "trigger_turn_min": 1,
+      "trigger_turn_max": 6,
+      "event_text": "The Galactic Concordance has been signed on Chandrila. The Empire formally surrenders. The New Republic begins the monumental task of governing a fractured galaxy, but Imperial Remnant fleets refuse to lay down arms.",
+      "immutable_facts": [
+        "The Galactic Concordance has been signed, ending the Galactic Civil War",
+        "Imperial Remnant forces refuse to honor the surrender"
+      ],
+      "director_hint": "Peace is fragile. The New Republic struggles with bureaucracy while warlords carve out fiefdoms. The player exists in this power vacuum.",
+      "campaign_mode": "historical"
+    },
+    {
+      "id": "nr_thrawn_campaign",
+      "title": "Grand Admiral Thrawn's Campaign",
+      "arc_stage": "RISING",
+      "trigger_turn_min": 8,
+      "trigger_turn_max": 18,
+      "event_text": "Grand Admiral Thrawn — the Empire's most brilliant tactician — has emerged from the Unknown Regions with a fleet. Using art, psychology, and lost Clone Wars-era technology, he strikes at the New Republic's weakest points. The galaxy holds its breath.",
+      "immutable_facts": [
+        "Grand Admiral Thrawn is leading a military campaign against the New Republic",
+        "Thrawn is using Mount Tantiss cloning technology to rebuild Imperial forces"
+      ],
+      "director_hint": "Thrawn represents an existential threat. His campaign should be felt as distant thunder — supply disruptions, nervous contacts, military mobilizations that pull resources away from the player's region.",
+      "campaign_mode": "historical"
+    },
+    {
+      "id": "nr_jedi_academy",
+      "title": "Luke's Jedi Academy on Yavin 4",
+      "arc_stage": "RISING",
+      "trigger_turn_min": 12,
+      "trigger_turn_max": 22,
+      "event_text": "Luke Skywalker has founded a Jedi Academy on Yavin 4, training a new generation of Jedi Knights. Rumors of Force-sensitive students arriving from across the galaxy spark both hope and fear. The Jedi are returning.",
+      "immutable_facts": [
+        "Luke Skywalker has founded a Jedi Academy on Yavin 4",
+        "A new generation of Jedi is being trained"
+      ],
+      "director_hint": "The return of the Jedi is a cultural earthquake. Some welcome it; others fear another Order 66. Force-sensitive characters may feel a pull toward Yavin 4.",
+      "campaign_mode": "historical"
+    },
+    {
+      "id": "nr_thrawn_defeated",
+      "title": "The Fall of Grand Admiral Thrawn",
+      "arc_stage": "CLIMAX",
+      "trigger_turn_min": 18,
+      "trigger_turn_max": 30,
+      "event_text": "Grand Admiral Thrawn has been assassinated by his own bodyguard, the Noghri Rukh, during the Battle of Bilbringi. His fleet collapses without his genius. The New Republic's greatest military threat is eliminated, but the scars of his campaign remain.",
+      "immutable_facts": [
+        "Grand Admiral Thrawn has been killed at the Battle of Bilbringi",
+        "The Imperial Remnant fleet is in disarray after Thrawn's death"
+      ],
+      "director_hint": "A weight lifts, but the galaxy is changed. Thrawn exposed how fragile the New Republic really is. Use this to drive the player's personal resolution.",
+      "campaign_mode": "historical"
+    }
+  ]
+}
