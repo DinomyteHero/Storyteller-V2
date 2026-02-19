@@ -368,6 +368,20 @@ def build_personality_block(npc: dict[str, Any]) -> str:
     if motivation:
         lines.append(f"Drives: {motivation}")
 
+    # Deep voice profile (NpcVoice — canon characters and era pack NPCs with rich voice data)
+    voice_profile = npc.get("voice")
+    if isinstance(voice_profile, dict):
+        if voice_profile.get("belief"):
+            lines.append(f"Core belief: {voice_profile['belief']}")
+        if voice_profile.get("wound"):
+            lines.append(f"Formative wound: {voice_profile['wound']}")
+        if voice_profile.get("rhetorical_style"):
+            lines.append(f"Rhetorical style: {voice_profile['rhetorical_style']}")
+        if voice_profile.get("tell"):
+            lines.append(f"Tell/mannerism: {voice_profile['tell']}")
+        if voice_profile.get("taboo"):
+            lines.append(f"Taboo (never discusses): {voice_profile['taboo']}")
+
     return "\n".join(lines)
 
 
@@ -440,6 +454,24 @@ def build_scene_personality_context(
 
                 if fear >= 70:
                     block += "\nTension: Speaks cautiously, watching for betrayal or sudden violence."
+
+            # Canon character extended context (knowledge boundaries, scene hooks, off-limits)
+            if npc.get("canon_proximity") == "extended":
+                kb = npc.get("knowledge_boundary")
+                if kb:
+                    block += (
+                        f"\nKNOWLEDGE BOUNDARY: This character's knowledge stops at {kb}. "
+                        "Do NOT reference events, revelations, or facts from after this point."
+                    )
+                exclusions = npc.get("knowledge_exclusions") or []
+                if exclusions:
+                    block += "\nTHIS CHARACTER DOES NOT KNOW: " + "; ".join(str(e) for e in exclusions)
+                hooks = npc.get("scene_hooks") or []
+                if hooks:
+                    block += "\nScene hooks (appropriate interactions): " + "; ".join(str(h) for h in hooks)
+                limits = npc.get("off_limits") or []
+                if limits:
+                    block += "\nOFF-LIMITS (hard constraints): " + "; ".join(str(l) for l in limits)
 
             blocks.append(block)
 

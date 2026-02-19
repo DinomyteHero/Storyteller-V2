@@ -46,6 +46,21 @@ def _detect_exclusion_trigger(state: dict[str, Any], exclusion_events: list[str]
     return None
 
 
+def _inject_extended_fields(npc: dict[str, Any], rule: Any) -> None:
+    """Copy voice, personality, and knowledge data from a canon rule to an NPC dict."""
+    voice = getattr(rule, "voice", None)
+    if voice:
+        npc["voice"] = voice.model_dump(mode="json") if hasattr(voice, "model_dump") else voice
+    for field in (
+        "knowledge_boundary", "knowledge_exclusions", "scene_hooks",
+        "off_limits", "archetype", "voice_tags", "traits",
+        "motivation", "faction_id", "character_voice_id",
+    ):
+        val = getattr(rule, field, None)
+        if val:
+            npc[field] = val
+
+
 def apply_canon_proximity_rules(
     *,
     state: dict[str, Any],
@@ -76,12 +91,17 @@ def apply_canon_proximity_rules(
         if rule_locs and loc and loc not in rule_locs:
             continue
 
+        # Exclusion events take priority over all proximity tiers (including extended).
         trigger = _detect_exclusion_trigger(state, exclusion_events)
-        if proximity == "exclusion" and trigger:
+        if trigger:
             present = [npc for npc in present if str(npc.get("name", "")).strip().lower() != name.lower()]
             msg = f"[CANON] {name} is canon-protected during '{trigger}'. You are redirected away from that event."
             warnings.append(msg)
             bg_figs.append(f"Your orders pull you away from {trigger} before you can intervene directly.")
+            continue
+
+        if proximity == "exclusion":
+            # Exclusion without active trigger — no-op (character not forced out).
             continue
 
         if proximity == "cameo":
@@ -113,6 +133,35 @@ def apply_canon_proximity_rules(
                     }
                 )
             warnings.append(f"[CANON] {name} may appear, but their established fate cannot be altered.")
+            continue
+
+        if proximity == "extended":
+            found = False
+            for npc in present:
+                if str(npc.get("name", "")).strip().lower() == name.lower():
+                    npc["canon_protected"] = True
+                    npc["canon_proximity"] = "extended"
+                    _inject_extended_fields(npc, rule)
+                    found = True
+                    break
+            if not found:
+                extended_npc: dict[str, Any] = {
+                    "id": f"canon-{_slugify_name(name)}",
+                    "name": name,
+                    "role": getattr(rule, "role", None) or "Canon Figure",
+                    "relationship_score": 0,
+                    "location_id": loc or None,
+                    "has_secret_agenda": False,
+                    "canon_protected": True,
+                    "canon_proximity": "extended",
+                }
+                _inject_extended_fields(extended_npc, rule)
+                present.append(extended_npc)
+            warnings.append(
+                f"[CANON EXTENDED] {name} is present for extended interaction. "
+                f"Their established fate cannot be altered."
+            )
+            continue
 
     dedup_warnings = list(dict.fromkeys(warnings))
     return present, bg_figs, dedup_warnings

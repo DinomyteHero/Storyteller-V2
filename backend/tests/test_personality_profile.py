@@ -183,3 +183,146 @@ def test_scene_context_reflects_companion_influence_state():
         companion_state_lookup=companion_state_lookup,
     )
     assert "Current stance: Warm and trusting" in ctx
+
+
+# ---------------------------------------------------------------------------
+# Voice profile (NpcVoice) tests
+# ---------------------------------------------------------------------------
+
+
+def test_personality_block_with_voice_profile():
+    """build_personality_block should render NpcVoice fields when present."""
+    npc = {
+        "name": "Luke Skywalker",
+        "archetype": "Reluctant hero",
+        "voice_tags": ["earnest", "hopeful"],
+        "traits": ["brave", "idealistic"],
+        "motivation": "Become a Jedi",
+        "voice": {
+            "belief": "There is good in everyone.",
+            "wound": "Orphaned on a moisture farm.",
+            "rhetorical_style": "Earnest and direct.",
+            "tell": "Gazes at the horizon.",
+            "taboo": "Refuses to accept anyone is beyond redemption.",
+        },
+    }
+    block = build_personality_block(npc)
+    assert "Core belief: There is good in everyone." in block
+    assert "Formative wound: Orphaned on a moisture farm." in block
+    assert "Rhetorical style: Earnest and direct." in block
+    assert "Tell/mannerism: Gazes at the horizon." in block
+    assert "Taboo (never discusses): Refuses to accept anyone is beyond redemption." in block
+
+
+def test_personality_block_voice_profile_partial():
+    """Voice profile with only some fields should render those present."""
+    npc = {
+        "name": "Mysterious Stranger",
+        "traits": ["cunning"],
+        "motivation": "Unknown",
+        "voice": {
+            "belief": "Trust no one.",
+            "wound": None,
+            "rhetorical_style": "",
+            "tell": "Taps fingers on the table.",
+            "taboo": None,
+        },
+    }
+    block = build_personality_block(npc)
+    assert "Core belief: Trust no one." in block
+    assert "Tell/mannerism: Taps fingers" in block
+    # None and empty-string fields should NOT appear
+    assert "Formative wound" not in block
+    assert "Rhetorical style" not in block
+    assert "Taboo" not in block
+
+
+def test_personality_block_voice_profile_ignored_when_not_dict():
+    """Non-dict voice value should be ignored without error."""
+    npc = {
+        "name": "Droid",
+        "traits": ["loyal"],
+        "motivation": "Serve",
+        "voice": "beep boop",  # invalid — should be ignored
+    }
+    block = build_personality_block(npc)
+    assert "DROID" in block
+    assert "Core belief" not in block
+
+
+# ---------------------------------------------------------------------------
+# Canon extended context tests
+# ---------------------------------------------------------------------------
+
+
+def test_scene_context_canon_extended_knowledge_boundary():
+    """Canon extended NPC should get knowledge boundary and off-limits in scene context."""
+    npcs = [
+        {
+            "name": "Luke Skywalker",
+            "archetype": "Reluctant hero",
+            "voice_tags": ["earnest"],
+            "traits": ["brave"],
+            "motivation": "Become a Jedi",
+            "canon_proximity": "extended",
+            "knowledge_boundary": "0-4 ABY (Rebellion era)",
+            "knowledge_exclusions": [
+                "Does NOT know Vader is his father",
+                "Does NOT know Leia is his sister",
+            ],
+            "scene_hooks": ["Training", "Tactical briefings"],
+            "off_limits": ["Cannot be killed", "Cannot turn to the dark side"],
+        }
+    ]
+    ctx = build_scene_personality_context(npcs)
+    assert "KNOWLEDGE BOUNDARY" in ctx
+    assert "0-4 ABY" in ctx
+    assert "Do NOT reference events" in ctx
+    assert "Does NOT know Vader is his father" in ctx
+    assert "Does NOT know Leia is his sister" in ctx
+    assert "Scene hooks" in ctx
+    assert "Training" in ctx
+    assert "OFF-LIMITS" in ctx
+    assert "Cannot be killed" in ctx
+    assert "Cannot turn to the dark side" in ctx
+
+
+def test_scene_context_non_extended_canon_skips_knowledge_boundary():
+    """Non-extended canon NPCs should NOT get knowledge boundary injection."""
+    npcs = [
+        {
+            "name": "Princess Leia",
+            "voice_tags": ["commanding"],
+            "traits": ["strategic"],
+            "motivation": "Restore the Republic",
+            "canon_protected": True,
+            "canon_proximity": "interaction",
+            "knowledge_boundary": "0-4 ABY",
+            "off_limits": ["Cannot be killed"],
+        }
+    ]
+    ctx = build_scene_personality_context(npcs)
+    assert "PRINCESS LEIA" in ctx
+    # Knowledge boundary and off-limits should NOT appear for non-extended
+    assert "KNOWLEDGE BOUNDARY" not in ctx
+    assert "OFF-LIMITS" not in ctx
+
+
+def test_scene_context_canon_extended_without_optional_fields():
+    """Extended NPC with no knowledge_exclusions or off_limits should still work."""
+    npcs = [
+        {
+            "name": "Han Solo",
+            "voice_tags": ["wry"],
+            "traits": ["cocky"],
+            "motivation": "Get paid",
+            "canon_proximity": "extended",
+            "knowledge_boundary": "0-4 ABY",
+        }
+    ]
+    ctx = build_scene_personality_context(npcs)
+    assert "KNOWLEDGE BOUNDARY" in ctx
+    assert "0-4 ABY" in ctx
+    # These should not appear since they weren't provided
+    assert "THIS CHARACTER DOES NOT KNOW" not in ctx
+    assert "OFF-LIMITS" not in ctx

@@ -89,6 +89,10 @@ def _model_config() -> dict[str, dict[str, str]]:
         # single LLM call in the entire pipeline (sets up the whole campaign).
         # Override: STORYTELLER_BIBLE_PROVIDER=anthropic STORYTELLER_BIBLE_MODEL=claude-opus-4-6
         "bible": {"provider": "ollama", "model": "qwen3:8b"},
+        # EraForge: LLM-powered era pack auto-generator (suggest periods, generate packs, refine canon).
+        # Cloud LLM strongly recommended — this generates foundational character-creation content.
+        # Override: STORYTELLER_ERA_FORGE_PROVIDER=anthropic STORYTELLER_ERA_FORGE_MODEL=claude-sonnet-4-6
+        "era_forge": {"provider": "ollama", "model": "qwen3:8b"},
     }
     out = {}
     for role, cfg in base.items():
@@ -144,6 +148,7 @@ HYBRID_CLOUD_PRESETS: dict[str, dict[str, dict[str, str]]] = {
         "companion_system": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
         "bible": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
         "prologue": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+        "era_forge": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
     },
 }
 

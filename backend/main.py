@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from backend.app.api import v2_campaigns as v2_campaigns_api, starships as starships_api
+from backend.app.api.v2_eraforge import router as eraforge_router
 from backend.app.config import DEFAULT_DB_PATH, MODEL_CONFIG
 from backend.app.core.error_handling import create_error_response, log_error_with_context
 from backend.app.db.migrate import apply_schema
@@ -438,6 +439,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 # V2 is the official path (LangGraph engine)
 app.include_router(v2_campaigns_api.router)
 app.include_router(starships_api.router)
+app.include_router(eraforge_router)
 
 
 @app.get("/")

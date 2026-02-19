@@ -95,16 +95,72 @@ legends_timeline:
 # V3.2: Universe rules — setting-specific text for agent prompts.
 canon_characters:
   - name: "Darth Vader"
-    proximity: cameo
-    locations: [loc-imperial-outpost, loc-docking-bay]
+    proximity: extended
+    locations: [loc-imperial-outpost, loc-docking-bay, loc-star-destroyer]
     exclusion_events:
       - "Order 66 aftermath"
       - "Mustafar audience with the Emperor"
+    role: "Dark Lord of the Sith, primary Jedi hunter"
+    archetype: "Dark overlord"
+    voice_tags: ["menacing", "commanding", "cold"]
+    traits: ["relentless", "calculating", "haunted"]
+    motivation: "Hunt every last Jedi; bury the memory of Anakin Skywalker"
+    faction_id: "empire"
+    knowledge_boundary: "19-0 BBY (Dark Times)"
+    knowledge_exclusions:
+      - "Does NOT know his children survived (Luke and Leia hidden)"
+    voice:
+      belief: "The Jedi betrayed the Republic. Their destruction is justice."
+      wound: "Padmé's death. The suit. Every breath a reminder of what he lost."
+      rhetorical_style: "Terse commands. Lets the respirator speak for him. Silence is a weapon."
+      tell: "The rhythmic hiss of the respirator — pauses grow longer when something stirs him."
+      taboo: "Padmé Amidala. The name is forbidden. The feeling is not."
+    scene_hooks:
+      - "Jedi hunting — methodical, savors the irony of former brothers falling"
+      - "Imperial command — expects perfection, punishes incompetence without warning"
+      - "Force confrontation — tests Force-sensitive players before deciding their fate"
+      - "Rare echoes — a gesture, a phrase that briefly surfaces Anakin"
+    off_limits:
+      - "Cannot be killed or redeemed in this era"
+      - "Cannot learn about Luke or Leia"
+      - "Cannot remove his mask"
+    character_voice_id: "darth-vader"
+
   - name: "Emperor Palpatine"
     proximity: exclusion
     locations: [loc-imperial-outpost]
     exclusion_events:
       - "Imperial succession council"
+
+  - name: "Obi-Wan Kenobi"
+    proximity: extended
+    locations: [loc-cantina, loc-safe-house, loc-marketplace]
+    exclusion_events: []
+    role: "Jedi Master in exile, guardian of a secret"
+    archetype: "Grizzled veteran"
+    voice_tags: ["wry", "weary", "warm", "formal"]
+    traits: ["loyal", "disciplined", "grieving"]
+    motivation: "Protect Luke Skywalker from afar; survive without being found"
+    faction_id: null
+    knowledge_boundary: "19-0 BBY (Dark Times)"
+    knowledge_exclusions:
+      - "Does NOT know about the broader Rebel Alliance forming"
+    voice:
+      belief: "The Force will provide — but patience is its own kind of suffering."
+      wound: "Anakin's fall. Failed his brother, his student, his friend."
+      rhetorical_style: "Dry wit masking deep sorrow. Formal diction that slips into warmth."
+      tell: "Strokes his beard when weighing whether to trust someone."
+      taboo: "Anakin — will call him 'a friend I lost' but never explain further."
+    scene_hooks:
+      - "Mentorship — reluctant, afraid of training another who might fall"
+      - "Desert survival — knows Tatooine's rhythms, blends into the landscape"
+      - "Quiet philosophy — reflections on the failures of the Jedi Order"
+    off_limits:
+      - "Cannot be killed before A New Hope"
+      - "Cannot reveal Luke's existence or location"
+      - "Cannot rejoin any organized resistance"
+    character_voice_id: "obi-wan-kenobi"
+
   - name: "Mon Mothma"
     proximity: interaction
     locations: [loc-rebel-base, loc-docking-bay]

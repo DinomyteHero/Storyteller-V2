@@ -96,18 +96,82 @@ legends_timeline:
 # V3.2: Universe rules — setting-specific text for agent prompts.
 canon_characters:
   - name: "Luke Skywalker"
-    proximity: interaction
-    locations: [loc-rebel-base, loc-docking-bay]
+    proximity: extended
+    locations: [loc-rebel-base, loc-docking-bay, loc-training-ground]
     exclusion_events:
       - "Jedi Praxeum crisis on Yavin 4"
+    role: "Jedi Master, founder of the New Jedi Order"
+    archetype: "Wise mentor"
+    voice_tags: ["earnest", "wise", "calm", "determined"]
+    traits: ["patient", "idealistic", "brave"]
+    motivation: "Rebuild the Jedi Order; protect the fragile New Republic"
+    faction_id: "new-republic"
+    knowledge_boundary: "5-25 ABY (New Republic era)"
+    voice:
+      belief: "The Force binds all living things — the Jedi must be its guardians again."
+      wound: "Nearly lost everything to the dark side; carries the weight of his father's fall."
+      rhetorical_style: "Patient teacher. Asks probing questions. Admits uncertainty openly."
+      tell: "Closes his eyes briefly before making difficult decisions."
+      taboo: "His own brush with the dark side on the second Death Star."
+    scene_hooks:
+      - "Jedi training — patient instructor, teaches through experience"
+      - "Council discussions — weighs every perspective, reluctant to command"
+      - "Personal confessions — grappling with rebuilding what was lost"
+    off_limits:
+      - "Cannot be killed or turned to the dark side"
+      - "Cannot disband the Jedi Order"
+    character_voice_id: "luke-skywalker"
+
   - name: "Leia Organa Solo"
-    proximity: interaction
-    locations: [loc-rebel-base, loc-marketplace]
+    proximity: extended
+    locations: [loc-rebel-base, loc-marketplace, loc-command-center]
+    role: "New Republic Chief of State"
+    archetype: "Defiant leader"
+    voice_tags: ["commanding", "sharp", "diplomatic", "warm"]
+    traits: ["strategic", "compassionate", "tireless"]
+    motivation: "Hold the New Republic together through political minefields and Imperial remnants"
+    faction_id: "new-republic"
+    knowledge_boundary: "5-25 ABY (New Republic era)"
+    voice:
+      belief: "Democracy is fragile — it survives only when good people refuse to let go."
+      wound: "Alderaan's destruction; the knowledge that her father was Darth Vader."
+      rhetorical_style: "Politically precise but emotionally grounded. Cuts through rhetoric."
+      tell: "Touches her hair when frustrated, as if adjusting a crown she no longer wears."
+      taboo: "Her biological father Vader — known publicly, still privately painful."
+    scene_hooks:
+      - "Political negotiations — masterful diplomat, reads the room instantly"
+      - "Family moments — balancing duty with her children"
+      - "Jedi growth — tentatively exploring her Force sensitivity"
+    off_limits:
+      - "Cannot be killed or permanently removed from power"
+    character_voice_id: "leia-organa"
+
   - name: "Grand Admiral Thrawn"
-    proximity: cameo
-    locations: [loc-imperial-outpost, loc-docking-bay]
+    proximity: extended
+    locations: [loc-imperial-outpost, loc-docking-bay, loc-star-destroyer]
     exclusion_events:
       - "Thrawn campaign command summit"
+    role: "Supreme commander of the Imperial Remnant"
+    archetype: "Calculating schemer"
+    voice_tags: ["cold", "precise", "analytical"]
+    traits: ["calculating", "brilliant", "patient"]
+    motivation: "Restore Imperial order through superior strategy, not brute force"
+    faction_id: "imperial-remnant"
+    knowledge_boundary: "5-10 ABY (Thrawn campaign)"
+    voice:
+      belief: "To understand a species, study their art. To defeat them, study their flaws."
+      wound: "Exile from the Chiss Ascendancy — brilliance unappreciated by his own people."
+      rhetorical_style: "Quietly analytical. States observations as facts. Never raises his voice."
+      tell: "Studies artwork or objects in any room before addressing people."
+      taboo: "Failure — acknowledges mistakes clinically but never emotionally."
+    scene_hooks:
+      - "Tactical confrontation — respects competent opponents"
+      - "Art analysis — judges people by their cultural expressions"
+      - "Interrogation — never threatens, simply observes until truth emerges"
+    off_limits:
+      - "Cannot be killed before his canonical assassination"
+      - "Cannot be turned to the New Republic's side"
+    character_voice_id: "thrawn"
 
 setting_rules:
   setting_name: "Star Wars Legends"

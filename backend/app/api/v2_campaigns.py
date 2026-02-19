@@ -427,6 +427,70 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         hp_current = int(character_sheet.get("hp_current", 10))
         starting_location = character_sheet.get("starting_location", "loc-cantina")
 
+        # EraForge: Path-aware canon character refinement.
+        # If the era pack has canon characters and a background was selected, refine
+        # proximity tiers based on the player's narrative geography / faction alignment.
+        if (
+            era_pack_for_setup
+            and era_pack_for_setup.canon_characters
+            and body.background_id
+        ):
+            try:
+                from backend.app.core.agents.era_forge_agent import EraForgeAgent  # noqa: E402
+                _era_forge_llm: AgentLLM | None = None
+                try:
+                    _era_forge_llm = AgentLLM("era_forge")
+                except Exception:
+                    pass
+                _forge_agent = EraForgeAgent(llm=_era_forge_llm)
+
+                # Extract location/faction hints from background CYOA answers
+                _loc_hints: list[str] = []
+                _fac_hints: list[str] = []
+                _bg_name = ""
+                _bg_desc = ""
+                if body.background_answers and era_pack_for_setup.backgrounds:
+                    for bg in era_pack_for_setup.backgrounds:
+                        if bg.id == body.background_id:
+                            _bg_name = bg.name
+                            _bg_desc = bg.description
+                            for q in bg.questions:
+                                answer_idx = (body.background_answers or {}).get(q.id)
+                                if answer_idx is not None and isinstance(answer_idx, int) and 0 <= answer_idx < len(q.choices):
+                                    choice = q.choices[answer_idx]
+                                    if choice.effects:
+                                        if choice.effects.location_hint:
+                                            _loc_hints.append(choice.effects.location_hint)
+                                        if choice.effects.faction_hint:
+                                            _fac_hints.append(choice.effects.faction_hint)
+                            break
+
+                _canon_dicts = [cc.model_dump(mode="json") for cc in era_pack_for_setup.canon_characters]
+                _refined = _forge_agent.refine_canon_characters(
+                    _canon_dicts,
+                    background_id=body.background_id,
+                    background_name=_bg_name,
+                    background_description=_bg_desc,
+                    location_hints=_loc_hints,
+                    faction_hints=_fac_hints,
+                )
+                # Apply refined canon characters to the era pack for this campaign
+                from backend.app.world.era_pack_models import CanonCharacterRule  # noqa: E402
+                _refined_rules = []
+                for rcc in _refined:
+                    try:
+                        _refined_rules.append(CanonCharacterRule.model_validate(rcc))
+                    except Exception:
+                        pass
+                if _refined_rules:
+                    # Shallow copy to avoid mutating the cached pack
+                    era_pack_for_setup = era_pack_for_setup.model_copy(
+                        update={"canon_characters": _refined_rules}
+                    )
+                    logger.info("Canon character refinement applied: %d characters.", len(_refined_rules))
+            except Exception as _refine_err:
+                logger.warning("Canon character refinement failed (non-fatal): %s", _refine_err)
+
         # V6.0: Generate the campaign bible — full screenplay bible tailored to this player.
         # Runs after biographer so we can pass the character sheet for richer context.
         era_metadata = (

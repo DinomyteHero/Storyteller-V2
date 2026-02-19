@@ -234,7 +234,7 @@ def make_choice_crafter_node():
         # Build location string
         loc = str(pre_context.get("location") or gs.current_location or "here")
 
-        # NPC descriptions
+        # NPC descriptions — enrich with canon flags for protected characters
         npc_descriptions = pre_context.get("npc_descriptions")
         if isinstance(npc_descriptions, list):
             npc_descriptions = [str(n) for n in npc_descriptions if n]
@@ -244,7 +244,13 @@ def make_choice_crafter_node():
             for n in npcs:
                 name = n.get("name", "")
                 role = n.get("role", "stranger")
-                if name:
+                if not name:
+                    continue
+                if n.get("canon_proximity") == "extended":
+                    npc_descriptions.append(f"[CANON] {name} ({role}) — extended scene, fate protected")
+                elif n.get("canon_protected"):
+                    npc_descriptions.append(f"[CANON] {name} ({role}) — fate protected")
+                else:
                     npc_descriptions.append(f"{name} ({role})")
 
         # Mechanic summary

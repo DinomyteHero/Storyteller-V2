@@ -1,4 +1,4 @@
-"""Agent layer: bible, architect, biographer, mechanic, encounter, director, narrator, casting, resolution, memory, world_mind, continuity, quest_weaver, progression, psych_archivist."""
+"""Agent layer: bible, architect, biographer, mechanic, encounter, director, narrator, casting, resolution, memory, world_mind, continuity, quest_weaver, progression, psych_archivist, era_forge."""
 from backend.app.core.agents.base import (
     AgentLLM,
     LLMProvider,
@@ -6,6 +6,7 @@ from backend.app.core.agents.base import (
     now_iso,
 )
 from backend.app.core.agents.campaign_bible_agent import CampaignBibleAgent
+from backend.app.core.agents.era_forge_agent import EraForgeAgent
 from backend.app.core.agents.architect import CampaignArchitect
 from backend.app.core.agents.biographer import BiographerAgent
 from backend.app.core.agents.director import DirectorAgent
@@ -27,6 +28,7 @@ __all__ = [
     "ensure_json",
     "now_iso",
     "CampaignBibleAgent",
+    "EraForgeAgent",
     "CampaignArchitect",
     "BiographerAgent",
     "MechanicAgent",

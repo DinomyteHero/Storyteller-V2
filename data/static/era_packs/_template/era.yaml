@@ -126,11 +126,46 @@ legends_timeline:
 #     - "Character Name (role)"
 
 # Optional: historical canon-character proximity rules.
+# Proximity tiers:
+#   cameo       — visible flavor only, not interactable
+#   interaction — brief exchange allowed, fate canon-protected
+#   exclusion   — player redirected away during specific exclusion_events
+#   extended    — sustained multi-turn scene partner with full voice/personality/knowledge context
+#
 # canon_characters:
 #   - name: "Canonical Character"
-#     proximity: cameo   # cameo | interaction | exclusion
+#     proximity: cameo
 #     locations: [loc-main-hub]
 #     exclusion_events: ["Event Name Where Player Must Be Redirected"]
+#
+# Extended canon character example (use for characters the player can have deep interactions with):
+# canon_characters:
+#   - name: "Mentor Figure"
+#     proximity: extended
+#     locations: [loc-main-hub, loc-training-area]
+#     exclusion_events: ["Major Battle Where They're Busy"]
+#     role: "Wise teacher, faction elder"
+#     archetype: "Wise mentor"
+#     voice_tags: ["wise", "calm", "measured"]
+#     traits: ["patient", "perceptive", "strategic"]
+#     motivation: "Guide the next generation; protect the old ways"
+#     faction_id: "faction-a"
+#     knowledge_boundary: "Era start – Era end"
+#     knowledge_exclusions:
+#       - "Does NOT know about the betrayal at the end of Arc 2"
+#     voice:
+#       belief: "Core philosophical belief in one sentence."
+#       wound: "Formative loss or trauma in one sentence."
+#       rhetorical_style: "How they speak: Socratic, blunt, poetic, etc."
+#       tell: "A physical or verbal mannerism that defines them."
+#       taboo: "What they refuse to discuss or acknowledge."
+#     scene_hooks:
+#       - "Training sessions — patient instruction, tests through questions"
+#       - "War council — experienced strategist, seen too many die"
+#     off_limits:
+#       - "Cannot be killed before their canonical death scene"
+#       - "Cannot reveal the secret until the right arc stage"
+#     character_voice_id: "mentor-figure"  # LanceDB character_id for RAG voice retrieval
 
 # --- V3.2: Universe rules (SettingRules) ---
 # These fields control all setting-specific text in agent prompts.

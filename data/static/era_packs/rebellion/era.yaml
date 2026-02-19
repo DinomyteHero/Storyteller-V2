@@ -84,22 +84,136 @@ legends_timeline:
     - "Emperor Palpatine (ruler of the Galactic Empire)"
     - "Jabba the Hutt (crime lord, Tatooine)"
 
-# Phase 4.2: historical canon-character proximity zones.
+# Phase 4.2+: Historical canon-character proximity zones.
 # cameo: visible flavor only, not interactable.
 # interaction: brief interaction allowed, but fate remains canon-protected.
 # exclusion: player is redirected away when exclusion_events context is active.
+# extended: sustained multi-turn scene partner with voice, knowledge boundaries, and guardrails.
 canon_characters:
   - name: "Luke Skywalker"
-    proximity: cameo
-    locations: [loc-cantina, loc-rebel-base]
+    proximity: extended
+    locations: [loc-cantina, loc-rebel-base, loc-training-ground]
     exclusion_events:
       - "Battle of Yavin trench run"
+      - "Bespin confrontation"
+      - "Endor throne room"
+    role: "Jedi-in-training, Alliance pilot"
+    archetype: "Reluctant hero"
+    voice_tags: ["earnest", "hopeful", "determined"]
+    traits: ["brave", "idealistic", "loyal"]
+    motivation: "Become a Jedi like his father; fight for the Rebellion"
+    faction_id: "alliance"
+    knowledge_boundary: "0-4 ABY (Rebellion era)"
+    knowledge_exclusions:
+      - "Does NOT know Darth Vader is his father (until 3 ABY Cloud City)"
+      - "Does NOT know Leia is his sister (until 4 ABY)"
+    voice:
+      belief: "There is good in everyone, even the darkest souls."
+      wound: "Orphaned on a moisture farm; haunted by his aunt and uncle's death."
+      rhetorical_style: "Earnest and direct. Asks questions others won't. Leads with his heart."
+      tell: "Gazes at the horizon when thinking about the future."
+      taboo: "Refuses to accept that anyone is beyond redemption."
+    scene_hooks:
+      - "Training — eager to share what he's learned about the Force"
+      - "Tactical briefings — respected pilot, but defers to senior leadership"
+      - "Personal moments — questions about the Force, his father's legacy"
+      - "Camaraderie — bonds quickly with fellow pilots and rebels"
+    off_limits:
+      - "Cannot be killed or permanently injured"
+      - "Cannot turn to the dark side"
+      - "Cannot reveal Vader is his father before the Cloud City timeline"
+      - "Cannot be romantically paired with player character"
+    character_voice_id: "luke-skywalker"
+
   - name: "Darth Vader"
-    proximity: cameo
-    locations: [loc-imperial-outpost, loc-docking-bay]
+    proximity: extended
+    locations: [loc-imperial-outpost, loc-star-destroyer, loc-docking-bay]
     exclusion_events:
       - "Bespin confrontation"
       - "Endor throne room"
+    role: "Dark Lord of the Sith, Supreme Commander"
+    archetype: "Dark overlord"
+    voice_tags: ["menacing", "commanding", "cold"]
+    traits: ["calculating", "relentless", "conflicted"]
+    motivation: "Enforce the Emperor's will; secretly tormented by memories of who he was"
+    faction_id: "empire"
+    knowledge_boundary: "0-4 ABY (Rebellion era)"
+    knowledge_exclusions:
+      - "Does NOT know Luke is his son until after Yavin (0 ABY)"
+    voice:
+      belief: "The dark side is the only path to true power and order."
+      wound: "Lost everything — his wife, his body, his identity as Anakin Skywalker."
+      rhetorical_style: "Terse. Declarative. Lets mechanical breathing fill silences."
+      tell: "The rhythmic hiss of the respirator punctuates every pause."
+      taboo: "The name 'Anakin' — flinches internally but shows nothing."
+    scene_hooks:
+      - "Interrogation — methodical, uses the Force to probe"
+      - "Duel — overwhelming power, tests rather than destroys (if player is Force-sensitive)"
+      - "Command — issues orders, expects instant compliance"
+      - "Rare vulnerability — a flicker of conflict when reminded of the past"
+    off_limits:
+      - "Cannot be killed or redeemed before Return of the Jedi"
+      - "Cannot remove his mask"
+      - "Cannot openly defy the Emperor"
+    character_voice_id: "darth-vader"
+
+  - name: "Princess Leia"
+    proximity: extended
+    locations: [loc-rebel-base, loc-safe-house, loc-command-center]
+    exclusion_events: []
+    role: "Rebel leader, Senator of Alderaan"
+    archetype: "Defiant leader"
+    voice_tags: ["commanding", "sharp", "diplomatic", "fierce"]
+    traits: ["brave", "strategic", "compassionate"]
+    motivation: "Restore the Republic; honor Alderaan's memory through resistance"
+    faction_id: "alliance"
+    knowledge_boundary: "0-4 ABY (Rebellion era)"
+    knowledge_exclusions:
+      - "Does NOT know Luke is her brother (until 4 ABY)"
+    voice:
+      belief: "Freedom is worth any sacrifice — but never the sacrifice of who you are."
+      wound: "Watched Alderaan destroyed. Carries the weight of a dead world."
+      rhetorical_style: "Sharp, commanding, but laced with dry humor under pressure."
+      tell: "Straightens her posture when challenged, as if daring the galaxy to try harder."
+      taboo: "Alderaan — voice cracks only when caught off guard by the memory."
+    scene_hooks:
+      - "Mission briefings — sharp tactical mind, expects competence"
+      - "Political debate — passionate about the Republic's ideals"
+      - "Personal moments — rare vulnerability about Alderaan, guarded trust"
+      - "Mentorship — recognizes potential in others, pushes them hard"
+    off_limits:
+      - "Cannot be killed or captured permanently"
+      - "Cannot betray the Rebellion"
+    character_voice_id: "leia-organa"
+
+  - name: "Han Solo"
+    proximity: extended
+    locations: [loc-cantina, loc-docking-bay, loc-marketplace]
+    exclusion_events:
+      - "Bespin carbonite freezing"
+    role: "Smuggler, reluctant Rebel ally"
+    archetype: "Scoundrel with a heart"
+    voice_tags: ["sarcastic", "wry", "confident"]
+    traits: ["brave", "roguish", "loyal"]
+    motivation: "Stay free, pay off debts, protect the people he accidentally started caring about"
+    faction_id: "alliance"
+    knowledge_boundary: "0-4 ABY (Rebellion era)"
+    knowledge_exclusions: []
+    voice:
+      belief: "Never tell me the odds — they only matter if you let them."
+      wound: "Abandoned young; trusts no institution, only individuals who prove themselves."
+      rhetorical_style: "Fast-talking deflection. Undercuts sincerity with humor. Surprisingly honest when cornered."
+      tell: "Shoots first. Leans against doorframes. Grins when he shouldn't."
+      taboo: "Genuine vulnerability — will joke his way out of any emotional honesty."
+    scene_hooks:
+      - "Smuggling jobs — knows every shortcut, contact, and back alley"
+      - "Banter — sarcastic exchanges, sizing people up"
+      - "Reluctant heroism — complains the entire time he's saving someone"
+      - "Ship talk — fiercely protective of the Millennium Falcon"
+    off_limits:
+      - "Cannot be killed or permanently injured"
+      - "Cannot abandon the Rebellion permanently"
+    character_voice_id: "han-solo"
 
 # V3.2: Universe rules — setting-specific text for agent prompts.
 setting_rules:

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import logging
 import threading
 from dataclasses import dataclass
 from typing import Any
@@ -14,6 +16,8 @@ from backend.app.content.loader import (
     resolve_pack_roots,
 )
 from backend.app.world.era_pack_models import EraPack
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -40,6 +44,35 @@ class ContentRepository:
     def _key(self, setting_id: str, period_id: str) -> ContentKey:
         return ContentKey(_norm(setting_id), _norm(period_id))
 
+    def _load_generated_pack(self, setting_id: str, period_id: str) -> EraPack | None:
+        """Load a generated era pack from the DB. Returns None if not found."""
+        try:
+            from backend.app.config import DEFAULT_DB_PATH
+            from backend.app.db.connection import get_connection
+
+            conn = get_connection(DEFAULT_DB_PATH)
+            try:
+                row = conn.execute(
+                    "SELECT era_pack_json FROM generated_era_packs "
+                    "WHERE setting_id = ? AND period_id = ? "
+                    "ORDER BY version DESC LIMIT 1",
+                    (setting_id, period_id),
+                ).fetchone()
+                if not row:
+                    return None
+                data = json.loads(row["era_pack_json"])
+                if not isinstance(data, dict):
+                    return None
+                return EraPack.model_validate(data)
+            finally:
+                conn.close()
+        except Exception:
+            logger.warning(
+                "Failed to load generated pack for %s/%s from DB",
+                setting_id, period_id, exc_info=True,
+            )
+            return None
+
     def get_content(self, setting_id: str, period_id: str) -> EraPack:
         key = self._key(setting_id, period_id)
         with self._lock:
@@ -47,8 +80,14 @@ class ContentRepository:
             if cached is not None:
                 return cached
 
-            merged = load_stacked_period_content(setting_id=key.setting_id, period_id=key.period_id)
-            pack = EraPack.model_validate(merged)
+            try:
+                merged = load_stacked_period_content(setting_id=key.setting_id, period_id=key.period_id)
+                pack = EraPack.model_validate(merged)
+            except FileNotFoundError:
+                pack = self._load_generated_pack(key.setting_id, key.period_id)
+                if pack is None:
+                    raise
+
             self._pack_cache[key] = pack
             self._indices_cache[key] = build_indices(pack)
             return pack
@@ -107,16 +146,82 @@ class ContentRepository:
                     continue
         return packs
 
+    def _list_generated_catalog_entries(self) -> list[dict[str, Any]]:
+        """Query generated_era_packs table and return catalog entries."""
+        entries: list[dict[str, Any]] = []
+        try:
+            from backend.app.config import DEFAULT_DB_PATH
+            from backend.app.db.connection import get_connection
+
+            conn = get_connection(DEFAULT_DB_PATH)
+            try:
+                rows = conn.execute(
+                    "SELECT setting_id, period_id, display_name, summary, era_pack_json "
+                    "FROM generated_era_packs "
+                    "ORDER BY setting_id, period_id, version DESC",
+                ).fetchall()
+                seen: set[tuple[str, str]] = set()
+                for row in rows:
+                    sid = str(row["setting_id"]).strip()
+                    pid = str(row["period_id"]).strip()
+                    if (sid, pid) in seen:
+                        continue
+                    seen.add((sid, pid))
+                    try:
+                        data = json.loads(row["era_pack_json"])
+                    except (json.JSONDecodeError, TypeError):
+                        data = {}
+                    md = data.get("metadata") if isinstance(data, dict) else {}
+                    if not isinstance(md, dict):
+                        md = {}
+                    bgs = data.get("backgrounds") or [] if isinstance(data, dict) else []
+                    locs = data.get("locations") or [] if isinstance(data, dict) else []
+                    comps = data.get("companions") or [] if isinstance(data, dict) else []
+                    quests = data.get("quests") or [] if isinstance(data, dict) else []
+                    sr = data.get("setting_rules") or {} if isinstance(data, dict) else {}
+                    if not isinstance(sr, dict):
+                        sr = {}
+                    sn = str(sr.get("setting_name") or data.get("setting_name") or sid.replace("_", " ").title()) if isinstance(data, dict) else sid.replace("_", " ").title()
+                    dn = str(row["display_name"] or "").strip() or str(md.get("display_name") or "").strip() or pid.replace("_", " ").title()
+                    # Generated packs are playable if they have backgrounds (locations are generated by CampaignBibleAgent)
+                    playable = bool(bgs)
+                    reasons: list[str] = []
+                    if not bgs:
+                        reasons.append("no_backgrounds")
+                    entries.append({
+                        "setting_id": sid,
+                        "setting_display_name": sn,
+                        "period_id": pid,
+                        "period_display_name": dn,
+                        "legacy_era_id": f"{sid}__{pid}",
+                        "source": "generated_era_pack",
+                        "summary": str(row["summary"] or "").strip(),
+                        "playable": playable,
+                        "playability_reasons": reasons,
+                        "locations_count": len(locs),
+                        "backgrounds_count": len(bgs),
+                        "companions_count": len(comps),
+                        "quests_count": len(quests),
+                    })
+            finally:
+                conn.close()
+        except Exception:
+            logger.warning("Failed to list generated era packs from DB", exc_info=True)
+        return entries
+
     def list_catalog(self) -> list[dict[str, Any]]:
         """Return discovered content entries for API/UI catalog usage.
 
         Each row represents a playable (or potentially playable) period.
+        Static YAML packs take priority over generated packs for the same key.
         """
         entries: list[dict[str, Any]] = []
         packs = self.load_all_packs()
+        seen_keys: set[tuple[str, str]] = set()
         for pack in packs:
             raw_era = str(pack.era_id or "").strip()
             setting_id, period_id = resolve_legacy_era(raw_era)
+            seen_keys.add((setting_id, period_id))
             md = pack.metadata if isinstance(pack.metadata, dict) else {}
             display_name = (
                 str(md.get("display_name") or "").strip()
@@ -149,6 +254,12 @@ class ContentRepository:
                     "quests_count": len(pack.quests or []),
                 }
             )
+        # Append generated packs that don't overlap with static YAML packs
+        for gen_entry in self._list_generated_catalog_entries():
+            key = (gen_entry["setting_id"], gen_entry["period_id"])
+            if key not in seen_keys:
+                seen_keys.add(key)
+                entries.append(gen_entry)
         # deterministic ordering for UI
         entries.sort(key=lambda e: (str(e.get("setting_id", "")), str(e.get("period_id", ""))))
         return entries

@@ -75,6 +75,11 @@ Your job: generate exactly 4 player choices that define WHAT THE PLAYER CAN DO N
 
 10. LENGTH — Each choice text should be 8-20 words. Concise but specific.
 
+11. CANON CHARACTERS — When an NPC is marked [CANON], offer choices that ENGAGE with them
+   meaningfully: learn from them, challenge them, seek their help, or develop a relationship.
+   Do NOT offer choices that would kill, permanently injure, or fundamentally alter a canon
+   character's established fate.
+
 ## OUTPUT FORMAT
 
 Output ONLY a JSON array of exactly 4 objects. No markdown, no explanation, no wrapping.

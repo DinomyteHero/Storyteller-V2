@@ -899,13 +899,33 @@ class AtmosphereFragments(BaseModel):
 
 
 class CanonCharacterRule(BaseModel):
-    """Historical-mode proximity rules for canon characters."""
+    """Historical-mode proximity rules for canon characters.
+
+    Proximity tiers:
+    - cameo: visible flavor only, not interactable.
+    - interaction: brief interaction allowed, fate canon-protected.
+    - exclusion: player is redirected away when exclusion_events context is active.
+    - extended: sustained multi-turn scene partner with full voice/personality/knowledge context.
+    """
     model_config = ConfigDict(extra="forbid")
 
     name: str
-    proximity: Literal["cameo", "interaction", "exclusion"] = "cameo"
+    proximity: Literal["cameo", "interaction", "exclusion", "extended"] = "cameo"
     locations: List[str] = Field(default_factory=list)
     exclusion_events: List[str] = Field(default_factory=list)
+    # --- Extended scene fields (used when proximity == "extended") ---
+    voice: NpcVoice | None = None
+    knowledge_boundary: str | None = None
+    knowledge_exclusions: List[str] = Field(default_factory=list)
+    scene_hooks: List[str] = Field(default_factory=list)
+    off_limits: List[str] = Field(default_factory=list)
+    role: str | None = None
+    faction_id: str | None = None
+    archetype: str | None = None
+    voice_tags: List[str] = Field(default_factory=list)
+    traits: List[str] = Field(default_factory=list)
+    motivation: str | None = None
+    character_voice_id: str | None = None
 
 
 class SettingRules(BaseModel):

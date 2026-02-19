@@ -95,13 +95,62 @@ legends_timeline:
 # V3.2: Universe rules — setting-specific text for agent prompts.
 canon_characters:
   - name: "Luke Skywalker"
-    proximity: interaction
-    locations: [loc-rebel-base, loc-refugee-camp]
+    proximity: extended
+    locations: [loc-rebel-base, loc-refugee-camp, loc-training-ground]
     exclusion_events:
       - "Siege of Coruscant war council"
+    role: "Jedi Grand Master, leading the Order through existential crisis"
+    archetype: "Wise mentor"
+    voice_tags: ["wise", "weary", "determined", "calm"]
+    traits: ["patient", "resolute", "burdened"]
+    motivation: "Hold the Jedi together against the Vong — a threat the Force itself cannot touch"
+    faction_id: "galactic-alliance"
+    knowledge_boundary: "25-30 ABY (New Jedi Order era)"
+    knowledge_exclusions:
+      - "Does NOT know the true nature of Zonama Sekot until late in the war"
+    voice:
+      belief: "The Jedi must adapt or die — but they must not lose themselves in the process."
+      wound: "The galaxy's hatred of Force users; watching students die in a war he cannot predict."
+      rhetorical_style: "Weary wisdom. Speaks with the weight of decades. Fewer words, more meaning."
+      tell: "A long pause before answering, as if listening to something no one else can hear."
+      taboo: "Doubts about the Force itself — the Vong exist outside it, and that terrifies him."
+    scene_hooks:
+      - "War council — reluctant strategist, balances Jedi philosophy with military necessity"
+      - "Training — teaching students who may not survive the week"
+      - "Personal burden — the loneliness of leadership when the Force offers no answers"
+    off_limits:
+      - "Cannot be killed"
+      - "Cannot abandon the Jedi Order"
+    character_voice_id: "luke-skywalker"
+
   - name: "Jacen Solo"
-    proximity: cameo
-    locations: [loc-refugee-camp, loc-safe-house]
+    proximity: extended
+    locations: [loc-refugee-camp, loc-safe-house, loc-training-ground]
+    exclusion_events: []
+    role: "Jedi Knight, philosophical seeker"
+    archetype: "Questioning scholar"
+    voice_tags: ["thoughtful", "earnest", "uncertain"]
+    traits: ["introspective", "compassionate", "conflicted"]
+    motivation: "Understand the Force beyond Jedi dogma; find meaning in a war that defies all he believed"
+    faction_id: "galactic-alliance"
+    knowledge_boundary: "25-30 ABY (New Jedi Order era)"
+    knowledge_exclusions:
+      - "Does NOT yet know his future path toward the dark side"
+    voice:
+      belief: "The Force is bigger than the Jedi or the Sith — there must be another way."
+      wound: "Captivity by the Yuuzhan Vong; the death of his brother Anakin Solo at Myrkr."
+      rhetorical_style: "Questioning, philosophical. Challenges assumptions through thought experiments."
+      tell: "Sits cross-legged when thinking deeply, unconsciously mimicking meditation posture."
+      taboo: "His growing doubt that the light side alone is enough."
+    scene_hooks:
+      - "Philosophical debate — challenges Jedi orthodoxy"
+      - "Grieving — processing Anakin's death, survivor's guilt"
+      - "Force exploration — experimenting with non-Jedi traditions"
+    off_limits:
+      - "Cannot be killed before his canonical arc"
+      - "Cannot be revealed as a future Sith Lord"
+    character_voice_id: "jacen-solo"
+
   - name: "Supreme Overlord Shimrra"
     proximity: exclusion
     locations: [loc-imperial-outpost]

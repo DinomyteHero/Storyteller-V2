@@ -226,6 +226,24 @@ class DirectorAgent:
                 "SOCIAL actions should reference 'someone nearby', an anonymous local, or a companion — not named characters."
             )
 
+        # Canon extended scene guidance — sustained interaction with protected canon characters
+        extended_canon = [n for n in npcs if n.get("canon_proximity") == "extended"]
+        if extended_canon:
+            base += "\n\n## CANON CHARACTER SCENE RULES"
+            for ec in extended_canon:
+                ec_name = ec.get("name", "Unknown")
+                base += (
+                    f"\n{ec_name} is a CANON CHARACTER in an extended scene."
+                    f"\n- Their established fate CANNOT be altered by this scene."
+                    f"\n- Write them as a sustained scene partner, not a fleeting appearance."
+                )
+                limits = ec.get("off_limits") or []
+                for limit in limits:
+                    base += f"\n- OFF-LIMITS: {limit}"
+                hooks = ec.get("scene_hooks") or []
+                if hooks:
+                    base += f"\n- Appropriate interactions: {'; '.join(str(h) for h in hooks)}"
+
         campaign = getattr(state, "campaign", None) or {}
         news_feed = campaign.get("news_feed") or []
         latest_news = news_feed[:3] if isinstance(news_feed, list) else []

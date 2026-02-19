@@ -174,6 +174,31 @@ def make_narrator_node():
                         kg_context = (kg_context + "\n\n" + mem_block) if kg_context else mem_block
             except Exception as _epi_err:
                 _narrator_logger.warning("Episodic memory recall failed for Narrator (non-fatal): %s", _epi_err)
+
+        # Canon character voice RAG retrieval — inject voice samples for extended canon NPCs
+        canon_voice_ids = []
+        for _npc in (gs.present_npcs or []):
+            _vid = _npc.get("character_voice_id")
+            if _vid and _npc.get("canon_proximity") == "extended":
+                canon_voice_ids.append(_vid)
+        if canon_voice_ids:
+            _cv_era = (campaign_dict.get("time_period") or "rebellion").strip() or "rebellion"
+            try:
+                from backend.app.rag.character_voice_retriever import get_voice_snippets
+                _voice_data = get_voice_snippets(canon_voice_ids, _cv_era, k=4)
+                if _voice_data:
+                    _voice_parts: list[str] = []
+                    for _cv_id, _snippets in _voice_data.items():
+                        if _snippets:
+                            _voice_parts.append(f"### {_cv_id}")
+                            _voice_parts.extend(f"- {s.text}" for s in _snippets[:3])
+                    if _voice_parts:
+                        _voice_block = "## Canon Character Voice Samples\n" + "\n".join(_voice_parts)
+                        kg_context = (kg_context + "\n\n" + _voice_block) if kg_context else _voice_block
+                        _narrator_logger.debug("Narrator using canon voice samples for: %s", canon_voice_ids)
+            except Exception as _cv_err:
+                _narrator_logger.debug("Canon voice retrieval failed (non-fatal): %s", _cv_err)
+
         output = narrator.generate(gs, kg_context=kg_context)
         final_text = output.text
 
