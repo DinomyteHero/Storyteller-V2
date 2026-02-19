@@ -1,8 +1,9 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { setupAuto, getEraCompanions } from '$lib/api/campaigns';
+  import { setupAuto, getEraCompanions, patchCharacterName } from '$lib/api/campaigns';
   import type { CompanionPreview } from '$lib/api/campaigns';
+  import type { SetupAutoResponse } from '$lib/api/types';
   import { getEraBackgrounds, getEraSpecies } from '$lib/api/eras';
   import { getContentCatalog, getContentDefault, type ContentCatalogEntry } from '$lib/api/content';
   import { streamTurn } from '$lib/api/sse';
@@ -45,6 +46,10 @@
   let eraCompanions = $state<CompanionPreview[]>([]);
   let loadingCompanions = $state(false);
   let selectedDifficulty = $state<'easy' | 'normal' | 'hard'>('normal');
+  // Character sheet confirmation (phase 2 of setup)
+  let setupResult = $state<SetupAutoResponse | null>(null);
+  let generatedName = $state('');
+  let isStartingAdventure = $state(false);
 
   const DIFFICULTY_OPTIONS: { value: 'easy' | 'normal' | 'hard'; label: string; desc: string }[] = [
     { value: 'easy', label: 'Easy', desc: 'Forgiving checks, reduced damage. Focus on story.' },
@@ -179,6 +184,7 @@
     charName.set(randomName());
   }
 
+  // Phase 1: Generate character + campaign, then show the sheet for review.
   async function beginAdventure() {
     if (!$charName.trim()) return;
     isSubmitting = true;
@@ -190,13 +196,11 @@
       let startingLocation: string | null = null;
 
       if (useBackgrounds && $selectedBackground) {
-        // Background-based: extract concepts from background question answers
         for (const q of activeQuestions) {
           const choiceIdx = $backgroundAnswers[q.id];
           if (choiceIdx !== undefined && q.choices[choiceIdx]) {
             const choice = q.choices[choiceIdx];
             if (choice.concept) concepts.push(choice.concept);
-            // Check for location_hint in effects
             const effects = (choice as any).effects ?? {};
             if (effects.location_hint && !startingLocation) {
               startingLocation = effects.location_hint;
@@ -204,7 +208,6 @@
           }
         }
       } else {
-        // Generic CYOA: extract concepts from fallback questions
         for (const [qIdx, cIdx] of Object.entries(cyoaAnswerIndices)) {
           const q = CYOA_QUESTIONS[Number(qIdx)];
           if (q) {
@@ -214,7 +217,6 @@
         }
       }
 
-      // Convert backgroundAnswers from {questionId: choiceIdx} to {questionId: choiceIdx} (already correct format)
       const bgAnswersForApi: Record<string, number> = {};
       for (const [qId, cIdx] of Object.entries($backgroundAnswers)) {
         bgAnswersForApi[qId] = cIdx;
@@ -240,11 +242,39 @@
       campaignId.set(result.campaign_id);
       playerId.set(result.player_id);
 
-      // Save campaign to local registry
+      // Reveal character sheet for player review before story begins.
+      const sheetName = (result.character_sheet?.name as string | undefined) || $charName.trim();
+      generatedName = sheetName;
+      setupResult = result;
+    } catch (e) {
+      errorMessage = e instanceof Error ? e.message : String(e);
+    } finally {
+      isSubmitting = false;
+    }
+  }
+
+  // Phase 2: Optionally rename, then run the opening turn and enter play.
+  async function startAdventure() {
+    if (!setupResult) return;
+    isStartingAdventure = true;
+    errorMessage = '';
+
+    try {
+      const cid = setupResult.campaign_id;
+      const pid = setupResult.player_id;
+      const sheetName = (setupResult.character_sheet?.name as string | undefined) || '';
+
+      // Patch name in DB if the player changed it.
+      const trimmedName = generatedName.trim();
+      if (trimmedName && trimmedName !== sheetName) {
+        await patchCharacterName(cid, pid, trimmedName);
+      }
+
+      // Save campaign to local registry (use confirmed name).
       saveCampaign({
-        campaignId: result.campaign_id,
-        playerId: result.player_id,
-        playerName: $charName.trim(),
+        campaignId: cid,
+        playerId: pid,
+        playerName: trimmedName || sheetName || $charName.trim(),
         era: ($charPeriodId ?? $charEra).toUpperCase(),
         background: $selectedBackground?.name ?? null,
         createdAt: new Date().toISOString(),
@@ -252,12 +282,12 @@
         turnCount: 0,
       });
 
-      // Run the opening turn
+      // Run the opening turn.
       if ($ui.enableStreaming) {
         startStreaming();
         try {
           let finalResponse = null;
-          for await (const event of streamTurn(result.campaign_id, result.player_id, '[OPENING_SCENE]')) {
+          for await (const event of streamTurn(cid, pid, '[OPENING_SCENE]')) {
             if (event.type === 'token' && event.text) {
               appendToken(event.text);
             } else if (event.type === 'done') {
@@ -269,16 +299,12 @@
           if (finalResponse) {
             lastTurnResponse.set(finalResponse as any);
           }
-          // V3.0: Reset ALL streaming state before navigating to play page.
-          // finishStreaming() only sets streamDone=true — streamedText stays
-          // truthy, which causes the play page's fullNarrativeText derived
-          // to lock onto stale streamed content instead of lastTurnResponse.
           resetStreaming();
         } catch (e) {
           failStreaming(String(e));
         }
       } else {
-        const turnResult = await runTurn(result.campaign_id, result.player_id, '[OPENING_SCENE]');
+        const turnResult = await runTurn(cid, pid, '[OPENING_SCENE]');
         lastTurnResponse.set(turnResult);
       }
 
@@ -286,7 +312,7 @@
     } catch (e) {
       errorMessage = e instanceof Error ? e.message : String(e);
     } finally {
-      isSubmitting = false;
+      isStartingAdventure = false;
     }
   }
 
@@ -533,6 +559,90 @@
       </div>
 
     <!-- ====================== REVIEW & BEGIN ====================== -->
+    {:else if setupResult}
+      <!-- ===== CHARACTER SHEET REVEAL (phase 2 — after setupAuto returns) ===== -->
+      <div class="step fade-in">
+        <h2>Meet Your Character</h2>
+        <p class="step-subtitle">Review what the galaxy made of you — rename if needed, then begin.</p>
+
+        <div class="sheet-card card">
+          <!-- Name (editable) -->
+          <div class="sheet-section">
+            <label class="sheet-label" for="sheet-name">Name</label>
+            <div class="name-row">
+              <input
+                id="sheet-name"
+                type="text"
+                bind:value={generatedName}
+                maxlength="60"
+                placeholder="Character name..."
+              />
+            </div>
+          </div>
+
+          <!-- Background prose -->
+          {#if setupResult.character_sheet?.background}
+            <div class="sheet-section">
+              <div class="sheet-label">Background</div>
+              <p class="sheet-background">{setupResult.character_sheet.background as string}</p>
+            </div>
+          {/if}
+
+          <!-- Stats -->
+          {#if setupResult.character_sheet?.stats && typeof setupResult.character_sheet.stats === 'object'}
+            <div class="sheet-section">
+              <div class="sheet-label">Attributes</div>
+              <div class="sheet-stats">
+                {#each Object.entries(setupResult.character_sheet.stats as Record<string, number>) as [stat, val]}
+                  <div class="stat-pill">
+                    <span class="stat-name">{stat}</span>
+                    <span class="stat-val">{val}</span>
+                  </div>
+                {/each}
+              </div>
+            </div>
+          {/if}
+
+          <!-- HP + Location -->
+          <div class="sheet-meta">
+            {#if setupResult.character_sheet?.hp_current !== undefined}
+              <div class="sheet-meta-item">
+                <span class="sheet-label">HP</span>
+                <span class="sheet-meta-val">{setupResult.character_sheet.hp_current as number}</span>
+              </div>
+            {/if}
+            {#if setupResult.character_sheet?.starting_location}
+              <div class="sheet-meta-item">
+                <span class="sheet-label">Starting Location</span>
+                <span class="sheet-meta-val">
+                  {((setupResult.character_sheet.starting_location as string) || '').replace('loc-', '').replace(/-/g, ' ')}
+                </span>
+              </div>
+            {/if}
+            {#if setupResult.character_sheet?.starting_planet}
+              <div class="sheet-meta-item">
+                <span class="sheet-label">Planet</span>
+                <span class="sheet-meta-val">{setupResult.character_sheet.starting_planet as string}</span>
+              </div>
+            {/if}
+          </div>
+        </div>
+
+        {#if errorMessage}
+          <div class="error-banner">{errorMessage}</div>
+        {/if}
+
+        <div class="step-actions">
+          <button
+            class="btn btn-primary"
+            disabled={isStartingAdventure || !generatedName.trim()}
+            onclick={startAdventure}
+          >
+            {isStartingAdventure ? 'Beginning story...' : 'Start Your Story'}
+          </button>
+        </div>
+      </div>
+
     {:else}
       <div class="step fade-in">
         <h2>Ready to Begin</h2>
@@ -1055,5 +1165,74 @@
     font-size: var(--font-small);
     color: var(--text-secondary);
     line-height: 1.3;
+  }
+
+  /* ===== Character sheet reveal ===== */
+  .sheet-card {
+    text-align: left;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .sheet-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sheet-label {
+    font-size: var(--font-caption);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .sheet-background {
+    font-size: var(--font-body);
+    color: var(--text-primary);
+    line-height: 1.55;
+    margin: 0;
+    font-style: italic;
+  }
+  .sheet-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .stat-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--hud-pill-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 6px 12px;
+    min-width: 52px;
+  }
+  .stat-name {
+    font-size: var(--font-caption);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-val {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+  }
+  .sheet-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .sheet-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .sheet-meta-val {
+    font-size: var(--font-body);
+    color: var(--text-primary);
+    text-transform: capitalize;
   }
 </style>

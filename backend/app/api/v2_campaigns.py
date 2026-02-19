@@ -627,6 +627,43 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         conn.close()
 
 
+class PatchCharacterRequest(BaseModel):
+    player_id: str
+    name: str
+
+
+@router.patch("/campaigns/{campaign_id}/character")
+def patch_character(campaign_id: str, body: PatchCharacterRequest) -> dict[str, Any]:
+    """Update mutable character fields (currently: name) after campaign creation.
+
+    Called from the character-sheet confirmation screen so the player can
+    rename the Biographer-generated name before the first turn runs.
+    """
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="name must not be empty")
+    if len(name) > 60:
+        raise HTTPException(status_code=400, detail="name must be 60 characters or fewer")
+    conn = _get_conn()
+    try:
+        row = conn.execute(
+            "SELECT id FROM characters WHERE id = ? AND campaign_id = ? AND role = 'Player'",
+            (body.player_id, campaign_id),
+        ).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="player character not found")
+        from datetime import datetime, timezone  # noqa: E402
+        now_str = datetime.now(timezone.utc).isoformat()
+        conn.execute(
+            "UPDATE characters SET name = ?, updated_at = ? WHERE id = ? AND campaign_id = ?",
+            (name, now_str, body.player_id, campaign_id),
+        )
+        conn.commit()
+        return {"ok": True, "name": name}
+    finally:
+        conn.close()
+
+
 @router.post("/campaigns", response_model=CreateCampaignResponse)
 def create_campaign(body: CreateCampaignRequest) -> dict[str, Any]:
     """Create a new campaign and player character. Returns campaign_id and player_id."""

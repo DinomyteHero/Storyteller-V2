@@ -17,6 +17,17 @@ export async function setupAuto(req: SetupAutoRequest): Promise<SetupAutoRespons
   }, 180_000);
 }
 
+export async function patchCharacterName(
+  campaignId: string,
+  playerId: string,
+  name: string,
+): Promise<{ ok: boolean; name: string }> {
+  return apiFetch(`/v2/campaigns/${campaignId}/character`, {
+    method: 'PATCH',
+    body: JSON.stringify({ player_id: playerId, name }),
+  });
+}
+
 export async function runTurn(
   campaignId: string,
   playerId: string,
