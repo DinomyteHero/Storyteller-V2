@@ -66,6 +66,14 @@
       {@const moodText = getMoodText(companion.mood_tag)}
       <div class="companion-card">
         <div class="companion-header">
+          {#if companion.portrait_url}
+            <img
+              class="companion-portrait"
+              src={companion.portrait_url}
+              alt="{companion.name} portrait"
+              loading="lazy"
+            />
+          {/if}
           <span class="companion-name">{companion.name}</span>
           <span class="arc-badge" style="color: {getArcColor(stage)}">{stage}</span>
         </div>
@@ -123,6 +131,15 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.25rem;
+  }
+
+  .companion-portrait {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--color-border, #374151);
+    flex-shrink: 0;
   }
 
   .companion-name {

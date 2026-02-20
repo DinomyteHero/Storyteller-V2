@@ -141,6 +141,8 @@ class PartyStatusItem(BaseModel):
     fear: int | None = None
     # V4.1: LLM-generated spoken reaction in companion voice
     spoken_reaction: str | None = None
+    # V11.0: Optional portrait URL (feature-flagged via ENABLE_PORTRAITS)
+    portrait_url: str | None = None
 
 
 class TurnResponse(BaseModel):
@@ -187,6 +189,8 @@ class TurnResponse(BaseModel):
     current_arc_id: str | None = None
     campaign_complete: bool = False
     epilogue_active: bool = False
+    # V11.0: Optional location key art URL (feature-flagged via ENABLE_PORTRAITS)
+    location_art_url: str | None = None
 
 
 class CampaignSummary(BaseModel):

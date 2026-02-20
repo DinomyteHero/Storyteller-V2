@@ -22,14 +22,46 @@
   import { ui } from '$lib/stores/ui';
   import { ERA_LABELS, CYOA_QUESTIONS, TONE_ICONS } from '$lib/utils/constants';
   import { randomName, getActiveBackgroundQuestions, ERA_DESCRIPTIONS } from '$lib/utils/creation';
-  import { saveCampaign } from '$lib/stores/campaigns';
+  import { saveCampaign, setLastPlayed } from '$lib/stores/campaigns';
+  import { uploadBook, getJobStatus } from '$lib/api/library';
   import type { EraBackground, EraSpecies, SetupAutoRequest, BackgroundQuestion } from '$lib/api/types';
 
   let contentCatalog = $state<ContentCatalogEntry[]>([]);
 
+  // Group content catalog by setting_id for Universe selection (Phase 1.4)
+  interface UniverseGroup {
+    settingId: string;
+    displayName: string;
+    summary: string;
+    periods: ContentCatalogEntry[];
+  }
+
+  let universeGroups = $derived.by(() => {
+    if (contentCatalog.length === 0) return [];
+    const map = new Map<string, UniverseGroup>();
+    for (const entry of contentCatalog) {
+      if (!map.has(entry.setting_id)) {
+        map.set(entry.setting_id, {
+          settingId: entry.setting_id,
+          displayName: entry.setting_display_name,
+          summary: entry.summary || `${entry.setting_display_name} universe`,
+          periods: [],
+        });
+      }
+      map.get(entry.setting_id)!.periods.push(entry);
+    }
+    return Array.from(map.values());
+  });
+
+  let selectedUniverse = $state<string | null>(null);
+
   let ERA_OPTIONS = $derived.by(() => {
     if (contentCatalog.length > 0) {
-      return contentCatalog.map((c) => ({
+      // Filter to selected universe when one is chosen
+      const filtered = selectedUniverse
+        ? contentCatalog.filter((c) => c.setting_id === selectedUniverse)
+        : contentCatalog;
+      return filtered.map((c) => ({
         value: c.period_id.toUpperCase(),
         label: c.period_display_name,
         settingId: c.setting_id,
@@ -52,6 +84,12 @@
     player_profile_id: string | null;
     saga_chapter: number | null;
   } | null>(null);
+  // V11.0: Reference material upload (optional step in creation wizard)
+  let refMaterialFile = $state<File | null>(null);
+  let refUploading = $state(false);
+  let refUploadStatus = $state('');
+  let refUploadDone = $state(false);
+
   // Character sheet confirmation (phase 2 of setup)
   let setupResult = $state<SetupAutoResponse | null>(null);
   let generatedName = $state('');
@@ -179,22 +217,28 @@
   // Whether species step should be shown (era has species data)
   let hasSpecies = $derived($eraSpecies.length > 0);
 
+  // Whether the Universe step is shown (multiple universes available)
+  let hasUniverseStep = $derived(universeGroups.length > 1);
+
   // Calculate total steps dynamically
-  // Steps: 0=name/era, [1=species if hasSpecies], N=background, N+1..M=bg questions, last=review
+  // Steps: [0=universe if multiple], N=name/era, [N+1=species if hasSpecies], ...background, ...bg questions, last=review
   let totalSteps = $derived.by(() => {
+    const universeStep = hasUniverseStep ? 1 : 0;
     const speciesStep = hasSpecies ? 1 : 0;
     if (useBackgrounds && $selectedBackground) {
-      return 3 + speciesStep + activeQuestions.length;
+      return 3 + universeStep + speciesStep + activeQuestions.length;
     }
     if (useBackgrounds) {
-      return 4 + speciesStep;
+      return 4 + universeStep + speciesStep;
     }
-    return 2 + speciesStep + CYOA_QUESTIONS.length;
+    return 2 + universeStep + speciesStep + CYOA_QUESTIONS.length;
   });
 
-  // Step index helpers that account for the optional species step
-  let speciesStepIdx = $derived(hasSpecies ? 1 : -1);
-  let backgroundStepIdx = $derived(hasSpecies ? 2 : 1);
+  // Step index helpers that account for the optional universe and species steps
+  let universeStepIdx = $derived(hasUniverseStep ? 0 : -1);
+  let nameStepIdx = $derived(hasUniverseStep ? 1 : 0);
+  let speciesStepIdx = $derived(hasSpecies ? nameStepIdx + 1 : -1);
+  let backgroundStepIdx = $derived(hasSpecies ? nameStepIdx + 2 : nameStepIdx + 1);
 
   function randomItem<T>(items: T[]): T | null {
     if (!items.length) return null;
@@ -446,6 +490,7 @@
         lastPlayedAt: new Date().toISOString(),
         turnCount: 0,
       });
+      setLastPlayed(cid);
 
       // Run the opening turn.
       if ($ui.enableStreaming) {
@@ -512,8 +557,46 @@
     </div>
     <p class="step-counter">Step {$creationStep + 1} of {totalSteps}</p>
 
-    <!-- ====================== STEP 0: Name, Gender, Era ====================== -->
-    {#if $creationStep === 0}
+    <!-- ====================== STEP 0: Universe Selection (when multiple universes) ====================== -->
+    {#if $creationStep === universeStepIdx && hasUniverseStep}
+      <div class="step fade-in">
+        <h2>Choose Your Universe</h2>
+        <p class="step-subtitle">Which world do you want to explore?</p>
+
+        <div class="universe-cards">
+          {#each universeGroups as group}
+            <button
+              class="card universe-card"
+              class:selected={selectedUniverse === group.settingId}
+              onclick={() => {
+                selectedUniverse = group.settingId;
+                charSettingId.set(group.settingId);
+                // Auto-select era if only one period in this universe
+                if (group.periods.length === 1) {
+                  const p = group.periods[0];
+                  charEra.set(p.period_id.toUpperCase());
+                  charPeriodId.set(p.period_id);
+                }
+              }}
+            >
+              <div class="universe-name">{group.displayName}</div>
+              <div class="universe-meta">{group.periods.length} {group.periods.length === 1 ? 'era' : 'eras'} available</div>
+            </button>
+          {/each}
+        </div>
+
+        <div class="step-actions">
+          <button class="btn" onclick={backToMenu}>Back</button>
+          <button
+            class="btn btn-primary"
+            disabled={!selectedUniverse}
+            onclick={nextStep}
+          >Continue</button>
+        </div>
+      </div>
+
+    <!-- ====================== STEP: Name, Gender, Era ====================== -->
+    {:else if $creationStep === nameStepIdx}
       <div class="step fade-in">
         <h2>Create Your Character</h2>
         <p class="step-subtitle">Who are you in this galaxy?</p>
@@ -704,8 +787,8 @@
       {/if}
 
     <!-- ====================== Generic CYOA Questions (fallback when no backgrounds) ====================== -->
-    {:else if !useBackgrounds && $creationStep >= 1 && $creationStep <= CYOA_QUESTIONS.length + (hasSpecies ? 1 : 0)}
-      {@const questionIdx = $creationStep - 1 - (hasSpecies ? 1 : 0)}
+    {:else if !useBackgrounds && $creationStep > nameStepIdx && $creationStep <= nameStepIdx + CYOA_QUESTIONS.length + (hasSpecies ? 1 : 0)}
+      {@const questionIdx = $creationStep - nameStepIdx - 1 - (hasSpecies ? 1 : 0)}
       {@const question = CYOA_QUESTIONS[questionIdx]}
       <div class="step fade-in">
         <h2>{question.title}</h2>
@@ -864,6 +947,76 @@
                 </div>
               {/if}
             {/each}
+          {/if}
+        </div>
+
+        <!-- V11.0: Optional Reference Material Upload -->
+        <div class="ref-material-section">
+          <h3 class="ref-material-heading">Add Reference Material (Optional)</h3>
+          <p class="ref-material-desc">Upload a novel or sourcebook to enrich your world's lore.</p>
+          {#if refUploadDone}
+            <p class="ref-material-done">{refUploadStatus}</p>
+          {:else if refUploading}
+            <p class="ref-material-status">{refUploadStatus}</p>
+          {:else}
+            <div class="ref-material-input">
+              <input
+                type="file"
+                accept=".pdf,.epub,.txt"
+                onchange={(e) => {
+                  const target = e.target as HTMLInputElement;
+                  refMaterialFile = target.files?.[0] ?? null;
+                }}
+              />
+              {#if refMaterialFile}
+                <button
+                  class="btn btn-primary"
+                  onclick={async () => {
+                    if (!refMaterialFile) return;
+                    refUploading = true;
+                    refUploadStatus = `Uploading ${refMaterialFile.name}...`;
+                    try {
+                      const job = await uploadBook(refMaterialFile, $charSettingId ?? '', $charPeriodId ?? $charEra.toLowerCase());
+                      // Poll for completion
+                      let attempts = 0;
+                      const poll = setInterval(async () => {
+                        attempts++;
+                        try {
+                          const status = await getJobStatus(job.job_id);
+                          if (status.status === 'complete') {
+                            clearInterval(poll);
+                            refUploadStatus = `Ingested ${status.chunk_count} lore chunks from ${refMaterialFile?.name ?? 'file'}.`;
+                            refUploading = false;
+                            refUploadDone = true;
+                          } else if (status.status === 'failed') {
+                            clearInterval(poll);
+                            refUploadStatus = status.error_message ?? 'Ingestion failed.';
+                            refUploading = false;
+                          } else {
+                            refUploadStatus = `Processing ${refMaterialFile?.name ?? 'file'}...`;
+                          }
+                          if (attempts >= 60) {
+                            clearInterval(poll);
+                            refUploadStatus = 'Still processing. You can start your adventure — lore will be available shortly.';
+                            refUploading = false;
+                            refUploadDone = true;
+                          }
+                        } catch {
+                          clearInterval(poll);
+                          refUploading = false;
+                          refUploadStatus = 'Lost connection while checking ingestion.';
+                        }
+                      }, 2000);
+                    } catch (e) {
+                      refUploadStatus = e instanceof Error ? e.message : 'Upload failed.';
+                      refUploading = false;
+                    }
+                  }}
+                >
+                  Upload & Ingest
+                </button>
+              {/if}
+            </div>
           {/if}
         </div>
 
@@ -1102,6 +1255,37 @@
     margin-top: 2px;
   }
 
+  /* Universe cards (Phase 1.4) */
+  .universe-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .universe-card {
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    padding: 14px 16px;
+  }
+  .universe-card:hover {
+    border-color: var(--choice-hover-border);
+    transform: translateY(-1px);
+  }
+  .universe-card.selected {
+    border-color: var(--accent-primary);
+    background: var(--accent-glow);
+  }
+  .universe-name {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+  }
+  .universe-meta {
+    font-size: var(--font-small);
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
   /* Background cards */
   /* Phase 0.7: Species selection grid */
   .species-grid {
@@ -1317,6 +1501,45 @@
     color: var(--text-muted);
     font-style: italic;
     margin-top: 6px;
+  }
+
+  /* Reference Material section (V11.0) */
+  .ref-material-section {
+    margin-top: 1.5rem;
+    text-align: center;
+    border: 1px dashed var(--border-subtle);
+    border-radius: var(--panel-radius, 8px);
+    padding: 1rem;
+  }
+  .ref-material-heading {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.4rem;
+  }
+  .ref-material-desc {
+    font-size: var(--font-small);
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+  }
+  .ref-material-input {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+  .ref-material-input input[type="file"] {
+    font-size: var(--font-small);
+    color: var(--text-secondary);
+  }
+  .ref-material-status {
+    font-size: var(--font-small);
+    color: var(--accent-primary);
+  }
+  .ref-material-done {
+    font-size: var(--font-small);
+    color: #4caf50;
   }
 
   /* Difficulty section */

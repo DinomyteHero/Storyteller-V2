@@ -143,6 +143,8 @@ export interface PartyStatusItem {
   fear: number | null;
   // V4.1: LLM-generated spoken reaction in companion voice
   spoken_reaction: string | null;
+  // V11.0: Optional portrait URL (feature-flagged)
+  portrait_url?: string | null;
 }
 
 export interface NpcContext {
@@ -198,6 +200,8 @@ export interface TurnResponse {
   current_arc_id?: string | null;
   campaign_complete?: boolean;
   epilogue_active?: boolean;
+  // V11.0: Optional location key art URL (feature-flagged)
+  location_art_url?: string | null;
 }
 
 export interface MechanicNotes {

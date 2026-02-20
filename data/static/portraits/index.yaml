@@ -1,0 +1,14 @@
+# Portrait Index — V11.0 Visual Layer
+#
+# Maps portrait_key values (from era pack NPCs/companions) to image file paths.
+# Relative paths resolve from this directory (data/static/portraits/).
+#
+# Example:
+#   comp-ahsoka: companions/ahsoka_tano.webp
+#   npc-hondo: npcs/hondo_ohnaka.webp
+#   loc-cantina: locations/mos_eisley_cantina.webp
+#
+# Requires ENABLE_PORTRAITS=1 in .env to serve images via /portraits/ endpoint.
+# Images should be WebP format, 256x256px for portraits, 512x256px for locations.
+---
+# No portraits bundled by default. Add your own images here.

@@ -474,6 +474,13 @@ async def health_detail():
     return {"status": "healthy" if diag.get("ok") else "degraded", **diag}
 
 
+# V11.0: Optional portrait static serving (feature-flagged).
+# Serves images from data/static/portraits/ at /portraits/ when ENABLE_PORTRAITS=1.
+_PORTRAITS_DIR = Path(__file__).resolve().parent.parent / "data" / "static" / "portraits"
+if _env_flag("ENABLE_PORTRAITS", default=False) and _PORTRAITS_DIR.is_dir():
+    app.mount("/portraits", StaticFiles(directory=str(_PORTRAITS_DIR)), name="portraits")
+    logger.info("Serving portrait images from %s (ENABLE_PORTRAITS=1)", _PORTRAITS_DIR)
+
 # Serve SvelteKit static build in production.
 # The `frontend/build/` folder is produced by `npm run build` (adapter-static).
 # Must be mounted LAST so API routes take priority.
