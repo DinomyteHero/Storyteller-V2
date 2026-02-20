@@ -376,6 +376,21 @@ def make_commit_node():
             if isinstance(arc_guidance, dict) and "arc_state" in arc_guidance:
                 world_state["arc_state"] = arc_guidance["arc_state"]
 
+            # Persist prologue arc state (contains stages_visited for completion tracking)
+            if isinstance(arc_guidance, dict) and "prologue_arc_state" in arc_guidance:
+                world_state["prologue_arc_state"] = arc_guidance["prologue_arc_state"]
+
+            # Auto-complete prologue when all stages visited
+            if world_state.get("prologue_mode"):
+                try:
+                    from backend.app.core.prologue_engine import is_prologue_complete
+                    if is_prologue_complete(world_state):
+                        logger.info("Prologue complete for campaign %s — clearing prologue_mode", campaign_id)
+                        world_state["prologue_mode"] = False
+                        world_state["prologue_completed"] = True
+                except Exception as _prol_err:
+                    logger.warning("Prologue completion check failed (non-fatal): %s", _prol_err)
+
             # V3.1: Scale advisor — auto-apply recommended scale change
             scale_rec = arc_guidance.get("scale_recommendation") if isinstance(arc_guidance, dict) else None
             if isinstance(scale_rec, dict) and scale_rec.get("recommended_scale"):

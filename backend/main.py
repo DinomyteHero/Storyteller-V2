@@ -15,6 +15,8 @@ from fastapi.staticfiles import StaticFiles
 
 from backend.app.api import v2_campaigns as v2_campaigns_api, starships as starships_api
 from backend.app.api.v2_eraforge import router as eraforge_router
+from backend.app.api.v2_export import router as export_router
+from backend.app.api.v2_library import router as library_router
 from backend.app.config import DEFAULT_DB_PATH, MODEL_CONFIG
 from backend.app.core.error_handling import create_error_response, log_error_with_context
 from backend.app.db.migrate import apply_schema
@@ -165,6 +167,17 @@ def _collect_environment_diagnostics() -> dict:
         "ok": True,
         "configured_roles": sorted(list(MODEL_CONFIG.keys())),
     }
+
+    # Token usage snapshot (current context — informational only)
+    try:
+        from backend.app.core.agents.base import get_llm_token_usage
+        token_usage = get_llm_token_usage()
+        checks["token_usage"] = {
+            "ok": True,
+            "current_context": token_usage if token_usage else {},
+        }
+    except Exception as _tok_err:
+        checks["token_usage"] = {"ok": True, "current_context": {}, "note": str(_tok_err)}
 
     # Migration/readiness + DB mode health checks
     db_checks: dict[str, Any] = {"path": str(DEFAULT_DB_PATH), "ok": False}
@@ -440,6 +453,8 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(v2_campaigns_api.router)
 app.include_router(starships_api.router)
 app.include_router(eraforge_router)
+app.include_router(export_router)
+app.include_router(library_router)
 
 
 @app.get("/")

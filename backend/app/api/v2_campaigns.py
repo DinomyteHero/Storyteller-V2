@@ -894,6 +894,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
             character_sheet=character_sheet,
             saga_id=saga_id,
             saga_chapter=saga_chapter if saga_id else None,
+            prologue_mode=bool(world_state.get("prologue_mode", False)),
         )
     except HTTPException:
         raise
@@ -1600,6 +1601,7 @@ def post_turn(
 
         context_stats_out = None
         agent_timings_out = None
+        token_usage_out = None
         if DEV_CONTEXT_STATS and result.context_stats:
             context_stats_out = result.context_stats
         if DEV_CONTEXT_STATS:
@@ -1610,6 +1612,8 @@ def post_turn(
                 merged_timings["llm"] = result.llm_timings
             if merged_timings:
                 agent_timings_out = merged_timings
+            if getattr(result, "token_usage", None):
+                token_usage_out = result.token_usage
         warnings_out = getattr(result, "warnings", None) or []
 
         camp_live = load_campaign(conn, campaign_id) or {}
@@ -1759,6 +1763,7 @@ def post_turn(
             news_feed=news_feed_out,
             context_stats=context_stats_out,
             agent_timings=agent_timings_out,
+            token_usage=token_usage_out,
             warnings=warnings_out,
             dialogue_turn=getattr(result, "dialogue_turn", None),
             turn_contract=turn_contract,
@@ -2206,6 +2211,8 @@ def post_turn_stream(
                     merged_timings["llm"] = result_gs.llm_timings
                 if merged_timings:
                     done_payload["agent_timings"] = merged_timings
+                if getattr(result_gs, "token_usage", None):
+                    done_payload["token_usage"] = result_gs.token_usage
             logger.info(
                 "turn_complete node=turn_stream request_id=%s campaign_id=%s turn_id=%s latency_ms=%s validation_errors=%s repair_count=%s",
                 request_id,
@@ -2725,7 +2732,7 @@ def era_transition(campaign_id: str, body: EraTransitionRequest) -> dict[str, An
         player: dict[str, Any] = {}
         if player_id:
             try:
-                player = load_player_by_id(conn, player_id) or {}
+                player = load_player_by_id(conn, campaign_id, player_id) or {}
             except Exception:
                 pass
 
@@ -2841,7 +2848,7 @@ def complete_prologue(campaign_id: str, body: CompletePrologueRequest | None = N
         player: dict[str, Any] = {}
         if player_id:
             try:
-                player = load_player_by_id(conn, player_id) or {}
+                player = load_player_by_id(conn, campaign_id, player_id) or {}
             except Exception:
                 pass
 

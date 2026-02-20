@@ -68,6 +68,7 @@ class SetupAutoResponse(BaseModel):
     character_sheet: dict
     saga_id: str | None = None
     saga_chapter: int | None = None
+    prologue_mode: bool = False
 
 
 class ContentCatalogEntry(BaseModel):
@@ -163,6 +164,8 @@ class TurnResponse(BaseModel):
     context_stats: dict | None = None
     # Dev-only node/agent timing stats
     agent_timings: dict | None = None
+    # Dev-only per-role LLM token usage stats
+    token_usage: dict | None = None
     # Warning messages (LLM/RAG fallbacks, degradations)
     warnings: list[str] = Field(default_factory=list)
     # V2.17: Canonical DialogueTurn (scene + NPC utterance + player responses)

@@ -21,6 +21,7 @@ class LLMProvider(Protocol):
 
 logger = logging.getLogger(__name__)
 _LLM_TIMINGS: ContextVar[dict[str, list[float]]] = ContextVar("llm_timings", default={})
+_LLM_TOKENS: ContextVar[dict[str, list[dict[str, int]]]] = ContextVar("llm_tokens", default={})
 
 
 def reset_llm_timings() -> None:
@@ -50,6 +51,37 @@ def _record_llm_timing(role: str, elapsed: float) -> None:
     samples.append(elapsed)
     data[role] = samples
     _LLM_TIMINGS.set(data)
+
+
+def reset_llm_tokens() -> None:
+    """Reset per-turn LLM token usage collection."""
+    _LLM_TOKENS.set({})
+
+
+def get_llm_token_usage() -> dict[str, Any]:
+    """Return summarized LLM token usage collected for the current turn."""
+    raw = _LLM_TOKENS.get() or {}
+    summary: dict[str, Any] = {}
+    for role, samples in raw.items():
+        if not samples:
+            continue
+        total_input = sum(s.get("input_tokens", 0) for s in samples)
+        total_output = sum(s.get("output_tokens", 0) for s in samples)
+        summary[role] = {
+            "calls": len(samples),
+            "total_input_tokens": total_input,
+            "total_output_tokens": total_output,
+            "total_tokens": total_input + total_output,
+        }
+    return summary
+
+
+def _record_llm_tokens(role: str, input_tokens: int, output_tokens: int) -> None:
+    data = dict(_LLM_TOKENS.get() or {})
+    samples = list(data.get(role) or [])
+    samples.append({"input_tokens": input_tokens, "output_tokens": output_tokens})
+    data[role] = samples
+    _LLM_TOKENS.set(data)
 
 
 class LLMResult(str):
@@ -129,6 +161,9 @@ class AgentLLM:
         finally:
             elapsed = time.perf_counter() - start
             _record_llm_timing(self._role, elapsed)
+            from backend.app.core.llm_provider import get_last_token_counts
+            token_counts = get_last_token_counts()
+            _record_llm_tokens(self._role, token_counts.get("input", 0), token_counts.get("output", 0))
             label = f" [{call_label}]" if call_label else ""
             logger.info("LLM call [%s]%s completed in %.2fs", self._role, label, elapsed)
 

@@ -158,6 +158,9 @@
       <button class="btn menu-btn press-scale" onclick={handleLoadCampaign}>
         Load Campaign
       </button>
+      <button class="btn menu-btn press-scale" onclick={() => goto('/library')}>
+        Library
+      </button>
       <button class="btn menu-btn press-scale" onclick={() => showSettings = true}>
         Settings
       </button>

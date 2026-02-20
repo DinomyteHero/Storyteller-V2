@@ -22,6 +22,7 @@ dependencies = [
     "tiktoken>=0.5.1",
     "langchain-core>=0.2.0,<0.4",
     "langgraph>=0.2.0",
+    "python-multipart>=0.0.6",
 ]
 
 [project.optional-dependencies]

@@ -18,6 +18,12 @@ logger = logging.getLogger(__name__)
 
 _DEFAULT_TIMEOUT = float(os.environ.get("LLM_TIMEOUT", os.environ.get("OLLAMA_TIMEOUT", "300")))
 
+_last_token_counts: dict[str, int] = {"input": 0, "output": 0}
+
+
+def get_last_token_counts() -> dict[str, int]:
+    return dict(_last_token_counts)
+
 
 class LLMProviderError(Exception):
     """Raised when an LLM request fails."""
@@ -108,6 +114,14 @@ class AnthropicClient:
             body = response.json()
         except _json.JSONDecodeError as exc:
             raise LLMProviderError("Anthropic returned non-JSON response") from exc
+
+        # Record token usage from response
+        global _last_token_counts
+        usage = body.get("usage") or {}
+        _last_token_counts = {
+            "input": int(usage.get("input_tokens", 0)),
+            "output": int(usage.get("output_tokens", 0)),
+        }
 
         # Extract text from content blocks
         content = body.get("content", [])
@@ -243,6 +257,14 @@ class OpenAICompatClient:
             body = response.json()
         except _json.JSONDecodeError as exc:
             raise LLMProviderError("OpenAI-compatible returned non-JSON response") from exc
+
+        # Record token usage from response
+        global _last_token_counts
+        usage = body.get("usage") or {}
+        _last_token_counts = {
+            "input": int(usage.get("prompt_tokens", 0)),
+            "output": int(usage.get("completion_tokens", 0)),
+        }
 
         choices = body.get("choices", [])
         if not choices:

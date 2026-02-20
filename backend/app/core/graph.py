@@ -23,7 +23,7 @@ from backend.app.core.nodes.narrator import make_narrator_node
 from backend.app.core.nodes.narrative_validator import narrative_validator_node
 from backend.app.core.nodes.choice_crafter_node import make_choice_crafter_node
 from backend.app.core.nodes.commit import make_commit_node
-from backend.app.core.agents.base import get_llm_timings, reset_llm_timings
+from backend.app.core.agents.base import get_llm_timings, reset_llm_timings, get_llm_token_usage, reset_llm_tokens
 # Lazy singleton: compiled on first use so module import is side-effect-free.
 # The compiled graph contains no connection references -- conn is injected via
 # state["__runtime_conn"] at each invocation so there is no stale-capture risk.
@@ -174,6 +174,9 @@ def _run_pipeline_with_timings(state: dict[str, Any]) -> dict[str, Any]:
     llm_timings = get_llm_timings()
     if llm_timings:
         s["llm_timings"] = llm_timings
+    token_usage = get_llm_token_usage()
+    if token_usage:
+        s["token_usage"] = token_usage
     return s
 
 
@@ -196,6 +199,7 @@ def run_turn(conn: sqlite3.Connection, state: GameState) -> GameState:
     initial = state_to_dict(state)
     initial["__runtime_conn"] = conn
     reset_llm_timings()
+    reset_llm_tokens()
     t0 = time.monotonic()
     try:
         result = _run_pipeline_with_timings(initial)
@@ -221,6 +225,7 @@ def run_turn(conn: sqlite3.Connection, state: GameState) -> GameState:
         ]
         error_dict["agent_timings"] = {}
         error_dict["llm_timings"] = get_llm_timings()
+        error_dict["token_usage"] = get_llm_token_usage()
         return dict_to_state(error_dict)
     elapsed = time.monotonic() - t0
     result.pop("__runtime_conn", None)

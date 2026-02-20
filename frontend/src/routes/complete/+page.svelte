@@ -6,6 +6,7 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { resetGame } from '$lib/stores/game';
+  import { BASE_URL } from '$lib/api/client';
   import type { PartyStatusItem } from '$lib/api/types';
 
   interface CompletionData {
@@ -71,6 +72,12 @@
   function backToMenu() {
     resetGame();
     goto('/');
+  }
+
+  function exportStory() {
+    if (!data?.campaign_id) return;
+    const url = `${BASE_URL}/v2/export/novel?campaign_id=${encodeURIComponent(data.campaign_id)}`;
+    window.open(url, '_blank');
   }
 
   const factionEntries = $derived(Object.entries(factions).sort(([,a], [,b]) => b - a));
@@ -193,6 +200,7 @@
     <!-- Actions -->
     <div class="actions">
       <button class="btn" onclick={backToMenu}>Main Menu</button>
+      <button class="btn" onclick={exportStory}>Export Story</button>
       {#if data.saga_id}
         <button class="btn" onclick={continueSaga}>Continue Saga</button>
       {/if}

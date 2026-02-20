@@ -197,6 +197,7 @@ class GameState(BaseModel):
     context_stats: dict | None = None  # Dev-only: token budgeting stats from ContextBudget
     agent_timings: dict | None = None  # Dev-only: per-node + per-agent timings
     llm_timings: dict | None = None  # Dev-only: per-role LLM timing aggregates
+    token_usage: dict | None = None  # Dev-only: per-role LLM token usage aggregates
     warnings: list[str] = Field(default_factory=list)  # Turn warnings (LLM/RAG fallbacks)
     # V6.0: Campaign Bible (loaded from campaigns.campaign_bible_json; read by narrative agents)
     campaign_bible: dict | None = None
@@ -242,6 +243,7 @@ class GameState(BaseModel):
                 "context_stats": None,
                 "agent_timings": None,
                 "llm_timings": None,
+                "token_usage": None,
                 "warnings": [],
                 # WorldSim-related fields (transient, reset each turn)
                 "world_sim_ran": False,

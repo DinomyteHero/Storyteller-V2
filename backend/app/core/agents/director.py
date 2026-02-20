@@ -226,6 +226,29 @@ class DirectorAgent:
                 "SOCIAL actions should reference 'someone nearby', an anonymous local, or a companion — not named characters."
             )
 
+        # Phase 4: NPC narrative memory — emotional state, agenda, recent memories
+        if npcs:
+            _campaign_ws = (campaign.get("world_state_json") or {}) if isinstance(campaign, dict) else {}
+            _npc_states: dict = (_campaign_ws.get("npc_states") or {}) if isinstance(_campaign_ws, dict) else {}
+            if _npc_states:
+                from backend.app.core.agents.memory_agent import format_npc_memory_for_narrator
+                mem_lines = []
+                for n in npcs:
+                    npc_name = n.get("name")
+                    if not npc_name:
+                        continue
+                    npc_id = n.get("id") or npc_name.lower().replace(" ", "-")
+                    mem_block = format_npc_memory_for_narrator(npc_id, _npc_states) or \
+                                format_npc_memory_for_narrator(npc_name, _npc_states)
+                    if mem_block:
+                        mem_lines.append(f"### {npc_name}\n{mem_block}")
+                if mem_lines:
+                    base += "\n\n## NPC Memory (relationship context)\n" + "\n".join(mem_lines)
+                    base += (
+                        "\nUse NPC emotional state and agenda to inform scene direction. "
+                        "NPCs should behave consistently with their memory of past interactions."
+                    )
+
         # Canon extended scene guidance — sustained interaction with protected canon characters
         extended_canon = [n for n in npcs if n.get("canon_proximity") == "extended"]
         if extended_canon:

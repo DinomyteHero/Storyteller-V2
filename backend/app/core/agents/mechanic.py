@@ -309,7 +309,24 @@ class MechanicAgent:
                 )
 
         # All other intents: delegate to LLM ResolutionAgent
-        result = self._resolver.resolve(state)
+        try:
+            result = self._resolver.resolve(state)
+        except Exception as resolve_err:
+            logger.warning(
+                "MechanicAgent: ResolutionAgent failed, returning graceful failure: %s",
+                resolve_err,
+            )
+            result = MechanicOutput(
+                action_type=(intent or "INTERACT"),
+                dice_result="Failure",
+                difficulty="Moderate",
+                success=False,
+                narrative_facts=["The outcome was uncertain \u2014 fate intervened."],
+                outcome_summary="Action failed due to unforeseen circumstances.",
+                invalid_action=False,
+                time_cost_minutes=5,
+                tone_tag=TONE_TAG_NEUTRAL,
+            )
 
         # Phase 4.3: Sandbox impact-tier pressure on mechanics.
         if mode == "sandbox":

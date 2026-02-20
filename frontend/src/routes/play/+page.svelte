@@ -45,7 +45,7 @@
   // Phase 5.2: Onboarding tutorial
   import TutorialOverlay from '$lib/components/onboarding/TutorialOverlay.svelte';
   import { onboarding, showTutorial } from '$lib/stores/onboarding';
-  import { apiFetch } from '$lib/api/client';
+  import { apiFetch, BASE_URL } from '$lib/api/client';
 
   let isSendingTurn = $state(false);
   let narrativeEl: HTMLDivElement | undefined = $state();
@@ -605,6 +605,13 @@
     resetGame();
     resetStreaming();
     goto('/');
+  }
+
+  function exportStory() {
+    const cid = $campaignId;
+    if (!cid) return;
+    const url = `${BASE_URL}/v2/export/novel?campaign_id=${encodeURIComponent(cid)}`;
+    window.open(url, '_blank');
   }
 
   function stressLabel(level: number): string {
@@ -1346,6 +1353,7 @@
                 <div class="journal-text">{turn.text.slice(0, 300)}{turn.text.length > 300 ? '...' : ''}</div>
               </div>
             {/each}
+            <button class="btn export-story-btn" onclick={exportStory}>Export Story</button>
           {:else}
             <p class="empty-state">No journal entries yet.</p>
           {/if}
@@ -2208,6 +2216,12 @@
     font-size: var(--font-caption);
     color: var(--text-secondary);
     line-height: 1.5;
+  }
+  .export-story-btn {
+    margin-top: 12px;
+    width: 100%;
+    text-align: center;
+    font-size: var(--font-small);
   }
 
   .empty-state {

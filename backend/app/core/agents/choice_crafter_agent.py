@@ -199,7 +199,7 @@ def _build_context(
     if stat_summary:
         parts.append(f"STAT CONTEXT: {stat_summary}")
 
-    parts.append("\nGenerate exactly 4 player choices:")
+    parts.append("\nGenerate 3-6 player choices:")
     return "\n".join(parts)
 
 
@@ -335,7 +335,7 @@ def generate_choices(
     setting_style: str = "an interactive narrative RPG",
     gm_context: str = "",
 ) -> list[dict[str, str]]:
-    """Generate 4 player choices via LLM.
+    """Generate 3-6 player choices via LLM.
 
     Raises ValueError on failure after one retry — caller should catch and use fallback.
     Returns list of dicts with keys: text, tone, meaning, risk, consequence_hint.
