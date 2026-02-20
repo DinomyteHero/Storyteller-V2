@@ -1,5 +1,197 @@
 # Implementation Plan: Choice System & Narrative Experience Overhaul
 
+## V11.0 Player Experience — PLANNED
+
+Three features validated from external review (ChatGPT/Grok), grounded against actual codebase architecture:
+
+1. **Universe & Story UX** — Surface existing Settings + Sagas as first-class frontend flow
+2. **UI-Exposed Lore Ingestion** — "Add Source Novels" in campaign wizard + Library
+3. **Optional Visual Layer** — NPC portraits + location key art (feature-flagged, zero cost when off)
+
+### Naming Convention (UI labels only — no backend renames)
+
+| Backend Term | Player-Facing Term | Meaning |
+|-------------|-------------------|---------|
+| `setting_id` | **Universe** | A fictional world (Star Wars, LOTR, custom) |
+| `saga_id` | **Story** | A player's multi-campaign playthrough within a Universe |
+| `period_id` | **Era** | A time slice within a Universe (Rebellion, Dark Times) |
+| `campaign_id` | **Chapter** | A single campaign within a Story |
+
+---
+
+### Phase 1: Universe & Story UX (Frontend only — no backend changes)
+
+**What exists:** `sagas` table (migration 0027) with `universe_id`/`player_id`/`title`; `GET /v2/content/catalog` returning `(setting_id, period_id)` pairs; frontend `creation.ts` with `charSettingId`/`charPeriodId`; home page grouping campaigns by saga; `continueSagaContext` session handoff.
+
+**What's missing:** No "Pick your Universe" step before character creation; no saga browser UI; no "Continue last Story" shortcut.
+
+#### Step 1.1: Saga API client
+**Create** `frontend/src/lib/api/sagas.ts`
+- `listPlayerSagas(playerProfileId)` → `GET /v2/player/{id}/sagas`
+- `getSagaDetail(sagaId)` → `GET /v2/sagas/{saga_id}`
+- `createSaga(playerProfileId, universeId, title)` → `POST /v2/sagas`
+
+#### Step 1.2: Last-played tracking
+**Modify** `frontend/src/lib/stores/campaigns.ts`
+- Add `lastPlayedSagaId` and `lastPlayedSettingId` to persisted local state
+- Update on campaign load/resume
+
+#### Step 1.3: Home page entry points
+**Modify** `frontend/src/routes/+page.svelte`
+- Add "Continue Story" button (visible when `lastPlayedSagaId` exists) — loads most recent campaign
+- Change "New Campaign" to first show Universe selection before entering existing wizard
+
+#### Step 1.4: Universe selection step in creation wizard
+**Modify** `frontend/src/routes/create/+page.svelte`
+- Insert Step 0: "Pick your Universe" — card grid of available settings (from catalog, deduplicated by `setting_id`)
+- Each card: setting display name, era count, playable badge
+- "Create New Universe" card → links to Library EraForge wizard
+- If arriving via "Continue Story" (saga context set), skip Step 0 and pre-fill setting/era
+- Existing Step 0 (name + era) becomes Step 1, eras filtered to selected Universe
+
+#### Step 1.5: Story-grouped campaign load
+**Modify** `frontend/src/routes/+page.svelte` (Load Campaign modal)
+- Story card headers: title, Universe label, chapter count, last played date
+- Campaigns listed as chapters under each Story
+- Ungrouped campaigns under "Standalone Adventures"
+- "Start New Chapter" button on each Story card → create with saga context
+
+**Files:** `frontend/src/lib/api/sagas.ts` (NEW), `frontend/src/lib/stores/campaigns.ts` (MOD), `frontend/src/routes/+page.svelte` (MOD), `frontend/src/routes/create/+page.svelte` (MOD), `frontend/src/lib/stores/creation.ts` (MOD)
+
+---
+
+### Phase 2: UI-Exposed Lore Ingestion ("Add Source Novels")
+
+**What exists:** Full ingestion pipeline (`ingestion/ingest_lore.py` — PDF/EPUB/TXT); `POST /v2/library/ingest` with background worker; `GET /v2/library/ingest/{job_id}/status` polling; `ingestion_jobs` table (migration 0035); Library page with upload + status; hierarchical chunking with SHA-256 dedup.
+
+**What's missing:** No `lore_sources` table; Library shows raw chunks not source-level management; no way to delete a single book's chunks; creation wizard doesn't surface ingestion.
+
+#### Step 2.1: `lore_sources` migration
+**Create** `backend/app/db/migrations/0038_lore_sources.sql`
+```sql
+CREATE TABLE IF NOT EXISTS lore_sources (
+    id            TEXT PRIMARY KEY,
+    title         TEXT NOT NULL,
+    filename      TEXT NOT NULL,
+    source_type   TEXT DEFAULT 'novel',  -- novel|sourcebook|reference|homebrew
+    setting_id    TEXT DEFAULT '',
+    period_id     TEXT DEFAULT '',
+    chunk_count   INTEGER DEFAULT 0,
+    status        TEXT DEFAULT 'pending', -- pending|ingesting|ready|failed
+    job_id        TEXT,
+    created_at    TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (job_id) REFERENCES ingestion_jobs(id)
+);
+```
+
+#### Step 2.2: Source CRUD endpoints
+**Modify** `backend/app/api/v2_library.py`
+- `GET /v2/library/sources` — list sources, optional `?setting_id=` filter
+- `GET /v2/library/sources/{source_id}` — single source detail
+- `DELETE /v2/library/sources/{source_id}` — delete source + its LanceDB chunks
+- Modify `POST /v2/library/ingest` to also create `lore_sources` row linked to `job_id`
+- Background worker updates `lore_sources.status` and `chunk_count` on completion
+
+#### Step 2.3: Source-scoped deletion in store
+**Modify** `ingestion/store.py`
+- Add `delete_by_source(source_title: str)` — filter LanceDB by `source` field, delete matching rows
+
+#### Step 2.4: "Add Reference Material" in creation wizard
+**Modify** `frontend/src/routes/create/+page.svelte`
+- After Universe selection, add optional step: "Add Reference Material"
+  - "No thanks, keep it lightweight" (skip — default)
+  - "Add novels now" → inline upload with auto-filled Universe metadata
+  - "Add later from Library" → skip
+- Job status card: Extracting → Chunking → Embedding → Done
+- "Start playing now" available immediately (don't block on ingestion)
+
+#### Step 2.5: Source-based Library
+**Modify** `frontend/src/routes/library/+page.svelte`
+- Replace chunk-based book list with source-based list from `GET /v2/library/sources`
+- Source card: title, type badge, Universe/Era, chunk count, status
+- Delete button per source (with confirmation)
+- Filter by Universe dropdown
+
+#### Step 2.6: Source API client
+**Create** `frontend/src/lib/api/sources.ts`
+- `listSources(settingId?)`, `deleteSource(sourceId)`
+
+**Files:** `backend/app/db/migrations/0038_lore_sources.sql` (NEW), `backend/app/api/v2_library.py` (MOD), `ingestion/store.py` (MOD), `frontend/src/routes/create/+page.svelte` (MOD), `frontend/src/routes/library/+page.svelte` (MOD), `frontend/src/lib/api/sources.ts` (NEW)
+
+---
+
+### Phase 3: Optional Visual Layer (Portraits + Key Art)
+
+**Design:** Zero cost when disabled. No LLM calls, no image generation. `ENABLE_PORTRAITS=0` (default) = identical to today. When enabled, serves static images bundled in era packs.
+
+**What exists:** `NPC_RENDER_ENABLED` flag (but for LLM text rendering, not images); `npc_renderer.py` (text intros/dialogue only); `EraBackground.icon` field (unused); frontend is pure text.
+
+#### Step 3.1: Portrait metadata in era pack schema
+**Modify** `backend/app/world/era_pack_models.py`
+- Add `portrait_key: str | None = None` to `EraCompanionEntry` and `EraNpcEntry`
+- Add `key_art: str | None = None` to `EraLocationEntry`
+- All optional — `None` = no image rendered
+
+#### Step 3.2: Portrait index + static serving
+**Create** `data/static/portraits/` directory:
+```
+data/static/portraits/
+  index.yaml        # {portrait_key: {file, alt_text, credit}}
+  companions/       # companion portrait images
+  npcs/             # NPC portrait images
+  locations/        # location key art images
+```
+
+**Modify** `backend/main.py`
+- When `ENABLE_PORTRAITS=1`, mount `/portraits` as static file directory
+- When disabled, skip mount entirely
+
+#### Step 3.3: Portrait fields in API responses
+**Modify** `backend/app/api/campaign_models.py`
+- Add `portrait_url: str | None = None` to `PartyStatusItem`
+- Add `npc_portraits: dict[str, str] | None = None` to `TurnResponse`
+- Add `location_art: str | None = None` to `TurnResponse`
+- Resolution: when `ENABLE_PORTRAITS` is true, resolve `portrait_key` → URL; when false, all `None`
+
+#### Step 3.4: Frontend image display
+**Modify** `frontend/src/routes/play/+page.svelte`
+- Optional location key art banner above narration (if `location_art` non-null)
+- Optional companion portrait thumbnails in party status (if `portrait_url` non-null)
+- Optional NPC portrait next to encounter text (if `npc_portraits` has entries)
+- All guarded by `{#if}` — graceful no-op when null
+
+#### Step 3.5: Feature flag
+**Modify** `.env.example` — add `# ENABLE_PORTRAITS=0`
+**Modify** `backend/app/config.py` — add `ENABLE_PORTRAITS = _env_flag("ENABLE_PORTRAITS", default=False)`
+
+**Files:** `backend/app/world/era_pack_models.py` (MOD), `backend/app/api/campaign_models.py` (MOD), `backend/app/config.py` (MOD), `backend/main.py` (MOD), `.env.example` (MOD), `data/static/portraits/index.yaml` (NEW), `frontend/src/routes/play/+page.svelte` (MOD)
+
+**No pipeline changes.** Portrait resolution is post-pipeline decoration in the response builder.
+
+---
+
+### Implementation Order
+
+| Phase | Scope | Backend Changes | Frontend Changes |
+|-------|-------|----------------|-----------------|
+| Phase 1 | Universe & Story UX | None | 5 files (1 new, 4 modify) |
+| Phase 2 | Lore Ingestion UI | 1 migration + 2 modified files | 3 files (1 new, 2 modify) |
+| Phase 3 | Visual Layer (optional) | 4 modified files + 1 new YAML | 1 modified file |
+
+### What We're NOT Doing (and why)
+
+| Rejected Proposal | Source | Reason |
+|------------------|--------|--------|
+| RAG influence slider | ChatGPT | Exposes plumbing as UX; 4-lane retrieval handles weighting internally |
+| Play while indexing | ChatGPT | Significant state complexity; "start now, add lore later" achieves same goal |
+| `universes` DB table | ChatGPT | Duplicates existing `sagas` + `settings` infrastructure |
+| Constrained generation overhaul | Grok | Already implemented: `ensure_json()`, `call_json()`, `json_repair.py` (39 occurrences, 19 files) |
+| State machine refactor | Grok | Already implemented: `GameState` Pydantic pipeline, event sourcing, Truth Ledger |
+| Backend provider abstraction | Grok | Already implemented: `LLMProviderProtocol` with Ollama/Anthropic/OpenAI dispatch |
+| AI-generated portraits | - | Costs money per turn; static portraits achieve 90% of visual impact at zero marginal cost |
+
+---
+
 ## V10.0 Narrative Intelligence — COMPLETED
 
 Ten features across 4 phases, implementing the narrative skills that separate a good engine from one that feels like a human DM. Design principle: **no new pipeline nodes, no latency impact on turns** — all new intelligence runs as deferred agents (post-commit) or prompt engineering within existing nodes.
