@@ -2082,7 +2082,10 @@ def post_turn_stream(
             final_text = _strip_structural_artifacts(accumulated)
             final_text = _strip_embedded_suggestions(final_text)
             final_text = _enforce_pov_consistency(final_text)
-            max_words = get_word_limit_for_scene_weight(pre_state.get("scene_weight"))
+            max_words = get_word_limit_for_scene_weight(
+                pre_state.get("scene_weight"),
+                narrator_mode=pre_state.get("narrator_mode"),
+            )
             final_text = _truncate_overlong_prose(final_text, max_words=max_words)
 
             # Append companion banter if available
@@ -2939,5 +2942,83 @@ def get_campaign_codex(campaign_id: str) -> dict[str, Any]:
             "unlocked_count": len(unlocked),
             "total_available": total_available,
         }
+    finally:
+        conn.close()
+
+
+# ── V9.0: Campaign Settings (Novel-Length Story) ─────────────────────
+
+
+class CampaignSettings(BaseModel):
+    """Campaign-level settings adjustable by the player."""
+    narrator_mode: str = "concise"  # concise | novel | epic
+    cloud_preset: str = "local"    # local | budget | balanced | quality
+
+
+class CampaignSettingsResponse(BaseModel):
+    narrator_mode: str
+    cloud_preset: str
+
+
+@router.get("/campaigns/{campaign_id}/settings", response_model=CampaignSettingsResponse)
+def get_campaign_settings(campaign_id: str):
+    """Get campaign settings (narrator_mode, cloud_preset)."""
+    conn = get_connection(DEFAULT_DB_PATH)
+    try:
+        campaign = load_campaign(conn, campaign_id)
+        if campaign is None:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        ws = campaign.get("world_state_json") or {}
+        if isinstance(ws, str):
+            ws = json.loads(ws)
+        narrator_mode = ws.get("narrator_mode", "concise")
+        cloud_preset = ws.get("cloud_preset", "local")
+        from backend.app.constants import VALID_NARRATOR_MODES
+        if narrator_mode not in VALID_NARRATOR_MODES:
+            narrator_mode = "concise"
+        from backend.app.config import VALID_CLOUD_PRESETS
+        if cloud_preset not in VALID_CLOUD_PRESETS:
+            cloud_preset = "local"
+        return CampaignSettingsResponse(narrator_mode=narrator_mode, cloud_preset=cloud_preset)
+    finally:
+        conn.close()
+
+
+@router.patch("/campaigns/{campaign_id}/settings", response_model=CampaignSettingsResponse)
+def patch_campaign_settings(campaign_id: str, body: CampaignSettings):
+    """Update campaign settings. Persists to world_state_json."""
+    from backend.app.constants import VALID_NARRATOR_MODES
+    from backend.app.config import VALID_CLOUD_PRESETS
+
+    if body.narrator_mode not in VALID_NARRATOR_MODES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid narrator_mode. Must be one of: {VALID_NARRATOR_MODES}",
+        )
+    if body.cloud_preset not in VALID_CLOUD_PRESETS:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid cloud_preset. Must be one of: {VALID_CLOUD_PRESETS}",
+        )
+
+    conn = get_connection(DEFAULT_DB_PATH)
+    try:
+        campaign = load_campaign(conn, campaign_id)
+        if campaign is None:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+        ws = campaign.get("world_state_json") or {}
+        if isinstance(ws, str):
+            ws = json.loads(ws)
+        ws["narrator_mode"] = body.narrator_mode
+        ws["cloud_preset"] = body.cloud_preset
+        conn.execute(
+            "UPDATE campaigns SET world_state_json = ? WHERE id = ?",
+            (json.dumps(ws), campaign_id),
+        )
+        conn.commit()
+        return CampaignSettingsResponse(
+            narrator_mode=body.narrator_mode,
+            cloud_preset=body.cloud_preset,
+        )
     finally:
         conn.close()

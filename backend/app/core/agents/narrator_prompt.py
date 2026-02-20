@@ -246,10 +246,42 @@ _GENERIC_ATMOSPHERE_FRAGMENTS: dict[str, str] = {
     "hook": "The next chapter waited, just beyond the threshold.",
 }
 
-_SCENE_SENTENCE_GUIDANCE: dict[str, str] = {
-    "STANDARD": "Write 5-8 vivid sentences.",
-    "ELEVATED": "Write 6-10 vivid sentences. This is an important moment.",
-    "CLIMAX": "Write 8-12 immersive, dramatic sentences. This is a pivotal moment in the story.",
+_SCENE_SENTENCE_GUIDANCE: dict[str, dict[str, str]] = {
+    "concise": {
+        "STANDARD": "Write 5-8 vivid sentences.",
+        "ELEVATED": "Write 6-10 vivid sentences. This is an important moment.",
+        "CLIMAX": "Write 8-12 immersive, dramatic sentences. This is a pivotal moment in the story.",
+    },
+    "novel": {
+        "STANDARD": (
+            "Write 12-18 rich, layered sentences across 3-4 paragraphs. "
+            "Include sensory detail, internal reflection, and atmospheric description."
+        ),
+        "ELEVATED": (
+            "Write 15-22 sentences across 4-5 paragraphs. Layer tension through pacing, "
+            "internal monologue, and environmental detail. This is a significant moment."
+        ),
+        "CLIMAX": (
+            "Write 20-28 immersive, cinematic sentences across 5-6 paragraphs. "
+            "This is a pivotal moment. Use internal monologue, visceral sensory detail, "
+            "and dramatic pacing. Every paragraph should build intensity."
+        ),
+    },
+    "epic": {
+        "STANDARD": (
+            "Write 18-25 sentences across 4-5 substantial paragraphs. Full cinematic prose "
+            "with rich atmosphere, character interiority, and environmental storytelling."
+        ),
+        "ELEVATED": (
+            "Write 22-30 sentences across 5-6 paragraphs. Deep immersion: layer multiple senses, "
+            "internal conflict, NPC body language, and environmental metaphor."
+        ),
+        "CLIMAX": (
+            "Write 28-35 sentences across 6-8 paragraphs. This is the defining moment. "
+            "Full cinematic treatment: slow-motion action beats, visceral detail, emotional weight, "
+            "internal monologue weaving through external events. Make every word count."
+        ),
+    },
 }
 
 
@@ -320,9 +352,13 @@ def _humanize_location(loc_id: str | None, state: GameState | None = None) -> st
 
 
 def _scene_sentence_guidance(state: GameState) -> str:
-    """Return scene-weight-sensitive sentence guidance for the narrator prompt."""
+    """Return scene-weight-sensitive sentence guidance, adapted for narrator_mode."""
     weight = str(getattr(state, "scene_weight", None) or "STANDARD").upper()
-    return _SCENE_SENTENCE_GUIDANCE.get(weight, _SCENE_SENTENCE_GUIDANCE["STANDARD"])
+    mode = str(getattr(state, "narrator_mode", None) or "concise").lower()
+    if mode not in _SCENE_SENTENCE_GUIDANCE:
+        mode = "concise"
+    mode_guidance = _SCENE_SENTENCE_GUIDANCE[mode]
+    return mode_guidance.get(weight, mode_guidance["STANDARD"])
 
 def _build_lore_query(state: GameState) -> str:
     """Build a lore retrieval query from location, user input, and mechanic summary."""
@@ -832,6 +868,46 @@ def _build_prompt(
 
     sentence_guidance = _scene_sentence_guidance(state)
 
+    # V9.0: Novel-Length Story — narrator_mode-specific prose quality directives
+    _narrator_mode = str(getattr(state, "narrator_mode", None) or "concise").lower()
+    _novel_prose_directives = ""
+    if _narrator_mode == "novel":
+        _novel_prose_directives = (
+            "\n\n--- NOVEL-LENGTH PROSE DIRECTIVES ---\n"
+            "You are writing at NOVEL quality. This means:\n"
+            "- INTERNAL MONOLOGUE: Weave the POV character's thoughts through the action. "
+            "Show what they notice, what triggers memory, what they doubt or desire.\n"
+            "- SENSORY LAYERING: Every scene needs at least 3 senses (sight + sound + one more). "
+            "Don't just describe what things look like — describe texture, temperature, scent, taste.\n"
+            "- ATMOSPHERIC DESCRIPTION: The environment is a character. Weather, lighting, ambient sound, "
+            "the feel of a surface underfoot — these details ground the reader in place.\n"
+            "- PARAGRAPH RHYTHM: Vary paragraph length. Short punch paragraphs for impact. "
+            "Longer flowing ones for atmosphere. Never let every paragraph be the same length.\n"
+            "- SHOW EMOTION THROUGH BODY: 'Her stomach tightened' not 'she felt nervous'. "
+            "'His hand found the wall for support' not 'he was dizzy'.\n"
+            "- TRANSITIONAL BEATS: Between major actions, include a breath — a moment of "
+            "silence, a detail noticed, a shift in atmosphere. These beats create pacing.\n"
+        )
+    elif _narrator_mode == "epic":
+        _novel_prose_directives = (
+            "\n\n--- EPIC-LENGTH PROSE DIRECTIVES ---\n"
+            "You are writing FULL CINEMATIC prose. This is the literary mode. Apply ALL of these:\n"
+            "- DEEP POV INTERIORITY: The reader lives inside the character's mind. Stream of consciousness "
+            "weaves through action. Memory flashes. Doubt and desire surface unbidden.\n"
+            "- CINEMATIC SLOW MOTION: For key moments, slow time. A single second can take a paragraph. "
+            "The draw of a weapon. A door opening. Eye contact across a room.\n"
+            "- ENVIRONMENTAL STORYTELLING: Objects tell stories. A scorch mark on a wall. "
+            "A child's toy in an abandoned corridor. A glass of something half-finished.\n"
+            "- MULTI-SENSORY IMMERSION: Layer 4-5 senses per scene. Include proprioception "
+            "(awareness of one's own body in space) and interoception (gut feelings, heartbeat, breath).\n"
+            "- LITERARY DEVICES: Use metaphor, simile, and imagery naturally. "
+            "'The silence was a held breath' not 'it was quiet'. 'The stars burned like accusations'.\n"
+            "- THEMATIC RESONANCE: Echo the active themes through imagery and word choice. "
+            "If the theme is 'cost of loyalty', let the imagery speak of debts, weights, chains, anchors.\n"
+            "- RHYTHM AND CADENCE: Sentences should have music. Short. Long and flowing. "
+            "Staccato when tense. Languid when peaceful. End paragraphs on resonant images.\n"
+        )
+
     # V2.15: Narrator writes ONLY prose. Suggestions are generated deterministically
     # by the Director node using generate_suggestions() — no LLM involvement.
     _prose_stop_rule = (
@@ -928,7 +1004,7 @@ def _build_prompt(
             "A door creaking open, a shadow moving at the edge of vision, a hand drifting to a weapon. "
             "NEVER present numbered options, lettered choices, or dialogue menus inside the prose. "
             "The reader should FEEL the tension, not be handed a list."
-        ) + _prose_stop_rule
+        ) + _novel_prose_directives + _prose_stop_rule
     else:
         system = (
             "You are the narrator for an ongoing story game. You are writing the NEXT CHAPTER of a continuous narrative.\n\n"
@@ -1000,7 +1076,7 @@ def _build_prompt(
             "A door creaking open, a shadow moving at the edge of vision, a hand drifting to a weapon. "
             "NEVER present numbered options, lettered choices, or dialogue menus inside the prose. "
             "The reader should FEEL the tension, not be handed a list."
-        ) + _prose_stop_rule
+        ) + _novel_prose_directives + _prose_stop_rule
 
     story_state_summary = _build_story_state_summary(state)
     recent_history = list(state.history or [])
@@ -1033,6 +1109,16 @@ def _build_prompt(
 
     max_input_tokens = get_role_max_input_tokens("narrator")
     reserve_output_tokens = get_role_reserved_output_tokens("narrator")
+
+    # V9.0: Novel/Epic modes need more output tokens for longer prose
+    if _narrator_mode == "novel":
+        reserve_output_tokens = max(reserve_output_tokens, 3072)
+    elif _narrator_mode == "epic":
+        reserve_output_tokens = max(reserve_output_tokens, 4096)
+    # Recalculate max_input after adjusting reserved output
+    from backend.app.config import get_role_max_context_tokens
+    _max_context = get_role_max_context_tokens("narrator")
+    max_input_tokens = max(0, _max_context - reserve_output_tokens)
     parts = {
         "system": system,
         "state": story_state_summary,

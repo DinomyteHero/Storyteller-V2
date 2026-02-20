@@ -171,6 +171,10 @@ class GameState(BaseModel):
     # V2.12: NPCs the player has been introduced to (persistent; loaded from world_state_json)
     known_npcs: list[str] = Field(default_factory=list)  # NPC names the player has met/seen
 
+    # V9.0: Novel-Length Story — narrator mode and cloud quality preset (persistent, per-campaign)
+    narrator_mode: str | None = None  # "concise" | "novel" | "epic" — controls scene length + prose quality
+    cloud_preset: str | None = None  # "local" | "budget" | "balanced" | "quality" — per-campaign cloud routing
+
     # Memory (kept across turns)
     history: list[str] = Field(default_factory=list)  # last ~10 turn summaries
     last_user_inputs: list[str] = Field(default_factory=list)  # last ~10 raw inputs

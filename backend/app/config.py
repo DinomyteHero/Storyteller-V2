@@ -152,6 +152,24 @@ HYBRID_CLOUD_PRESETS: dict[str, dict[str, dict[str, str]]] = {
     },
 }
 
+VALID_CLOUD_PRESETS: tuple[str, ...] = ("local", "budget", "balanced", "quality")
+
+
+def resolve_cloud_config(role: str, cloud_preset: str | None) -> dict | None:
+    """Return per-role provider override dict for a cloud preset, or None.
+
+    Used by node factories to apply per-campaign cloud routing without
+    changing global MODEL_CONFIG.  Returns None when the preset is 'local',
+    absent, or doesn't include the requested role.
+    """
+    if not cloud_preset or cloud_preset == "local":
+        return None
+    preset = HYBRID_CLOUD_PRESETS.get(cloud_preset)
+    if not preset:
+        return None
+    return preset.get(role)  # None if role not in this preset tier
+
+
 # Hardware profile presets: suggested model assignments by GPU tier.
 # Only one model is loaded at a time (specialist swapping), so the
 # constraint is *peak VRAM for the largest loaded model*.

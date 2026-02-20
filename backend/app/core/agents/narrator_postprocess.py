@@ -24,9 +24,31 @@ SCENE_WORD_LIMITS: dict[str, int] = {
 }
 
 
-def get_word_limit_for_scene_weight(scene_weight: str | None) -> int:
-    """Resolve max word budget from scene weight classification."""
+def get_word_limit_for_scene_weight(
+    scene_weight: str | None,
+    narrator_mode: str | None = None,
+) -> int:
+    """Resolve max word budget from scene weight and narrator mode.
+
+    When narrator_mode is set, uses the NARRATOR_MODE_WORD_TARGETS matrix
+    from constants.py. Falls back to legacy SCENE_WORD_LIMITS for backward
+    compatibility when narrator_mode is None or unrecognized.
+    """
+    from backend.app.constants import (
+        NARRATOR_MODE_WORD_TARGETS,
+        DEFAULT_NARRATOR_MODE,
+        VALID_NARRATOR_MODES,
+    )
     key = (scene_weight or "STANDARD").strip().upper()
+    mode = (narrator_mode or "").strip().lower()
+
+    if mode and mode in VALID_NARRATOR_MODES:
+        mode_targets = NARRATOR_MODE_WORD_TARGETS.get(
+            mode, NARRATOR_MODE_WORD_TARGETS[DEFAULT_NARRATOR_MODE]
+        )
+        return mode_targets.get(key, mode_targets["STANDARD"])
+
+    # Legacy fallback (no narrator_mode set)
     return SCENE_WORD_LIMITS.get(key, SCENE_WORD_LIMITS["STANDARD"])
 
 

@@ -360,6 +360,27 @@ class DirectorAgent:
                 if theme_guidance:
                     base += f" {theme_guidance}"
 
+        # V9.0: Novel-Length Story — Director scene length guidance based on narrator_mode
+        _narrator_mode = str(getattr(state, "narrator_mode", None) or "concise").lower()
+        if _narrator_mode == "novel":
+            base += (
+                "\n\nNARRATOR MODE: NOVEL (longer scenes, 500-750 words per scene).\n"
+                "Adjust your scene direction accordingly:\n"
+                "- Allow for MULTIPLE BEATS within a single scene (approach + interaction + reaction)\n"
+                "- Include atmospheric and environmental direction for the narrator\n"
+                "- Suggest NPC body language and behavioral details the narrator can use\n"
+                "- Allow breathing room between tension beats for character reflection"
+            )
+        elif _narrator_mode == "epic":
+            base += (
+                "\n\nNARRATOR MODE: EPIC (cinematic scenes, 700-900 words per scene).\n"
+                "Direct the scene with maximum dramatic investment:\n"
+                "- Structure the scene in ACTS: setup, escalation, turning point\n"
+                "- Specify environmental mood shifts (lighting, weather, ambient sounds)\n"
+                "- Call out specific NPC emotional arcs within the scene\n"
+                "- Include thematic imagery direction that echoes active themes"
+            )
+
         # Phase 5: Companion conflicts (inject into director awareness)
         companion_conflicts = campaign.get("companion_conflicts") or []
         if companion_conflicts:

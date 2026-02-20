@@ -187,7 +187,10 @@ class NarratorAgent:
                 cleaned_text = _strip_embedded_suggestions(cleaned_text)
 
                 cleaned_text = _enforce_pov_consistency(cleaned_text)
-                max_words = get_word_limit_for_scene_weight(getattr(state, "scene_weight", None))
+                max_words = get_word_limit_for_scene_weight(
+                    getattr(state, "scene_weight", None),
+                    narrator_mode=getattr(state, "narrator_mode", None),
+                )
                 cleaned_text = _truncate_overlong_prose(cleaned_text, max_words=max_words)
                 output = NarrationOutput(
                     text=cleaned_text,
@@ -463,7 +466,10 @@ class NarratorAgent:
             cleaned_text = _strip_structural_artifacts(output.text)
             cleaned_text = _strip_embedded_suggestions(cleaned_text)
             cleaned_text = _enforce_pov_consistency(cleaned_text)
-            max_words = get_word_limit_for_scene_weight(getattr(state, "scene_weight", None))
+            max_words = get_word_limit_for_scene_weight(
+                getattr(state, "scene_weight", None),
+                narrator_mode=getattr(state, "narrator_mode", None),
+            )
             cleaned_text = _truncate_overlong_prose(cleaned_text, max_words=max_words)
             output = NarrationOutput(
                 text=cleaned_text,

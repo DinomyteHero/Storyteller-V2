@@ -291,6 +291,10 @@ def build_initial_gamestate(
     # V2.12: Load known NPCs from world_state_json
     _known_npcs = list(ws.get("known_npcs") or [])
 
+    # V9.0: Load narrator mode and cloud preset from world_state_json
+    _narrator_mode = ws.get("narrator_mode") or None
+    _cloud_preset = ws.get("cloud_preset") or None
+
     return GameState(
         campaign_id=campaign_id,
         player_id=player_id,
@@ -304,4 +308,6 @@ def build_initial_gamestate(
         recent_narrative=recent_narrative,
         player_starship=_player_starship,
         known_npcs=_known_npcs,
+        narrator_mode=_narrator_mode,
+        cloud_preset=_cloud_preset,
     )

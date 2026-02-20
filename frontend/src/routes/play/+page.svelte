@@ -46,6 +46,8 @@
   import TutorialOverlay from '$lib/components/onboarding/TutorialOverlay.svelte';
   import { onboarding, showTutorial } from '$lib/stores/onboarding';
   import { apiFetch, BASE_URL } from '$lib/api/client';
+  // V9.0: Settings panel
+  import SettingsPanel from '$lib/components/game/SettingsPanel.svelte';
 
   let isSendingTurn = $state(false);
   let narrativeEl: HTMLDivElement | undefined = $state();
@@ -622,7 +624,7 @@
   }
 
   // All drawer tabs including journal + quests
-  const DRAWER_TABS = ['character', 'companions', 'factions', 'inventory', 'quests', 'comms', 'journal'] as const;
+  const DRAWER_TABS = ['character', 'companions', 'factions', 'inventory', 'quests', 'comms', 'journal', 'settings'] as const;
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -1365,6 +1367,10 @@
           {:else}
             <p class="empty-state">No journal entries yet.</p>
           {/if}
+
+        <!-- SETTINGS TAB (V9.0: Novel-Length Story) -->
+        {:else if $ui.drawerTab === 'settings'}
+          <SettingsPanel />
 
         {:else}
           <p class="empty-state">No data available.</p>

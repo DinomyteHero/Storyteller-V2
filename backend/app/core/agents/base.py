@@ -101,11 +101,14 @@ class AgentLLM:
     One client per call to avoid VRAM overload (for local models).
     """
 
-    def __init__(self, role: str) -> None:
+    def __init__(self, role: str, config_override: dict | None = None) -> None:
         if role not in MODEL_CONFIG:
             raise ValueError(f"Unknown role: {role}. Known: {list(MODEL_CONFIG)}")
         self._role = role
         self._config = dict(MODEL_CONFIG[role])
+        # V9.0: Per-campaign cloud quality override (merges on top of defaults)
+        if config_override:
+            self._config.update(config_override)
         self._client: Any = None
 
     def _get_client(self) -> Any:

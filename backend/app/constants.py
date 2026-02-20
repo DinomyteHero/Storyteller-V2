@@ -443,6 +443,32 @@ BEAT_ARCHETYPE_HINTS: dict[str, list[str]] = {
 
 
 # Director entity guard stop-words (lowercase)
+# ── Novel-Length Story: narrator mode word targets (V9.0) ─────────────
+# Word budget matrix: narrator_mode x scene_weight -> max words.
+# Used by narrator_postprocess.get_word_limit_for_scene_weight().
+# "concise" matches the legacy SCENE_WORD_LIMITS with slight tuning.
+# "novel" targets ~500-750 words for rich, layered prose.
+# "epic" targets ~700-900 words for full cinematic treatment.
+NARRATOR_MODE_WORD_TARGETS: dict[str, dict[str, int]] = {
+    "concise": {
+        "STANDARD": 230,
+        "ELEVATED": 320,
+        "CLIMAX": 430,
+    },
+    "novel": {
+        "STANDARD": 500,
+        "ELEVATED": 600,
+        "CLIMAX": 750,
+    },
+    "epic": {
+        "STANDARD": 700,
+        "ELEVATED": 800,
+        "CLIMAX": 900,
+    },
+}
+VALID_NARRATOR_MODES: tuple[str, ...] = ("concise", "novel", "epic")
+DEFAULT_NARRATOR_MODE = "concise"
+
 DIRECTOR_ENTITY_STOP_WORDS = frozenset({
     "the", "a", "an", "say", "ask", "look", "go", "investigate", "talk", "take", "try",
     "press", "move", "check", "scan", "gather", "intel", "about", "with", "toward",

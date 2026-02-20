@@ -180,3 +180,28 @@ export async function getEraCompanions(
 ): Promise<{ era_id: string; companions: CompanionPreview[] }> {
   return apiFetch(`/v2/era/${encodeURIComponent(eraId)}/companions`);
 }
+
+// ── V9.0: Campaign Settings (Novel-Length Story) ─────────────────────
+
+export interface CampaignSettings {
+  narrator_mode: 'concise' | 'novel' | 'epic';
+  cloud_preset: 'local' | 'budget' | 'balanced' | 'quality';
+}
+
+export async function getCampaignSettings(
+  campaignId: string
+): Promise<CampaignSettings> {
+  return apiFetch<CampaignSettings>(
+    `/v2/campaigns/${encodeURIComponent(campaignId)}/settings`
+  );
+}
+
+export async function patchCampaignSettings(
+  campaignId: string,
+  settings: Partial<CampaignSettings>
+): Promise<CampaignSettings> {
+  return apiFetch<CampaignSettings>(
+    `/v2/campaigns/${encodeURIComponent(campaignId)}/settings`,
+    { method: 'PATCH', body: JSON.stringify(settings) }
+  );
+}

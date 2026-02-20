@@ -87,6 +87,29 @@ def make_narrator_node():
         import logging as _logging
         _narrator_logger = _logging.getLogger(__name__)
         gs = dict_to_state(state)
+
+        # V9.0: Per-campaign cloud quality override — use a turn-scoped narrator if needed
+        _cloud_preset = getattr(gs, "cloud_preset", None)
+        if _cloud_preset and _cloud_preset != "local":
+            from backend.app.config import resolve_cloud_config
+            _cloud_cfg = resolve_cloud_config("narrator", _cloud_preset)
+            if _cloud_cfg:
+                try:
+                    _cloud_llm = AgentLLM("narrator", config_override=_cloud_cfg)
+                    _turn_narrator = NarratorAgent(
+                        llm=_cloud_llm,
+                        lore_retriever=lore_retriever,
+                        voice_retriever=voice_retriever,
+                        style_retriever=style_retriever_fn,
+                    )
+                    _narrator_logger.info("Using cloud LLM for narrator (preset=%s)", _cloud_preset)
+                except Exception as _e:
+                    _narrator_logger.warning("Cloud narrator init failed, using default: %s", _e)
+                    _turn_narrator = narrator
+            else:
+                _turn_narrator = narrator
+        else:
+            _turn_narrator = narrator
         nonlocal retrieval_guardrails
         campaign_dict_for_guardrails = getattr(gs, "campaign", None) or {}
         ws_for_guardrails = campaign_dict_for_guardrails.get("world_state_json") if isinstance(campaign_dict_for_guardrails, dict) else {}
@@ -222,18 +245,18 @@ def make_narrator_node():
                 current_di = gs.director_instructions or ""
                 gs.director_instructions = current_di + loyalty_block
 
-        output = narrator.generate(gs, kg_context=kg_context)
+        output = _turn_narrator.generate(gs, kg_context=kg_context)
         final_text = output.text
 
         # Phase 7: Narrator feedback loop — retry once on mechanic consistency failure
         from backend.app.core.nodes.narrative_validator import _check_mechanic_consistency
         mechanic_result = state.get("mechanic_result") or {}
         consistency_warnings = _check_mechanic_consistency(final_text, mechanic_result)
-        if consistency_warnings and narrator._llm is not None:
+        if consistency_warnings and _turn_narrator._llm is not None:
             correction = "; ".join(consistency_warnings)
             _narrator_logger.info("Narrator retry: mechanic consistency issue detected, retrying once.")
             try:
-                retry_output = narrator.generate_with_correction(gs, correction, kg_context=kg_context)
+                retry_output = _turn_narrator.generate_with_correction(gs, correction, kg_context=kg_context)
                 retry_warnings = _check_mechanic_consistency(retry_output.text, mechanic_result)
                 if not retry_warnings:
                     final_text = retry_output.text
