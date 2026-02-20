@@ -55,6 +55,20 @@ export interface PlayerResponse {
   consequence_hint: string;
   tone_tag: string;      // PARAGON | INVESTIGATE | RENEGADE | NEUTRAL
   meaning_tag: string;   // reveal_values|probe_belief|challenge_premise|seek_history|set_boundary|pragmatic|deflect
+  action_type?: string;  // TALK | DO | INVESTIGATE | TRAVEL | USE_ABILITY | WAIT
+}
+
+/**
+ * Structured intent sent alongside user_input when player clicks a choice card.
+ * Allows the router to skip re-inference and trust the choice crafter's metadata.
+ * Null when player uses free-text "Forge Your Own Path".
+ */
+export interface StructuredIntent {
+  tone_tag: string;       // PARAGON | INVESTIGATE | RENEGADE | NEUTRAL
+  meaning_tag: string;    // semantic tag from choice crafter
+  risk_level: string;     // SAFE | RISKY | DANGEROUS
+  action_type: string;    // TALK | DO | INVESTIGATE | TRAVEL | USE_ABILITY | WAIT
+  impact_tier: string;    // ripple | wave | tsunami
 }
 
 export interface ValidationReport {
@@ -176,6 +190,8 @@ export interface TurnResponse {
   world_sim_ran?: boolean;
   // V7.0: Mechanic resolution notes (dice, difficulty, success for player transparency)
   mechanic_notes?: MechanicNotes | null;
+  // Phase 4.1: Bridge paragraph connecting narrative prose to choice cards
+  bridge_paragraph?: string | null;
 }
 
 export interface MechanicNotes {
@@ -245,6 +261,7 @@ export interface Intent {
 export interface TurnRequest {
   user_input?: string;
   intent?: Intent;
+  structured_intent?: StructuredIntent | null;
   debug?: boolean;
   include_state?: boolean;
   idempotency_key?: string;
@@ -309,6 +326,8 @@ export interface SSEEvent {
   turn_contract?: TurnContract | null;
   // V7.0: Mechanic notes
   mechanic_notes?: MechanicNotes | null;
+  // Phase 4.1: Bridge paragraph
+  bridge_paragraph?: string | null;
 }
 
 export interface EraBackground {

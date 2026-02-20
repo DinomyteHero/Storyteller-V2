@@ -6,19 +6,24 @@
  * to parse the `data: {...}\n\n` SSE format manually.
  */
 import { BASE_URL } from './client';
-import type { SSEEvent } from './types';
+import type { SSEEvent, StructuredIntent } from './types';
 
 export async function* streamTurn(
   campaignId: string,
   playerId: string,
-  userInput: string
+  userInput: string,
+  structuredIntent?: StructuredIntent | null,
 ): AsyncGenerator<SSEEvent> {
+  const bodyPayload: Record<string, unknown> = { user_input: userInput };
+  if (structuredIntent) {
+    bodyPayload.structured_intent = structuredIntent;
+  }
   const response = await fetch(
     `${BASE_URL}/v2/campaigns/${campaignId}/turn_stream?player_id=${encodeURIComponent(playerId)}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_input: userInput }),
+      body: JSON.stringify(bodyPayload),
     }
   );
 

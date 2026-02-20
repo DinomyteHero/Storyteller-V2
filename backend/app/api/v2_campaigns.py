@@ -1394,6 +1394,48 @@ def _pad_suggestions_for_ui(actions: list) -> list:
     return padded[:SUGGESTED_ACTIONS_TARGET]
 
 
+class ClassifyRequest(BaseModel):
+    """Lightweight request for intent classification preview (Phase 1.3)."""
+    user_input: str = ""
+
+
+class ClassifyResponse(BaseModel):
+    """Phase 1.3: Preview how the router will classify free text.
+    Lets the frontend show 'This will be treated as TALK/ACTION' before committing."""
+    route: str  # TALK | MECHANIC | META
+    action_class: str  # DIALOGUE_ONLY | DIALOGUE_WITH_ACTION | PHYSICAL_ACTION | META
+    requires_resolution: bool
+    confidence: float
+    rationale_short: str
+
+
+@router.post("/campaigns/{campaign_id}/classify", response_model=ClassifyResponse)
+def classify_intent(
+    campaign_id: str,
+    body: ClassifyRequest,
+):
+    """Phase 1.3: Preview router classification for free text input without running a full turn.
+    Lightweight — no DB writes, no LLM calls for the pipeline, just the router heuristic."""
+    from backend.app.core.router import route as router_route
+    user_input = (body.user_input or "").strip()
+    if not user_input:
+        return ClassifyResponse(
+            route="META",
+            action_class="META",
+            requires_resolution=False,
+            confidence=1.0,
+            rationale_short="empty input",
+        )
+    result = router_route(user_input)
+    return ClassifyResponse(
+        route=result.route,
+        action_class=result.action_class,
+        requires_resolution=result.requires_resolution,
+        confidence=result.confidence,
+        rationale_short=result.rationale_short,
+    )
+
+
 @router.post("/campaigns/{campaign_id}/turn", response_model=TurnResponse)
 def post_turn(
     campaign_id: str,
@@ -1446,6 +1488,9 @@ def post_turn(
             state.user_input = body.intent.user_utterance or json.dumps(body.intent.model_dump(mode="json"))
         else:
             state.user_input = body.user_input
+        # Phase 1: Pass structured intent from choice card clicks
+        if body.structured_intent is not None:
+            state.structured_intent = body.structured_intent.model_dump(mode="json")
         try:
             result = run_turn(conn, state)
         except Exception as e:
@@ -1721,6 +1766,7 @@ def post_turn(
             active_npc_contexts=active_npc_contexts_out,
             world_sim_ran=bool(getattr(result, "world_sim_ran", False)),
             mechanic_notes=mechanic_notes_out,
+            bridge_paragraph=getattr(result, "bridge_paragraph", None),
         )
         if idempotency_key:
             _idempotency_complete(
@@ -1904,6 +1950,9 @@ def post_turn_stream(
                 state.user_input = body.intent.user_utterance or json.dumps(body.intent.model_dump(mode="json"))
             else:
                 state.user_input = body.user_input
+            # Phase 1: Pass structured intent from choice card clicks
+            if body.structured_intent is not None:
+                state.structured_intent = body.structured_intent.model_dump(mode="json")
 
             # Run pre-narrator pipeline (Router → ... → Director)
             pre_state = _run_pre_narrator_pipeline(conn, state)
@@ -2147,6 +2196,7 @@ def post_turn_stream(
                 "dialogue_turn": getattr(result_gs, "dialogue_turn", None),
                 "turn_contract": turn_contract.model_dump(mode="json"),
                 "mechanic_notes": _stream_mechanic_notes,
+                "bridge_paragraph": getattr(result_gs, "bridge_paragraph", None),
             }
             if DEV_CONTEXT_STATS:
                 merged_timings = {}

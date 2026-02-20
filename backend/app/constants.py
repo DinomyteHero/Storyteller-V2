@@ -99,19 +99,19 @@ LEDGER_MAX_TONE_TAGS = 5        # Tone descriptors for the current narrative moo
 # Controls how turn history is compressed into summaries for LLM context.
 MEMORY_RECENT_TURNS = 10                # Number of recent turns kept verbatim in hot state
 MEMORY_COMPRESSION_CHUNK_SIZE = 10      # Turns grouped per era summary during compression
-MEMORY_MAX_ERA_SUMMARIES = 20           # Maximum era summaries retained
+MEMORY_MAX_ERA_SUMMARIES = 30           # Maximum era summaries retained (was 20)
 MEMORY_ERA_SUMMARY_MAX_CHARS = 800      # Max characters per era summary
 
 # Phase 3.2 tiered memory controls
 MEMORY_HOT_TURNS = 10                   # Full-fidelity near-term turn window
 MEMORY_WARM_TURNS = 50                  # Mid-term retrieval window
-MEMORY_COLD_MAX_SUMMARIES = 20          # Long-tail compressed summaries retained
+MEMORY_COLD_MAX_SUMMARIES = 30          # Long-tail compressed summaries retained (was 20)
 MEMORY_COLD_SUMMARY_MAX_CHARS = 800     # Max chars for cold summaries
-MEMORY_CRYSTALLIZED_MAX = 25            # Permanent important moments per campaign
+MEMORY_CRYSTALLIZED_MAX = 40            # Permanent important moments per campaign (was 25)
 
 # Phase 3.1 long-campaign performance controls
-MAINTENANCE_AGENT_FREQUENCY = 5         # Run non-critical commit LLM agents every N turns
-NPC_STATES_MAX = 30                     # Cap world_state_json["npc_states"] to most-recently-seen NPCs
+MAINTENANCE_AGENT_FREQUENCY = 3         # Run non-critical commit LLM agents every N turns (was 5)
+NPC_STATES_MAX = 60                     # Cap world_state_json["npc_states"] to most-recently-seen NPCs (was 30)
 COMMIT_GROUP2_MAX_WORKERS = 2           # Parallel worker count for MemoryAgent + QuestWeaverAgent
 PROGRESSION_INTERVAL_BASE = 10          # Progression cadence outside high-intensity arc stages
 PROGRESSION_INTERVAL_HIGH_INTENSITY = 5 # Progression cadence during RISING/CLIMAX
@@ -136,11 +136,11 @@ JSON_RELIABILITY_MAX_RETRIES = 3        # Max retries for JSON parse/repair cycl
 INTENT_JACCARD_THRESHOLD = 0.6          # Min Jaccard similarity to consider intents equivalent
 
 # ── Suggested actions UX contract ─────────────────────────────────────
-# The KOTOR dialogue wheel expects exactly TARGET options. Director may propose
-# a variable number; SuggestionRefiner pads/trims to TARGET.
+# Flexible choice count: scene determines how many options (3-6).
+# Tone spread is a guideline, not a rigid requirement.
 SUGGESTED_ACTIONS_MIN = 3
-SUGGESTED_ACTIONS_TARGET = 4            # KOTOR-style: 4 dialogue options
-SUGGESTED_ACTIONS_MAX = 10
+SUGGESTED_ACTIONS_TARGET = 4            # Default target; scenes may produce 3-6
+SUGGESTED_ACTIONS_MAX = 6              # Capped at 6 for UI readability (was 10)
 
 # ── Knowledge Graph retrieval defaults ────────────────────────────────
 KG_MAX_RELATIONSHIPS_PER_CHAR = 8       # Max relationship edges per character in KG context
@@ -320,6 +320,11 @@ INTERLUDE_PACING_HINT = (
     "camp scenes, shopping, or downtime activities. No combat or major plot advancement. "
     "Let the player decompress before the next arc begins."
 )
+
+# Companion loyalty breakpoints (Phase 6.2)
+COMPANION_LOYALTY_RELUCTANT = -30    # Won't help with risky plans
+COMPANION_LOYALTY_THREATENS_LEAVE = -60  # Threatens to leave party
+COMPANION_LOYALTY_LEAVES = -80       # Actually leaves the party
 
 # Deep companion system (Phase 5)
 COMPANION_ARC_STRANGER_MAX = -10

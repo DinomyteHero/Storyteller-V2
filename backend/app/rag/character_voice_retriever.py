@@ -40,9 +40,14 @@ def get_voice_snippets(
     db_path: str | Path | None = None,
     table_name: str | None = None,
     warnings: list[str] | None = None,
+    emotional_context: dict[str, str] | None = None,
 ) -> dict[str, list[VoiceSnippet]]:
     """
     Get top-k voice snippets per character, filtered by (character_id, era).
+
+    Phase 3.4: When emotional_context is provided (mapping character_id -> emotional state
+    string like "suspicious, calculating"), the query is enriched so vector search
+    prefers snippets matching the NPC's current emotional disposition.
 
     Fallback logic:
     - First: filter by (character_id, era). If >= k/2 results per character, use those.
@@ -97,7 +102,15 @@ def get_voice_snippets(
         add_warning(warnings, "Voice retrieval failed: continuing without voice context.")
         return result
 
-    query_texts = [f"voice sample for {cid}" for cid in cid_set]
+    # Phase 3.4: Enrich query with emotional context for better semantic match
+    _emo_ctx = emotional_context or {}
+    query_texts = []
+    for cid in cid_set:
+        emo = _emo_ctx.get(cid, "").strip()
+        if emo:
+            query_texts.append(f"voice sample for {cid} feeling {emo}")
+        else:
+            query_texts.append(f"voice sample for {cid}")
     try:
         vectors = encoder.encode(query_texts, show_progress_bar=False)
         if hasattr(vectors, "tolist"):

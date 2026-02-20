@@ -32,60 +32,66 @@ _VALID_IMPACT_TIERS = frozenset({"ripple", "wave", "tsunami"})
 _SYSTEM_PROMPT = """\
 You are the Choice Architect for an interactive narrative RPG (__SETTING_STYLE__).
 
-Your job: generate exactly 4 player choices that define WHAT THE PLAYER CAN DO NEXT.
+Your job: generate 3-6 player choices that define WHAT THE PLAYER CAN DO NEXT.
 
 ## RULES
 
-1. TONE SPREAD — You MUST produce exactly:
-   - 1 PARAGON choice (bold, direct, decisive — act now, lead, commit without hesitation)
-   - 1 INVESTIGATE choice (cautious, analytical — gather information before committing, probe carefully)
-   - 1 RENEGADE choice (deceptive or ruthless — use cunning, misdirection, leverage, or force)
-   - 1 NEUTRAL choice (tactical pause or unexpected lateral move — an angle the player hasn't considered)
+1. TONE SPREAD — Produce 3-6 choices with at least 2 different tones represented.
+   Available tones: PARAGON (bold, direct, decisive), INVESTIGATE (cautious, analytical),
+   RENEGADE (deceptive, ruthless, cunning), NEUTRAL (tactical pause, lateral move).
+   Tone spread is a GUIDELINE — let the scene determine what's natural. Not every scene
+   needs all 4 tones. A combat escape may have 2 RENEGADE options and no INVESTIGATE.
 
-2. SCENE-SPECIFIC — Every choice must directly respond to what just happened in the
+2. ACTION TYPE — Each choice must have an action_type describing WHAT KIND of action it is:
+   - TALK: pure dialogue, conversation, asking questions
+   - DO: physical action, combat, stealth, persuasion attempt
+   - INVESTIGATE: search, examine, analyze, gather information
+   - TRAVEL: move to a new location, leave the scene
+   - USE_ABILITY: use a specific skill, item, or ability
+   - WAIT: observe, pause, pass time strategically
+
+3. SCENE-SPECIFIC — Every choice must directly respond to what just happened in the
    prose. Reference specific NPCs by name, specific locations, specific events. Never
    produce generic options like "Look around" or "Wait and see."
 
-3. DISTINCT APPROACHES — The 4 choices must represent genuinely different courses of
-   action, not different phrasings of the same thing. Each should lead to a meaningfully
+4. DISTINCT APPROACHES — Choices must represent genuinely different courses of action,
+   not different phrasings of the same thing. Each should lead to a meaningfully
    different outcome.
 
-4. CONSEQUENCE HINTS — Each choice has a consequence_hint: a specific, narratively-
-   grounded preview. NOT "may gain trust" but "Kessa may reveal her contact's location"
-   or "the guards will be on alert for the next hour."
+5. CONSEQUENCE HINTS — Each choice has a consequence_hint (max 60 chars): a specific,
+   narratively-grounded preview. NOT "may gain trust" but "Kessa may reveal her contact"
+   or "guards will be on alert for an hour."
 
-5. RISK JUSTIFICATION — If a choice is RISKY or DANGEROUS, the risk must be narratively
+6. RISK JUSTIFICATION — If a choice is RISKY or DANGEROUS, the risk must be narratively
    justified in context (e.g., "the guards just changed shifts" or "you're outnumbered").
 
-6. IMPACT TIER — Tag each choice with impact_tier:
+7. IMPACT TIER — Tag each choice with impact_tier:
    - ripple: local consequence
    - wave: regional/faction-level consequence
    - tsunami: world-changing consequence (rare, major inflection points)
    Default to ripple unless the action is clearly major.
 
-7. THE LATERAL MOVE — The NEUTRAL choice should ideally be something unexpected that opens
-   a new angle the player might not have considered. Surprise them.
+8. THE LATERAL MOVE — At least one choice should be something unexpected that opens
+   a new angle the player might not have considered.
 
-8. STAT GATES — When the STAT CONTEXT section indicates a high stat (>= 6), you may
+9. STAT GATES — When the STAT CONTEXT section indicates a high stat (>= 6), you may
    prefix ONE choice with a stat gate like [PERSUADE], [TECH], [COMBAT], [FORCE], etc.
-   This signals the choice leverages that character build.
 
-9. OBLIGATIONS — When ACTIVE OBLIGATIONS are listed, at least one choice should reference
-   or advance one of them. Players should feel their past decisions matter.
+10. OBLIGATIONS — When ACTIVE OBLIGATIONS are listed, at least one choice should reference
+    or advance one of them. Players should feel their past decisions matter.
 
-10. LENGTH — Each choice text should be 8-20 words. Concise but specific.
+11. LENGTH — Each choice text should be 8-20 words. Concise but specific.
 
-11. CANON CHARACTERS — When an NPC is marked [CANON], offer choices that ENGAGE with them
-   meaningfully: learn from them, challenge them, seek their help, or develop a relationship.
-   Do NOT offer choices that would kill, permanently injure, or fundamentally alter a canon
-   character's established fate.
+12. CANON CHARACTERS — When an NPC is marked [CANON], offer choices that ENGAGE with them
+    meaningfully. Do NOT offer choices that would kill, permanently injure, or fundamentally
+    alter a canon character's established fate.
 
 ## OUTPUT FORMAT
 
-Output ONLY a JSON array of exactly 4 objects. No markdown, no explanation, no wrapping.
+Output ONLY a JSON array of 3-6 objects. No markdown, no explanation, no wrapping.
 
 [
-  {"text": "string", "tone": "PARAGON|INVESTIGATE|RENEGADE|NEUTRAL", "meaning": "tag", "risk": "SAFE|RISKY|DANGEROUS", "impact_tier": "ripple|wave|tsunami", "consequence_hint": "specific clause"},
+  {"text": "string", "tone": "PARAGON|INVESTIGATE|RENEGADE|NEUTRAL", "action_type": "TALK|DO|INVESTIGATE|TRAVEL|USE_ABILITY|WAIT", "meaning": "tag", "risk": "SAFE|RISKY|DANGEROUS", "impact_tier": "ripple|wave|tsunami", "consequence_hint": "specific clause (max 60 chars)"},
   ...
 ]
 
@@ -284,18 +290,27 @@ def _parse_choices(raw: str) -> list[dict[str, str]] | None:
     if len(valid) < 3:
         return None
 
-    # Trim to 4 or pad
-    if len(valid) > 4:
-        valid = valid[:4]
-    while len(valid) < 4:
-        valid.append({
-            "text": "Consider your options carefully before acting.",
-            "tone": "NEUTRAL",
-            "meaning": "pragmatic",
-            "risk": "SAFE",
-            "impact_tier": "ripple",
-            "consequence_hint": "take stock of the situation",
-        })
+    # Phase 2.1: Allow 3-6 choices (no padding to 4, trim at 6)
+    if len(valid) > 6:
+        valid = valid[:6]
+
+    # Phase 2.2: Ensure action_type is present on every choice
+    _valid_action_types = {"TALK", "DO", "INVESTIGATE", "TRAVEL", "USE_ABILITY", "WAIT"}
+    for item in valid:
+        at = (item.get("action_type") or "").upper()
+        if at not in _valid_action_types:
+            # Infer from tone/meaning as fallback
+            meaning = item.get("meaning", "")
+            if meaning in ("seek_history", "probe_belief", "pragmatic"):
+                item["action_type"] = "INVESTIGATE"
+            elif meaning in ("set_boundary", "make_demand", "challenge_premise"):
+                item["action_type"] = "DO"
+            elif meaning == "deflect":
+                item["action_type"] = "WAIT"
+            else:
+                item["action_type"] = "TALK"
+        else:
+            item["action_type"] = at
 
     return valid
 
@@ -357,9 +372,10 @@ def generate_choices(
     if items is None:
         logger.info("ChoiceCrafter: first attempt failed to parse, retrying with correction")
         correction = (
-            "Your previous output was not a valid JSON array of 4 player choices. "
-            "Output ONLY a JSON array with exactly 4 objects. Each object must have "
+            "Your previous output was not a valid JSON array of player choices. "
+            "Output ONLY a JSON array with 3-6 objects. Each object must have "
             '"text" (8-20 words), "tone" (PARAGON/INVESTIGATE/RENEGADE/NEUTRAL), '
+            '"action_type" (TALK/DO/INVESTIGATE/TRAVEL/USE_ABILITY/WAIT), '
             '"meaning" (one tag), "risk" (SAFE/RISKY/DANGEROUS), and "consequence_hint". '
             "Start with [ and end with ]. No other text.\n\n" + user_prompt
         )

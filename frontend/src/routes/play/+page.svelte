@@ -3,6 +3,7 @@
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
   import { runTurn, getTranscript, completeCampaign, getStorySummary, rewindCampaign } from '$lib/api/campaigns';
+  import type { StructuredIntent } from '$lib/api/types';
   import { streamTurn } from '$lib/api/sse';
   import {
     campaignId, playerId, lastTurnResponse, transcript,
@@ -64,6 +65,10 @@
   let showForgeInput = $state(false);
   let lastSubmittedInput = $state('');
   let canRetryLastAction = $state(false);
+
+  // Phase 1.3: Intent classification preview for free text
+  let classifyHint = $state('');  // "Action" | "Dialogue" | ""
+  let classifyTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // Phase 2.4: Story So Far summary state
   let storySummary = $state<StorySummaryResponse | null>(null);
@@ -409,7 +414,14 @@
         e.preventDefault();
         if (responses.length > 0) {
           const resp = responses[num - 1];
-          handleChoiceInput(resp.display_text, resp.display_text);
+          const si: StructuredIntent = {
+            tone_tag: resp.tone_tag || 'NEUTRAL',
+            meaning_tag: resp.meaning_tag || '',
+            risk_level: resp.risk_level || 'SAFE',
+            action_type: resp.action_type || 'TALK',
+            impact_tier: 'ripple',
+          };
+          handleChoiceInput(resp.display_text, resp.display_text, si);
         } else {
           const action = actions[num - 1];
           handleChoiceInput(action.intent_text || action.label, action.label);
@@ -449,23 +461,63 @@
     }
   }
 
+  // Phase 1: Track structured intent from last approach card selection
+  let pendingStructuredIntent = $state<StructuredIntent | null>(null);
+
   /** V4.1: Populate the free text input (from approach card click — does NOT submit). */
-  function handleApproachPopulate(text: string) {
+  function handleApproachPopulate(text: string, structuredIntent?: StructuredIntent | null) {
     showForgeInput = true;
     freeTextInput = text;
+    pendingStructuredIntent = structuredIntent ?? null;
     freeTextEl?.focus();
+  }
+
+  /** Phase 1.3: Debounced intent classification preview for free text. */
+  function debouncedClassify(text: string) {
+    if (classifyTimeout) clearTimeout(classifyTimeout);
+    classifyHint = '';
+    if (!text.trim() || text.trim().length < 4) return;
+    // If there's a pending structured intent, the card metadata will be used — no need to classify
+    if (pendingStructuredIntent) {
+      const at = pendingStructuredIntent.action_type || 'TALK';
+      classifyHint = at === 'TALK' ? 'Dialogue' : 'Action';
+      return;
+    }
+    classifyTimeout = setTimeout(async () => {
+      try {
+        const { classifyIntent } = await import('$lib/api/campaigns');
+        const cId = $campaignId;
+        if (!cId) return;
+        const result = await classifyIntent(cId, text.trim());
+        if (result.route === 'TALK' && !result.requires_resolution) {
+          classifyHint = 'Dialogue';
+        } else if (result.route === 'META') {
+          classifyHint = 'Meta';
+        } else {
+          classifyHint = 'Action';
+        }
+      } catch {
+        // Silently ignore — classification preview is non-essential
+        classifyHint = '';
+      }
+    }, 500);
   }
 
   /** V4.1: Submit from the free text input. */
   async function handleFreeTextSubmit() {
     const text = freeTextInput.trim();
     if (!text || isSendingTurn || $isStreaming || isEngineUnavailable) return;
+    // If player edited the text, clear structured intent (router will classify from scratch)
+    const intent = pendingStructuredIntent;
     freeTextInput = '';
-    await handleChoiceInput(text, text);
+    pendingStructuredIntent = null;
+    classifyHint = '';
+    await handleChoiceInput(text, text, intent);
   }
 
-  /** V3.0: Unified choice handler — accepts string input from DialogueWheel or keyboard shortcuts. */
-  async function handleChoiceInput(userInput: string, label: string) {
+  /** V3.0: Unified choice handler — accepts string input from DialogueWheel or keyboard shortcuts.
+   *  Phase 1: Optional structuredIntent bypasses router re-inference when player clicks a card. */
+  async function handleChoiceInput(userInput: string, label: string, structuredIntent?: StructuredIntent | null) {
     if (isSendingTurn || $isStreaming || isEngineUnavailable) return;
     const cId = $campaignId;
     const pId = $playerId;
@@ -487,7 +539,7 @@
         startStreaming();
         let finalResponse: TurnResponse | null = null;
         let streamErrored = false;
-        for await (const event of streamTurn(cId, pId, userInput)) {
+        for await (const event of streamTurn(cId, pId, userInput, structuredIntent)) {
           if (event.type === 'token' && event.text) {
             appendToken(event.text);
           } else if (event.type === 'narrator_done') {
@@ -509,7 +561,7 @@
           fetchStorySoFarSummary();
         } else {
           // Retry deterministic non-stream endpoint if stream fails or ends without done payload
-          const result = await runTurn(cId, pId, userInput);
+          const result = await runTurn(cId, pId, userInput, false, undefined, structuredIntent);
           const msg = streamErrored
             ? 'Streaming interrupted. Recovered via non-stream request.'
             : 'Streaming ended early. Recovered via non-stream request.';
@@ -521,7 +573,7 @@
           finishStreaming();
         }
       } else {
-        const result = await runTurn(cId, pId, userInput);
+        const result = await runTurn(cId, pId, userInput, false, undefined, structuredIntent);
         lastTurnResponse.set(result);
         canRetryLastAction = !!(
           (result?.narrated_text ?? '').includes('[SYSTEM] A narrative agent failed')
@@ -856,6 +908,11 @@
       </div>
     {/if}
 
+    <!-- Phase 4.1: Bridge paragraph connecting prose to choices -->
+    {#if $lastTurnResponse?.bridge_paragraph && choicesReady && !$isStreaming && !typewriterActive}
+      <p class="bridge-paragraph">{$lastTurnResponse.bridge_paragraph}</p>
+    {/if}
+
     <!-- V4.1: Approach cards (horizontal scroll) + free text input -->
     {#if choicesReady || (!isSendingTurn && !$isStreaming)}
       <div class="action-zone" class:engine-unavailable={isEngineUnavailable} class:forge-active={showForgeInput}>
@@ -893,6 +950,7 @@
                 rows="3"
                 disabled={isSendingTurn || $isStreaming || isEngineUnavailable}
                 aria-label="Option 5: Forge your own path input"
+                oninput={() => debouncedClassify(freeTextInput)}
                 onkeydown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey && freeTextInput.trim()) {
                     e.preventDefault();
@@ -900,14 +958,19 @@
                   }
                 }}
               ></textarea>
-              <button
-                class="act-btn"
-                disabled={!freeTextInput.trim() || isSendingTurn || $isStreaming || isEngineUnavailable}
-                onclick={handleFreeTextSubmit}
-                aria-label="Submit forged action"
-              >
-                ACT
-              </button>
+              <div class="forge-submit-row">
+                {#if classifyHint}
+                  <span class="classify-hint classify-hint-{classifyHint.toLowerCase()}">{classifyHint}</span>
+                {/if}
+                <button
+                  class="act-btn"
+                  disabled={!freeTextInput.trim() || isSendingTurn || $isStreaming || isEngineUnavailable}
+                  onclick={handleFreeTextSubmit}
+                  aria-label="Submit forged action"
+                >
+                  ACT
+                </button>
+              </div>
             </div>
           {/if}
         </div>
@@ -1525,6 +1588,15 @@
     gap: 10px;
   }
 
+  .bridge-paragraph {
+    font-style: italic;
+    color: var(--text-secondary, #a0a0a0);
+    font-size: 0.92rem;
+    margin: 0.5rem 0 0.75rem 0;
+    padding: 0 0.5rem;
+    opacity: 0.85;
+  }
+
   .approach-cards-wrap.dimmed {
     opacity: 0.55;
     transition: opacity 0.18s ease;
@@ -1643,6 +1715,38 @@
   .act-btn:disabled {
     opacity: 0.3;
     cursor: not-allowed;
+  }
+
+  .forge-submit-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .classify-hint {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    opacity: 0.8;
+  }
+  .classify-hint-action {
+    color: #ffa366;
+    background: rgba(255, 140, 60, 0.12);
+    border: 1px solid rgba(255, 140, 60, 0.3);
+  }
+  .classify-hint-dialogue {
+    color: #88ccff;
+    background: rgba(100, 180, 255, 0.12);
+    border: 1px solid rgba(100, 180, 255, 0.3);
+  }
+  .classify-hint-meta {
+    color: #aaa;
+    background: rgba(160, 160, 160, 0.12);
+    border: 1px solid rgba(160, 160, 160, 0.3);
   }
 
   @media (max-width: 480px) {

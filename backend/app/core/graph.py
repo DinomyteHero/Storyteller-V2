@@ -39,7 +39,7 @@ def build_graph() -> StateGraph:
 
     Topology:
         router -> (META->commit | TALK->encounter->... | ACTION->mechanic->encounter->...->commit) -> END.
-        Full ACTION path: router->mechanic->encounter->world_sim->companion_reaction->moments->arc_planner->scene_frame->director->narrator->narrative_validator->choice_crafter->commit.
+        Full ACTION path: router->mechanic->encounter->world_sim->moments->arc_planner->scene_frame->director->companion_reaction->narrator->narrative_validator->choice_crafter->commit.
     """
     graph = StateGraph(dict)
 
@@ -76,12 +76,12 @@ def build_graph() -> StateGraph:
     graph.add_edge("meta", "commit")
     graph.add_edge("mechanic", "encounter")
     graph.add_edge("encounter", "world_sim")
-    graph.add_edge("world_sim", "companion_reaction")
-    graph.add_edge("companion_reaction", "moments")
+    graph.add_edge("world_sim", "moments")
     graph.add_edge("moments", "arc_planner")
     graph.add_edge("arc_planner", "scene_frame")
     graph.add_edge("scene_frame", "director")
-    graph.add_edge("director", "narrator")
+    graph.add_edge("director", "companion_reaction")
+    graph.add_edge("companion_reaction", "narrator")
     graph.add_edge("narrator", "narrative_validator")
     graph.add_edge("narrative_validator", "choice_crafter")
     graph.add_edge("choice_crafter", "commit")
@@ -123,11 +123,11 @@ def get_pipeline_steps(intent: str) -> list[tuple[str, Any]]:
     steps.extend([
         ("encounter", make_encounter_node()),
         ("world_sim", make_world_sim_node()),
-        ("companion_reaction", companion_reaction_node),
         ("moments", moments_node),
         ("arc_planner", arc_planner_node),
         ("scene_frame", scene_frame_node),
         ("director", make_director_node()),
+        ("companion_reaction", companion_reaction_node),
         ("narrator", make_narrator_node()),
         ("narrative_validator", narrative_validator_node),
         ("choice_crafter", make_choice_crafter_node()),
