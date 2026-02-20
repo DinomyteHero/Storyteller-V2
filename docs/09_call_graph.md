@@ -261,11 +261,20 @@ Any node that needs era-pack content calls:
 | --------- | ------- | :---: | ---- |
 | Director (text-only) | `mistral-nemo:latest` | No | Every turn (with fallback) |
 | Narrator | `mistral-nemo:latest` | Yes | Every turn |
-| ChoiceCrafter | `qwen3:4b` | Yes | Every turn |
-| WorldMind | `qwen3:4b` | No | WorldSim trigger only |
+| ChoiceCrafter | `qwen3:8b` | Yes | Every turn |
+| WorldMind | `qwen3:8b` | No | WorldSim trigger only |
+| CompanionSystem | `qwen3:8b` | No | Companion interaction triggers |
+| Memory | `qwen3:8b` | No | Every turn with prose + NPCs (post-commit) |
+| QuestWeaver | `qwen3:8b` | No | Maintenance turns (post-commit) |
+| Prologue | `qwen3:8b` | No | Campaign creation only |
+| ArcScreenplay | `qwen3:8b` | No | Arc start only |
+| Bible | `qwen3:8b` | No | Campaign setup only |
 | IntentRouter | `qwen3:4b` | No | Low-confidence routing only |
 | Architect (blueprint) | `qwen3:4b` | No | Campaign setup only |
 | Biographer | `qwen3:4b` | No | Campaign setup only |
+| Continuity | `qwen3:4b` | No | Maintenance turns (post-commit) |
+| Progression | `qwen3:4b` | No | Maintenance turns (post-commit) |
+| PsychArchivist | `qwen3:4b` | No | Maintenance turns (post-commit) |
 | RevelationAgent (V10.0) | `qwen3:4b` | No | Every 5 turns (post-commit) |
 | CallbackCrystallizer (V10.0) | `qwen3:4b` | No | Every 10 turns (post-commit) |
 

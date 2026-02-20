@@ -113,7 +113,7 @@ Storyteller AI/
         deferred_agents.py       # Post-commit deferred maintenance agent runner (V7.0)
       db/                        # SQLite schema + migration runner
         schema.sql               # Reference schema
-        migrations/              # Migrations 0001-0021
+        migrations/              # Migrations 0001-0036
           0001_init.sql          # Core tables (campaigns, characters, inventory, turn_events)
           0002_add_rendered_turns.sql
           0003_add_credits.sql
@@ -166,10 +166,13 @@ Storyteller AI/
     __main__.py                  # `python -m ingestion <command>`
 
   frontend/                      # SvelteKit UI
-    src/routes/+page.svelte      # Landing page
-    src/routes/create/+page.svelte # Campaign creation flow
-    src/routes/play/+page.svelte # Main gameplay view
+    src/routes/+page.svelte      # Landing page; V11.0: "Continue Story" + saga browser
+    src/routes/create/+page.svelte # Campaign creation; V11.0: Universe step + ref material upload
+    src/routes/play/+page.svelte # Gameplay view; V11.0: optional portrait + location art
+    src/routes/library/+page.svelte # Library page; V11.0: "Sources" tab
     src/lib/api/                 # HTTP + SSE client helpers
+      sagas.ts                   # V11.0: Saga API client
+      sources.ts                 # V11.0: Lore source API client
     src/lib/stores/              # UI and gameplay stores
 
   storyteller/                   # Unified CLI dispatcher (installs `storyteller` script)
@@ -206,6 +209,8 @@ Storyteller AI/
         new_jedi_order/          # Skeleton pack (era.yaml, backgrounds.yaml, species.yaml)
         forgotten_realms/        # Setting-agnostic proof (era.yaml, backgrounds.yaml, species.yaml)
       starships.yaml             # Starship database
+      portraits/                 # V11.0: Static portrait images (feature-flagged)
+        index.yaml               # Portrait key → file mapping
       SETTING_PACK_PROMPT_TEMPLATE.md
       STYLE_PROMPT_TEMPLATE.md
     style/
@@ -321,6 +326,15 @@ graph LR
     kg --> db
     truth --> db
 ```
+
+## V11.0 New Modules Summary
+
+| Module | Purpose |
+| ------- | ------- |
+| `frontend/src/lib/api/sagas.ts` | Saga API client — `listPlayerSagas()`, `getSagaDetail()`, `createSaga()` |
+| `frontend/src/lib/api/sources.ts` | Lore source API client — `listSources()`, `createSource()`, `deleteSource()` |
+| `backend/app/db/migrations/0036_lore_sources.sql` | `lore_sources` table + `ingestion_jobs.source_id` column for source-level lore management |
+| `data/static/portraits/index.yaml` | Portrait key → image file mapping (feature-flagged via `ENABLE_PORTRAITS`) |
 
 ## V10.0 New Modules Summary
 

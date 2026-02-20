@@ -2,24 +2,19 @@
 
 Storyteller AI is a **local-first, setting-agnostic narrative RPG engine** powered by a FastAPI backend, SvelteKit frontend, and a LangGraph pipeline that orchestrates deterministic game systems with LLM-powered storytelling.
 
-**Current Engine Version: V10.0**
+**Current Engine Version: V11.0**
 
 **Project version 0.1.0**
 
-V10.0 builds on the V9.0 novel-length storytelling architecture with **Narrative Intelligence** — the skills that separate a good narrative engine from one that feels like a human DM:
+V11.0 builds on the V10.0 narrative intelligence architecture with **Player Experience** improvements — surfacing existing backend systems as intuitive frontend flows:
 
-- **Dramatic irony tags** — Hidden world events (NPC agendas, faction moves) surfaced as environmental hints; the reader senses danger the character doesn't
-- **"Yes, And" engine** — Creative free-text deviations detected and rewarded with unexpected discoveries
-- **Narrative rhythm hints** — Prose style adapts to scene type: staccato combat, languid exploration, loaded-silence dialogue
-- **Revelation timing** — Deferred LLM agent queues hidden information for optimal dramatic reveal
-- **Callback crystallization** — Peak moments (betrayals, sacrifices, triumphs) captured and echoed later when conditions match
-- **Player behavioral profiling** — Deterministic choice pattern analysis (play style, risk tolerance, boredom detection) feeds Director guidance
-- **Foreshadowing hooks** — Arc planner seeds early stages with subtle references to dangling hooks and NPC secrets
-- **Thematic resonance** — At CLIMAX, Director receives echoes of dominant themes from the campaign's first arc
-- **Arc mood profiles** — 5 tonal profiles (heroic, noir, tragic, kishotenketsu, mystery) shape Director guidance per arc stage
-- **Companion wound/reveal layers** — 3-tier psychological depth (surface/deep/core wounds) unlocked at affinity thresholds
+- **Universe & Story UX** — "Continue Story" hero button on home page; Universe selection step in creation wizard; campaigns grouped by Story in load modal
+- **UI-Exposed Lore Ingestion** — Source management (create/delete) in Library "Sources" tab; optional "Add Reference Material" upload during character creation; `lore_sources` table tracking ingested material
+- **Optional Visual Layer** — NPC/companion portraits and location key art served from era packs when `ENABLE_PORTRAITS=1` (default off, zero cost when disabled)
 
-**Previous versions:** V7.0 (production-readiness), V8.0 (multi-arc campaigns), V9.0 (novel-length storytelling)
+Previous V10.0 Narrative Intelligence features remain active: dramatic irony tags, "Yes, And" engine, narrative rhythm hints, revelation timing, callback crystallization, player behavioral profiling, foreshadowing hooks, thematic resonance, arc mood profiles, companion wound/reveal layers.
+
+**Previous versions:** V7.0 (production-readiness), V8.0 (multi-arc campaigns), V9.0 (novel-length storytelling), V10.0 (narrative intelligence)
 
 ---
 
@@ -54,7 +49,7 @@ The result is a narrative game that feels alive — persistent companions, facti
 | Frontend | SvelteKit 5.0 + TypeScript |
 | Content | YAML Era Packs (locations, NPCs, companions, quests, factions, moments) |
 
-### Pipeline Topology (V10.0)
+### Pipeline Topology (V10.0 — unchanged in V11.0)
 
 ```
 router -> mechanic -> encounter -> world_sim -> companion_reaction -> moments
@@ -180,7 +175,8 @@ python run_app.py --dev
 
 ```bash
 ollama pull mistral-nemo      # Director + Narrator (quality-critical)
-ollama pull qwen3:4b          # ChoiceCrafter + Architect + Biographer + KG
+ollama pull qwen3:8b          # ChoiceCrafter + Mechanic + CompanionSystem + WorldMind + QuestWeaver + Memory + more
+ollama pull qwen3:4b          # Architect + Biographer + KG Extraction + Continuity + lightweight roles
 ollama pull nomic-embed-text  # Embeddings (RAG)
 ```
 
@@ -200,11 +196,12 @@ VECTORDB_PATH=./data/lancedb
 STORYTELLER_DIRECTOR_MODEL=mistral-nemo:latest
 STORYTELLER_NARRATOR_MODEL=mistral-nemo:latest
 STORYTELLER_ARCHITECT_MODEL=qwen3:4b
-STORYTELLER_CHOICE_CRAFTER_MODEL=qwen3:4b
+STORYTELLER_CHOICE_CRAFTER_MODEL=qwen3:8b
 
 # Feature flags
 ENABLE_BIBLE_CASTING=1         # Era pack deterministic NPC selection
 ENABLE_PROCEDURAL_NPCS=1       # Fallback procedural NPC generation
+ENABLE_PORTRAITS=0             # V11.0: Serve NPC/companion portraits + location key art
 DEV_CONTEXT_STATS=0            # Include RAG context stats in API response
 
 # Development
@@ -254,7 +251,7 @@ curl http://localhost:8000/health/detail
 **LLM connection failures**
 - Check Ollama is running: `ollama serve`
 - Check model is pulled: `ollama list`
-- Pull models: `ollama pull mistral-nemo && ollama pull qwen3:4b`
+- Pull models: `ollama pull mistral-nemo && ollama pull qwen3:8b && ollama pull qwen3:4b`
 - Check per-role config: `curl http://localhost:8000/health/detail`
 
 **`[SYSTEM] A narrative agent failed: NarratorAgent`**
@@ -276,7 +273,7 @@ curl http://localhost:8000/health/detail
 
 ---
 
-## Architecture Highlights (V10.0)
+## Architecture Highlights (V11.0)
 
 - **Event Sourcing** — Append-only `turn_events` + projections. State always reconstructable from event log.
 - **Single Transaction Boundary** — Only `CommitNode` calls `conn.commit()`. Pipeline failures before Commit leave no partial state.
@@ -287,6 +284,7 @@ curl http://localhost:8000/health/detail
 - **Canon Event Scheduler** — Historical mode campaigns enforce era-defined canon events via `canon_scheduler.py` with immutable truth facts.
 - **Consequence Propagation** — Sandbox impact tiers (ripple/wave/tsunami) create multi-turn follow-on consequences tracked in world state.
 - **Narrative Intelligence (V10.0)** — 10 new Director prompt injection points (dramatic irony, rhythm, revelations, callbacks, player profiling, foreshadowing, thematic echoes, mood profiles, creative deviation, companion revelations). All zero-latency: deferred agents or prompt-only.
+- **Player Experience (V11.0)** — Universe & Story UX (Continue Story, Universe selection wizard step, story-grouped load modal), UI-Exposed Lore Ingestion (source CRUD, reference material in creation wizard, Library Sources tab), Optional Visual Layer (portrait/key art serving, feature-flagged via `ENABLE_PORTRAITS`). No pipeline changes — all frontend/schema/API additions.
 - **Multi-Arc Campaigns (V8.0)** — 2-5 arc campaigns with interlude scenes, epilogue system, cross-arc memory bridging.
 - **Authoritative vs Non-Authoritative** — Narrator and ChoiceCrafter raise `AgentFailureError` on failure. All other agents degrade gracefully.
 - **Setting-Agnostic Agents** — All agents use `get_setting_rules(state)` / `SettingRules` — no hardcoded universe names.

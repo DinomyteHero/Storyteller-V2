@@ -833,6 +833,18 @@
         {/if}
       </div>
 
+      <!-- V11.0: Optional location key art (feature-flagged) -->
+      {#if $lastTurnResponse?.location_art_url}
+        <div class="location-art-container">
+          <img
+            class="location-art"
+            src={$lastTurnResponse.location_art_url}
+            alt="Location"
+            loading="lazy"
+          />
+        </div>
+      {/if}
+
       <!-- V3.0: Scene context bar (topic, pressure, scene type) -->
       <SceneContext sceneFrame={$sceneFrame} />
 
@@ -1405,6 +1417,22 @@
 {/if}
 
 <style>
+  /* V11.0: Location art (feature-flagged) */
+  .location-art-container {
+    max-width: 100%;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .location-art {
+    width: 100%;
+    max-height: 180px;
+    object-fit: cover;
+    display: block;
+    opacity: 0.85;
+    transition: opacity 0.3s ease;
+  }
+
   .gameplay-layout {
     display: flex;
     flex-direction: column;

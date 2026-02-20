@@ -63,6 +63,31 @@
 - `POST /v2/campaigns/{campaign_id}/rewind?to_turn=N` — Rewind campaign to turn N. Restores world state from `turn_snapshots` and deletes all turn data after turn N. Returns 400 if no snapshot exists for the target turn.
 - `POST /v2/campaigns/{campaign_id}/prologue/complete` — Mark prologue complete and build origin_context manifest
 
+### Saga management (V7.0+, UI surfaced V11.0)
+
+- `POST /v2/sagas` — Create a new saga (player_id, universe_id, title)
+- `GET /v2/player/{player_profile_id}/sagas` — List player's sagas with campaign counts
+- `GET /v2/sagas/{saga_id}` — Saga detail with campaign timeline
+
+### Library & Lore Source management
+
+**Implementation:** `backend/app/api/v2_library.py`
+
+- `GET /v2/library/books` — List ingested documents
+- `POST /v2/library/ingest` — Upload + ingest a file (PDF/EPUB/TXT) in background
+- `GET /v2/library/ingest/{job_id}/status` — Poll ingestion job status
+- `GET /v2/library/sources` — List lore source collections (V11.0)
+- `POST /v2/library/sources` — Create a lore source collection (V11.0)
+- `DELETE /v2/library/sources/{source_id}` — Delete source + remove chunks from LanceDB (V11.0)
+
+### V11.0 Response Additions
+
+`PartyStatusItem` now includes:
+- `portrait_url` — URL to companion portrait image (when `ENABLE_PORTRAITS=1`)
+
+`TurnResponse` now includes:
+- `location_art_url` — URL to location key art image (when `ENABLE_PORTRAITS=1`)
+
 ## Starship Endpoints
 
 **Implementation:** `backend/app/api/starships.py`

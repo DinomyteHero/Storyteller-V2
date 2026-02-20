@@ -442,6 +442,8 @@ class EraLocation(BaseModel):
     atmosphere: LocationAtmosphere | None = None
     time_variants: List[LocationTimeVariant] = Field(default_factory=list)
     points_of_interest: List[LocationPointOfInterest] = Field(default_factory=list)
+    # V11.0: Optional key art (feature-flagged via ENABLE_PORTRAITS)
+    key_art: str | None = None
     # Flexible extension point: e.g., coordinates, population, economy.
     metadata: Dict[str, object] = Field(default_factory=dict)
 
@@ -626,6 +628,8 @@ class EraNpcEntry(BaseModel):
     knowledge: NpcKnowledge = Field(default_factory=NpcKnowledge)
     # Phase 1.3: NPC relationship webs
     relationships: List[NpcRelationship] = Field(default_factory=list)
+    # V11.0: Optional portrait (feature-flagged via ENABLE_PORTRAITS)
+    portrait_key: str | None = None
     metadata: Dict[str, object] = Field(default_factory=dict)
 
 
@@ -881,6 +885,9 @@ class EraCompanion(BaseModel):
 
     # Personal quest (optional)
     personal_quest_id: str | None = None
+
+    # V11.0: Optional portrait (feature-flagged via ENABLE_PORTRAITS)
+    portrait_key: str | None = None
 
     # Flexible extension
     metadata: Dict[str, object] = Field(default_factory=dict)

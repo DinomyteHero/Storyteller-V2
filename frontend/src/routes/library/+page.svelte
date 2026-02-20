@@ -3,6 +3,7 @@
   import { goto } from '$app/navigation';
   import { getContentCatalog, type ContentCatalogEntry } from '$lib/api/content';
   import { getBooks, uploadBook, getJobStatus, type BookEntry } from '$lib/api/library';
+  import { listSources, createSource, deleteSource, type LoreSourceEntry } from '$lib/api/sources';
   import { getHealthDetail, type HealthDetailResponse } from '$lib/api/client';
   import WorldCard from '$lib/components/library/WorldCard.svelte';
   import BookCard from '$lib/components/library/BookCard.svelte';
@@ -10,7 +11,7 @@
   import EraForgeWizard from '$lib/components/library/EraForgeWizard.svelte';
 
   // Tab state
-  let activeTab = $state<'worlds' | 'books' | 'status'>('worlds');
+  let activeTab = $state<'worlds' | 'books' | 'sources' | 'status'>('worlds');
 
   // Worlds tab
   let worlds = $state<ContentCatalogEntry[]>([]);
@@ -26,6 +27,16 @@
   let uploadPeriodId = $state('');
   let uploading = $state(false);
   let uploadStatus = $state('');
+
+  // Sources tab (V11.0)
+  let sources = $state<LoreSourceEntry[]>([]);
+  let sourcesLoading = $state(false);
+  let sourcesError = $state('');
+  let newSourceName = $state('');
+  let newSourceSettingId = $state('');
+  let newSourcePeriodId = $state('');
+  let creatingSource = $state(false);
+  let deletingSourceId = $state<string | null>(null);
 
   // Status tab
   let healthData = $state<HealthDetailResponse | null>(null);
@@ -72,9 +83,53 @@
     }
   }
 
-  function handleTabChange(tab: 'worlds' | 'books' | 'status') {
+  async function loadSources() {
+    sourcesLoading = true;
+    sourcesError = '';
+    try {
+      const res = await listSources();
+      sources = res.items ?? [];
+    } catch (e) {
+      sourcesError = e instanceof Error ? e.message : 'Failed to load sources.';
+    } finally {
+      sourcesLoading = false;
+    }
+  }
+
+  async function handleCreateSource() {
+    if (!newSourceName.trim()) return;
+    creatingSource = true;
+    sourcesError = '';
+    try {
+      await createSource(newSourceName.trim(), newSourceSettingId, newSourcePeriodId);
+      newSourceName = '';
+      newSourceSettingId = '';
+      newSourcePeriodId = '';
+      await loadSources();
+    } catch (e) {
+      sourcesError = e instanceof Error ? e.message : 'Failed to create source.';
+    } finally {
+      creatingSource = false;
+    }
+  }
+
+  async function handleDeleteSource(sourceId: string) {
+    deletingSourceId = sourceId;
+    sourcesError = '';
+    try {
+      await deleteSource(sourceId);
+      await loadSources();
+    } catch (e) {
+      sourcesError = e instanceof Error ? e.message : 'Failed to delete source.';
+    } finally {
+      deletingSourceId = null;
+    }
+  }
+
+  function handleTabChange(tab: 'worlds' | 'books' | 'sources' | 'status') {
     activeTab = tab;
     if (tab === 'books' && books.length === 0) loadBooks();
+    if (tab === 'sources' && sources.length === 0) loadSources();
     if (tab === 'status') loadStatus();
   }
 
@@ -153,6 +208,13 @@
       aria-selected={activeTab === 'books'}
       onclick={() => handleTabChange('books')}
     >Your Books</button>
+    <button
+      class="tab-btn"
+      class:active={activeTab === 'sources'}
+      role="tab"
+      aria-selected={activeTab === 'sources'}
+      onclick={() => handleTabChange('sources')}
+    >Sources</button>
     <button
       class="tab-btn"
       class:active={activeTab === 'status'}
@@ -237,6 +299,78 @@
           {#each books as book, i}
             <div class="stagger-enter" style="animation-delay: {i * 40}ms">
               <BookCard {book} />
+            </div>
+          {/each}
+        </div>
+      {/if}
+
+    <!-- Sources Tab (V11.0) -->
+    {:else if activeTab === 'sources'}
+      <div class="source-create-section">
+        <h3 class="source-section-title">Create Reference Collection</h3>
+        <div class="source-create-form">
+          <input
+            class="meta-input"
+            type="text"
+            placeholder="Collection name (e.g. 'Dune novels')"
+            bind:value={newSourceName}
+            disabled={creatingSource}
+          />
+          <div class="upload-meta-row">
+            <input
+              class="meta-input"
+              type="text"
+              placeholder="Setting ID (optional)"
+              bind:value={newSourceSettingId}
+              disabled={creatingSource}
+            />
+            <input
+              class="meta-input"
+              type="text"
+              placeholder="Period ID (optional)"
+              bind:value={newSourcePeriodId}
+              disabled={creatingSource}
+            />
+          </div>
+          <button
+            class="btn btn-primary"
+            disabled={!newSourceName.trim() || creatingSource}
+            onclick={handleCreateSource}
+          >
+            {creatingSource ? 'Creating...' : 'Create Collection'}
+          </button>
+        </div>
+      </div>
+
+      {#if sourcesError}
+        <div class="error-banner" role="alert">{sourcesError}</div>
+      {/if}
+
+      {#if sourcesLoading}
+        <p class="empty-state">Loading sources...</p>
+      {:else if sources.length === 0}
+        <p class="empty-state">No reference collections yet. Create one above to organize your lore.</p>
+      {:else}
+        <div class="source-list">
+          {#each sources as src}
+            <div class="source-entry card">
+              <div class="source-info">
+                <div class="source-name">{src.name}</div>
+                <div class="source-meta">
+                  {#if src.setting_id}<span class="source-tag">{src.setting_id}</span>{/if}
+                  {#if src.period_id}<span class="source-tag">{src.period_id}</span>{/if}
+                  <span>{src.chunk_count} chunks</span>
+                  <span>{src.file_count} files</span>
+                </div>
+              </div>
+              <button
+                class="btn source-delete"
+                disabled={deletingSourceId === src.id}
+                onclick={() => handleDeleteSource(src.id)}
+                title="Delete source and remove its chunks"
+              >
+                {deletingSourceId === src.id ? '...' : 'Delete'}
+              </button>
             </div>
           {/each}
         </div>
@@ -478,6 +612,67 @@
   .mono {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.72rem;
+  }
+
+  /* Sources tab (V11.0) */
+  .source-create-section {
+    margin-bottom: 1.25rem;
+  }
+  .source-section-title {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #aaa);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.5rem;
+  }
+  .source-create-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .source-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .source-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .source-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .source-name {
+    font-weight: 600;
+    color: var(--text-heading, #e8c56a);
+    font-size: 0.95rem;
+  }
+  .source-meta {
+    display: flex;
+    gap: 8px;
+    font-size: 0.72rem;
+    color: var(--text-muted, #888);
+    margin-top: 2px;
+  }
+  .source-tag {
+    background: rgba(255, 255, 255, 0.06);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .source-delete {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    color: var(--text-muted, #888);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+    background: transparent;
+  }
+  .source-delete:hover {
+    color: var(--accent-danger, #ff5040);
+    border-color: var(--accent-danger, #ff5040);
   }
 
   /* Shared */

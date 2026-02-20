@@ -4,6 +4,11 @@ Phase 6: Endpoints for the /library frontend.
 - GET  /v2/library/books          — list ingested documents
 - POST /v2/library/ingest         — upload + ingest a file (PDF/EPUB/TXT)
 - GET  /v2/library/ingest/{id}/status — poll ingestion job status
+
+V11.0: Source management endpoints.
+- GET    /v2/library/sources          — list lore sources
+- POST   /v2/library/sources          — create a lore source
+- DELETE /v2/library/sources/{id}     — delete a source and its chunks
 """
 from __future__ import annotations
 
@@ -261,3 +266,127 @@ def _start_ingestion_worker(
         daemon=True,
     )
     thread.start()
+
+
+# ---------------------------------------------------------------------------
+# V11.0: Lore Source management
+# ---------------------------------------------------------------------------
+
+
+class LoreSourceEntry(BaseModel):
+    id: str
+    name: str
+    setting_id: str = ""
+    period_id: str = ""
+    file_count: int = 0
+    chunk_count: int = 0
+    status: str = "active"
+    created_at: str | None = None
+    updated_at: str | None = None
+
+
+class LoreSourceListResponse(BaseModel):
+    items: list[LoreSourceEntry]
+
+
+class LoreSourceCreateRequest(BaseModel):
+    name: str
+    setting_id: str = ""
+    period_id: str = ""
+
+
+@router.get("/sources", response_model=LoreSourceListResponse)
+def list_sources(conn: sqlite3.Connection = Depends(get_db)) -> dict[str, Any]:
+    """List all lore sources, ordered by most recent first."""
+    try:
+        rows = conn.execute(
+            "SELECT id, name, setting_id, period_id, file_count, chunk_count, "
+            "status, created_at, updated_at "
+            "FROM lore_sources WHERE status != 'deleted' ORDER BY created_at DESC"
+        ).fetchall()
+    except sqlite3.OperationalError:
+        return {"items": []}
+    items = [
+        {
+            "id": r["id"],
+            "name": r["name"],
+            "setting_id": r["setting_id"] or "",
+            "period_id": r["period_id"] or "",
+            "file_count": r["file_count"] or 0,
+            "chunk_count": r["chunk_count"] or 0,
+            "status": r["status"],
+            "created_at": r["created_at"],
+            "updated_at": r["updated_at"],
+        }
+        for r in rows
+    ]
+    return {"items": items}
+
+
+@router.post("/sources", response_model=LoreSourceEntry)
+def create_source(
+    req: LoreSourceCreateRequest,
+    conn: sqlite3.Connection = Depends(get_db),
+) -> dict[str, Any]:
+    """Create a new lore source for grouping ingested files."""
+    source_id = uuid.uuid4().hex[:12]
+    try:
+        conn.execute(
+            "INSERT INTO lore_sources (id, name, setting_id, period_id) VALUES (?, ?, ?, ?)",
+            (source_id, req.name, req.setting_id, req.period_id),
+        )
+        conn.commit()
+    except sqlite3.OperationalError as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+    return {
+        "id": source_id,
+        "name": req.name,
+        "setting_id": req.setting_id,
+        "period_id": req.period_id,
+        "file_count": 0,
+        "chunk_count": 0,
+        "status": "active",
+        "created_at": None,
+        "updated_at": None,
+    }
+
+
+@router.delete("/sources/{source_id}")
+def delete_source(
+    source_id: str,
+    conn: sqlite3.Connection = Depends(get_db),
+) -> dict[str, Any]:
+    """Delete a lore source and remove its chunks from LanceDB."""
+    row = conn.execute(
+        "SELECT id, name, setting_id, period_id FROM lore_sources WHERE id = ? AND status != 'deleted'",
+        (source_id,),
+    ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail=f"Source {source_id} not found.")
+
+    # Mark as deleting
+    conn.execute(
+        "UPDATE lore_sources SET status = 'deleting', updated_at = datetime('now') WHERE id = ?",
+        (source_id,),
+    )
+    conn.commit()
+
+    # Delete chunks from LanceDB by source name
+    deleted_chunks = 0
+    try:
+        from ingestion.store import LanceStore
+        from backend.app.config import resolve_vectordb_path
+        db_dir = resolve_vectordb_path()
+        store = LanceStore(str(db_dir))
+        deleted_chunks = store.delete_by_filter(source=row["name"])
+    except Exception as e:
+        logger.warning("Failed to delete LanceDB chunks for source %s: %s", source_id, e)
+
+    # Mark as deleted
+    conn.execute(
+        "UPDATE lore_sources SET status = 'deleted', updated_at = datetime('now') WHERE id = ?",
+        (source_id,),
+    )
+    conn.commit()
+
+    return {"deleted": True, "source_id": source_id, "chunks_removed": deleted_chunks}

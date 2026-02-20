@@ -81,8 +81,8 @@ STORYTELLER_NARRATOR_MODEL=mistral-nemo:latest
 STORYTELLER_ARCHITECT_MODEL=qwen3:4b
 STORYTELLER_CASTING_MODEL=qwen3:4b
 STORYTELLER_BIOGRAPHER_MODEL=qwen3:4b
-STORYTELLER_KG_MODEL=qwen3:8b
-STORYTELLER_CHOICE_CRAFTER_MODEL=qwen3:4b
+STORYTELLER_KG_EXTRACTOR_MODEL=qwen3:4b
+STORYTELLER_CHOICE_CRAFTER_MODEL=qwen3:8b
 
 # Provider override (default: ollama)
 STORYTELLER_DIRECTOR_PROVIDER=ollama
@@ -102,11 +102,27 @@ LLM_TIMEOUT=300  # Default fallback timeout
 | ------ | ------------ | ------- |
 | Director | `mistral-nemo:latest` | Quality-critical; generates scene instructions |
 | Narrator | `mistral-nemo:latest` | Quality-critical; generates prose (authoritative) |
+| ChoiceCrafter | `qwen3:8b` | Player choice generation (authoritative) |
+| Mechanic | `qwen3:8b` | Deterministic mechanics (config-assigned, agent is zero-LLM) |
+| CompanionSystem | `qwen3:8b` | Extended companion interactions + voice |
+| WorldMind | `qwen3:8b` | Contextual world simulation (LLM-driven) |
+| QuestWeaver | `qwen3:8b` | Dynamic quest generation (deferred) |
+| Memory | `qwen3:8b` | Long-term memory summaries (deferred) |
+| Prologue | `qwen3:8b` | Campaign opening scene generation |
+| ArcScreenplay | `qwen3:8b` | Per-arc narrative blueprint |
+| Bible | `qwen3:8b` | Campaign bible generation (one-shot at setup) |
+| EraForge | `qwen3:8b` | Era pack auto-generation |
+| SuggestionRefiner | `qwen3:8b` | Legacy choice refinement |
 | Architect | `qwen3:4b` | Campaign blueprint + off-screen simulation |
 | Casting | `qwen3:4b` | Legacy NPC casting path |
 | Biographer | `qwen3:4b` | Character background |
-| KG Extraction | `qwen3:8b` | Knowledge graph extraction |
-| ChoiceCrafter | `qwen3:4b` | Player choice generation (authoritative) |
+| KG Extraction | `qwen3:4b` | Knowledge graph extraction |
+| IntentRouter | `qwen3:4b` | LLM intent classification assist |
+| ArcWeaver | `qwen3:4b` | Thread weaving between arcs |
+| CampaignInit | `qwen3:4b` | Campaign initialization |
+| Continuity | `qwen3:4b` | LLM-managed Truth Ledger (fact pruning) |
+| Progression | `qwen3:4b` | Story/player progression (deferred) |
+| PsychArchivist | `qwen3:4b` | Psychology profile updates (deferred) |
 | RevelationAgent (V10.0) | `qwen3:4b` | Revelation timing evaluation (deferred, every 5 turns) |
 | CallbackCrystallizer (V10.0) | `qwen3:4b` | Peak moment identification (deferred, every 10 turns) |
 | PlayerProfileAgent (V10.0) | N/A (deterministic) | Choice pattern analysis (deferred, every 10 turns) |

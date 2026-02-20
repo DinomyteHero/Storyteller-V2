@@ -8,6 +8,8 @@
     getSavedCampaignMap,
     patchCampaignCache,
     removeCampaign,
+    getLastPlayed,
+    setLastPlayed,
     type SavedCampaign,
   } from '$lib/stores/campaigns';
   import { getState, getTranscript, listCampaigns } from '$lib/api/campaigns';
@@ -22,6 +24,8 @@
   let loadingCampaignList = $state(false);
   let listingFromCacheOnly = $state(false);
   let loadError = $state('');
+  let lastPlayedCampaign = $state<SavedCampaign | null>(getLastPlayed());
+  let resumingLast = $state(false);
 
   function handleNewCampaign() {
     goto('/create');
@@ -104,13 +108,21 @@
         // Non-critical
       }
 
+      setLastPlayed(campaign.campaignId);
       showLoadModal = false;
       goto('/play?resumed=1');
     } catch (e) {
       loadError = e instanceof Error ? e.message : String(e);
     } finally {
       loadingCampaignId = null;
+      resumingLast = false;
     }
+  }
+
+  async function handleContinueStory() {
+    if (!lastPlayedCampaign) return;
+    resumingLast = true;
+    await resumeCampaign(lastPlayedCampaign);
   }
 
   function deleteCampaign(campaignId: string) {
@@ -131,8 +143,8 @@
   function campaignGroups(): Array<{ key: string; label: string; items: SavedCampaign[] }> {
     const groups = new Map<string, { key: string; label: string; items: SavedCampaign[] }>();
     for (const campaign of savedCampaigns) {
-      const sagaKey = campaign.sagaId ? `saga:${campaign.sagaId}` : 'standalone';
-      const label = campaign.sagaTitle || (campaign.sagaId ? `Saga ${campaign.sagaId.slice(0, 8)}` : 'Standalone Campaigns');
+      const sagaKey = campaign.sagaId ? `story:${campaign.sagaId}` : 'standalone';
+      const label = campaign.sagaTitle || (campaign.sagaId ? `Story ${campaign.sagaId.slice(0, 8)}` : 'Standalone Campaigns');
       if (!groups.has(sagaKey)) {
         groups.set(sagaKey, { key: sagaKey, label, items: [] });
       }
@@ -152,14 +164,24 @@
 
     <!-- Menu buttons -->
     <div class="menu-buttons">
+      {#if lastPlayedCampaign}
+        <button
+          class="btn btn-primary menu-btn press-scale continue-btn"
+          disabled={resumingLast}
+          onclick={handleContinueStory}
+        >
+          {resumingLast ? 'Loading...' : 'Continue Story'}
+        </button>
+        <p class="continue-hint">{lastPlayedCampaign.playerName} &middot; {ERA_LABELS[lastPlayedCampaign.era] ?? lastPlayedCampaign.era}</p>
+      {/if}
       <button class="btn btn-primary menu-btn press-scale" onclick={handleNewCampaign}>
-        New Campaign
+        New Story
       </button>
       <button class="btn menu-btn press-scale" onclick={handleLoadCampaign}>
         Load Campaign
       </button>
       <button class="btn menu-btn press-scale" onclick={() => goto('/library')}>
-        Library
+        Browse Universes
       </button>
       <button class="btn menu-btn press-scale" onclick={() => showSettings = true}>
         Settings
@@ -380,6 +402,17 @@
     width: 100%;
     padding: 0.8rem 1.5rem;
     font-size: 1rem;
+  }
+
+  .continue-btn {
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+  .continue-hint {
+    font-size: var(--font-small);
+    color: var(--text-muted);
+    margin-top: -6px;
+    margin-bottom: 4px;
+    text-align: center;
   }
 
   .version-tag {

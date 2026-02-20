@@ -468,6 +468,31 @@ Extracts chapters with metadata from EPUB files via `ebooklib`. Returns chapter 
 
 Utility to create minimal EPUB files for testing the ingestion pipeline. Used by `test_epub.py` and other ingestion tests.
 
+## Lore Source Management (V11.0)
+
+V11.0 adds source-level management of ingested reference material via the `lore_sources` table (migration 0036).
+
+### Database Schema
+
+Each lore source tracks: name, setting/period association, file count, chunk count, and status (`active` | `deleting` | `deleted`). The `ingestion_jobs` table gains a `source_id` foreign key linking jobs to sources.
+
+### CRUD Endpoints
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/v2/library/sources` | List active lore sources |
+| `POST` | `/v2/library/sources` | Create a named source collection |
+| `DELETE` | `/v2/library/sources/{id}` | Delete source + remove LanceDB chunks |
+
+### Source-Scoped Deletion
+
+When a source is deleted via `DELETE /v2/library/sources/{id}`, chunks are removed from LanceDB via `store.delete_by_filter(source=source_name)`. The `lore_sources` row is marked as `deleted` (soft delete for audit purposes).
+
+### Frontend Integration
+
+- **Library page:** "Sources" tab shows all active sources with create/delete controls
+- **Creation wizard:** Optional "Add Reference Material" upload section on the review step — files are ingested in background while the player proceeds to start their campaign
+
 ## Known Limits
 
 - **Token budgeting is implemented:** The Narrator and Director use `ContextBudget` (`backend/app/core/context_budget.py`) for token-aware trimming.

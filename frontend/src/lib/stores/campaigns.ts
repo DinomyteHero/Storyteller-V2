@@ -7,6 +7,7 @@
 import { browser } from '$app/environment';
 
 const STORAGE_KEY = 'storyteller-saved-campaigns';
+const LAST_PLAYED_KEY = 'storyteller-last-played';
 const MAX_SAVED = 20;
 
 export interface SavedCampaign {
@@ -101,6 +102,30 @@ export function getSavedCampaignMap(): Record<string, SavedCampaign> {
   const out: Record<string, SavedCampaign> = {};
   for (const c of loadRegistry()) out[c.campaignId] = c;
   return out;
+}
+
+/** Get the most recently played campaign (for "Continue Story" button). */
+export function getLastPlayed(): SavedCampaign | null {
+  if (!browser) return null;
+  try {
+    const raw = localStorage.getItem(LAST_PLAYED_KEY);
+    if (!raw) return null;
+    const id = JSON.parse(raw) as string;
+    const campaigns = loadRegistry();
+    return campaigns.find((c) => c.campaignId === id) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Record a campaign as the most recently played (for quick resume). */
+export function setLastPlayed(campaignId: string): void {
+  if (!browser) return;
+  try {
+    localStorage.setItem(LAST_PLAYED_KEY, JSON.stringify(campaignId));
+  } catch {
+    // Quota exceeded
+  }
 }
 
 /** Upsert partial metadata for a campaign into local cache. */

@@ -1,4 +1,4 @@
-# Quick Start Guide — Storyteller AI V7.0
+# Quick Start Guide — Storyteller AI V11.0
 
 This guide covers setup, configuration, and running your first campaign.
 
@@ -12,23 +12,23 @@ This guide covers setup, configuration, and running your first campaign.
 
 ### Required Ollama Models
 
-Pull these before starting (matches V7.0 default role configuration):
+Pull these before starting (matches V11.0 default role configuration):
 
 ```bash
 # Quality-critical roles (Director + Narrator)
 ollama pull mistral-nemo:latest
 
-# Lightweight roles (ChoiceCrafter + Architect + Biographer + KG extraction)
+# Medium roles (ChoiceCrafter, Mechanic, CompanionSystem, WorldMind, QuestWeaver,
+# Memory, Prologue, ArcScreenplay, Bible, EraForge, SuggestionRefiner)
+ollama pull qwen3:8b
+
+# Lightweight roles (Architect, Biographer, Casting, KG Extraction, Continuity,
+# Progression, PsychArchivist, IntentRouter, ArcWeaver, CampaignInit,
+# RevelationAgent, CallbackCrystallizer)
 ollama pull qwen3:4b
 
 # Embeddings (required for RAG retrieval)
 ollama pull nomic-embed-text
-```
-
-Optional (for KG extraction and heavy ingestion):
-
-```bash
-ollama pull qwen3:8b
 ```
 
 ---
@@ -81,15 +81,16 @@ ERA_PACK_DIR=./data/static/era_packs
 # Ollama endpoint
 OLLAMA_BASE_URL=http://127.0.0.1:11434
 
-# Per-role LLM model config (V7.0 defaults)
+# Per-role LLM model config (V11.0 defaults)
 STORYTELLER_DIRECTOR_MODEL=mistral-nemo:latest
 STORYTELLER_NARRATOR_MODEL=mistral-nemo:latest
 STORYTELLER_ARCHITECT_MODEL=qwen3:4b
-STORYTELLER_CHOICE_CRAFTER_MODEL=qwen3:4b
+STORYTELLER_CHOICE_CRAFTER_MODEL=qwen3:8b
 
 # Feature flags
 ENABLE_BIBLE_CASTING=1         # Era pack NPC selection (recommended)
 ENABLE_PROCEDURAL_NPCS=1       # Fallback NPC generation
+# ENABLE_PORTRAITS=0           # V11.0: Optional NPC portraits + location key art (default off)
 
 # Development (disables API auth)
 STORYTELLER_DEV_MODE=1
@@ -258,6 +259,27 @@ python scripts/rebuild_lancedb.py --confirm
 
 ---
 
+### Manage lore sources (V11.0)
+
+The Library page ("Sources" tab) and creation wizard support source-level management of ingested material:
+
+```bash
+# List all lore sources
+curl http://localhost:8000/v2/library/sources
+
+# Create a named source collection
+curl -X POST http://localhost:8000/v2/library/sources \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Dune novels", "setting_id": "dune", "period_id": "butlerian_jihad"}'
+
+# Delete a source (removes its chunks from LanceDB)
+curl -X DELETE http://localhost:8000/v2/library/sources/{source_id}
+```
+
+Sources can also be uploaded during campaign creation via the optional "Add Reference Material" step on the review page.
+
+---
+
 ## Step 7 — Optional: Knowledge Graph Extraction
 
 After lore ingestion, extract a knowledge graph for runtime character/entity retrieval:
@@ -313,6 +335,7 @@ curl http://127.0.0.1:11434/api/tags
 ```bash
 ollama list
 ollama pull mistral-nemo:latest
+ollama pull qwen3:8b
 ollama pull qwen3:4b
 ollama pull nomic-embed-text
 ```

@@ -265,6 +265,8 @@ NPC_RENDER_ENABLED = _env_flag("NPC_RENDER_ENABLED", default=False)
 ENABLE_SUGGESTION_REFINER = _env_flag("ENABLE_SUGGESTION_REFINER", default=True)
 ENABLE_CLOUD_BLUEPRINT = _env_flag("ENABLE_CLOUD_BLUEPRINT", default=False)
 ENABLE_SCALE_ADVISOR = _env_flag("ENABLE_SCALE_ADVISOR", default=False)
+# V11.0: Portrait/key art serving (optional, default off to avoid costs)
+ENABLE_PORTRAITS = _env_flag("ENABLE_PORTRAITS", default=False)
 
 # World simulation (V2.5): tick interval in hours (default 4 = 240 min)
 # Override via WORLD_TICK_INTERVAL_HOURS env. See backend.app.time_economy for action costs.
