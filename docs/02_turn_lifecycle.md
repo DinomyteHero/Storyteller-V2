@@ -13,6 +13,11 @@ A single turn flows through a LangGraph `StateGraph` that is compiled once on fi
 - Shared pipeline executor via `_run_pipeline_with_timings()` — streaming and non-streaming paths share the same node sequence via `get_pre_narrator_steps()`/`get_post_narrator_steps()`
 - Deferred maintenance agents (MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist) run post-commit via `deferred_agents.py`, writing to `pending_world_state_patches` table
 - Turn snapshots written to `turn_snapshots` table after each successful commit (rewind support)
+
+**V11.0 changes:**
+- No pipeline topology changes. Visual layer (portraits/key art) is post-pipeline decoration in the response builder — `portrait_url` and `location_art_url` are resolved after Commit when `ENABLE_PORTRAITS=1`
+- `lore_sources` table tracks ingested source metadata; no pipeline impact
+- Universe & Story UX is frontend-only; no pipeline changes
 - Canon event checking for Historical mode campaigns via `canon_scheduler.py`
 - Consequence propagation via `consequence_propagator.py` (ripple/wave/tsunami tiers)
 - Turn idempotency via `Idempotency-Key` header and `turn_idempotency` table

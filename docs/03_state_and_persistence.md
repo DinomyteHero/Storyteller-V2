@@ -76,7 +76,7 @@ class GameState(BaseModel):
 
 ## SQLite Database Schema
 
-Schema is applied via `backend/app/db/migrate.py`, which runs all SQL files in `backend/app/db/migrations/` in order. **34 migrations** are currently applied (0001 through 0034, with 0024 absent — the sequence jumps from 0023 to 0025).
+Schema is applied via `backend/app/db/migrate.py`, which runs all SQL files in `backend/app/db/migrations/` in order. **36 migrations** are currently applied (0001 through 0036, with 0024 absent — the sequence jumps from 0023 to 0025).
 
 ### Core Tables
 
@@ -381,6 +381,26 @@ sagas (
 ```
 
 Adds `saga_id` and `saga_chapter` columns to the `campaigns` table.
+
+#### `lore_sources` (V11.0)
+
+Tracks user-uploaded reference material with source-level metadata. Allows grouping ingestion jobs by source and supports source-level deletion from LanceDB.
+
+```sql
+lore_sources (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL,
+    setting_id  TEXT NOT NULL DEFAULT '',
+    period_id   TEXT NOT NULL DEFAULT '',
+    file_count  INTEGER NOT NULL DEFAULT 0,
+    chunk_count INTEGER NOT NULL DEFAULT 0,
+    status      TEXT NOT NULL DEFAULT 'active',   -- active | deleting | deleted
+    created_at  TEXT DEFAULT (datetime('now')),
+    updated_at  TEXT DEFAULT (datetime('now'))
+)
+```
+
+Migration 0036 also adds `source_id TEXT REFERENCES lore_sources(id)` to the `ingestion_jobs` table for linking jobs to sources.
 
 #### Knowledge Graph Tables (Optional)
 
@@ -693,5 +713,7 @@ Called by the Commit node via `process_quests_for_turn(world_state, era, turn_nu
 | 0032 | npc_states table — normalized from world_state_json (V7.0 schema extraction) |
 | 0033 | quest_entries table — normalized from world_state_json (V7.0 schema extraction) |
 | 0034 | generated_era_packs table |
+| 0035 | ingestion_jobs table (file upload + background ingestion) |
+| 0036 | lore_sources table + ingestion_jobs.source_id column (V11.0 source management) |
 
 > **Note:** Migration 0024 does not exist — the numbering jumps from 0023 to 0025.

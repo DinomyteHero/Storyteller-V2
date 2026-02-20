@@ -2,11 +2,11 @@
 
 ## What the System Does
 
-Storyteller AI (current codebase, project version 0.1.0, engine version V10.0) is a text-based RPG engine that runs a turn-by-turn narrative loop driven by a **LangGraph state-machine pipeline**. A player selects from KOTOR-style dialogue-wheel choices; the engine classifies the input, resolves mechanics, fires any scripted narrative moments, simulates off-screen world events, generates dramatic pacing instructions, and produces final prose narration — all in a single turn.
+Storyteller AI (current codebase, project version 0.1.0, engine version V11.0) is a text-based RPG engine that runs a turn-by-turn narrative loop driven by a **LangGraph state-machine pipeline**. A player selects from KOTOR-style dialogue-wheel choices; the engine classifies the input, resolves mechanics, fires any scripted narrative moments, simulates off-screen world events, generates dramatic pacing instructions, and produces final prose narration — all in a single turn.
 
 The "Living World" mechanic is the core differentiator: every player action costs in-game time (in minutes). When accumulated time crosses a configurable tick boundary (default 4 hours), a **WorldSim** node fires a deterministic faction simulation (with optional LLM-driven world narrative) that moves NPC factions, generates rumors, and feeds a Mass Effect-style news briefing system — making the world feel alive even when the player isn't directly interacting with those factions.
 
-**V5.0 introduced setting-agnostic architecture; V7.0 adds production-readiness; V8.0 adds multi-arc campaigns; V9.0 adds novel-length storytelling; V10.0 adds narrative intelligence.** Agents no longer hardcode universe names, species, or factions. All setting-specific content comes from `SettingRules` (stored in `world_state_json["setting_rules"]`) and era pack YAML files, loaded via the `ContentRepository` singleton. V10.0 adds dramatic irony, creative input detection, narrative rhythm hints, revelation timing, callback crystallization, player behavioral profiling, foreshadowing hooks, thematic resonance across arcs, arc mood profiles, and companion wound/reveal layers.
+**V5.0 introduced setting-agnostic architecture; V7.0 adds production-readiness; V8.0 adds multi-arc campaigns; V9.0 adds novel-length storytelling; V10.0 adds narrative intelligence; V11.0 adds player experience UX.** Agents no longer hardcode universe names, species, or factions. All setting-specific content comes from `SettingRules` (stored in `world_state_json["setting_rules"]`) and era pack YAML files, loaded via the `ContentRepository` singleton. V10.0 adds dramatic irony, creative input detection, narrative rhythm hints, revelation timing, callback crystallization, player behavioral profiling, foreshadowing hooks, thematic resonance across arcs, arc mood profiles, and companion wound/reveal layers. V11.0 adds Universe & Story UX (frontend), UI-exposed lore source management, and optional portrait/key art serving (feature-flagged).
 
 ## Key Design Principles
 
@@ -71,6 +71,9 @@ The "Living World" mechanic is the core differentiator: every player action cost
 | **Thematic Resonance (V10.0)** | At CLIMAX, the Director receives echoes of dominant themes from the campaign's first arc for cross-arc thematic closure. |
 | **Arc Mood Profiles (V10.0)** | 5 mood profiles (heroic, noir, tragic, kishotenketsu, mystery) provide stage-specific tonal guidance to the Director. |
 | **Companion Wound/Reveal Layers (V10.0)** | Companions have 3-tier psychological depth (surface/deep/core wounds) unlocked at affinity thresholds, with per-stage trigger text woven into narration. |
+| **Universe & Story UX (V11.0)** | Home page "Continue Story" hero button; Universe selection as Step 0 in creation wizard; campaigns grouped by Story (saga) in load modal; last-played tracking for quick resume. Frontend-only — no pipeline changes. |
+| **UI-Exposed Lore Ingestion (V11.0)** | `lore_sources` table (migration 0036) with source CRUD endpoints (`GET/POST/DELETE /v2/library/sources`); Library "Sources" tab for managing reference collections; optional "Add Reference Material" upload step in creation wizard. |
+| **Optional Visual Layer (V11.0)** | `portrait_key` on `EraNpcEntry`/`EraCompanion`, `key_art` on `EraLocation`; static portrait serving at `/portraits/` when `ENABLE_PORTRAITS=1`; `portrait_url` in `PartyStatusItem` and `location_art_url` in `TurnResponse`. Default off — zero cost when disabled. |
 
 ## High-Level Architecture
 
@@ -129,7 +132,7 @@ graph TD
     COMMIT --> API
 ```
 
-## Pipeline Topology (V10.0)
+## Pipeline Topology (V10.0 — unchanged in V11.0)
 
 **ACTION / TALK path:**
 ```
@@ -153,6 +156,7 @@ router → meta → commit → END
 - Multi-arc campaigns with interlude scenes and epilogue system (V8.0)
 - Novel-length storytelling with campaign settings support (V9.0)
 - V10.0 narrative intelligence: 3 new deferred agents (Revelation, Callback Crystallizer, Player Profile), creative deviation detection in router, narrative rhythm hints, dramatic irony tags, foreshadowing hooks, thematic resonance, arc mood profiles, and companion wound/reveal layers — all zero-latency (deferred or prompt-only)
+- V11.0 player experience: no pipeline topology changes. Universe & Story UX (frontend-only), lore source management (`lore_sources` table + API endpoints), optional portrait/key art serving (feature-flagged via `ENABLE_PORTRAITS`). New fields: `portrait_key` on NPC/companion models, `key_art` on location models, `portrait_url`/`location_art_url` in API responses.
 
 ## Quickstart
 
@@ -215,4 +219,4 @@ curl -X POST "http://localhost:8000/v2/campaigns/{campaign_id}/turn?player_id={p
 | Default LLM | Ollama (local; multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:8b` for ChoiceCrafter/Mechanic/CompanionSystem/WorldMind/QuestWeaver/Memory/Prologue/ArcScreenplay/Bible/EraForge, `qwen3:4b` for Architect/Casting/Biographer/KG Extraction/IntentRouter/ArcWeaver/Continuity/Progression/PsychArchivist/RevelationAgent/CallbackCrystallizer, `nomic-embed-text` for embedding). V7.0: per-role cloud routing via `STORYTELLER_{ROLE}_PROVIDER` (Anthropic, OpenAI, OpenAI-compatible). |
 | Frontend | SvelteKit (`frontend/`) |
 | Tests | `pytest` suite (run `python -m pytest backend/tests -q` for current count) |
-| Engine Version | V10.0 (V5.0 setting-agnostic base → V7.0 production-readiness → V8.0 multi-arc campaigns → V9.0 novel-length storytelling → V10.0 narrative intelligence: dramatic irony, creative deviation, rhythm hints, revelation timing, callback crystallization, player profiling, foreshadowing, thematic resonance, arc mood profiles, companion wound/reveal layers) |
+| Engine Version | V11.0 (V5.0 setting-agnostic base → V7.0 production-readiness → V8.0 multi-arc campaigns → V9.0 novel-length storytelling → V10.0 narrative intelligence → V11.0 player experience: Universe & Story UX, lore source management, optional portrait/key art layer) |

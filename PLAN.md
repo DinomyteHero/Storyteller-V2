@@ -1,8 +1,8 @@
 # Implementation Plan: Choice System & Narrative Experience Overhaul
 
-## V11.0 Player Experience — PLANNED
+## V11.0 Player Experience — IMPLEMENTED
 
-Three features validated from external review (ChatGPT/Grok), grounded against actual codebase architecture:
+Three features validated from external review (ChatGPT/Grok), grounded against actual codebase architecture. All three phases implemented and committed.
 
 1. **Universe & Story UX** — Surface existing Settings + Sagas as first-class frontend flow
 2. **UI-Exposed Lore Ingestion** — "Add Source Novels" in campaign wizard + Library
