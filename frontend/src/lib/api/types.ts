@@ -192,6 +192,12 @@ export interface TurnResponse {
   mechanic_notes?: MechanicNotes | null;
   // Phase 4.1: Bridge paragraph connecting narrative prose to choice cards
   bridge_paragraph?: string | null;
+  // V8.0: Campaign arc progress
+  arc_stage?: string | null;
+  current_arc_number?: number | null;
+  current_arc_id?: string | null;
+  campaign_complete?: boolean;
+  epilogue_active?: boolean;
 }
 
 export interface MechanicNotes {

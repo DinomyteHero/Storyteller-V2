@@ -11,6 +11,7 @@ from typing import Any
 
 from backend.app.constants import (
     ARC_CLIMAX_RESOLUTION_FLAG_PREFIX,
+    ARC_COUNT_BY_SCALE,
     ARC_MAX_TURNS,
     ARC_MIN_TURNS,
     ARC_RISING_TO_CLIMAX_MIN_THREADS,
@@ -20,6 +21,8 @@ from backend.app.constants import (
     CONCLUSION_ENDING_STYLES,
     CONCLUSION_MIN_RESOLUTION_TURNS,
     CONCLUSION_RESOLVED_RATIO,
+    EPILOGUE_PACING_HINT,
+    EPILOGUE_TURNS,
     HERO_JOURNEY_BEATS,
     INTERLUDE_MAX_TURNS,
     INTERLUDE_PACING_HINT,
@@ -84,6 +87,8 @@ def _determine_arc_stage_dynamic(
     if current_stage is None:
         return "SETUP", False, {}
 
+    # RESOLUTION is handled by multi-arc transition logic in arc_planner_node.
+    # Stay in RESOLUTION here; the node itself checks conclusion_ready for chaining.
     if current_stage == "RESOLUTION":
         return "RESOLUTION", False, {}
 
@@ -327,10 +332,139 @@ def _build_conclusion_plan(
     }
 
 
+def _build_arc_summary(
+    arc_number: int,
+    arc_id: str,
+    ending_style: str,
+    conclusion_plan: dict,
+    alignment: dict | None,
+    companion_states: dict | None,
+) -> str:
+    """Build a one-paragraph deterministic arc summary for cross-arc memory bridging."""
+    payoffs = conclusion_plan.get("payoff_threads") or []
+    hooks = conclusion_plan.get("dangling_hooks") or []
+    payoff_text = "; ".join(payoffs[:3]) if payoffs else "none tracked"
+    hook_text = "; ".join(hooks[:3]) if hooks else "none"
+
+    alignment_text = ""
+    if isinstance(alignment, dict):
+        top_tone = max(alignment, key=alignment.get, default=None)  # type: ignore[arg-type]
+        if top_tone:
+            alignment_text = f" Player leaned {top_tone}."
+
+    companion_text = ""
+    if isinstance(companion_states, dict):
+        milestones = []
+        for cid, cstate in list(companion_states.items())[:3]:
+            influence = cstate.get("influence", 0) if isinstance(cstate, dict) else 0
+            if abs(influence) >= 30:
+                label = "allied" if influence > 0 else "strained"
+                milestones.append(f"{cid} ({label})")
+        if milestones:
+            companion_text = f" Companions: {', '.join(milestones)}."
+
+    return (
+        f"Arc {arc_number} ({arc_id}): {ending_style}. "
+        f"Resolved: {payoff_text}. Unresolved: {hook_text}.{alignment_text}{companion_text}"
+    )
+
+
+def _trigger_arc_transition(
+    conclusion_plan: dict,
+    arc_state: dict,
+    world_state: dict,
+    campaign_scale: str,
+    turn_number: int,
+) -> tuple[dict, dict | None]:
+    """Check if the current arc should transition to a new one or trigger epilogue.
+
+    Returns (updated_arc_state, new_arc_seed_or_None).
+    If no transition is warranted, returns the arc_state unchanged and None.
+    """
+    if not conclusion_plan.get("conclusion_ready"):
+        return arc_state, None
+
+    current_arc_number = arc_state.get("current_arc_number", 1)
+    max_arcs = ARC_COUNT_BY_SCALE.get(campaign_scale, 3)
+    next_arc_number = current_arc_number + 1
+
+    # Build summary of the completing arc
+    alignment = world_state.get("alignment")
+    companion_states = world_state.get("party_affinity")
+    current_arc_id = arc_state.get("current_arc_id", f"arc_{current_arc_number}")
+    ending_style = conclusion_plan.get("ending_style", "soft_cliffhanger")
+    summary = _build_arc_summary(
+        current_arc_number, current_arc_id, ending_style,
+        conclusion_plan, alignment, companion_states,
+    )
+
+    # Archive the completing arc
+    arc_history = list(arc_state.get("arc_history") or [])
+    arc_history.append({
+        "arc_id": current_arc_id,
+        "arc_number": current_arc_number,
+        "arc_seed_summary": summary,
+        "dangling_hooks": list(conclusion_plan.get("dangling_hooks") or [])[:5],
+        "turns": turn_number - arc_state.get("stage_start_turn", 0),
+        "ending_style": ending_style,
+    })
+
+    if next_arc_number > max_arcs:
+        # Final arc completed — trigger epilogue
+        logger.info(
+            "Campaign concluding after %d arcs (scale=%s). Entering epilogue.",
+            current_arc_number, campaign_scale,
+        )
+        return {
+            **arc_state,
+            "arc_history": arc_history,
+            "campaign_concluding": True,
+            "epilogue_active": True,
+            "epilogue_remaining": EPILOGUE_TURNS,
+        }, None
+
+    # Build seed for next arc from dangling hooks + world context
+    dangling_hooks = conclusion_plan.get("dangling_hooks") or []
+    active_factions = world_state.get("active_factions") or []
+    faction_goals = [
+        f.get("current_goal", "") for f in active_factions[:3]
+        if isinstance(f, dict) and f.get("current_goal")
+    ]
+
+    new_arc_seed = {
+        "opening_threads": dangling_hooks[:3],
+        "active_themes": (world_state.get("ledger") or {}).get("active_themes") or [],
+        "arc_intent": f"Continue from arc {current_arc_number}: {', '.join(dangling_hooks[:2]) or 'new developments'}",
+        "climax_question": None,  # Will be populated by BibleAgent if available
+        "faction_context": faction_goals[:2],
+    }
+    new_arc_id = f"arc_{next_arc_number}"
+
+    logger.info(
+        "Arc transition: arc %d -> arc %d (%s). Dangling hooks: %d carried forward.",
+        current_arc_number, next_arc_number, new_arc_id, len(dangling_hooks),
+    )
+
+    updated_state = {
+        "current_stage": "SETUP",
+        "stage_start_turn": turn_number,
+        "interlude_remaining": INTERLUDE_MAX_TURNS,
+        "current_arc_number": next_arc_number,
+        "current_arc_id": new_arc_id,
+        "arc_history": arc_history,
+        "campaign_concluding": False,
+        "epilogue_active": False,
+        "epilogue_remaining": 0,
+    }
+
+    return updated_state, new_arc_seed
+
+
 def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
     """Deterministic arc planner: reads ledger + turn_number, writes arc_guidance.
 
     V2.5: Content-aware transitions + thematic guidance.
+    V8.0: Multi-arc chaining — RESOLUTION triggers new arcs or epilogue.
     Phase 0.5: Prologue branch — when prologue_mode is active in world_state_json,
     use the constrained PROLOGUE_STAGES loop instead of SETUP→RESOLUTION.
     """
@@ -358,14 +492,92 @@ def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
 
     # Load persisted arc state (if any)
     arc_state = ws.get("arc_state") or {}
-    current_stage = arc_state.get("current_stage") if isinstance(arc_state, dict) else None
-    stage_start_turn = int(arc_state.get("stage_start_turn", 0)) if isinstance(arc_state, dict) else 0
+    if not isinstance(arc_state, dict):
+        arc_state = {}
+    current_stage = arc_state.get("current_stage")
+    stage_start_turn = int(arc_state.get("stage_start_turn", 0))
+
+    # Multi-arc fields (V8.0) — initialize defaults for existing campaigns
+    current_arc_number = int(arc_state.get("current_arc_number", 1))
+    current_arc_id = arc_state.get("current_arc_id", f"arc_{current_arc_number}")
+    arc_history = list(arc_state.get("arc_history") or [])
+    campaign_concluding = bool(arc_state.get("campaign_concluding", False))
+    epilogue_active = bool(arc_state.get("epilogue_active", False))
+    epilogue_remaining = int(arc_state.get("epilogue_remaining", 0))
+    campaign_complete = bool(arc_state.get("campaign_complete", False))
+    new_arc_seed_for_ws: dict | None = None
 
     # First-ever turn: initialize to SETUP
     if current_stage is None:
         current_stage = "SETUP"
         stage_start_turn = turn_number
 
+    # ── Epilogue handling ─────────────────────────────────────────────
+    # If campaign is already complete, return minimal guidance.
+    if campaign_complete:
+        arc_guidance = {
+            "arc_stage": "RESOLUTION",
+            "priority_threads": [],
+            "tension_level": "CALM",
+            "pacing_hint": "Campaign is complete.",
+            "suggested_weight": _WEIGHTS_BY_STAGE["RESOLUTION"],
+            "transition_occurred": False,
+            "turns_in_stage": 0,
+            "active_themes": [],
+            "theme_guidance": "",
+            "hero_beat": "RETURN_WITH_ELIXIR",
+            "hero_pacing": "",
+            "archetype_hints": [],
+            "era_transition_pending": False,
+            "interlude_active": False,
+            "arc_state": arc_state,
+            "campaign_complete": True,
+        }
+        return {**state, "arc_guidance": arc_guidance}
+
+    # If epilogue is active, count down and generate epilogue guidance.
+    if epilogue_active:
+        epilogue_remaining = max(0, epilogue_remaining - 1)
+        if epilogue_remaining <= 0:
+            campaign_complete = True
+            logger.info("Campaign complete! Epilogue finished at turn %d.", turn_number)
+
+        arc_guidance = {
+            "arc_stage": "RESOLUTION",
+            "priority_threads": [],
+            "tension_level": "BITTERSWEET",
+            "pacing_hint": EPILOGUE_PACING_HINT,
+            "suggested_weight": {"SOCIAL": 0.6, "EXPLORE": 0.3, "COMMIT": 0.1},
+            "transition_occurred": False,
+            "turns_in_stage": 0,
+            "active_themes": (ledger.get("active_themes") or [])[:3],
+            "theme_guidance": "Reflect on how themes were resolved or transformed across the saga.",
+            "hero_beat": "RETURN_WITH_ELIXIR",
+            "hero_pacing": "The hero returns transformed. Show the new status quo.",
+            "archetype_hints": [],
+            "era_transition_pending": False,
+            "interlude_active": False,
+            "campaign_concluding": True,
+            "epilogue_active": True,
+            "campaign_complete": campaign_complete,
+            "arc_history": arc_history,
+            "current_arc_number": current_arc_number,
+            "arc_state": {
+                "current_stage": "RESOLUTION",
+                "stage_start_turn": stage_start_turn,
+                "interlude_remaining": 0,
+                "current_arc_number": current_arc_number,
+                "current_arc_id": current_arc_id,
+                "arc_history": arc_history,
+                "campaign_concluding": True,
+                "epilogue_active": True,
+                "epilogue_remaining": epilogue_remaining,
+                "campaign_complete": campaign_complete,
+            },
+        }
+        return {**state, "arc_guidance": arc_guidance}
+
+    # ── Normal arc stage progression ──────────────────────────────────
     recent_narrative = "\n".join((state.get("recent_narrative") or [])[-2:])[:500]
     arc_stage, transition_occurred, arc_weaver_result = _determine_arc_stage_dynamic(
         turn_number, ledger, current_stage, stage_start_turn,
@@ -376,15 +588,55 @@ def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
         stage_start_turn = turn_number
         logger.info("Arc transition: %s -> %s at turn %d", current_stage, arc_stage, turn_number)
 
-    # Phase 3.3: Between-Arc Interlude — decompression turns on RESOLUTION→SETUP.
-    # Interlude state is tracked in arc_state and overrides pacing for 1-2 turns.
+    # ── Multi-arc chaining (V8.0) ─────────────────────────────────────
+    # When RESOLUTION is reached and conclusion is ready, trigger next arc or epilogue.
     interlude_active = False
     interlude_turns_remaining = 0
-    _interlude_state = arc_state.get("interlude_remaining", 0) if isinstance(arc_state, dict) else 0
-    if transition_occurred and current_stage == "RESOLUTION" and arc_stage == "SETUP":
-        # Entering interlude at start of new arc
-        _interlude_state = INTERLUDE_MAX_TURNS
-        logger.info("Interlude started: %d turns of decompression", _interlude_state)
+    _interlude_state = arc_state.get("interlude_remaining", 0)
+
+    if arc_stage == "RESOLUTION" and not campaign_concluding:
+        turns_in_res = max(0, turn_number - stage_start_turn)
+        campaign_scale = ws.get("campaign_scale") or "medium"
+        conclusion_plan = _build_conclusion_plan(
+            arc_stage=arc_stage,
+            turns_in_stage=turns_in_res,
+            campaign_scale=campaign_scale,
+            ledger=ledger,
+        )
+        if conclusion_plan and conclusion_plan.get("conclusion_ready"):
+            updated_arc_state, new_seed = _trigger_arc_transition(
+                conclusion_plan=conclusion_plan,
+                arc_state={
+                    **arc_state,
+                    "current_arc_number": current_arc_number,
+                    "current_arc_id": current_arc_id,
+                    "arc_history": arc_history,
+                    "stage_start_turn": stage_start_turn,
+                },
+                world_state=ws,
+                campaign_scale=campaign_scale,
+                turn_number=turn_number,
+            )
+
+            if updated_arc_state.get("epilogue_active"):
+                # Epilogue triggered — will be handled on next turn
+                epilogue_active = True
+                epilogue_remaining = updated_arc_state.get("epilogue_remaining", EPILOGUE_TURNS)
+                campaign_concluding = True
+                arc_history = updated_arc_state.get("arc_history", arc_history)
+            elif new_seed is not None:
+                # New arc — transition to SETUP with interlude
+                arc_stage = "SETUP"
+                stage_start_turn = turn_number
+                transition_occurred = True
+                current_arc_number = updated_arc_state.get("current_arc_number", current_arc_number + 1)
+                current_arc_id = updated_arc_state.get("current_arc_id", f"arc_{current_arc_number}")
+                arc_history = updated_arc_state.get("arc_history", arc_history)
+                _interlude_state = INTERLUDE_MAX_TURNS
+                new_arc_seed_for_ws = new_seed
+                logger.info("New arc %d (%s) begins at turn %d", current_arc_number, current_arc_id, turn_number)
+
+    # Phase 3.3: Between-Arc Interlude — decompression turns on new arc start.
     if _interlude_state > 0:
         interlude_active = True
         interlude_turns_remaining = _interlude_state - 1  # Will be persisted for next turn
@@ -472,31 +724,83 @@ def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
         "era_transition_pending": era_transition_pending,
         # Phase 3.3: Interlude state
         "interlude_active": interlude_active,
+        # Multi-arc tracking (V8.0)
+        "current_arc_number": current_arc_number,
+        "current_arc_id": current_arc_id,
+        "arc_history": arc_history,
+        "campaign_concluding": campaign_concluding,
+        "epilogue_active": epilogue_active,
+        "campaign_complete": campaign_complete,
+        # Saga context for narrator (first 3 turns of new arc)
+        "saga_context": (
+            arc_history[-1]["arc_seed_summary"]
+            if arc_history and current_arc_number > 1 and turns_in_stage <= 3
+            else None
+        ),
+        # New arc seed to persist (commit node writes to world_state["arc_seed"])
+        "new_arc_seed": new_arc_seed_for_ws,
         # Arc state for persistence (Commit node picks this up)
         "arc_state": {
             "current_stage": arc_stage,
             "stage_start_turn": stage_start_turn,
             "interlude_remaining": interlude_turns_remaining,
+            "current_arc_number": current_arc_number,
+            "current_arc_id": current_arc_id,
+            "arc_history": arc_history,
+            "campaign_concluding": campaign_concluding,
+            "epilogue_active": epilogue_active,
+            "epilogue_remaining": epilogue_remaining,
+            "campaign_complete": campaign_complete,
         },
     }
 
-    # ── Phase 5.3: Scene loop escalation ─────────────────────────────
-    # When scene_loop_detected is True, inject escalation guidance to break
-    # the repetitive pattern and push the narrative forward.
+    # ── V8.0 Gate 4: Tiered scene loop escalation ───────────────────
+    # Track consecutive loop turns and escalate disruption progressively.
+    _prev_loop_count = int(arc_state.get("scene_loop_consecutive", 0))
     if state.get("scene_loop_detected"):
-        loop_escalation = (
-            "SCENE LOOP DETECTED: The player has been in a similar scene configuration "
-            "multiple times recently. ESCALATE the situation to break the pattern. "
-            "Introduce a new complication, have an NPC take unexpected action, "
-            "reveal new information, or shift the environment. Do NOT repeat the "
-            "same scene beats. Force narrative progression."
-        )
+        _loop_count = _prev_loop_count + 1
+        arc_guidance["scene_loop_detected"] = True
+        arc_guidance["scene_loop_consecutive"] = _loop_count
+        # Persist in arc_state for next turn
+        arc_guidance["arc_state"]["scene_loop_consecutive"] = _loop_count
+
+        if _loop_count >= 3:
+            # Tier 3: Force a world event — WorldSim should escalate
+            loop_escalation = (
+                "SCENE STAGNATION CRITICAL (3+ turns): The narrative is stuck. "
+                "FORCE a disruption: a faction makes a sudden move, an NPC arrives with "
+                "urgent news that changes the situation entirely, or an environmental "
+                "event (alarm, explosion, storm) forces the player to react. "
+                "This MUST fundamentally change the scene."
+            )
+            arc_guidance["force_world_event"] = True
+        elif _loop_count >= 2:
+            # Tier 2: Director-level disruption
+            loop_escalation = (
+                "SCENE STAGNATION DETECTED (2+ turns): Introduce a disruption — "
+                "an NPC arrives with urgent news, a faction makes a move that changes "
+                "the situation, or a companion breaks the tension with a question or "
+                "challenge. Choose ONE. Make it feel organic, not forced."
+            )
+        else:
+            # Tier 1: Gentle escalation hint
+            loop_escalation = (
+                "SCENE LOOP DETECTED: The player has been in a similar scene recently. "
+                "ESCALATE: introduce a new complication, reveal new information, "
+                "or shift the environment. Do NOT repeat the same scene beats."
+            )
+
         arc_guidance["pacing_hint"] = f"{arc_guidance.get('pacing_hint', '')} {loop_escalation}".strip()
-        # Bump tension if we're in a calm state
+        # Bump tension if calm
         if arc_guidance.get("tension_level") in ("CALM", "BUILDING"):
             arc_guidance["tension_level"] = "ESCALATING"
-        arc_guidance["scene_loop_detected"] = True
-        logger.info("Arc planner injecting scene loop escalation guidance")
+        logger.info("Arc planner scene loop escalation tier=%d", _loop_count)
+    else:
+        # Reset consecutive counter when scene changes
+        if _prev_loop_count > 0:
+            logger.info("Scene loop broken — resetting consecutive counter from %d", _prev_loop_count)
+        arc_guidance["scene_loop_consecutive"] = 0
+        arc_guidance["arc_state"]["scene_loop_consecutive"] = 0
 
     # ── Scale advisor (gated by ENABLE_SCALE_ADVISOR) ────────────────
     try:

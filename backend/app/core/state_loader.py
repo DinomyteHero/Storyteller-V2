@@ -258,6 +258,7 @@ def build_initial_gamestate(
     history = load_turn_history(conn, campaign_id, limit=10)
 
     # Load recent narrative text (last 3 turns) for narrative continuity
+    # V8.0 Gate 2: Adaptive truncation — dialogue-heavy turns get more words
     recent_narrative: list[str] = []
     try:
         rendered = get_rendered_turns(conn, campaign_id, limit=3)
@@ -265,10 +266,16 @@ def build_initial_gamestate(
             text = (turn.get("text") or "").strip()
             if text:
                 tn = turn.get("turn_number", "?")
-                # Truncate to ~200 words to keep prompt budget manageable
+                # Adaptive word limit based on content type
+                # Dialogue-heavy text (many quotes) needs more context for continuity
+                _quote_count = text.count('"') // 2  # pairs of quotes
+                if _quote_count >= 2:
+                    _word_limit = 280  # dialogue-heavy: more context for conversation flow
+                else:
+                    _word_limit = 160  # action-heavy: compressible
                 words = text.split()
-                if len(words) > 200:
-                    text = " ".join(words[:200]) + "..."
+                if len(words) > _word_limit:
+                    text = " ".join(words[:_word_limit]) + "..."
                 recent_narrative.append(f"[Turn {tn}] {text}")
     except Exception:
         logger.warning("Failed to load recent narrative (non-fatal)", exc_info=True)

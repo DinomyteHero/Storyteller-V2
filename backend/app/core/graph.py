@@ -17,6 +17,7 @@ from backend.app.core.nodes.world_sim import make_world_sim_node
 from backend.app.core.nodes.companion import companion_reaction_node
 from backend.app.core.nodes.moments import moments_node
 from backend.app.core.nodes.arc_planner import arc_planner_node
+from backend.app.core.nodes.interlude import interlude_node
 from backend.app.core.nodes.scene_frame import scene_frame_node
 from backend.app.core.nodes.director import make_director_node
 from backend.app.core.nodes.narrator import make_narrator_node
@@ -39,7 +40,7 @@ def build_graph() -> StateGraph:
 
     Topology:
         router -> (META->commit | TALK->encounter->... | ACTION->mechanic->encounter->...->commit) -> END.
-        Full ACTION path: router->mechanic->encounter->world_sim->moments->arc_planner->scene_frame->director->companion_reaction->narrator->narrative_validator->choice_crafter->commit.
+        Full ACTION path: router->mechanic->encounter->world_sim->moments->arc_planner->interlude->scene_frame->director->companion_reaction->narrator->narrative_validator->choice_crafter->commit.
     """
     graph = StateGraph(dict)
 
@@ -51,6 +52,7 @@ def build_graph() -> StateGraph:
     graph.add_node("companion_reaction", companion_reaction_node)
     graph.add_node("moments", moments_node)
     graph.add_node("arc_planner", arc_planner_node)
+    graph.add_node("interlude", interlude_node)
     graph.add_node("scene_frame", scene_frame_node)
     graph.add_node("director", make_director_node())
     graph.add_node("narrator", make_narrator_node())
@@ -78,7 +80,8 @@ def build_graph() -> StateGraph:
     graph.add_edge("encounter", "world_sim")
     graph.add_edge("world_sim", "moments")
     graph.add_edge("moments", "arc_planner")
-    graph.add_edge("arc_planner", "scene_frame")
+    graph.add_edge("arc_planner", "interlude")
+    graph.add_edge("interlude", "scene_frame")
     graph.add_edge("scene_frame", "director")
     graph.add_edge("director", "companion_reaction")
     graph.add_edge("companion_reaction", "narrator")
@@ -125,6 +128,7 @@ def get_pipeline_steps(intent: str) -> list[tuple[str, Any]]:
         ("world_sim", make_world_sim_node()),
         ("moments", moments_node),
         ("arc_planner", arc_planner_node),
+        ("interlude", interlude_node),
         ("scene_frame", scene_frame_node),
         ("director", make_director_node()),
         ("companion_reaction", companion_reaction_node),

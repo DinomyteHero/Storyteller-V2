@@ -25,6 +25,203 @@ logger = logging.getLogger(__name__)
 LoreChunk = dict
 VoiceSnippet = dict
 
+# V8.0 Gate 2: Common words to skip in keyword-based relevance matching
+_RELEVANCE_SKIP_WORDS: set[str] = {
+    "the", "and", "for", "with", "from", "that", "this", "what", "which",
+    "where", "when", "into", "about", "over", "after", "before", "been",
+    "have", "they", "their", "there", "will", "would", "could", "should",
+    "some", "more", "than", "then", "also", "just", "very", "much",
+}
+
+
+def _score_history_relevance(
+    history_entry: str,
+    present_npc_names: list[str],
+    active_threads: list[str],
+    current_location: str,
+    arc_stage_start_turn: int | None = None,
+) -> float:
+    """Score a history entry's relevance to the current scene (0.0-1.0).
+
+    V8.0 Gate 2: Used to sort history items so least-relevant entries get
+    trimmed first by the context budget (instead of oldest-first).
+    """
+    score = 0.0
+    entry_lower = history_entry.lower()
+
+    # +0.3 if entry mentions any present NPC name
+    for name in present_npc_names:
+        if name and name.lower() in entry_lower:
+            score += 0.3
+            break
+
+    # +0.3 if entry mentions any active thread keyword
+    for thread in active_threads:
+        bare = re.sub(r"^\[W\d\]", "", thread).strip()
+        keywords = [
+            w for w in bare.split()
+            if len(w) >= 4 and w.lower() not in _RELEVANCE_SKIP_WORDS
+        ]
+        for kw in keywords[:3]:
+            if kw.lower() in entry_lower:
+                score += 0.3
+                break
+        if score >= 0.3:
+            break
+
+    # +0.2 if entry mentions current location
+    if current_location:
+        loc_clean = current_location.replace("-", " ").replace("_", " ").lower()
+        if loc_clean in entry_lower or current_location.lower() in entry_lower:
+            score += 0.2
+
+    # +0.2 if entry is from current arc (turn >= stage_start_turn)
+    if arc_stage_start_turn is not None:
+        m = re.search(r"T(\d+)\b", history_entry)
+        if m:
+            entry_turn = int(m.group(1))
+            if entry_turn >= arc_stage_start_turn:
+                score += 0.2
+
+    return min(score, 1.0)
+
+
+def _score_fact_relevance(
+    fact: str,
+    present_npc_names: list[str],
+    active_threads: list[str],
+    current_location: str,
+) -> float:
+    """Score a ledger fact's relevance to current scene (0.0-1.0).
+
+    V8.0 Gate 2: Facts are injected by relevance score rather than insertion order.
+    """
+    score = 0.0
+    fact_lower = fact.lower()
+
+    # +0.4 if fact mentions any present NPC name
+    for name in present_npc_names:
+        if name and name.lower() in fact_lower:
+            score += 0.4
+            break
+
+    # +0.3 if fact matches active thread keyword
+    for thread in active_threads:
+        bare = re.sub(r"^\[W\d\]", "", thread).strip()
+        keywords = [
+            w for w in bare.split()
+            if len(w) >= 4 and w.lower() not in _RELEVANCE_SKIP_WORDS
+        ]
+        for kw in keywords[:3]:
+            if kw.lower() in fact_lower:
+                score += 0.3
+                break
+        if score >= 0.3:
+            break
+
+    # +0.2 if fact mentions current location
+    if current_location:
+        if current_location.lower() in fact_lower:
+            score += 0.2
+
+    # +0.1 recency hint (facts mentioning "Turn" are more likely recent)
+    if re.search(r"\bturn\b", fact_lower):
+        score += 0.1
+
+    return min(score, 1.0)
+
+
+def _score_thread_relevance(
+    thread: str,
+    present_npc_names: list[str],
+    dynamic_quests: list[dict],
+) -> float:
+    """Score a thread's relevance (0.0-1.0) for ordering in prompt.
+
+    V8.0 Gate 2: Threads scored by NPC overlap, quest match, and weight prefix.
+    """
+    score = 0.0
+    bare = re.sub(r"^\[W\d\]", "", thread).strip()
+    bare_lower = bare.lower()
+
+    # +0.4 if thread mentions present NPC
+    for name in present_npc_names:
+        if name and name.lower() in bare_lower:
+            score += 0.4
+            break
+
+    # +0.3 if thread matches active quest
+    for quest in dynamic_quests:
+        quest_title = str(quest.get("title", "")).lower() if isinstance(quest, dict) else str(quest).lower()
+        # Check for keyword overlap between thread and quest
+        thread_words = {w.lower() for w in bare.split() if len(w) >= 4}
+        quest_words = {w.lower() for w in quest_title.split() if len(w) >= 4}
+        if thread_words & quest_words:
+            score += 0.3
+            break
+
+    # +0.3 if weight W3, +0.2 if W2, +0.1 if W1
+    m = re.match(r"^\[W(\d)\]", thread)
+    if m:
+        w = int(m.group(1))
+        score += w * 0.1
+
+    return min(score, 1.0)
+
+
+def _rank_npc_importance(
+    npc: dict,
+    npc_states: dict,
+    dynamic_quests: list[dict],
+    turn_number: int,
+) -> int:
+    """Rank an NPC's narrative importance (lower = more important).
+
+    V8.0 Gate 2: Top 2 NPCs get full memory blocks; rest get one-liners.
+    Priority 1: Active quest involvement
+    Priority 2: Recent interaction (memory from last 5 turns)
+    Priority 3: Background/ambient
+    """
+    npc_id = npc.get("id") or npc.get("name", "").lower().replace(" ", "-")
+    npc_name = (npc.get("name") or "").lower()
+
+    # Priority 1: Active quest involvement
+    for quest in dynamic_quests:
+        if isinstance(quest, dict):
+            quest_str = str(quest.get("title", "")).lower() + " " + str(quest.get("description", "")).lower()
+        else:
+            quest_str = str(quest).lower()
+        if npc_name in quest_str or npc_id.lower() in quest_str:
+            return 1
+
+    # Priority 2: Recent interaction (has memories from last 5 turns)
+    state = npc_states.get(npc_id) or npc_states.get(npc.get("name", "")) or {}
+    memories = state.get("memories") or []
+    if memories:
+        last_mem = memories[-1] if memories else ""
+        m = re.search(r"Turn (\d+)", last_mem)
+        if m and turn_number - int(m.group(1)) <= 5:
+            return 2
+
+    # Priority 3: Background/ambient
+    return 3
+
+
+def _format_npc_oneliner(npc: dict, npc_states: dict) -> str:
+    """Return a compact one-line NPC description (name + role + emotional state).
+
+    V8.0 Gate 2: Used for lower-priority NPCs to save token budget.
+    """
+    name = npc.get("name", "Unknown")
+    role = npc.get("role") or ""
+    npc_id = npc.get("id") or name.lower().replace(" ", "-")
+    state = npc_states.get(npc_id) or npc_states.get(name) or {}
+    emotional = state.get("emotional_state") or ""
+    line = f"- {name} ({role})"
+    if emotional:
+        line += f" [mood: {emotional}]"
+    return line
+
 
 _GENERIC_LOCATION_NAMES: dict[str, str] = {
     "loc-cantina": "the tavern",
@@ -199,21 +396,38 @@ def _build_story_state_summary(state: GameState) -> str:
     ws = campaign.get("world_state_json") if isinstance(campaign, dict) else {}
     npc_states: dict = (ws.get("npc_states") or {}) if isinstance(ws, dict) else {}
 
-    # Build per-NPC lines with narrative memory injected
+    # V8.0 Gate 2: Prioritize NPC memory — top 2 get full blocks, rest get one-liners
+    _dynamic_quests = (ws.get("dynamic_quests") or []) if isinstance(ws, dict) else []
+    _turn_number = getattr(state, "turn_number", 0) or 0
+
     from backend.app.core.agents.memory_agent import format_npc_memory_for_narrator
+
+    # Rank NPCs by narrative importance and sort (most important first)
+    ranked_npcs = sorted(
+        [n for n in npcs if n.get("name")],
+        key=lambda n: _rank_npc_importance(n, npc_states, _dynamic_quests, _turn_number),
+    )
+
     npc_lines = []
-    for n in npcs:
+    _NPC_FULL_MEMORY_LIMIT = 2  # Top N NPCs get full memory blocks
+    for idx, n in enumerate(ranked_npcs):
         name = n.get("name")
         if not name:
             continue
         role = n.get("role") or ""
         npc_id = n.get("id") or name.lower().replace(" ", "-")
-        line = f"- {name} ({role})"
-        # Inject narrative memory if available (try by id, then by name)
-        mem_block = format_npc_memory_for_narrator(npc_id, npc_states) or \
-                    format_npc_memory_for_narrator(name, npc_states)
-        if mem_block:
-            line = line + "\n" + mem_block
+
+        if idx < _NPC_FULL_MEMORY_LIMIT:
+            # Full memory block for top-priority NPCs
+            line = f"- {name} ({role})"
+            mem_block = format_npc_memory_for_narrator(npc_id, npc_states) or \
+                        format_npc_memory_for_narrator(name, npc_states)
+            if mem_block:
+                line = line + "\n" + mem_block
+        else:
+            # One-liner for lower-priority NPCs (saves ~100-200 tokens each)
+            line = _format_npc_oneliner(n, npc_states)
+
         npc_lines.append(line)
 
     if npc_lines:
@@ -295,10 +509,15 @@ def _build_story_state_summary(state: GameState) -> str:
             from backend.app.core.agents.quest_weaver_agent import format_dynamic_quests_for_prompt  # noqa: E402
             dynamic_quests_block = format_dynamic_quests_for_prompt(_dq)
 
-    # V2.5: Open threads for narrative continuity
+    # V2.5 / V8.0 Gate 2: Open threads for narrative continuity (increased from 2→3, scored by relevance)
     open_threads = ledger.get("open_threads") or []
     if open_threads:
-        threads_block = "\n".join(f"- {t}" for t in open_threads[:2])
+        _scored_threads = sorted(
+            open_threads,
+            key=lambda t: _score_thread_relevance(t, npc_names_list, _dynamic_quests),
+            reverse=True,
+        )
+        threads_block = "\n".join(f"- {t}" for t in _scored_threads[:3])
     else:
         threads_block = "(No open threads.)"
 
@@ -317,9 +536,20 @@ def _build_story_state_summary(state: GameState) -> str:
                 "CRITICAL SUCCESS. Narrate exceptional success with bonus effects.\n\n"
             )
 
-    # V2.5: Explicit constraints and established facts
+    # V2.5 / V8.0 Gate 2: Explicit constraints and established facts (now relevance-scored)
     constraints_list = ledger.get("constraints") or []
-    facts_list = (ledger.get("established_facts") or [])[:5]
+    _all_facts = ledger.get("established_facts") or []
+    _current_loc = state.current_location or ""
+    if _all_facts and (npc_names_list or open_threads):
+        # Score facts by relevance and take top 5 (not insertion order)
+        _scored_facts = sorted(
+            _all_facts,
+            key=lambda f: _score_fact_relevance(f, npc_names_list, open_threads, _current_loc),
+            reverse=True,
+        )
+        facts_list = _scored_facts[:5]
+    else:
+        facts_list = _all_facts[:5]
     constraints_line = ", ".join(constraints_list) if constraints_list else "(none)"
     facts_line = ", ".join(facts_list) if facts_list else "(none)"
 
@@ -413,27 +643,52 @@ def _build_story_state_summary(state: GameState) -> str:
         f"## Director instructions\n"
         f"{director_instructions}\n\n"
     )
-    # Companion reactions block (1.2): inject companion emotional state into narration context
-    companion_reactions_block = ""
+    # V8.0 Gate 4: Companion PRESENCE block — merge reactions, spoken lines,
+    # and tensions into a single woven directive so the narrator treats companions
+    # as scene participants rather than an appended list.
+    _companion_presence_parts: list[str] = []
     if isinstance(campaign, dict):
-        cr_summary = campaign.get("companion_reactions_summary") or ""
-        if cr_summary:
-            companion_reactions_block = (
-                f"## Companion Reactions This Turn\n"
-                f"{cr_summary}\n"
-                f"Weave companion reactions naturally into the scene — show them through body language, "
-                f"facial expressions, and brief dialogue. Do NOT list them mechanically.\n\n"
+        # Spoken reactions (raw dialogue from companion system agent)
+        _spoken = (ws.get("companion_spoken_reactions") or {}) if isinstance(ws, dict) else {}
+        # Affinity summary (mood + delta)
+        _cr_summary = campaign.get("companion_reactions_summary") or ""
+        # Inter-party tensions
+        _tensions = campaign.get("inter_party_tensions_narrator") or ""
+
+        if _spoken and isinstance(_spoken, dict):
+            for _cid, _line in _spoken.items():
+                if not _line:
+                    continue
+                # Find companion name from party roster or NPC list
+                _cname = _cid.replace("_", " ").title()
+                for _n in npcs:
+                    if _n.get("id") == _cid or (_n.get("name") or "").lower() == _cid.lower():
+                        _cname = _n.get("name", _cname)
+                        break
+                _companion_presence_parts.append(
+                    f"- {_cname} says: \"{_line}\"\n"
+                    f"  [Weave as brief dialogue or interjection within your prose]"
+                )
+        elif _cr_summary:
+            # Fallback: use affinity summary if no spoken reactions available
+            for _cr_line in _cr_summary.strip().splitlines():
+                _cr_line = _cr_line.strip()
+                if _cr_line:
+                    _companion_presence_parts.append(_cr_line)
+
+        if _tensions:
+            _companion_presence_parts.append(
+                f"- Inter-party tension: {_tensions}\n"
+                f"  [Show through a glance, gesture, or muttered aside — not exposition]"
             )
-    result += companion_reactions_block
-    # 3.2: Inter-party tensions block (companions at odds with each other)
-    tensions_narrator = ""
-    if isinstance(campaign, dict):
-        tensions_narrator = campaign.get("inter_party_tensions_narrator") or ""
-    if tensions_narrator:
+
+    if _companion_presence_parts:
         result += (
-            f"## Inter-Party Tensions\n"
-            f"{tensions_narrator}\n"
-            f"Show this tension through body language or brief exchanges between companions.\n\n"
+            "## COMPANION PRESENCE (weave into scene, do NOT list separately)\n"
+            + "\n".join(_companion_presence_parts)
+            + "\nShow companions as active scene participants through body language, "
+            "facial expressions, and brief interjections woven into your prose. "
+            "NEVER list companion reactions as a separate block.\n\n"
         )
 
     if all_rumors:
@@ -518,6 +773,34 @@ def _build_story_state_summary(state: GameState) -> str:
             result += "## NPC Voice Profiles (use to shape NPC dialogue)\n"
             result += "\n".join(voice_profiles) + "\n"
             result += "When writing the NPC's spoken line, use their 'Tell' as a physical mannerism and their 'Style' for rhetorical approach.\n\n"
+
+    # V8.0 Gate 2: Cross-arc memory bridging — inject saga_context for first turns of new arc
+    _arc_guidance = getattr(state, "arc_guidance", None) or {}
+    _saga_context = _arc_guidance.get("saga_context") or ""
+    _current_arc_number = _arc_guidance.get("current_arc_number", 1)
+    _arc_state = _arc_guidance.get("arc_state") or {}
+    _stage_start_turn = _arc_state.get("stage_start_turn", 0)
+    _turns_in_arc = max(0, _turn_number - _stage_start_turn)
+
+    if _saga_context and _current_arc_number > 1 and _turns_in_arc <= 3:
+        result += (
+            f"## SAGA CONTEXT (previous arc — use for continuity in this new chapter)\n"
+            f"{_saga_context}\n"
+            f"Reference this history subtly. The player should feel that past events matter.\n\n"
+        )
+
+    # V8.0 Gate 2 / Gate 3: Consequence surfacing (wave/tsunami tier — MUST reference)
+    _consequence_hints = ledger.get("consequence_hints") or []
+    _high_tier_consequences = [
+        h for h in _consequence_hints
+        if isinstance(h, str) and any(tag in h.lower() for tag in ["[wave]", "[tsunami]", "wave:", "tsunami:"])
+    ]
+    if _high_tier_consequences:
+        result += (
+            "## ACTIVE CONSEQUENCES (MUST reference at least one in your prose)\n"
+            + "\n".join(f"- {c}" for c in _high_tier_consequences[:3])
+            + "\nThese are major consequences of player actions. Show their effect on the world.\n\n"
+        )
 
     result += "Write the narrative."
     return result
@@ -720,7 +1003,24 @@ def _build_prompt(
         ) + _prose_stop_rule
 
     story_state_summary = _build_story_state_summary(state)
-    recent_history = state.history or []
+    recent_history = list(state.history or [])
+
+    # V8.0 Gate 2: Sort history by relevance (least relevant first) so context_budget
+    # drops least-relevant entries first instead of oldest-first
+    _npc_names = [n.get("name") for n in (state.present_npcs or []) if n.get("name")]
+    _ag = getattr(state, "arc_guidance", None) or {}
+    _as = _ag.get("arc_state") or {}
+    _campaign_ws = ((state.campaign or {}).get("world_state_json") or {}) if isinstance(state.campaign, dict) else {}
+    _ledger = _campaign_ws.get("ledger") or {} if isinstance(_campaign_ws, dict) else {}
+    _threads = _ledger.get("open_threads") or [] if isinstance(_ledger, dict) else []
+    _loc = state.current_location or ""
+    _stage_start = _as.get("stage_start_turn")
+
+    if recent_history and (_npc_names or _threads or _loc):
+        recent_history.sort(
+            key=lambda h: _score_history_relevance(h, _npc_names, _threads, _loc, _stage_start),
+        )
+        # After sort: least relevant first → context_budget drops [0] first → most relevant preserved
 
     empty_voice_text = format_voice_snippets({}, "(No character voice samples available.)")
     empty_lore_text = format_lore_bullets([], "(No lore context--phrase uncertain information as rumor or possibility.)")

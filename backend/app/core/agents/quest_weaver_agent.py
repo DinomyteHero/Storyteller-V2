@@ -88,6 +88,35 @@ def _format_consequence_hints(consequence_hints: list[str]) -> str:
     return "\n".join(f"- {h}" for h in consequence_hints[:5])
 
 
+def _format_arc_hooks(arc_stage: str, dynamic_quests: list[dict]) -> str:
+    """Format previous arc hooks and arc-stage-specific guidance for quest generation."""
+    # Extract dangling_hooks from world_state arc_history (passed via dynamic_quests context)
+    # The hooks are injected as a special entry in the quest context
+    hooks = []
+    for q in (dynamic_quests or []):
+        if isinstance(q, dict) and q.get("_arc_dangling_hook"):
+            hooks.append(q["_arc_dangling_hook"])
+
+    parts = []
+    if hooks:
+        parts.append("[PREVIOUS ARC HOOKS (unresolved threads from earlier arcs)]")
+        parts.extend(f"- {h}" for h in hooks[:5])
+        parts.append("")
+
+    # Arc-stage specific emphasis
+    stage_emphasis = {
+        "SETUP": "[ARC STAGE EMPHASIS: New arc beginning. Prioritize discovery and relationship quests.]",
+        "RISING": "[ARC STAGE EMPHASIS: Stakes rising. Generate quests that entangle the player deeper.]",
+        "CLIMAX": "[ARC STAGE EMPHASIS: Crisis point. Only time-pressured, high-consequence quests.]",
+        "RESOLUTION": "",  # Should not reach here (blocked at trigger level)
+    }
+    emphasis = stage_emphasis.get(arc_stage, "")
+    if emphasis:
+        parts.append(emphasis)
+
+    return "\n".join(parts)
+
+
 # ---------------------------------------------------------------------------
 # generate() — prompt builders
 # ---------------------------------------------------------------------------
@@ -107,10 +136,15 @@ Generate 1-2 new quests that:
 1. Flow from established world tensions — not random assignments
 2. Involve NPCs and factions already present in the story
 3. Have 2-3 short stages with clear narrative-language objectives
-4. Match the arc stage (SETUP=mystery/setup, RISING=escalation, CLIMAX=high-stakes,
-   RESOLUTION=aftermath)
+4. Match the arc stage tone and urgency:
+   - SETUP: Exploration and relationship quests. Low urgency. Help player discover new themes.
+   - RISING: Escalation quests. Medium-high urgency. Entangle with faction conflicts.
+   - CLIMAX: Time-pressured quests. High urgency. Real consequences for delay.
+   - INTERLUDE: Optional side quests. Low stakes. Character-building or comic relief.
 5. Include a compelling hook that explains how the player discovers this quest
 6. Are distinct from any existing active or completed quests
+7. If "previous arc hooks" are provided, weave at least one quest from those
+   unresolved threads to maintain saga continuity
 
 CRITICAL RULES:
 - Quest IDs must be unique slugs (e.g., "dq-heist-alderaan", "dq-koss-debt")
@@ -181,6 +215,7 @@ Player Location: {player_location}
 [EXISTING QUESTS]
 {_format_existing_dynamic_quests(dynamic_quests)}
 
+{_format_arc_hooks(arc_stage, dynamic_quests)}
 Weave 1-2 new quests that emerge naturally from the tensions above.
 Output only the JSON object."""
 

@@ -157,6 +157,16 @@ def _build_context(
     """Assemble the user prompt from scene context."""
     parts = [f"PROSE:\n{final_text[-800:]}"]  # Last 800 chars of prose for recency
 
+    # V8.0 Gate 4: Prose-choice bridge — extract last paragraph as SCENE_ENDING
+    # so choices feel like direct, natural responses to the final prose moment.
+    _last_para = ""
+    if final_text:
+        _paragraphs = [p.strip() for p in final_text.strip().split("\n\n") if p.strip()]
+        if _paragraphs:
+            _last_para = _paragraphs[-1][:200]  # cap at 200 chars
+    if _last_para:
+        parts.append(f"\nSCENE ENDING (choices MUST flow from this moment):\n\"{_last_para}\"")
+
     if npc_utterance_text:
         parts.append(f"\nNPC SAYS: \"{npc_utterance_text}\"")
 

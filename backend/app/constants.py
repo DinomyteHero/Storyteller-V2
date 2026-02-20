@@ -321,6 +321,24 @@ INTERLUDE_PACING_HINT = (
     "Let the player decompress before the next arc begins."
 )
 
+# ── Multi-Arc Chaining (Gate 1 — Road to 1.0) ────────────────────────
+# Number of arcs before a campaign reaches its conclusion, keyed by scale.
+ARC_COUNT_BY_SCALE: dict[str, int] = {
+    "small": 2,
+    "medium": 3,
+    "large": 4,
+    "epic": 5,
+}
+# Epilogue turns after the final arc's RESOLUTION stage.
+EPILOGUE_TURNS = 3
+EPILOGUE_PACING_HINT = (
+    "EPILOGUE: This is the final chapter. Focus on reflection, legacy, and closure. "
+    "Show how the world changed. Give companions final moments. End with an evocative "
+    "image that lingers."
+)
+# Time skip during interludes (in-game hours).
+INTERLUDE_TIME_SKIP_HOURS = 48
+
 # Companion loyalty breakpoints (Phase 6.2)
 COMPANION_LOYALTY_RELUCTANT = -30    # Won't help with risky plans
 COMPANION_LOYALTY_THREATENS_LEAVE = -60  # Threatens to leave party

@@ -206,48 +206,21 @@ def make_narrator_node():
         if not gs.new_rumors and state.get("new_rumors"):
             gs.new_rumors = list(state.get("new_rumors") or [])
 
-        # Phase 6.1: Read companion reactions from state (companion_reaction now runs
-        # immediately before narrator) and inject into kg_context so the narrator can
-        # weave companion banter and emotional beats naturally into prose.
-        companion_reactions_block = ""
+        # V8.0 Gate 4: Companion reactions are now consolidated in narrator_prompt.py
+        # as COMPANION PRESENCE (woven directive). We only need loyalty crisis flags
+        # here (injected into director_instructions — never-trimmed).
         campaign_for_cr = state.get("campaign") or {}
         if isinstance(campaign_for_cr, dict):
-            cr_summary = campaign_for_cr.get("companion_reactions_summary") or ""
-            tensions_narrator_ctx = campaign_for_cr.get("inter_party_tensions_narrator") or ""
-            ws_for_cr = campaign_for_cr.get("world_state_json") or {}
-            if isinstance(ws_for_cr, str):
-                import json as _json_cr
-                try:
-                    ws_for_cr = _json_cr.loads(ws_for_cr)
-                except Exception:
-                    ws_for_cr = {}
-            spoken_reactions = ws_for_cr.get("companion_spoken_reactions") or {} if isinstance(ws_for_cr, dict) else {}
-
-            cr_parts: list[str] = []
-            if cr_summary:
-                cr_parts.append(f"## Companion Reactions This Turn\n{cr_summary}")
-            if spoken_reactions and isinstance(spoken_reactions, dict):
-                spoken_lines = [f"- {cid}: \"{line}\"" for cid, line in spoken_reactions.items() if line]
-                if spoken_lines:
-                    cr_parts.append("## Companion Spoken Lines (weave into dialogue naturally)\n" + "\n".join(spoken_lines))
-            if tensions_narrator_ctx:
-                cr_parts.append(f"## Inter-Party Tensions\n{tensions_narrator_ctx}\nShow tension through body language or brief exchanges.")
-
-            # Phase 6.2: Loyalty stake flags — surface companion loyalty warnings to narrator
             loyalty_warnings = state.get("companion_loyalty_warnings") or []
             if loyalty_warnings:
-                cr_parts.append("## Companion Loyalty Stakes\n" + "\n".join(f"- {w}" for w in loyalty_warnings))
-
-            if cr_parts:
-                companion_reactions_block = "\n\n".join(cr_parts)
-                companion_reactions_block += (
-                    "\n\nWeave companion reactions naturally into the scene — show them through "
-                    "body language, facial expressions, and brief dialogue. Do NOT list them mechanically.\n"
+                loyalty_block = (
+                    "\n\n## COMPANION LOYALTY CRISIS (MANDATORY — must show in prose)\n"
+                    + "\n".join(f"- {w}" for w in loyalty_warnings)
+                    + "\nShow this through body language, confrontation, or emotional distance. "
+                    "This is a critical narrative beat — do NOT skip it."
                 )
-
-        if companion_reactions_block:
-            kg_context = (kg_context + "\n\n" + companion_reactions_block) if kg_context else companion_reactions_block
-            _narrator_logger.debug("Narrator injected companion reactions context from pre-narrator companion_reaction node")
+                current_di = gs.director_instructions or ""
+                gs.director_instructions = current_di + loyalty_block
 
         output = narrator.generate(gs, kg_context=kg_context)
         final_text = output.text

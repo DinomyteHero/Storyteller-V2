@@ -371,10 +371,42 @@ def make_commit_node():
                 world_state = update_era_summaries(world_state, next_turn_number, recent_campaign_events)
             except Exception as _era_err:
                 logger.warning("Era summary compression failed (non-fatal): %s", _era_err)
-            # Persist arc state from arc planner (Phase 4: dynamic arc staging)
+            # Persist arc state from arc planner (Phase 4: dynamic arc staging, V8.0: multi-arc)
             arc_guidance = state.get("arc_guidance") or {}
             if isinstance(arc_guidance, dict) and "arc_state" in arc_guidance:
                 world_state["arc_state"] = arc_guidance["arc_state"]
+
+            # V8.0: Persist new arc seed when multi-arc transition occurs
+            if isinstance(arc_guidance, dict) and arc_guidance.get("new_arc_seed"):
+                world_state["arc_seed"] = arc_guidance["new_arc_seed"]
+                events.append(Event(
+                    event_type="ARC_TRANSITION",
+                    payload={
+                        "new_arc_number": arc_guidance.get("current_arc_number", 0),
+                        "new_arc_id": arc_guidance.get("current_arc_id", ""),
+                        "previous_arcs": len(arc_guidance.get("arc_history") or []),
+                    },
+                    is_hidden=False,
+                ))
+
+            # V8.0: Campaign completion
+            if isinstance(arc_guidance, dict) and arc_guidance.get("campaign_complete"):
+                try:
+                    conn.execute(
+                        "UPDATE campaigns SET status = 'completed' WHERE id = ?",
+                        (campaign_id,),
+                    )
+                    events.append(Event(
+                        event_type="CAMPAIGN_COMPLETE",
+                        payload={
+                            "total_arcs": len(arc_guidance.get("arc_history") or []),
+                            "total_turns": next_turn_number,
+                        },
+                        is_hidden=False,
+                    ))
+                    logger.info("Campaign %s marked as completed at turn %d", campaign_id, next_turn_number)
+                except Exception as _complete_err:
+                    logger.warning("Campaign completion update failed (non-fatal): %s", _complete_err)
 
             # Persist prologue arc state (contains stages_visited for completion tracking)
             if isinstance(arc_guidance, dict) and "prologue_arc_state" in arc_guidance:

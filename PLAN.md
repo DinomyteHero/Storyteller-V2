@@ -1,6 +1,43 @@
 # Implementation Plan: Choice System & Narrative Experience Overhaul
 
-## Overview
+## V8.0 Road to 1.0 — COMPLETED
+
+All six gates of the Road to 1.0 implementation plan have been completed:
+
+| Gate | Description | Tests | Status |
+|------|-------------|-------|--------|
+| Gate 1 | Arc Engine: multi-arc chaining, epilogue, interlude, campaign lifecycle | 29 | Done |
+| Gate 2 | Memory Pipeline: relevance scoring, NPC prioritization, adaptive truncation, cross-arc bridging | 32 | Done |
+| Gate 3 | Player Agency: structured intent passthrough, companion loyalty stakes, choice prompt consistency | 14 | Done |
+| Gate 4 | Narrative Coherence: companion presence weaving, prose-choice bridge, tiered scene loop escalation | 15 | Done |
+| Gate 5 | Campaign Lifecycle: full 3-arc integration test, edge cases, era data audit | 17 | Done |
+| Gate 6 | Ship It: frontend arc progress HUD, campaign completion banner, error recovery verification | -- | Done |
+
+**Total: 107 new tests across 5 test files, 0 regressions.**
+
+Key capabilities added:
+- Multi-arc campaigns (2-5 arcs by scale) with interlude scenes between arcs
+- Epilogue system (3-turn wind-down) with campaign completion flag
+- Relevance-based context trimming (NPC, thread, fact prioritization)
+- Cross-arc memory bridging via saga context injection
+- Consequence surfacing (wave/tsunami mandatory narrator reference)
+- Companion PRESENCE woven directive (replaces appended reaction lists)
+- Prose-choice bridge (SCENE ENDING extraction for ChoiceCrafter)
+- Tiered scene loop escalation (3 levels: hint → disruption → forced world event)
+- Arc progress in TurnResponse (arc_stage, current_arc_number, campaign_complete)
+- Frontend campaign completion banner
+
+### Post-1.0 Roadmap
+- Novel export (after multi-arc is proven)
+- Additional era packs beyond Rebellion
+- Companion voice profile enrichment (belief/wound/taboo)
+- Centralized faction definitions file
+- Lore RAG ingestion for Rebellion era
+- Multiple rule systems
+
+---
+
+## Overview (Pre-V8.0 Phases — completed earlier)
 
 Two parallel workstreams addressing the highest-impact pain points discovered during gameplay analysis:
 

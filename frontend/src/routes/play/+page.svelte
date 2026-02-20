@@ -710,7 +710,15 @@
   {#if lastSavedAt}
     <div class="save-confidence" role="status" aria-label="Save status">
       <span class="save-dot"></span>
-      Saved {saveAgoText} &middot; Turn {$turnNumber > 1 ? $turnNumber - 1 : 1}{$lastTurnResponse?.arc_stage ? ` \u00B7 ${$lastTurnResponse.arc_stage}` : ''}
+      Saved {saveAgoText} &middot; Turn {$turnNumber > 1 ? $turnNumber - 1 : 1}{$lastTurnResponse?.arc_stage ? ` \u00B7 Arc ${$lastTurnResponse.current_arc_number ?? 1}: ${$lastTurnResponse.arc_stage}` : ''}{$lastTurnResponse?.campaign_complete ? ' \u00B7 Campaign Complete' : ''}
+    </div>
+  {/if}
+
+  <!-- V8.0: Campaign completion banner -->
+  {#if $lastTurnResponse?.campaign_complete}
+    <div class="campaign-complete-banner" role="alert">
+      <h2>Campaign Complete</h2>
+      <p>Your saga has reached its conclusion. The choices you made shaped this world.</p>
     </div>
   {/if}
 
@@ -2703,6 +2711,25 @@
     border-radius: 50%;
     background: var(--accent-secondary, #66bb6a);
     flex-shrink: 0;
+  }
+  .campaign-complete-banner {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    margin: 0.5rem auto;
+    max-width: 600px;
+    background: var(--surface-elevated, #1a1a2e);
+    border: 1px solid var(--accent-primary, #e0a030);
+    border-radius: 8px;
+  }
+  .campaign-complete-banner h2 {
+    color: var(--accent-primary, #e0a030);
+    font-size: 1.4rem;
+    margin: 0 0 0.5rem 0;
+  }
+  .campaign-complete-banner p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 0.9rem;
   }
 
   /* Phase 3.4: Rewind/Undo */

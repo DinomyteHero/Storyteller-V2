@@ -604,8 +604,8 @@ def make_suggestion_refiner_node():
             if items is None:
                 logger.info("SuggestionRefiner: first attempt failed, retrying with correction prompt")
                 correction_prompt = (
-                    "Your previous output was not a valid JSON array of 4 player dialogue options. "
-                    "Output ONLY a JSON array with exactly 4 objects. Each object must have "
+                    "Your previous output was not a valid JSON array of player dialogue options. "
+                    "Output ONLY a JSON array with 3-6 objects. Each object must have "
                     '"text" (8-16 words, player speech), "tone" (PARAGON/INVESTIGATE/RENEGADE/NEUTRAL), '
                     'and "meaning" (one tag). Start with [ and end with ]. No other text.\n\n'
                     + user_prompt

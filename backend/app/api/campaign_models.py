@@ -181,6 +181,12 @@ class TurnResponse(BaseModel):
     mechanic_notes: dict | None = None
     # Phase 4.1: Bridge paragraph connecting narrative prose to choice cards
     bridge_paragraph: str | None = None
+    # V8.0: Campaign arc progress (for HUD display)
+    arc_stage: str | None = None
+    current_arc_number: int | None = None
+    current_arc_id: str | None = None
+    campaign_complete: bool = False
+    epilogue_active: bool = False
 
 
 class CampaignSummary(BaseModel):

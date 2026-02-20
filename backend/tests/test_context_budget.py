@@ -55,40 +55,44 @@ def _estimate_tokens_for_parts(parts):
 
 
 class TestContextBudgetTrimming(unittest.TestCase):
-    """Verify ContextBudget trims in the expected order."""
+    """Verify ContextBudget trims in the expected order.
+
+    V8.0 Gate 2: Trim order changed to KG → era_summaries → history → voice → style → lore.
+    Style is now preserved longer to maintain narrator voice quality.
+    """
 
     def test_trimming_order(self) -> None:
+        """V8.0: New trim order — KG/era/history drop before style/lore."""
         parts_full = _make_parts()
+        # Add KG context and era_summaries so they can be trimmed first
+        parts_full["kg_context"] = "KG_CONTEXT " * 15
+        parts_full["era_summaries"] = ["ERA_SUM_1 " * 10, "ERA_SUM_2 " * 10]
         tokens_full = _estimate_tokens_for_parts(parts_full)
 
-        parts_no_style = dict(parts_full)
-        parts_no_style["style_chunks"] = []
-        tokens_no_style = _estimate_tokens_for_parts(parts_no_style)
+        # Phase 1: KG drops first
+        parts_no_kg = dict(parts_full)
+        parts_no_kg["kg_context"] = ""
+        tokens_no_kg = _estimate_tokens_for_parts(parts_no_kg)
 
-        parts_no_style_voice = dict(parts_no_style)
-        parts_no_style_voice["voice_snippets"] = {
-            "char-a": parts_full["voice_snippets"]["char-a"][:2],
-        }
-        tokens_no_style_voice = _estimate_tokens_for_parts(parts_no_style_voice)
+        # Phase 2: Era summaries drop next
+        parts_no_kg_era = dict(parts_no_kg)
+        parts_no_kg_era["era_summaries"] = []
+        tokens_no_kg_era = _estimate_tokens_for_parts(parts_no_kg_era)
 
-        parts_no_style_voice_lore = dict(parts_no_style_voice)
-        parts_no_style_voice_lore["lore_chunks"] = parts_full["lore_chunks"][:2]
-        tokens_no_style_voice_lore = _estimate_tokens_for_parts(parts_no_style_voice_lore)
+        # Phase 3: History drops next
+        parts_no_kg_era_hist = dict(parts_no_kg_era)
+        parts_no_kg_era_hist["history"] = parts_full["history"][1:]
+        tokens_no_kg_era_hist = _estimate_tokens_for_parts(parts_no_kg_era_hist)
 
-        parts_no_style_voice_lore_history = dict(parts_no_style_voice_lore)
-        parts_no_style_voice_lore_history["history"] = parts_full["history"][1:]
-        tokens_no_style_voice_lore_history = _estimate_tokens_for_parts(parts_no_style_voice_lore_history)
+        self.assertGreater(tokens_full, tokens_no_kg)
+        self.assertGreater(tokens_no_kg, tokens_no_kg_era)
+        self.assertGreater(tokens_no_kg_era, tokens_no_kg_era_hist)
 
-        self.assertGreater(tokens_full, tokens_no_style)
-        self.assertGreater(tokens_no_style, tokens_no_style_voice)
-        self.assertGreater(tokens_no_style_voice, tokens_no_style_voice_lore)
-        self.assertGreater(tokens_no_style_voice_lore, tokens_no_style_voice_lore_history)
-
-        # Budget between full and no-style -> only style trimmed
-        budget_style = tokens_no_style + 1
+        # Budget just below full: KG should drop, style should survive
+        budget_kg = tokens_no_kg + 1
         messages, report = build_context(
             parts_full,
-            max_input_tokens=budget_style,
+            max_input_tokens=budget_kg,
             reserve_output_tokens=0,
             max_voice_snippets_per_char=2,
             min_lore_chunks=1,
@@ -96,16 +100,15 @@ class TestContextBudgetTrimming(unittest.TestCase):
             empty_voice_text="(No voice.)",
             empty_lore_text="(No lore.)",
         )
-        self.assertEqual(report.dropped_style_chunks, len(parts_full["style_chunks"]))
-        self.assertEqual(report.dropped_voice_snippets, 0)
+        self.assertTrue(report.dropped_kg_context)
+        self.assertEqual(report.dropped_style_chunks, 0)  # Style preserved!
         self.assertEqual(report.dropped_lore_chunks, 0)
-        self.assertEqual(report.dropped_history_items, 0)
 
-        # Budget between no-style and no-style+voice -> style + voice trimmed
-        budget_voice = tokens_no_style_voice + 1
+        # Budget below no-KG: era_summaries should drop, style still survives
+        budget_era = tokens_no_kg_era + 1
         messages, report = build_context(
             parts_full,
-            max_input_tokens=budget_voice,
+            max_input_tokens=budget_era,
             reserve_output_tokens=0,
             max_voice_snippets_per_char=2,
             min_lore_chunks=1,
@@ -113,16 +116,15 @@ class TestContextBudgetTrimming(unittest.TestCase):
             empty_voice_text="(No voice.)",
             empty_lore_text="(No lore.)",
         )
-        self.assertEqual(report.dropped_style_chunks, len(parts_full["style_chunks"]))
-        self.assertGreater(report.dropped_voice_snippets, 0)
-        self.assertEqual(report.dropped_lore_chunks, 0)
-        self.assertEqual(report.dropped_history_items, 0)
+        self.assertTrue(report.dropped_kg_context)
+        self.assertGreater(report.dropped_era_summaries, 0)
+        self.assertEqual(report.dropped_style_chunks, 0)  # Style still preserved!
 
-        # Budget between no-style+voice and no-style+voice+lore -> lore trimmed by lowest score
-        budget_lore = tokens_no_style_voice_lore + 1
+        # Budget below no-KG-era: history drops, style still survives
+        budget_hist = tokens_no_kg_era_hist + 1
         messages, report = build_context(
             parts_full,
-            max_input_tokens=budget_lore,
+            max_input_tokens=budget_hist,
             reserve_output_tokens=0,
             max_voice_snippets_per_char=2,
             min_lore_chunks=1,
@@ -130,29 +132,8 @@ class TestContextBudgetTrimming(unittest.TestCase):
             empty_voice_text="(No voice.)",
             empty_lore_text="(No lore.)",
         )
-        user_text = messages[1]["content"]
-        self.assertIn("LORE_HIGH", user_text)
-        self.assertIn("LORE_MED", user_text)
-        self.assertNotIn("LORE_LOW", user_text)
-        self.assertEqual(report.dropped_history_items, 0)
-
-        # Budget between no-style+voice+lore and no-style+voice+lore+history -> history trimmed oldest-first
-        budget_history = tokens_no_style_voice_lore_history + 1
-        messages, report = build_context(
-            parts_full,
-            max_input_tokens=budget_history,
-            reserve_output_tokens=0,
-            max_voice_snippets_per_char=2,
-            min_lore_chunks=1,
-            user_input_label="User input:",
-            empty_voice_text="(No voice.)",
-            empty_lore_text="(No lore.)",
-        )
-        user_text = messages[1]["content"]
-        self.assertNotIn("H1", user_text)
-        self.assertIn("H2", user_text)
-        self.assertIn("H3", user_text)
         self.assertGreater(report.dropped_history_items, 0)
+        self.assertEqual(report.dropped_style_chunks, 0)  # Style STILL preserved!
 
 
 class TestNarratorContextBudgetIntegration(unittest.TestCase):

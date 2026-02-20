@@ -210,27 +210,35 @@ def build_context(
     user_text = _render_user_text()
     user_tokens = estimate_tokens(user_text)
 
-    # Trimming order depends on role (Narrator: style -> voice -> lore -> history).
-    # Director uses style -> lore -> history (no voice trimming by default).
-    if user_tokens > max_user_tokens:
-        if style_chunks:
-            report.dropped_style_chunks = len(style_chunks)
-            style_chunks = []
-            user_text = _render_user_text()
-            user_tokens = estimate_tokens(user_text)
+    # V8.0 Gate 2: Rebalanced trim order.
+    # Old order: style → KG → era_summaries → voice → lore → history
+    # New order: KG → era_summaries → history (least-relevant first) → voice → style (cap 2) → lore
+    # Rationale: Style chunks give the narrator its voice and should be preserved longer.
+    # KG context and era summaries are most dispensable for turn-to-turn quality.
 
+    # Phase 1: Drop KG context (most dispensable — rarely impacts current scene)
     if user_tokens > max_user_tokens and kg_context:
         report.dropped_kg_context = True
         kg_context = ""
         user_text = _render_user_text()
         user_tokens = estimate_tokens(user_text)
 
+    # Phase 2: Drop era summaries (compressed old turns — least impactful)
     if user_tokens > max_user_tokens and era_summaries:
         report.dropped_era_summaries = len(era_summaries)
         era_summaries = []
         user_text = _render_user_text()
         user_tokens = estimate_tokens(user_text)
 
+    # Phase 3: Drop history items (least-relevant first — history is pre-sorted by relevance)
+    if user_tokens > max_user_tokens and history_items:
+        while user_tokens > max_user_tokens and history_items:
+            history_items = history_items[1:]
+            report.dropped_history_items += 1
+            user_text = _render_user_text()
+            user_tokens = estimate_tokens(user_text)
+
+    # Phase 4: Trim voice snippets (cap per character)
     if user_tokens > max_user_tokens and max_voice_snippets_per_char is not None:
         trimmed_voice, dropped = _trim_voice_snippets(voice_snippets, max_voice_snippets_per_char)
         if dropped:
@@ -239,22 +247,23 @@ def build_context(
             user_text = _render_user_text()
             user_tokens = estimate_tokens(user_text)
 
-    if user_tokens > max_user_tokens and lore_chunks:
-        target_min = max(0, min_lore_chunks)
-        # Drop the lowest-scoring lore chunk first (if possible).
-        if len(lore_chunks) > target_min:
-            lore_chunks = _drop_lowest_score_lore(lore_chunks, drop_count=1)
-            report.dropped_lore_chunks += 1
-            user_text = _render_user_text()
-            user_tokens = estimate_tokens(user_text)
+    # Phase 5: Cap style chunks at 2 (preserve some voice — don't drop all)
+    _MAX_STYLE_UNDER_PRESSURE = 2
+    if user_tokens > max_user_tokens and len(style_chunks) > _MAX_STYLE_UNDER_PRESSURE:
+        dropped_count = len(style_chunks) - _MAX_STYLE_UNDER_PRESSURE
+        report.dropped_style_chunks = dropped_count
+        style_chunks = style_chunks[:_MAX_STYLE_UNDER_PRESSURE]
+        user_text = _render_user_text()
+        user_tokens = estimate_tokens(user_text)
 
-    if user_tokens > max_user_tokens and history_items:
-        while user_tokens > max_user_tokens and history_items:
-            history_items = history_items[1:]
-            report.dropped_history_items += 1
-            user_text = _render_user_text()
-            user_tokens = estimate_tokens(user_text)
+    # Phase 5b: If still over budget, drop remaining style chunks
+    if user_tokens > max_user_tokens and style_chunks:
+        report.dropped_style_chunks += len(style_chunks)
+        style_chunks = []
+        user_text = _render_user_text()
+        user_tokens = estimate_tokens(user_text)
 
+    # Phase 6: Drop lore chunks (preserve at least min_lore_chunks)
     if user_tokens > max_user_tokens and lore_chunks:
         target_min = max(0, min_lore_chunks)
         while user_tokens > max_user_tokens and len(lore_chunks) > target_min:

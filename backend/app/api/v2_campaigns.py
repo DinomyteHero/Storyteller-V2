@@ -1772,6 +1772,12 @@ def post_turn(
             world_sim_ran=bool(getattr(result, "world_sim_ran", False)),
             mechanic_notes=mechanic_notes_out,
             bridge_paragraph=getattr(result, "bridge_paragraph", None),
+            # V8.0: Arc progress for HUD display
+            arc_stage=(getattr(result, "arc_guidance", None) or {}).get("arc_stage"),
+            current_arc_number=(getattr(result, "arc_guidance", None) or {}).get("current_arc_number"),
+            current_arc_id=(getattr(result, "arc_guidance", None) or {}).get("current_arc_id"),
+            campaign_complete=bool((getattr(result, "arc_guidance", None) or {}).get("campaign_complete", False)),
+            epilogue_active=bool((getattr(result, "arc_guidance", None) or {}).get("epilogue_active", False)),
         )
         if idempotency_key:
             _idempotency_complete(

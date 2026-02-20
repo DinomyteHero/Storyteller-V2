@@ -209,16 +209,37 @@ def _run_agents(
                 final_text=final_text,
                 events=_qw_events,
             )
-        # Generate new quests at intervals
+        # Generate new quests — arc-aware triggers (V8.0)
         _active_count = sum(1 for q in (world_state.get("dynamic_quests") or []) if q.get("status") == "active")
-        if turn_number % QUEST_WEAVER_GENERATION_INTERVAL == 0 or _active_count == 0:
-            _ws_data = world_state
-            _arc = (_ws_data.get("arc_state") or {}).get("current_stage", "SETUP")
+        _arc_st = (world_state.get("arc_state") or {})
+        _arc = _arc_st.get("current_stage", "SETUP")
+        _arc_transitioned = (arc_guidance or {}).get("transition_occurred", False) if isinstance(arc_guidance, dict) else False
+        _entering_new_arc = _arc == "SETUP" and int(_arc_st.get("current_arc_number", 1)) > 1
+        _in_resolution = _arc == "RESOLUTION"
+
+        _should_generate = (
+            (turn_number % QUEST_WEAVER_GENERATION_INTERVAL == 0)
+            or _active_count == 0
+            or _arc_transitioned
+            or _entering_new_arc
+        ) and not _in_resolution  # Don't generate new quests during RESOLUTION
+
+        if _should_generate:
             _recent_narr = "\n".join(recent_narrative[-2:])[:600] if recent_narrative else ""
+            # V8.0: Inject dangling hooks from previous arcs for saga continuity
+            _qw_ws = world_state
+            _arc_history = _arc_st.get("arc_history") or []
+            if _arc_history and _entering_new_arc:
+                _prev_hooks = _arc_history[-1].get("dangling_hooks") or [] if isinstance(_arc_history[-1], dict) else []
+                if _prev_hooks:
+                    _dq = list(_qw_ws.get("dynamic_quests") or [])
+                    for hook in _prev_hooks[:3]:
+                        _dq.append({"_arc_dangling_hook": hook})
+                    _qw_ws = {**_qw_ws, "dynamic_quests": _dq}
             authoritative_call(
                 "QuestWeaverAgent.generate",
                 _qw.generate,
-                world_state=world_state,
+                world_state=_qw_ws,
                 arc_stage=_arc,
                 player_location=state.get("current_location") or "",
                 turn_number=turn_number,

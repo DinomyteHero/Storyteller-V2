@@ -1,7 +1,7 @@
 """Choice Crafter node: LLM-driven player choice generation.
 
 Replaces the suggestion_refiner node. Reads the Narrator's final_text and full scene
-context, then calls ChoiceCrafterAgent to generate 4 contextually-aware player choices.
+context, then calls ChoiceCrafterAgent to generate 3-6 contextually-aware player choices.
 
 No deterministic fallbacks. On LLM failure, raises AgentFailureError which the
 graph-level handler converts to a user-facing error.
