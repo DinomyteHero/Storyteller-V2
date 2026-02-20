@@ -96,6 +96,16 @@ class DirectorAgent:
             )
         else:
             base = "Keep pacing brisk. Use cinematic sensory detail. End with a decision point."
+        # V10.0 Feature 7: "Yes, And" — reward creative player deviations
+        if getattr(state, "creative_deviation", False):
+            base += (
+                "\n\n## CREATIVE PLAYER INPUT\n"
+                "The player surprised you with an unexpected action outside the suggested options. "
+                "REWARD their creativity: build on their action with an unexpected discovery, "
+                "connection, or consequence that makes their imagination matter. "
+                "Introduce a new detail, reveal something unexpected, or create a new thread."
+            )
+
         psych = {}
         if state.player and getattr(state.player, "psych_profile", None):
             psych = state.player.psych_profile or {}
@@ -105,6 +115,31 @@ class DirectorAgent:
             f" Character psych_profile: stress_level={stress_level}, active_trauma={active_trauma}. "
             "Monitor the stress_level. If it is low and the scene is stagnant, introduce a complication that specifically targets the character's active_trauma or hidden_motive."
         )
+
+        # V10.0 Feature 4: Player behavioral profile — engagement-aware pacing
+        _campaign_ws_prof = (campaign.get("world_state_json") or {}) if isinstance(campaign, dict) else {}
+        if isinstance(_campaign_ws_prof, str):
+            import json as _json_prof
+            try:
+                _campaign_ws_prof = _json_prof.loads(_campaign_ws_prof)
+            except (ValueError, TypeError):
+                _campaign_ws_prof = {}
+        _player_profile = _campaign_ws_prof.get("player_behavior_profile") or {} if isinstance(_campaign_ws_prof, dict) else {}
+        if _player_profile:
+            _play_style = _player_profile.get("play_style", "")
+            _risk_tol = _player_profile.get("risk_tolerance", "")
+            _bored = _player_profile.get("possible_boredom", False)
+            base += f"\n\nPLAYER TENDENCIES: Play style={_play_style}, risk tolerance={_risk_tol}."
+            if _bored:
+                base += (
+                    " WARNING: Player may be disengaging (repetitive patterns detected). "
+                    "Inject a disruption — unexpected NPC action, environmental change, "
+                    "or new information that breaks the current loop."
+                )
+            _pref_action = _player_profile.get("preferred_action") or {}
+            if isinstance(_pref_action, dict) and _pref_action:
+                _top_pref = max(_pref_action, key=_pref_action.get, default="TALK")
+                base += f" Preferred interaction: {_top_pref}. Lean into this when scene allows."
 
         # --- Player identity (POV grounding) ---
         if state.player:
@@ -249,6 +284,44 @@ class DirectorAgent:
                         "NPCs should behave consistently with their memory of past interactions."
                     )
 
+        # V10.0 Feature 2: Dramatic irony — surface hidden world information as environmental hints
+        _world_sim_events = getattr(state, "world_sim_events", None) or []
+        _unaware_events: list[str] = []
+        for _wsev in _world_sim_events:
+            if isinstance(_wsev, dict) and _wsev.get("player_unaware"):
+                _wsev_text = (_wsev.get("payload") or {}).get("text", "") if isinstance(_wsev.get("payload"), dict) else ""
+                if _wsev_text:
+                    _unaware_events.append(_wsev_text)
+        # Also surface NPC agendas/next_moves as dramatic irony (player doesn't know NPC plans)
+        if npcs and _npc_states:
+            for _dir_npc in npcs:
+                _dir_npc_name = _dir_npc.get("name")
+                if not _dir_npc_name:
+                    continue
+                _dir_npc_id = _dir_npc.get("id") or _dir_npc_name.lower().replace(" ", "-")
+                _dir_ns = _npc_states.get(_dir_npc_id) or _npc_states.get(_dir_npc_name)
+                if isinstance(_dir_ns, dict):
+                    _npc_agenda = (_dir_ns.get("agenda") or "").strip()
+                    _npc_next = (_dir_ns.get("next_move") or "").strip()
+                    if _npc_agenda or _npc_next:
+                        _hint = f"{_dir_npc_name}"
+                        if _npc_agenda:
+                            _hint += f" — agenda: {_npc_agenda}"
+                        if _npc_next:
+                            _hint += f" — next move: {_npc_next}"
+                        _unaware_events.append(_hint)
+        from backend.app.constants import DRAMATIC_IRONY_MAX_HINTS
+        if _unaware_events:
+            base += (
+                "\n\n## DRAMATIC IRONY (player is unaware)\n"
+                "The following is known to the world but NOT to the player character. "
+                "Weave subtle environmental hints — a shadow moving, an expression shifting "
+                "when the character isn't looking, a sealed message, distant sounds. "
+                "The character doesn't notice, but the reader senses something is off.\n"
+            )
+            for _uev in _unaware_events[:DRAMATIC_IRONY_MAX_HINTS]:
+                base += f"- {_uev}\n"
+
         # Canon extended scene guidance — sustained interaction with protected canon characters
         extended_canon = [n for n in npcs if n.get("canon_proximity") == "extended"]
         if extended_canon:
@@ -302,12 +375,60 @@ class DirectorAgent:
             "\n\nRule: Narrative must NOT reference factions, people, or named entities not present in the above context "
             "(campaign era, active factions, companions, present NPCs). Avoid inventing new names."
         )
+
+        # V10.0 Feature 1: Information Economy — available revelations
+        _rev_ws = (campaign.get("world_state_json") or {}) if isinstance(campaign, dict) else {}
+        if isinstance(_rev_ws, str):
+            import json as _json_rev
+            try:
+                _rev_ws = _json_rev.loads(_rev_ws)
+            except (ValueError, TypeError):
+                _rev_ws = {}
+        _revelation_queue = _rev_ws.get("revelation_queue") or [] if isinstance(_rev_ws, dict) else []
+        _active_revelations = [r for r in _revelation_queue if isinstance(r, dict) and not r.get("revealed", False)]
+        if _active_revelations:
+            from backend.app.constants import REVELATION_DIRECTOR_MAX, REVELATION_URGENCY_TURNS
+            _present_npc_names = {n.get("name", "").lower() for n in (getattr(state, "present_npcs", None) or [])}
+            _turn_num = int(getattr(state, "turn_number", 0) or 0)
+            _ag_stage = (arc_guidance or {}).get("arc_stage", "SETUP")
+            # Score by fitness
+            _scored_revs = []
+            for _rev in _active_revelations:
+                _rscore = _rev.get("dramatic_value", 5)
+                if _rev.get("source_npc", "").lower().replace("-", " ") in _present_npc_names:
+                    _rscore += 3
+                if _ag_stage == "CLIMAX":
+                    _rscore += 2
+                _rev_age = _turn_num - _rev.get("turn_queued", 0)
+                if _rev_age > REVELATION_URGENCY_TURNS:
+                    _rscore += 2
+                _scored_revs.append({**_rev, "_score": _rscore})
+            _scored_revs.sort(key=lambda r: r["_score"], reverse=True)
+            _top_revs = _scored_revs[:REVELATION_DIRECTOR_MAX]
+            if _top_revs:
+                base += (
+                    "\n\n## AVAILABLE REVELATIONS (reveal when dramatically optimal)\n"
+                    "These secrets are known to the world but hidden from the player. "
+                    "Reveal through NPC behavior, environmental clues, or overheard dialogue "
+                    "when the dramatic conditions align — NOT as exposition dumps.\n"
+                )
+                for _rev in _top_revs:
+                    base += f"- [{_rev.get('source', '?')}] {_rev.get('content', '?')} (dramatic value: {_rev.get('dramatic_value', 5)}/10)\n"
+                    _opt_conds = _rev.get("optimal_conditions") or []
+                    if _opt_conds:
+                        base += f"  Best revealed when: {', '.join(str(c) for c in _opt_conds[:2])}\n"
+
         # V2.5: Arc planner guidance (deterministic arc stage + pacing)
         if arc_guidance:
             arc_stage = arc_guidance.get("arc_stage", "SETUP")
             priority_threads = arc_guidance.get("priority_threads") or []
             pacing_hint = arc_guidance.get("pacing_hint", "")
             tension_level = arc_guidance.get("tension_level", "CALM")
+            # V10.0 Feature 10: Arc mood profile
+            _mood = arc_guidance.get("mood_directive", "")
+            if _mood:
+                _mood_profile = arc_guidance.get("mood_profile", "")
+                base += f"\n\nMOOD ({_mood_profile}): {_mood}"
             base += f"\n\nARC STAGE: {arc_stage}. Tension: {tension_level}."
             if priority_threads:
                 base += f" Priority threads: {'; '.join(str(t) for t in priority_threads[:2])}."
@@ -360,6 +481,19 @@ class DirectorAgent:
                 if theme_guidance:
                     base += f" {theme_guidance}"
 
+            # V10.0 Feature 5: Foreshadowing hooks
+            foreshadow = arc_guidance.get("foreshadow_hints") or []
+            if foreshadow:
+                from backend.app.constants import FORESHADOW_MAX_HINTS
+                base += "\n\nFORESHADOWING (plant subtle hints — do NOT reveal directly):\n"
+                for hint in foreshadow[:FORESHADOW_MAX_HINTS]:
+                    base += f"- [{hint.get('type', 'hook')}] {hint.get('hint', '')}\n"
+
+            # V10.0 Feature 9: Thematic echoes across arcs
+            _echoes = arc_guidance.get("thematic_echoes")
+            if _echoes and isinstance(_echoes, dict):
+                base += f"\n\nTHEMATIC ECHOES: {_echoes.get('resonance_note', '')}"
+
         # V9.0: Novel-Length Story — Director scene length guidance based on narrator_mode
         _narrator_mode = str(getattr(state, "narrator_mode", None) or "concise").lower()
         if _narrator_mode == "novel":
@@ -380,6 +514,15 @@ class DirectorAgent:
                 "- Call out specific NPC emotional arcs within the scene\n"
                 "- Include thematic imagery direction that echoes active themes"
             )
+
+        # V10.0 Feature 8: Narrative rhythm guidance
+        _action_class = getattr(state, "action_class", "")
+        _tension = (arc_guidance or {}).get("tension_level", "CALM")
+        _scene_weight = getattr(state, "scene_weight", "STANDARD")
+        from backend.app.constants import get_rhythm_hint
+        _rhythm = get_rhythm_hint(str(_action_class), str(_tension), str(_scene_weight))
+        if _rhythm:
+            base += f"\n\nPROSE RHYTHM: {_rhythm}"
 
         # Phase 5: Companion conflicts (inject into director awareness)
         companion_conflicts = campaign.get("companion_conflicts") or []
@@ -409,6 +552,58 @@ class DirectorAgent:
             elif aff > 20:
                 comp_name = comp_id.replace("_", " ").title()
                 base += f"\nCompanion {comp_name} has high loyalty. Consider SOCIAL suggestion involving them."
+
+        # V10.0 Feature 3: Callback seeds — echo past peak moments
+        _cb_ws = _rev_ws if isinstance(_rev_ws, dict) else {}
+        _callback_seeds = _cb_ws.get("callback_seeds") or []
+        from backend.app.constants import CALLBACK_MAX_USES, CALLBACK_DIRECTOR_MAX
+        _active_callbacks = [c for c in _callback_seeds if isinstance(c, dict) and c.get("used_count", 0) < CALLBACK_MAX_USES]
+        if _active_callbacks:
+            # Match trigger conditions against current context
+            _present_names_cb = {n.get("name", "").lower() for n in (getattr(state, "present_npcs", None) or [])}
+            _active_themes_cb = (arc_guidance or {}).get("active_themes") or []
+            _arc_stage_cb = (arc_guidance or {}).get("arc_stage", "SETUP")
+            _triggered_cbs = []
+            for _cb in _active_callbacks:
+                _triggers = _cb.get("trigger_conditions") or []
+                _match_score = 0
+                for _trig in _triggers:
+                    _trig_low = str(_trig).lower()
+                    if any(name in _trig_low for name in _present_names_cb if name):
+                        _match_score += 2
+                    if any(theme.lower().replace("_", " ") in _trig_low for theme in _active_themes_cb):
+                        _match_score += 1
+                    if "climax" in _trig_low and _arc_stage_cb == "CLIMAX":
+                        _match_score += 2
+                if _match_score > 0:
+                    _triggered_cbs.append({**_cb, "_match": _match_score})
+            _triggered_cbs.sort(key=lambda c: c["_match"], reverse=True)
+            if _triggered_cbs:
+                base += (
+                    "\n\n## CALLBACK OPPORTUNITIES (echo past moments)\n"
+                    "These are memorable moments from earlier in the story. When dramatically "
+                    "fitting, echo them — not as direct quotes, but as resonances. "
+                    "'Something in her voice reminds you of another time...'\n"
+                )
+                for _cb in _triggered_cbs[:CALLBACK_DIRECTOR_MAX]:
+                    base += f"- Turn {_cb.get('turn', '?')}: \"{_cb.get('echo_text', '')}\" ({_cb.get('emotional_context', '')})\n"
+
+        # V10.0 Feature 6: Companion wound revelations
+        _comp_revelations = _cb_ws.get("companion_revelations") or {} if isinstance(_cb_ws, dict) else {}
+        if _comp_revelations and isinstance(_comp_revelations, dict):
+            for _comp_id, _rev_data in _comp_revelations.items():
+                if isinstance(_rev_data, dict) and _rev_data.get("revealed_this_turn"):
+                    _comp_name_rev = _comp_id.replace("-", " ").replace("comp reb ", "").replace("comp ", "").title()
+                    _wound_stage = _rev_data.get("stage", "surface")
+                    _trigger_text = _rev_data.get("trigger_text", "")
+                    base += (
+                        f"\n\nCOMPANION REVELATION [{_comp_name_rev}]: "
+                        f"Stage '{_wound_stage}' unlocked. "
+                    )
+                    if _trigger_text:
+                        base += f"Weave this into the scene: {_trigger_text}"
+                    else:
+                        base += "Create a moment where this companion reveals a deeper layer of their past."
 
         # V2.12: Opening beats — structured narrative spine for first 3 turns
         world_state = campaign.get("world_state_json") if isinstance(campaign, dict) else {}

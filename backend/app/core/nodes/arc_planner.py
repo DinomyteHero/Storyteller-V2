@@ -14,6 +14,7 @@ from backend.app.constants import (
     ARC_COUNT_BY_SCALE,
     ARC_MAX_TURNS,
     ARC_MIN_TURNS,
+    ARC_MOOD_PROFILES,
     ARC_RISING_TO_CLIMAX_MIN_THREADS,
     ARC_SETUP_TO_RISING_MIN_FACTS,
     ARC_SETUP_TO_RISING_MIN_THREADS,
@@ -21,8 +22,10 @@ from backend.app.constants import (
     CONCLUSION_ENDING_STYLES,
     CONCLUSION_MIN_RESOLUTION_TURNS,
     CONCLUSION_RESOLVED_RATIO,
+    DEFAULT_ARC_MOOD_PROFILE,
     EPILOGUE_PACING_HINT,
     EPILOGUE_TURNS,
+    FORESHADOW_MAX_HINTS,
     HERO_JOURNEY_BEATS,
     INTERLUDE_MAX_TURNS,
     INTERLUDE_PACING_HINT,
@@ -704,6 +707,58 @@ def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
         if era_transition_pending:
             logger.info("Era transition available: %s (turn %d in RESOLUTION)", current_era, turns_in_stage)
 
+    # ── V10.0 Feature 10: Arc mood profile ─────────────────────────────
+    _mood_profile_key = ws.get("arc_mood_profile") or DEFAULT_ARC_MOOD_PROFILE
+    _mood_profiles = ARC_MOOD_PROFILES.get(_mood_profile_key) or ARC_MOOD_PROFILES[DEFAULT_ARC_MOOD_PROFILE]
+    _mood_for_stage = _mood_profiles.get(arc_stage, "")
+
+    # ── V10.0 Feature 5: Foreshadowing hooks ─────────────────────────────
+    foreshadow_hints: list[dict] = []
+    if arc_stage in ("SETUP", "RISING"):
+        # Seed from dangling hooks of previous arcs
+        for prev_arc in arc_history:
+            if isinstance(prev_arc, dict):
+                for hook in (prev_arc.get("dangling_hooks") or [])[:2]:
+                    if len(foreshadow_hints) >= FORESHADOW_MAX_HINTS:
+                        break
+                    foreshadow_hints.append({
+                        "type": "dangling_hook",
+                        "hint": f"Subtly reference: {hook}",
+                        "payoff_arc": "future",
+                    })
+        # Seed from NPC agendas with hidden motivations
+        _npc_states_fh = ws.get("npc_states") or {}
+        if isinstance(_npc_states_fh, dict) and len(foreshadow_hints) < FORESHADOW_MAX_HINTS:
+            for npc_id, npc_data in list(_npc_states_fh.items())[:10]:
+                if len(foreshadow_hints) >= FORESHADOW_MAX_HINTS:
+                    break
+                if isinstance(npc_data, dict):
+                    agenda = (npc_data.get("agenda") or "").strip()
+                    if agenda and any(kw in agenda.lower() for kw in ("secret", "hidden", "betray", "plan", "deceive")):
+                        foreshadow_hints.append({
+                            "type": "npc_secret",
+                            "hint": f"Environmental hint toward: {npc_id} — {agenda}",
+                            "payoff_arc": "this_arc",
+                        })
+
+    # ── V10.0 Feature 9: Thematic resonance (CLIMAX echoes early themes) ──
+    _thematic_echoes = None
+    if arc_stage == "CLIMAX":
+        _arc_consequences = ws.get("arc_consequences") or {}
+        _arc_cons_history = _arc_consequences.get("arc_history") or [] if isinstance(_arc_consequences, dict) else []
+        if _arc_cons_history and isinstance(_arc_cons_history, list):
+            _first_arc = _arc_cons_history[0] if _arc_cons_history else {}
+            _first_sig = _first_arc.get("thematic_signature") or {} if isinstance(_first_arc, dict) else {}
+            _early_themes = _first_sig.get("dominant_themes") or [] if isinstance(_first_sig, dict) else []
+            if _early_themes:
+                _thematic_echoes = {
+                    "early_themes": _early_themes,
+                    "resonance_note": (
+                        f"This campaign began with themes of {', '.join(str(t).replace('_', ' ') for t in _early_themes[:3])}. "
+                        f"Consider how this climax confronts or subverts those themes."
+                    ),
+                }
+
     arc_guidance = {
         "arc_stage": arc_stage,
         "priority_threads": priority_threads,
@@ -737,6 +792,13 @@ def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
             if arc_history and current_arc_number > 1 and turns_in_stage <= 3
             else None
         ),
+        # V10.0 Feature 10: Mood profile for tonal guidance
+        "mood_directive": _mood_for_stage,
+        "mood_profile": _mood_profile_key,
+        # V10.0 Feature 5: Foreshadowing hooks
+        "foreshadow_hints": foreshadow_hints,
+        # V10.0 Feature 9: Thematic resonance across arcs
+        "thematic_echoes": _thematic_echoes,
         # New arc seed to persist (commit node writes to world_state["arc_seed"])
         "new_arc_seed": new_arc_seed_for_ws,
         # Arc state for persistence (Commit node picks this up)

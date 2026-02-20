@@ -65,6 +65,9 @@ Storyteller AI/
           arc_screenplay_agent.py  # ArcScreenplayAgent — act-level screenplay planning (V5.0)
           arc_weaver_agent.py    # ArcWeaverAgent — thread weaving between arcs (V5.0)
           world_mind_agent.py    # WorldMindAgent — LLM-driven world simulation (V5.0)
+          revelation_agent.py   # RevelationAgent — evaluates hidden info, queues revelations for dramatic timing (V10.0)
+          callback_crystallizer_agent.py # CallbackCrystallizerAgent — identifies peak moments, stores callback seeds (V10.0)
+          player_profile_agent.py # PlayerProfileAgent — deterministic choice pattern analysis (V10.0)
         agent_utils.py           # Shared agent utilities
         error_handling.py        # AgentFailureError + authoritative_call() + log_error_with_context() (V5.0)
         state_loader.py          # Build GameState from SQLite
@@ -319,13 +322,21 @@ graph LR
     truth --> db
 ```
 
+## V10.0 New Modules Summary
+
+| Module | Purpose |
+| ------- | ------- |
+| `backend/app/core/agents/revelation_agent.py` | RevelationAgent — LLM deferred agent that evaluates hidden information (NPC agendas, faction moves, rumors) and queues revelations for optimal dramatic timing in `world_state["revelation_queue"]` |
+| `backend/app/core/agents/callback_crystallizer_agent.py` | CallbackCrystallizerAgent — LLM deferred agent that identifies peak narrative moments (large affinity deltas, climax scenes, major decisions) and stores callback seeds in `world_state["callback_seeds"]` for future echo |
+| `backend/app/core/agents/player_profile_agent.py` | PlayerProfileAgent — Deterministic deferred agent that analyzes player choice patterns (tone distribution, risk tolerance, creativity ratio, engagement trends) and builds `world_state["player_behavior_profile"]` |
+
 ## V7.0 New Modules Summary
 
 | Module | Purpose |
 | ------- | ------- |
 | `backend/app/core/canon_scheduler.py` | Historical timeline scheduler — loads canon events from era packs, records triggered events, surfaces via arc_guidance |
 | `backend/app/core/consequence_propagator.py` | Sandbox consequence propagation — ripple/wave/tsunami impact tiers with multi-turn duration tracking |
-| `backend/app/core/deferred_agents.py` | Post-commit deferred maintenance agent runner — MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist |
+| `backend/app/core/deferred_agents.py` | Post-commit deferred maintenance agent runner — MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist, plus V10.0 agents (RevelationAgent, CallbackCrystallizer, PlayerProfileAgent) |
 | `backend/app/db/connection.py` | WAL mode connection factory — `PRAGMA journal_mode=WAL` + `PRAGMA busy_timeout=5000` |
 
 ## V5.0 New Modules Summary

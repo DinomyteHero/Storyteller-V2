@@ -245,6 +245,7 @@ def make_world_sim_node():
                 "event_type": "FACTION_MOVE",
                 "payload": {"text": text},
                 "is_hidden": True,
+                "player_unaware": True,  # V10.0: Dramatic irony — player doesn't know this
             })
 
         for text in out.hidden_events or []:
@@ -254,6 +255,7 @@ def make_world_sim_node():
                 "event_type": event_type,
                 "payload": {"text": text},
                 "is_hidden": True,
+                "player_unaware": True,  # V10.0: Dramatic irony — player doesn't know this
             })
 
         for f in out.updated_factions or []:

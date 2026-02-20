@@ -1,6 +1,6 @@
 # 08 — Alignment Checklist
 
-Use this checklist to validate whether the implementation matches the intended Storyteller AI V7.0 design goals.
+Use this checklist to validate whether the implementation matches the intended Storyteller AI V10.0 design goals.
 
 Legend:
 - ✅ Implemented and verified in code
@@ -8,6 +8,7 @@ Legend:
 - ❌ Not yet implemented
 - 🔄 Changed in V5.0
 - 🆕 Added in V7.0
+- 🧠 Added in V10.0
 
 ---
 
@@ -54,6 +55,26 @@ Legend:
 | **Turn idempotency** — replay safety for turn endpoints | 🆕 ✅ | `turn_idempotency` table. `Idempotency-Key` header prevents duplicate commits. |
 | **Schema extraction** — NPC states and quest entries normalized | 🆕 ✅ | `npc_states` table (migration 0032) and `quest_entries` table (migration 0033) extracted from `world_state_json` blob. |
 | **Saga system** — linked campaigns | 🆕 ✅ | `sagas` table + `character_legacies` table. Campaigns grouped by player-owned saga with chapter ordering. |
+
+---
+
+## V10.0 Architecture (Narrative Intelligence)
+
+| Feature | Status | Notes |
+| --------- | -------- | ------- |
+| **Dramatic irony tags** — Director sees hidden world events as environmental hints | 🧠 ✅ | `world_sim.py` tags `player_unaware` events; `director.py` injects `DRAMATIC IRONY` section. |
+| **"Yes, And" engine** — creative deviation detection and reward | 🧠 ✅ | `router_node.py` sets `creative_deviation` flag; `director.py` injects `CREATIVE PLAYER INPUT` section. `state.py` has `creative_deviation: bool` field. |
+| **Narrative rhythm hints** — prose style adapts to scene type | 🧠 ✅ | `constants.py:NARRATIVE_RHYTHM_HINTS` + `get_rhythm_hint()`. `director.py` injects `PROSE RHYTHM` section. |
+| **Revelation agent** — deferred LLM agent for dramatic timing | 🧠 ✅ | `revelation_agent.py`. Runs every 5 turns. Writes `revelation_queue` to world_state. Director receives `AVAILABLE REVELATIONS`. |
+| **Callback crystallizer** — peak moment capture for echo | 🧠 ✅ | `callback_crystallizer_agent.py`. Runs every 10 turns. Writes `callback_seeds` to world_state. Director receives `CALLBACK OPPORTUNITIES`. |
+| **Player behavioral profiling** — deterministic choice analysis | 🧠 ✅ | `player_profile_agent.py`. Deterministic (no LLM). Runs every 10 turns. Writes `player_behavior_profile`. Director receives `PLAYER TENDENCIES`. |
+| **Foreshadowing hooks** — SETUP/RISING seeded with prior arc hooks | 🧠 ✅ | `arc_planner.py` generates `foreshadow_hints`. `director.py` injects `FORESHADOWING` section. |
+| **Thematic resonance** — CLIMAX echoes early campaign themes | 🧠 ✅ | `arc_planner.py` reads first arc's `thematic_signature`. `director.py` injects `THEMATIC ECHOES`. `arc_consequence_tracker.py` captures signatures. |
+| **Arc mood profiles** — 5 tonal profiles for Director guidance | 🧠 ✅ | `constants.py:ARC_MOOD_PROFILES`. `arc_planner.py` adds `mood_directive`. `director.py` injects `MOOD` section. |
+| **Companion wound/reveal layers** — 3-tier depth at affinity thresholds | 🧠 ✅ | `companions.yaml` has `wound`/`revelation_stages`. `companion.py` (node) tracks progression. `director.py` injects `COMPANION REVELATION`. |
+| **Choice history tracking** — commit records per-turn choice metadata | 🧠 ✅ | `commit.py` appends to `world_state["choice_history"]`. Consumed by `PlayerProfileAgent`. |
+| **Deferred agent registration** — 3 new agents in deferred_agents.py | 🧠 ✅ | `deferred_agents.py` Group 2: RevelationAgent, CallbackCrystallizer, PlayerProfileAgent. |
+| **Zero pipeline latency** — all V10.0 features are deferred or prompt-only | 🧠 ✅ | No new pipeline nodes. No additional latency on normal turns. |
 
 ---
 

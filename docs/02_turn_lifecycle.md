@@ -17,7 +17,21 @@ A single turn flows through a LangGraph `StateGraph` that is compiled once on fi
 - Consequence propagation via `consequence_propagator.py` (ripple/wave/tsunami tiers)
 - Turn idempotency via `Idempotency-Key` header and `turn_idempotency` table
 
-## Pipeline Topology (V7.0)
+**V8.0 changes:**
+- Multi-arc campaign lifecycle (2-5 arcs by scale) with interlude scenes between arcs
+- Epilogue system (3-turn wind-down) with campaign completion flag
+- Consequence surfacing: wave/tsunami tiers mandate narrator references
+- Prose-choice bridge: SCENE ENDING extraction feeds ChoiceCrafter
+
+**V10.0 changes (Narrative Intelligence):**
+- Router detects `creative_deviation` when free-text input doesn't match any suggested action (similarity < 0.4)
+- Companion reaction node tracks wound/reveal layers — 3-tier depth (surface/deep/core) unlocked at affinity thresholds
+- Arc planner injects foreshadowing hooks (SETUP/RISING), thematic echoes (CLIMAX), and arc mood profiles into `arc_guidance`
+- Director receives 10 new prompt injection sections: dramatic irony, creative input, narrative rhythm, revelation queue, callback seeds, player tendencies, foreshadowing, thematic echoes, mood profile, companion revelations
+- 3 new deferred agents run post-commit: RevelationAgent (every 5 turns), CallbackCrystallizerAgent (every 10 turns), PlayerProfileAgent (every 10 turns, deterministic)
+- Commit node records choice history for player profiling
+
+## Pipeline Topology (V10.0)
 
 ```mermaid
 flowchart TD
@@ -73,9 +87,14 @@ flowchart TD
 - Only true dialogue-only (`route=TALK`, `action_class=DIALOGUE_ONLY`, `requires_resolution=false`) becomes `intent=TALK`.
 - Action/persuasion guardrails force `intent=ACTION` even if input contains dialogue cues.
 
+**V10.0 addition — Creative Deviation Detection:**
+- After routing, if the input is free-text (no `structured_intent`) and `suggested_actions` from the previous turn exist, the router compares the input against all suggestions via `SequenceMatcher`.
+- If the best match ratio is below `CREATIVE_DEVIATION_SIMILARITY_THRESHOLD` (0.4), `state["creative_deviation"] = True` is set.
+- The Director then receives a `CREATIVE PLAYER INPUT` section encouraging it to reward the player's unexpected action.
+
 **Output keys set:**
 
-- `intent`, `route`, `action_class`, `intent_text`, `router_output`
+- `intent`, `route`, `action_class`, `intent_text`, `router_output`, `creative_deviation` (V10.0)
 - For `intent=TALK`: a minimal `mechanic_result` is synthesized with `time_cost_minutes=DIALOGUE_ONLY_MINUTES` (default 8).
 - Meta node sets deterministic `final_text` + `suggested_actions` and skips all LLM/RAG work.
 
@@ -169,8 +188,9 @@ Also:
   - `COMPANION_QUEST` at LOYAL loyalty level
   - `COMPANION_CONFRONTATION` on sharp affinity drop
 - Companion reactions summary (`companion_reactions_summary`) injected into campaign for Narrator context.
+- **V10.0 — Wound/Reveal Layers:** After affinity updates, checks each companion's `revelation_stages` (from `data/companions.yaml`). When affinity crosses a threshold, advances the companion's wound layer (surface → deep → core), sets `revealed_this_turn = True`, and stores in `world_state["companion_revelations"]`. The Director receives trigger text to weave the revelation into the scene. Max one stage advancement per companion per turn.
 
-No DB access. No LLM calls.
+No DB access. LLM calls via CompanionSystemAgent (V5.0).
 
 ---
 
@@ -210,6 +230,9 @@ No DB access. No LLM calls.
 - Reads `turn_number`, `ledger`, `arc_state` from world_state_json.
 - Outputs `arc_guidance`: arc stage, tension level, priority threads, pacing hints, suggested action weights, active themes, hero_beat, archetype_hints, theme_guidance, era_transition_pending, and any fired moment beats from the Moments node.
 - Tracks Hero's Journey beats (12 beats), genre triggers, and era transition readiness.
+- **V10.0 — Arc Mood Profiles:** Reads `world_state["arc_mood_profile"]` (default "heroic") and includes stage-specific mood directive in `arc_guidance["mood_directive"]`. 5 profiles: heroic, noir, tragic, kishotenketsu, mystery.
+- **V10.0 — Foreshadowing Hooks:** During SETUP/RISING, seeds `arc_guidance["foreshadow_hints"]` from dangling hooks of previous arcs and NPC agendas containing hidden/secret keywords.
+- **V10.0 — Thematic Resonance:** At CLIMAX, reads the first arc's `thematic_signature` from `arc_consequences["arc_history"]` and injects `arc_guidance["thematic_echoes"]` with a resonance note referencing early campaign themes.
 
 No DB writes, no LLM.
 
@@ -338,7 +361,11 @@ After commit, it reloads and returns a refreshed `GameState` from the DB so the 
     - `QuestWeaverAgent` — quest narrative generation (on maintenance turns)
     - `ProgressionAgent` — player/story progression tracking (on maintenance turns)
     - `PsychArchivistAgent` — psychology profile updates (on maintenance turns)
+    - `RevelationAgent` (V10.0) — evaluates hidden information and queues revelations (every 5 turns)
+    - `CallbackCrystallizerAgent` (V10.0) — identifies peak moments and stores callback seeds (every 10 turns)
+    - `PlayerProfileAgent` (V10.0) — analyzes player choice patterns, deterministic (every 10 turns, min 10 turns)
     These agents write to the `pending_world_state_patches` table rather than directly modifying world state. Patches are applied on the next turn load via `apply_pending_patches()`.
+16. Records choice metadata in `world_state["choice_history"]` for player behavioral profiling (V10.0)
 
 ---
 
@@ -364,6 +391,7 @@ Most fields are defined in `backend/app/models/state.py`.
 | `embedded_suggestions` | Narrator | Always `None` |
 | `player_starship` | State Loader / Commit | `dict` or `None`; earned in-story |
 | `known_npcs` | State Loader / Commit | `list[str]` of NPC IDs the player has encountered |
+| `creative_deviation` (V10.0) | Router | `True` if free-text input doesn't match any suggested action |
 | `warnings`, `context_stats` | Multiple nodes | Warnings surfaced in `TurnResponse.warnings` |
 | `__runtime_conn` | `run_turn()` | Non-serializable runtime handle; never persisted |
 

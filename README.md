@@ -2,22 +2,24 @@
 
 Storyteller AI is a **local-first, setting-agnostic narrative RPG engine** powered by a FastAPI backend, SvelteKit frontend, and a LangGraph pipeline that orchestrates deterministic game systems with LLM-powered storytelling.
 
-**Current Engine Version: V7.0**
+**Current Engine Version: V10.0**
 
 **Project version 0.1.0**
 
-V7.0 builds on the V5.0 architecture with production-readiness improvements:
-- **Hybrid cloud LLM routing** — Quality-critical roles (Director, Narrator, ChoiceCrafter, Mechanic) can be routed to Anthropic Claude for faster, higher-quality responses; structural roles stay local
-- **Deferred maintenance agents** — MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist run post-commit via `pending_world_state_patches` table, reducing transaction hold time from 10-20s to <2s
-- **Shared pipeline executor** — `run_turn()` via `_run_pipeline_with_timings()` with `get_pre_narrator_steps()`/`get_post_narrator_steps()` helpers eliminates streaming/non-streaming path drift
-- **SQLite WAL mode** — `journal_mode=WAL` + `busy_timeout=5000` for concurrent read safety
-- **Historical timeline scheduler** — Canon event system with era pack-defined events and immutable truth facts
-- **Sandbox consequence propagation** — Ripple/wave/tsunami impact tiers with multi-turn follow-on effects
-- **Rewind/undo capability** — Snapshot-based rewind via `turn_snapshots` table + REST endpoint
-- **Schema extraction** — NPC states and quest entries extracted from JSON blob to indexed tables
-- **Accessibility** — High Contrast (WCAG AAA) theme, font scaling (0.8x-1.5x), comprehensive aria labels
-- **Onboarding tutorial** — 5-step guided walkthrough for first-time players
-- **UX polish** — Post-stream "Weighing options" indicator, save confidence display, mechanic notes panel, resume auto-expand
+V10.0 builds on the V9.0 novel-length storytelling architecture with **Narrative Intelligence** — the skills that separate a good narrative engine from one that feels like a human DM:
+
+- **Dramatic irony tags** — Hidden world events (NPC agendas, faction moves) surfaced as environmental hints; the reader senses danger the character doesn't
+- **"Yes, And" engine** — Creative free-text deviations detected and rewarded with unexpected discoveries
+- **Narrative rhythm hints** — Prose style adapts to scene type: staccato combat, languid exploration, loaded-silence dialogue
+- **Revelation timing** — Deferred LLM agent queues hidden information for optimal dramatic reveal
+- **Callback crystallization** — Peak moments (betrayals, sacrifices, triumphs) captured and echoed later when conditions match
+- **Player behavioral profiling** — Deterministic choice pattern analysis (play style, risk tolerance, boredom detection) feeds Director guidance
+- **Foreshadowing hooks** — Arc planner seeds early stages with subtle references to dangling hooks and NPC secrets
+- **Thematic resonance** — At CLIMAX, Director receives echoes of dominant themes from the campaign's first arc
+- **Arc mood profiles** — 5 tonal profiles (heroic, noir, tragic, kishotenketsu, mystery) shape Director guidance per arc stage
+- **Companion wound/reveal layers** — 3-tier psychological depth (surface/deep/core wounds) unlocked at affinity thresholds
+
+**Previous versions:** V7.0 (production-readiness), V8.0 (multi-arc campaigns), V9.0 (novel-length storytelling)
 
 ---
 
@@ -52,7 +54,7 @@ The result is a narrative game that feels alive — persistent companions, facti
 | Frontend | SvelteKit 5.0 + TypeScript |
 | Content | YAML Era Packs (locations, NPCs, companions, quests, factions, moments) |
 
-### Pipeline Topology (V7.0)
+### Pipeline Topology (V10.0)
 
 ```
 router -> mechanic -> encounter -> world_sim -> companion_reaction -> moments
@@ -274,17 +276,18 @@ curl http://localhost:8000/health/detail
 
 ---
 
-## Architecture Highlights (V7.0)
+## Architecture Highlights (V10.0)
 
 - **Event Sourcing** — Append-only `turn_events` + projections. State always reconstructable from event log.
 - **Single Transaction Boundary** — Only `CommitNode` calls `conn.commit()`. Pipeline failures before Commit leave no partial state.
-- **Deferred Maintenance Agents** — Heavy maintenance agents (Memory, QuestWeaver, Progression, PsychArchivist) run post-commit via `pending_world_state_patches`, keeping transaction hold time under 2 seconds.
+- **Deferred Agents** — Maintenance agents (Memory, QuestWeaver, Progression, PsychArchivist) + V10.0 intelligence agents (Revelation, Callback Crystallizer, Player Profile) run post-commit via `pending_world_state_patches`, keeping transaction hold time under 2 seconds.
 - **Shared Pipeline Executor** — `run_turn()` via `_run_pipeline_with_timings()` with `get_pre_narrator_steps()`/`get_post_narrator_steps()` helpers ensures streaming and non-streaming paths execute identical node sequences.
 - **Hybrid Cloud Routing** — Quality-critical roles route to cloud (Anthropic Claude); structural roles stay local (Ollama). See `docs/HYBRID_CLOUD_SETUP.md`.
 - **Snapshot-Based Rewind** — `turn_snapshots` table stores world state per turn. `POST /campaigns/{id}/rewind?to_turn=N` atomically restores state.
 - **Canon Event Scheduler** — Historical mode campaigns enforce era-defined canon events via `canon_scheduler.py` with immutable truth facts.
 - **Consequence Propagation** — Sandbox impact tiers (ripple/wave/tsunami) create multi-turn follow-on consequences tracked in world state.
-- **Schema Extraction** — NPC states and quest entries extracted from `world_state_json` blob to indexed `npc_states` and `quest_entries` tables.
+- **Narrative Intelligence (V10.0)** — 10 new Director prompt injection points (dramatic irony, rhythm, revelations, callbacks, player profiling, foreshadowing, thematic echoes, mood profiles, creative deviation, companion revelations). All zero-latency: deferred agents or prompt-only.
+- **Multi-Arc Campaigns (V8.0)** — 2-5 arc campaigns with interlude scenes, epilogue system, cross-arc memory bridging.
 - **Authoritative vs Non-Authoritative** — Narrator and ChoiceCrafter raise `AgentFailureError` on failure. All other agents degrade gracefully.
 - **Setting-Agnostic Agents** — All agents use `get_setting_rules(state)` / `SettingRules` — no hardcoded universe names.
 - **JSON Reliability** — LLM JSON calls use `ensure_json()` with 3-attempt repair + retry via `json_repair.py`.

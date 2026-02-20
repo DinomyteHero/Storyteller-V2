@@ -1,8 +1,10 @@
 # 04 — Agents & LLM Plumbing
 
-## Agent Summary (Current — V7.0)
+## Agent Summary (Current — V10.0)
 
 > **V7.0 change:** MemoryAgent, QuestWeaverAgent, ProgressionAgent, and PsychArchivistAgent now run as **deferred maintenance agents** post-commit via `deferred_agents.py`. They write to the `pending_world_state_patches` table rather than directly modifying world state during the turn transaction. This reduces transaction hold time from 10-20s to ~2s on maintenance turns.
+
+> **V10.0 change:** Three new deferred agents added: **RevelationAgent** (LLM, every 5 turns — evaluates hidden info for dramatic timing), **CallbackCrystallizerAgent** (LLM, every 10 turns — captures peak moments for future echo), and **PlayerProfileAgent** (deterministic, every 10 turns — analyzes player choice patterns for Director guidance).
 
 | Component | File | Deterministic? | LLM? | Authoritative? | Output | Fallback Behavior |
 | ----------- | ------ | :---: | :---: | :---: | ------- | --------- |
@@ -27,6 +29,9 @@
 | **ResolutionAgent** | `agents/resolution_agent.py` | No | Yes | No | Story resolution scenes | Skipped on failure |
 | **ArcScreenplayAgent** | `agents/arc_screenplay_agent.py` | No | Yes | No | Act-level screenplay plan | Skipped on failure |
 | **ArcWeaverAgent** | `agents/arc_weaver_agent.py` | No | Yes | No | Thread weaving between arcs | Skipped on failure |
+| **RevelationAgent** (V10.0) | `agents/revelation_agent.py` | No | Yes | No | Revelation queue updates | Skipped on failure |
+| **CallbackCrystallizerAgent** (V10.0) | `agents/callback_crystallizer_agent.py` | No | Yes | No | Callback seeds for peak moments | Skipped on failure |
+| **PlayerProfileAgent** (V10.0) | `agents/player_profile_agent.py` | Yes | No | No | Player behavior profile | Skipped on failure |
 
 ---
 
@@ -102,6 +107,9 @@ LLM_TIMEOUT=300  # Default fallback timeout
 | Biographer | `qwen3:4b` | Character background |
 | KG Extraction | `qwen3:8b` | Knowledge graph extraction |
 | ChoiceCrafter | `qwen3:4b` | Player choice generation (authoritative) |
+| RevelationAgent (V10.0) | `qwen3:4b` | Revelation timing evaluation (deferred, every 5 turns) |
+| CallbackCrystallizer (V10.0) | `qwen3:4b` | Peak moment identification (deferred, every 10 turns) |
+| PlayerProfileAgent (V10.0) | N/A (deterministic) | Choice pattern analysis (deferred, every 10 turns) |
 | Embedding | `nomic-embed-text` | Ingestion + RAG retrieval |
 
 ---
@@ -276,6 +284,16 @@ MechanicOutput(
 | **ArcScreenplayAgent** | `arc_screenplay_agent.py` | Act-level screenplay planning (arc outline) |
 | **ArcWeaverAgent** | `arc_weaver_agent.py` | Thread weaving between active story arcs |
 | **BiographerAgent** | `biographer.py` | Character background text generation (used in campaign setup) |
+
+---
+
+### V10.0 Deferred Intelligence Agents
+
+| Agent | File | LLM? | Frequency | Primary Use |
+| ------- | ------ | :---: | ----------- | ----------- |
+| **RevelationAgent** | `revelation_agent.py` | Yes | Every 5 turns | Scans NPC agendas, world_sim rumors, faction moves, and consequence hints. Tags each with dramatic_value (1-10) and optimal_reveal_conditions. Stores in `world_state["revelation_queue"]`. Director receives top revelations scored by scene fitness. |
+| **CallbackCrystallizerAgent** | `callback_crystallizer_agent.py` | Yes | Every 10 turns | Scans recent turns for peak moments: CLIMAX/ELEVATED scene weights, large affinity deltas (|delta| > 3), major decisions. Stores `callback_seeds` with trigger conditions. Director echoes past moments when conditions match. |
+| **PlayerProfileAgent** | `player_profile_agent.py` | No | Every 10 turns (min 10) | Analyzes `choice_history` for: tone distribution, action preferences, risk tolerance, companion engagement, creativity ratio, engagement trends. Derives play_style (diplomat/fighter/explorer/socialite) and boredom detection. Director receives behavioral hints. |
 
 ---
 

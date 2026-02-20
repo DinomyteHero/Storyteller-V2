@@ -265,6 +265,75 @@ def companion_reaction_node(state: dict[str, Any]) -> dict[str, Any]:
     except Exception:
         logger.debug("Phase 6.2: Loyalty stake check skipped", exc_info=True)
 
+    # ── V10.0 Feature 6: Companion wound/reveal layer tracking ─────────
+    try:
+        campaign_rev = dict(state.get("campaign") or {})
+        ws_rev = campaign_rev.get("world_state_json") or {}
+        if isinstance(ws_rev, str):
+            try:
+                ws_rev = _json.loads(ws_rev)
+            except Exception:
+                ws_rev = {}
+        if isinstance(ws_rev, dict):
+            ws_rev = dict(ws_rev)
+            _comp_revelations = dict(ws_rev.get("companion_revelations") or {})
+            _aff_map = campaign_rev.get("party_affinity") or {}
+            _rev_changed = False
+            for cid in (campaign_rev.get("party") or []):
+                current_aff = int(_aff_map.get(cid, 0))
+                # Look up companion definition for revelation_stages
+                try:
+                    from backend.app.core.companions import get_companion_by_id as _get_comp_rev
+                    _comp_def = _get_comp_rev(cid)
+                except Exception:
+                    _comp_def = None
+                if not _comp_def or not _comp_def.get("revelation_stages"):
+                    continue
+                _stages = _comp_def["revelation_stages"]
+                _current_rev = _comp_revelations.get(cid) or {}
+                _current_stage = _current_rev.get("stage", "")
+                _stage_order = ("surface", "deep", "core")
+                _current_idx = _stage_order.index(_current_stage) if _current_stage in _stage_order else -1
+                for _rs in _stages:
+                    if not isinstance(_rs, dict):
+                        continue
+                    _threshold = int(_rs.get("affinity_threshold", 999))
+                    _rs_stage = _rs.get("stage", "")
+                    _rs_idx = _stage_order.index(_rs_stage) if _rs_stage in _stage_order else -1
+                    if _rs_idx > _current_idx and current_aff >= _threshold:
+                        _comp_revelations[cid] = {
+                            "stage": _rs_stage,
+                            "turn": turn_number,
+                            "trigger_text": _rs.get("trigger", ""),
+                            "revealed_this_turn": True,
+                        }
+                        _rev_changed = True
+                        _comp_name = _comp_def.get("name", cid)
+                        logger.info(
+                            "V10.0: Companion %s wound revelation — stage '%s' unlocked at affinity %d",
+                            _comp_name, _rs_stage, current_aff,
+                        )
+                        # Only advance one stage per turn
+                        break
+            if _rev_changed:
+                ws_rev["companion_revelations"] = _comp_revelations
+                campaign_rev["world_state_json"] = ws_rev
+                state = {**state, "campaign": campaign_rev}
+    except Exception:
+        logger.debug("V10.0: Companion revelation check skipped", exc_info=True)
+
+    # Clear revealed_this_turn flags from previous turns
+    try:
+        _cr = dict(state.get("campaign") or {})
+        _cr_ws = _cr.get("world_state_json") or {}
+        if isinstance(_cr_ws, dict):
+            _cr_revs = _cr_ws.get("companion_revelations") or {}
+            for _cid, _crev in _cr_revs.items():
+                if isinstance(_crev, dict) and _crev.get("revealed_this_turn") and _crev.get("turn", 0) != turn_number:
+                    _crev["revealed_this_turn"] = False
+    except Exception:
+        pass
+
     # Check for companion-initiated events
     companion_events = check_companion_triggers(state)
     if companion_events:

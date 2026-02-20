@@ -1,5 +1,39 @@
 # Implementation Plan: Choice System & Narrative Experience Overhaul
 
+## V10.0 Narrative Intelligence — COMPLETED
+
+Ten features across 4 phases, implementing the narrative skills that separate a good engine from one that feels like a human DM. Design principle: **no new pipeline nodes, no latency impact on turns** — all new intelligence runs as deferred agents (post-commit) or prompt engineering within existing nodes.
+
+| Phase | Features | Description | Status |
+|-------|----------|-------------|--------|
+| Phase 1 | Features 2, 7, 8 | Director's Toolkit: dramatic irony tags, "Yes, And" engine, narrative rhythm hints | Done |
+| Phase 2 | Features 1, 3, 4 | Intelligence Layer: revelation agent, callback crystallizer, player behavioral profiling | Done |
+| Phase 3 | Features 5, 9, 10 | Arc-Level Intelligence: foreshadowing hooks, thematic resonance, arc mood profiles | Done |
+| Phase 4 | Feature 6 | Companion Depth: NPC wound/reveal layers with 3-tier psychological depth | Done |
+
+Key capabilities added:
+- **Dramatic irony** — Hidden world events surfaced as environmental hints to the Director; reader senses danger character doesn't
+- **Creative deviation detection** — Free-text that diverges from suggested actions triggers "Yes, And" reward guidance
+- **Narrative rhythm** — Prose style adapts: staccato combat, languid exploration, loaded-silence dialogue
+- **Revelation timing** — LLM deferred agent queues NPC agendas/faction moves for optimal dramatic reveal (`revelation_queue`)
+- **Callback crystallization** — Peak moments captured as `callback_seeds` for future Director echo
+- **Player profiling** — Deterministic analysis of choice patterns, play style, and engagement trends (`player_behavior_profile`)
+- **Foreshadowing** — SETUP/RISING stages seeded with dangling hooks and NPC secrets from previous arcs
+- **Thematic resonance** — CLIMAX stage receives echoes of dominant themes from the campaign's first arc
+- **Arc mood profiles** — 5 profiles (heroic, noir, tragic, kishotenketsu, mystery) with per-stage tonal guidance
+- **Companion wound/reveal layers** — 3-tier depth (surface/deep/core) unlocked at affinity thresholds in `data/companions.yaml`
+
+New files: `revelation_agent.py`, `callback_crystallizer_agent.py`, `player_profile_agent.py`
+Modified files: `constants.py`, `director.py`, `deferred_agents.py`, `arc_planner.py`, `arc_consequence_tracker.py`, `world_sim.py`, `router_node.py`, `commit.py`, `state.py`, `companion.py` (node), `companions.yaml`, `config.py`
+
+---
+
+## V9.0 Novel-Length Storytelling — COMPLETED
+
+Novel-length storytelling and campaign settings support.
+
+---
+
 ## V8.0 Road to 1.0 — COMPLETED
 
 All six gates of the Road to 1.0 implementation plan have been completed:

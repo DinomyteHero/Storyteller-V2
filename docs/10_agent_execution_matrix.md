@@ -33,15 +33,20 @@ Source of truth: `backend/app/core/graph.py`, `backend/app/core/nodes/world_sim.
 | `QuestWeaverAgent.generate` (in commit) | ACTION, TALK | Maintenance turns only, and (`turn % 10 == 0` OR active dynamic quests == 0) | Yes | Yes |
 | `ProgressionAgent` (in commit) | ACTION, TALK | Maintenance turns only, plus stage-dependent cadence: every 5 turns in `RISING`/`CLIMAX`, else every 10 | Yes | Yes |
 | `PsychArchivistAgent` (in commit) | ACTION, TALK | Maintenance turns only, non-META | Yes | Yes |
+| `RevelationAgent` (in commit, V10.0) | ACTION, TALK | Every `REVELATION_EVAL_INTERVAL` turns (currently 5), non-META, when narrator prose exists | Yes | No (deferred, non-blocking) |
+| `CallbackCrystallizerAgent` (in commit, V10.0) | ACTION, TALK | Every `CALLBACK_CRYSTALLIZE_INTERVAL` turns (currently 10), non-META, when narrator prose exists | Yes | No (deferred, non-blocking) |
+| `PlayerProfileAgent` (in commit, V10.0) | ACTION, TALK | Every `PLAYER_PROFILE_INTERVAL` turns (currently 10), min `PLAYER_PROFILE_MIN_TURNS` (10) turns into campaign | No | No (deferred, deterministic) |
 
 ## LLM Call Counts (Current)
 
 - Typical ACTION/TALK turn: `Director + Narrator + ChoiceCrafter + CompanionSystem` plus optional `WorldMind` and optional `ArcWeaver`.
 - Maintenance ACTION/TALK turn (`turn % 5 == 0`): above plus `Continuity`, `QuestWeaver` (evaluate and/or generate), optional `Progression`, and `PsychArchivist`.
+- V10.0 deferred intelligence turns: `RevelationAgent` (every 5 turns), `CallbackCrystallizer` (every 10 turns). `PlayerProfileAgent` is deterministic (no LLM cost).
 - META turn: deterministic (`meta + commit`) with no required LLM path.
 
 ## Notes
 
 - `MAINTENANCE_AGENT_FREQUENCY` is defined in `backend/app/constants.py` and currently set to `5`.
-- Commit Group 2 runs `MemoryAgent` and `QuestWeaverAgent` in parallel.
+- Commit Group 2 runs `MemoryAgent`, `QuestWeaverAgent`, `RevelationAgent`, `CallbackCrystallizerAgent`, and `PlayerProfileAgent` in parallel (V10.0).
 - Authoritative here means the output is used directly in game state/projections, not merely advisory UI text.
+- V10.0 deferred agents write to `pending_world_state_patches` and are non-blocking — turn completes regardless of their outcome.

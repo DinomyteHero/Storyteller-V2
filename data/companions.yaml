@@ -17,6 +17,20 @@ companions:
   banter_style: warm
   faction_interest: [Rebel Alliance, Jedi Order]
   recruitment_context: Posing as a medic in a refugee camp; revealed when she uses the Force to save a child from collapsing debris.
+  wound:
+    surface: "Lost her master to the Purge — visible grief she tries to hide."
+    deep: "She froze when her master needed her most. She didn't fail to save him — she failed to act."
+    core: "She's not searching for surviving Jedi to rebuild. She's searching for someone to forgive her."
+  revelation_stages:
+    - affinity_threshold: 20
+      stage: surface
+      trigger: "A quiet moment — Kira mentions her master by name for the first time."
+    - affinity_threshold: 40
+      stage: deep
+      trigger: "Under stress — the truth slips out. She was there. She could have fought."
+    - affinity_threshold: 60
+      stage: core
+      trigger: "A moment of genuine trust — she tells you what she's really looking for."
 - id: comp-reb-vex
   name: Vex Torin
   archetype: Defected Imperial sergeant
@@ -35,6 +49,20 @@ companions:
   banter_style: stoic
   faction_interest: [Rebel Alliance, Imperial Remnant]
   recruitment_context: Found in a cantina, drowning memories of what he did under the Empire; responds to a straightforward job offer.
+  wound:
+    surface: "Defected after his unit burned a village — he doesn't talk about what happened."
+    deep: "He didn't just follow orders. He gave one. The village burned because of his tactical assessment."
+    core: "He left not because he grew a conscience — but because the Empire stopped being efficient enough to justify the cost."
+  revelation_stages:
+    - affinity_threshold: 20
+      stage: surface
+      trigger: "Over drinks — Vex admits the village wasn't the first thing that bothered him. It was the last."
+    - affinity_threshold: 40
+      stage: deep
+      trigger: "During a mission — when civilian casualties are at stake, Vex confesses his real role."
+    - affinity_threshold: 60
+      stage: core
+      trigger: "After the player shows pragmatic leadership — Vex admits what really drove him to defect."
 - id: comp-reb-shade
   name: Shade Vos
   archetype: Underworld fixer
@@ -53,6 +81,20 @@ companions:
   banter_style: snarky
   faction_interest: [Underworld, Hutt Cartel]
   recruitment_context: Caught mid-heist in an Imperial warehouse; offers to split the take if you help finish the job.
+  wound:
+    surface: "Coruscant orphan — he survived the lower levels alone. Nobody helped."
+    deep: "He had a partner once. They sold him out for an Imperial bounty. He barely escaped."
+    core: "He doesn't accumulate wealth for freedom. He does it because the alternative — trusting anyone — is a debt he can't afford to default on."
+  revelation_stages:
+    - affinity_threshold: 25
+      stage: surface
+      trigger: "A moment of vulnerability — Shade drops the bravado and mentions the lower levels."
+    - affinity_threshold: 45
+      stage: deep
+      trigger: "When betrayal is in the air — Shade tells you about the partner who sold him out."
+    - affinity_threshold: 65
+      stage: core
+      trigger: "After the player proves loyalty under fire — Shade admits what the money is really about."
 - id: comp-reb-mercy
   name: Elara Voss
   archetype: Combat medic pacifist
@@ -71,6 +113,20 @@ companions:
   banter_style: warm
   faction_interest: [Rebel Alliance]
   recruitment_context: Running a makeshift field hospital in a bombed-out building; joins if you help evacuate the wounded before the Empire returns.
+  wound:
+    surface: "Lost Alderaan — she was off-world when it happened. The guilt of surviving never fades."
+    deep: "She was supposed to be there. She left Alderaan because she was angry at her family. The last thing she said was a slammed door."
+    core: "She doesn't save people out of compassion. She saves them because every life is a debt against the ones she can never repay."
+  revelation_stages:
+    - affinity_threshold: 15
+      stage: surface
+      trigger: "After saving someone together — Elara quietly says she wasn't on Alderaan when it happened."
+    - affinity_threshold: 35
+      stage: deep
+      trigger: "During a moment of loss — Elara admits why she left home that day."
+    - affinity_threshold: 55
+      stage: core
+      trigger: "When the player asks why she pushes so hard — she finally says the truth."
 - id: comp-reb-jax
   name: Jax Korren
   archetype: Smuggler pilot
@@ -89,6 +145,20 @@ companions:
   banter_style: snarky
   faction_interest: [Underworld, Rebel Alliance]
   recruitment_context: Needs a co-pilot to outrun a bounty hunter blockade; found arguing with dock officials over impound fees.
+  wound:
+    surface: "Bounties from three Hutts — he laughs it off, but he hasn't slept soundly in years."
+    deep: "The biggest bounty isn't for smuggling. It's for a crew member he left behind to save himself."
+    core: "He keeps running not because he fears the Hutts, but because standing still means facing the person he was when he made that choice."
+  revelation_stages:
+    - affinity_threshold: 20
+      stage: surface
+      trigger: "After a close call — Jax admits the bounties keep him awake more than he lets on."
+    - affinity_threshold: 40
+      stage: deep
+      trigger: "When a crew member is in danger — Jax's mask cracks. He tells you about the one he left behind."
+    - affinity_threshold: 60
+      stage: core
+      trigger: "After the player stays when they could have run — Jax says what running really costs him."
 - id: comp-reb-sentinel
   name: Torrin Kael
   archetype: Former Imperial magistrate

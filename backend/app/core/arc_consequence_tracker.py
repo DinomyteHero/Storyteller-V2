@@ -95,6 +95,22 @@ def capture(
         if any(kw in f.lower() for kw in ("chose", "decided", "betrayed", "saved", "killed", "allied"))
     ][:5]
 
+    # V10.0 Feature 9: Thematic signature for cross-arc resonance
+    _active_themes = list(ledger.get("active_themes") or [])[:3]
+    _theme_from_decisions: list[str] = []
+    from backend.app.constants import THEME_REINFORCEMENT_KEYWORDS
+    for decision in major_decisions:
+        for theme_key, keywords in THEME_REINFORCEMENT_KEYWORDS.items():
+            if any(kw in decision.lower() for kw in keywords):
+                if theme_key not in _theme_from_decisions:
+                    _theme_from_decisions.append(theme_key)
+                break
+    _thematic_signature = {
+        "dominant_themes": _active_themes,
+        "theme_from_decisions": _theme_from_decisions[:3],
+        "arc_number": ws.get("arc_number", 1),
+    }
+
     consequences: dict[str, Any] = {
         "arc_number": ws.get("arc_number", 1),
         "arc_stage_reached": arc_stage_reached,
@@ -106,6 +122,7 @@ def capture(
         "major_decisions": major_decisions,
         "player_summary": player_summary,
         "dangling_hooks": open_threads[:5],  # Top 5 open threads become next arc seeds
+        "thematic_signature": _thematic_signature,  # V10.0 Feature 9
     }
 
     # Merge with existing consequences if any (preserve arc history)

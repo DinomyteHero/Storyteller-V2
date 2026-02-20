@@ -501,7 +501,63 @@ truth_events (
   "player_condition": {"fatigue": 5},
   "last_rest_turn": 3,
   "flags": {},                      // Arbitrary boolean flags for quest conditions
-  "inventory": [...]                // World-state inventory snapshot (also in inventory table)
+  "inventory": [...],               // World-state inventory snapshot (also in inventory table)
+
+  // ── V10.0 Narrative Intelligence fields ──
+  "revelation_queue": [             // RevelationAgent output: queued secrets for dramatic reveal
+    {
+      "id": "rev-45-0",
+      "content": "Kira has been secretly reporting to the Inquisitor",
+      "source": "npc_agenda",
+      "source_npc": "kira-solari",
+      "dramatic_value": 8,           // 1-10
+      "optimal_conditions": ["player trusts Kira", "climax reached"],
+      "turn_queued": 45,
+      "revealed": false
+    }
+  ],
+  "callback_seeds": [               // CallbackCrystallizerAgent output: memorable moments for echo
+    {
+      "turn": 23,
+      "moment": "Kira chose to stay despite everything",
+      "echo_text": "Something in her voice reminds you...",
+      "emotional_context": "sacrifice",  // betrayal|sacrifice|triumph|loss|revelation|humor
+      "trigger_conditions": ["when Kira is present", "at climax"],
+      "used_count": 0                // Max CALLBACK_MAX_USES (2)
+    }
+  ],
+  "player_behavior_profile": {      // PlayerProfileAgent output: choice pattern analysis
+    "preferred_tone": {"PARAGON": 0.4, "INVESTIGATE": 0.3},
+    "preferred_action": {"TALK": 0.5, "DO": 0.3},
+    "risk_tolerance": "moderate",    // cautious | moderate | bold
+    "companion_engagement": 0.6,     // 0.0-1.0
+    "creativity_ratio": 0.2,         // free-text vs structured
+    "engagement_trend": "stable",    // stable | declining | rising
+    "play_style": "diplomat",        // diplomat | fighter | explorer | socialite
+    "possible_boredom": false,
+    "turn_analyzed": 30
+  },
+  "choice_history": [               // Commit-appended metadata per turn for profiling
+    {"turn": 1, "tone": "PARAGON", "action_type": "TALK", "risk": "SAFE",
+     "is_free_text": false, "input_length": 42, "creative_deviation": false}
+  ],
+  "companion_revelations": {        // Companion wound/reveal layer state (V10.0 Feature 6)
+    "comp-reb-kira": {
+      "stage": "deep",              // surface | deep | core
+      "turn": 25,
+      "trigger_text": "Under stress — the truth slips out...",
+      "revealed_this_turn": false
+    }
+  },
+  "arc_mood_profile": "heroic",     // heroic | noir | tragic | kishotenketsu | mystery
+  "arc_consequences": {             // ArcConsequenceTracker output (V5.0 + V10.0 thematic_signature)
+    "arc_number": 2,
+    "thematic_signature": {         // V10.0: cross-arc thematic resonance
+      "dominant_themes": ["cost_of_loyalty", "redemption"],
+      "theme_from_decisions": ["sacrifice"],
+      "arc_number": 1
+    }
+  }
 }
 ```
 

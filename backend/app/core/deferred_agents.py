@@ -22,6 +22,10 @@ from backend.app.constants import (
     QUEST_WEAVER_GENERATION_INTERVAL,
     PROGRESSION_INTERVAL_BASE,
     PROGRESSION_INTERVAL_HIGH_INTENSITY,
+    REVELATION_EVAL_INTERVAL,
+    CALLBACK_CRYSTALLIZE_INTERVAL,
+    PLAYER_PROFILE_INTERVAL,
+    PLAYER_PROFILE_MIN_TURNS,
 )
 from backend.app.models.event_utils import ensure_event
 
@@ -246,11 +250,67 @@ def _run_agents(
                 recent_narrative=_recent_narr,
             )
 
-    # Run Group 2 in parallel
-    with ThreadPoolExecutor(max_workers=COMMIT_GROUP2_MAX_WORKERS, thread_name_prefix="deferred_g2") as pool:
+    # V10.0 Feature 1: RevelationAgent — information economy
+    _arc = (arc_guidance or {}).get("arc_stage") or "SETUP"
+
+    def _run_revelation():
+        if not (final_text and intent != "META" and turn_number % REVELATION_EVAL_INTERVAL == 0):
+            return
+        try:
+            from backend.app.core.agents.revelation_agent import RevelationAgent
+            authoritative_call(
+                "RevelationAgent",
+                RevelationAgent().evaluate,
+                world_state=world_state,
+                arc_stage=_arc,
+                turn_number=turn_number,
+                recent_narrative="\n".join(recent_narrative[-2:])[:600] if recent_narrative else "",
+                events=mem_events,
+            )
+        except AgentFailureError as e:
+            logger.warning("Deferred RevelationAgent failed: %s", e)
+
+    # V10.0 Feature 3: CallbackCrystallizerAgent — peak moment identification
+    def _run_callback_crystallizer():
+        if not (final_text and intent != "META" and turn_number % CALLBACK_CRYSTALLIZE_INTERVAL == 0):
+            return
+        try:
+            from backend.app.core.agents.callback_crystallizer_agent import CallbackCrystallizerAgent
+            authoritative_call(
+                "CallbackCrystallizerAgent",
+                CallbackCrystallizerAgent().crystallize,
+                world_state=world_state,
+                recent_narrative="\n".join(recent_narrative[-3:])[:900] if recent_narrative else "",
+                turn_number=turn_number,
+                events=mem_events,
+                arc_stage=_arc,
+            )
+        except AgentFailureError as e:
+            logger.warning("Deferred CallbackCrystallizerAgent failed: %s", e)
+
+    # V10.0 Feature 4: PlayerProfileAgent — deterministic behavioral profiling
+    def _run_player_profile():
+        if not (turn_number % PLAYER_PROFILE_INTERVAL == 0 and turn_number >= PLAYER_PROFILE_MIN_TURNS):
+            return
+        try:
+            from backend.app.core.agents.player_profile_agent import PlayerProfileAgent
+            PlayerProfileAgent().analyze(
+                world_state=world_state,
+                state_snapshot=state,
+                turn_number=turn_number,
+            )
+        except Exception as e:
+            logger.warning("Deferred PlayerProfileAgent failed: %s", e)
+
+    # Run Group 2 in parallel (expanded with V10.0 narrative intelligence agents)
+    _g2_max_workers = max(COMMIT_GROUP2_MAX_WORKERS, 3)
+    with ThreadPoolExecutor(max_workers=_g2_max_workers, thread_name_prefix="deferred_g2") as pool:
         futures = {
             pool.submit(_run_memory): "MemoryAgent",
             pool.submit(_run_quest_weaver): "QuestWeaverAgent",
+            pool.submit(_run_revelation): "RevelationAgent",
+            pool.submit(_run_callback_crystallizer): "CallbackCrystallizerAgent",
+            pool.submit(_run_player_profile): "PlayerProfileAgent",
         }
         for fut in as_completed(futures):
             try:

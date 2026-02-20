@@ -41,6 +41,26 @@ def router_node(state: dict[str, Any]) -> dict[str, Any]:
         intent = "TALK"
     else:
         intent = "ACTION"
+    # V10.0 Feature 7: Detect creative deviation — player typed free-text not matching suggestions
+    creative_deviation = False
+    if not structured_intent:
+        _prev_suggestions = state.get("suggested_actions") or []
+        if _prev_suggestions and user_input:
+            from difflib import SequenceMatcher
+            from backend.app.constants import CREATIVE_DEVIATION_SIMILARITY_THRESHOLD
+            _user_low = user_input.lower().strip()
+            _best_sim = 0.0
+            for _sug in _prev_suggestions:
+                _sug_text = ""
+                if isinstance(_sug, dict):
+                    _sug_text = (_sug.get("text") or _sug.get("label") or _sug.get("intent_text") or "").lower()
+                elif hasattr(_sug, "text"):
+                    _sug_text = (getattr(_sug, "text", "") or "").lower()
+                if _sug_text:
+                    _sim = SequenceMatcher(None, _user_low, _sug_text).ratio()
+                    _best_sim = max(_best_sim, _sim)
+            creative_deviation = _best_sim < CREATIVE_DEVIATION_SIMILARITY_THRESHOLD
+
     out = {
         **state,
         "intent": intent,
@@ -48,6 +68,7 @@ def router_node(state: dict[str, Any]) -> dict[str, Any]:
         "action_class": action_class,
         "intent_text": intent_text,
         "router_output": router_out.model_dump(mode="json"),
+        "creative_deviation": creative_deviation,
     }
     if intent == "TALK":
         # Minimal mechanic_result only for true dialogue-only; no dice, no state changes

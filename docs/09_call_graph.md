@@ -60,7 +60,7 @@ python -m ingestion.ingest_lore --input ./data/lore/...
 
 ---
 
-## Turn Pipeline Call Graph (V7.0)
+## Turn Pipeline Call Graph (V10.0)
 
 Full call graph for an `intent=ACTION` turn:
 
@@ -172,11 +172,14 @@ graph.run_turn(conn, state)
        ├─ [V7.0] core/canon_scheduler.py: check/record canon events (Historical mode)
        ├─ [V7.0] core/consequence_propagator.py: process ripple/wave/tsunami consequences
        ├─ state_loader.py:build_initial_gamestate(conn, ...)  [reload from DB]
-       └─ [V7.0 POST-COMMIT] core/deferred_agents.py:run_deferred_maintenance()
+       └─ [V7.0+ POST-COMMIT] core/deferred_agents.py:run_deferred_maintenance()
             ├─ agents/memory_agent.py:MemoryAgent (every turn with prose + NPCs)
             ├─ agents/quest_weaver_agent.py:QuestWeaverAgent (maintenance turns)
             ├─ agents/progression_agent.py:ProgressionAgent (maintenance turns)
-            └─ agents/psych_archivist_agent.py:PsychArchivistAgent (maintenance turns)
+            ├─ agents/psych_archivist_agent.py:PsychArchivistAgent (maintenance turns)
+            ├─ [V10.0] agents/revelation_agent.py:RevelationAgent (every 5 turns)
+            ├─ [V10.0] agents/callback_crystallizer_agent.py:CallbackCrystallizerAgent (every 10 turns)
+            └─ [V10.0] agents/player_profile_agent.py:PlayerProfileAgent (every 10 turns, deterministic)
             └─ writes to pending_world_state_patches table (applied on next turn load)
 ```
 
@@ -209,6 +212,9 @@ graph.run_turn(conn, state)
 | `faction_engine.simulate_faction_tick()` | — | WorldSim fallback only |
 | `IntentRouterAgent` LLM call | — | Only on low-confidence routing |
 | Episodic memory compression | — | Every 5 turns |
+| `RevelationAgent` (V10.0) | — | Every 5 turns (post-commit, deferred) |
+| `CallbackCrystallizerAgent` (V10.0) | — | Every 10 turns (post-commit, deferred) |
+| `PlayerProfileAgent` (V10.0) | — | Every 10 turns, min 10 turns (post-commit, deterministic) |
 
 ---
 
@@ -260,10 +266,14 @@ Any node that needs era-pack content calls:
 | IntentRouter | `qwen3:4b` | No | Low-confidence routing only |
 | Architect (blueprint) | `qwen3:4b` | No | Campaign setup only |
 | Biographer | `qwen3:4b` | No | Campaign setup only |
+| RevelationAgent (V10.0) | `qwen3:4b` | No | Every 5 turns (post-commit) |
+| CallbackCrystallizer (V10.0) | `qwen3:4b` | No | Every 10 turns (post-commit) |
 
 **Maximum LLM calls per normal turn (no WorldSim):** 3 (Director + Narrator + ChoiceCrafter)
 
 **Maximum LLM calls per WorldSim turn:** 4 (+ WorldMindAgent)
+
+**V10.0 deferred agent calls (post-commit, non-blocking):** +1 (RevelationAgent every 5 turns) or +2 (+ CallbackCrystallizer every 10 turns). PlayerProfileAgent is deterministic (no LLM).
 
 ---
 

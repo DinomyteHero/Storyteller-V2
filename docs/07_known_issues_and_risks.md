@@ -2,7 +2,7 @@
 
 This is a **living** list of code-evidenced issues and risks in the current repo state.
 
-Last updated: V7.0 architecture revision.
+Last updated: V10.0 architecture revision.
 
 ---
 

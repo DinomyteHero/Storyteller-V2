@@ -2,11 +2,11 @@
 
 ## What the System Does
 
-Storyteller AI (current codebase, project version 0.1.0, engine version V7.0) is a text-based RPG engine that runs a turn-by-turn narrative loop driven by a **LangGraph state-machine pipeline**. A player selects from KOTOR-style dialogue-wheel choices; the engine classifies the input, resolves mechanics, fires any scripted narrative moments, simulates off-screen world events, generates dramatic pacing instructions, and produces final prose narration — all in a single turn.
+Storyteller AI (current codebase, project version 0.1.0, engine version V10.0) is a text-based RPG engine that runs a turn-by-turn narrative loop driven by a **LangGraph state-machine pipeline**. A player selects from KOTOR-style dialogue-wheel choices; the engine classifies the input, resolves mechanics, fires any scripted narrative moments, simulates off-screen world events, generates dramatic pacing instructions, and produces final prose narration — all in a single turn.
 
 The "Living World" mechanic is the core differentiator: every player action costs in-game time (in minutes). When accumulated time crosses a configurable tick boundary (default 4 hours), a **WorldSim** node fires a deterministic faction simulation (with optional LLM-driven world narrative) that moves NPC factions, generates rumors, and feeds a Mass Effect-style news briefing system — making the world feel alive even when the player isn't directly interacting with those factions.
 
-**V5.0 introduced setting-agnostic architecture; V7.0 adds production-readiness.** Agents no longer hardcode universe names, species, or factions. All setting-specific content comes from `SettingRules` (stored in `world_state_json["setting_rules"]`) and era pack YAML files, loaded via the `ContentRepository` singleton. V7.0 adds hybrid cloud LLM routing, deferred maintenance agents, shared pipeline executor, SQLite WAL mode, snapshot-based rewind, canon event scheduling, sandbox consequence propagation, schema extraction, and accessibility features.
+**V5.0 introduced setting-agnostic architecture; V7.0 adds production-readiness; V8.0 adds multi-arc campaigns; V9.0 adds novel-length storytelling; V10.0 adds narrative intelligence.** Agents no longer hardcode universe names, species, or factions. All setting-specific content comes from `SettingRules` (stored in `world_state_json["setting_rules"]`) and era pack YAML files, loaded via the `ContentRepository` singleton. V10.0 adds dramatic irony, creative input detection, narrative rhythm hints, revelation timing, callback crystallization, player behavioral profiling, foreshadowing hooks, thematic resonance across arcs, arc mood profiles, and companion wound/reveal layers.
 
 ## Key Design Principles
 
@@ -18,7 +18,7 @@ The "Living World" mechanic is the core differentiator: every player action cost
 | **LLM-Driven Choices (V5.0)** | The `ChoiceCrafterNode` replaced the deterministic `SuggestionRefiner`. Player choices are now fully LLM-generated from the Narrator's prose, scene context, and arc state. This is an authoritative node — on failure it raises `AgentFailureError`, surfaced as a structured error to the player. |
 | **Event Sourcing** | The source of truth is an append-only event log (`turn_events` table). Normalized tables (`characters`, `inventory`, `campaigns.world_state_json`) are projections derived from events via `apply_projection()`. |
 | **Per-Role LLM Config** | Agent configuration is per-role via environment variables (`STORYTELLER_{ROLE}_MODEL`, `STORYTELLER_{ROLE}_PROVIDER`). Multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:4b` for lightweight roles (Architect, Casting, Biographer, KG, ChoiceCrafter). V7.0 adds per-role cloud provider routing (e.g., `anthropic` for quality-critical roles). |
-| **Deferred Maintenance Agents (V7.0)** | Heavy maintenance agents (MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist) run post-commit via `pending_world_state_patches` table, reducing transaction hold time from 10-20s to ~2s. |
+| **Deferred Maintenance Agents (V7.0+)** | Heavy maintenance agents (MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist) plus V10.0 intelligence agents (RevelationAgent, CallbackCrystallizer, PlayerProfileAgent) run post-commit via `pending_world_state_patches` table, reducing transaction hold time from 10-20s to ~2s. |
 | **Shared Pipeline Executor (V7.0)** | `run_turn()` via `_run_pipeline_with_timings()` with `get_pre_narrator_steps()`/`get_post_narrator_steps()` helpers ensures streaming and non-streaming paths execute identical node sequences. |
 | **SQLite WAL Mode (V7.0)** | `PRAGMA journal_mode=WAL` + `PRAGMA busy_timeout=5000` enabled in `backend/app/db/connection.py` for concurrent read safety. |
 | **Graceful Degradation (non-authoritative)** | Non-authoritative pipeline nodes (Mechanic, WorldSim, Companion, Arc Planner, etc.) have deterministic fallbacks and never halt the turn. Authoritative LLM nodes (Narrator, ChoiceCrafter) raise `AgentFailureError` on failure, caught at the graph level. |
@@ -57,6 +57,20 @@ The "Living World" mechanic is the core differentiator: every player action cost
 | **Deterministic Faction Engine** | No LLM calls. Faction reputation tracking, NPC movement (20% chance per tick), faction-aware goals in `npc_states`. |
 | **Knowledge Graph** | Optional KG extraction from lore. Entity resolution, triple store, synthesis summaries for runtime retrieval. |
 | **AgentFailureError (V5.0)** | `authoritative_call()` pattern: 2 attempts, then raises `AgentFailureError`. Caught at graph level (`run_turn()`), returns structured error in `GameState`. |
+| **Multi-Arc Campaigns (V8.0)** | 2-5 arc campaigns with interlude scenes, epilogue system, cross-arc memory bridging via saga context injection. |
+| **Consequence Surfacing (V8.0)** | Wave/tsunami consequence tiers surface as mandatory narrator references. Companion PRESENCE woven directive replaces appended reaction lists. |
+| **Prose-Choice Bridge (V8.0)** | SCENE ENDING extraction from narrator prose feeds ChoiceCrafter for coherent choice generation. |
+| **Novel-Length Storytelling (V9.0)** | Campaign settings support novel-length narrative arcs with persistent state across hundreds of turns. |
+| **Dramatic Irony Tags (V10.0)** | World events hidden from the player character are surfaced to the Director as environmental hints — the reader senses danger the character doesn't. |
+| **"Yes, And" Engine (V10.0)** | Creative free-text deviations from suggested choices detected via `creative_deviation` flag; Director rewards player creativity with unexpected discoveries. |
+| **Narrative Rhythm Hints (V10.0)** | Prose style adapts to scene type — staccato combat, languid exploration, loaded-silence dialogue — via `NARRATIVE_RHYTHM_HINTS` constants. |
+| **Revelation Agent (V10.0)** | Deferred LLM agent evaluates hidden information (NPC agendas, faction moves) and queues revelations for optimal dramatic timing via `revelation_queue`. |
+| **Callback Crystallizer (V10.0)** | Deferred LLM agent identifies peak narrative moments (betrayals, sacrifices, triumphs) and stores `callback_seeds` for future echo by the Director. |
+| **Player Behavioral Profiling (V10.0)** | Deterministic deferred agent analyzes choice patterns (tone distribution, risk tolerance, engagement trends) to build `player_behavior_profile` for Director guidance. |
+| **Foreshadowing Hooks (V10.0)** | Arc planner seeds SETUP/RISING stages with subtle references to dangling hooks from previous arcs and hidden NPC agendas. |
+| **Thematic Resonance (V10.0)** | At CLIMAX, the Director receives echoes of dominant themes from the campaign's first arc for cross-arc thematic closure. |
+| **Arc Mood Profiles (V10.0)** | 5 mood profiles (heroic, noir, tragic, kishotenketsu, mystery) provide stage-specific tonal guidance to the Director. |
+| **Companion Wound/Reveal Layers (V10.0)** | Companions have 3-tier psychological depth (surface/deep/core wounds) unlocked at affinity thresholds, with per-stage trigger text woven into narration. |
 
 ## High-Level Architecture
 
@@ -66,7 +80,7 @@ graph TD
         API["POST /v2/campaigns/{id}/turn"]
     end
 
-    subgraph "LangGraph Pipeline (graph.py) — V7.0"
+    subgraph "LangGraph Pipeline (graph.py) — V10.0"
         R[Router Node] --> | META| META[Meta Node]
         R --> | TALK| ENC[Encounter Node]
         R --> | ACTION| MECH[Mechanic Node]
@@ -115,7 +129,7 @@ graph TD
     COMMIT --> API
 ```
 
-## Pipeline Topology (V7.0)
+## Pipeline Topology (V10.0)
 
 **ACTION / TALK path:**
 ```
@@ -136,6 +150,9 @@ router → meta → commit → END
 - Turn snapshots written after each commit for rewind support (V7.0)
 - Canon event checking for Historical mode campaigns (V7.0)
 - Consequence propagation with ripple/wave/tsunami impact tiers (V7.0)
+- Multi-arc campaigns with interlude scenes and epilogue system (V8.0)
+- Novel-length storytelling with campaign settings support (V9.0)
+- V10.0 narrative intelligence: 3 new deferred agents (Revelation, Callback Crystallizer, Player Profile), creative deviation detection in router, narrative rhythm hints, dramatic irony tags, foreshadowing hooks, thematic resonance, arc mood profiles, and companion wound/reveal layers — all zero-latency (deferred or prompt-only)
 
 ## Quickstart
 
@@ -197,4 +214,4 @@ curl -X POST "http://localhost:8000/v2/campaigns/{campaign_id}/turn?player_id={p
 | Default LLM | Ollama (local; multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:4b` for Architect/Casting/Biographer/KG/ChoiceCrafter, `qwen3:8b` for Mechanic/Ingestion, `nomic-embed-text` for embedding). V7.0: per-role cloud routing via `STORYTELLER_{ROLE}_PROVIDER` (Anthropic, OpenAI, OpenAI-compatible). |
 | Frontend | SvelteKit (`frontend/`) |
 | Tests | `pytest` suite (run `python -m pytest backend/tests -q` for current count) |
-| Engine Version | V7.0 (V5.0 setting-agnostic base + hybrid cloud routing, deferred agents, shared pipeline executor, WAL mode, rewind/undo, canon scheduler, consequence propagation, schema extraction, accessibility) |
+| Engine Version | V10.0 (V5.0 setting-agnostic base → V7.0 production-readiness → V8.0 multi-arc campaigns → V9.0 novel-length storytelling → V10.0 narrative intelligence: dramatic irony, creative deviation, rhythm hints, revelation timing, callback crystallization, player profiling, foreshadowing, thematic resonance, arc mood profiles, companion wound/reveal layers) |

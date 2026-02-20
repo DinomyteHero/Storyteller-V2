@@ -616,6 +616,23 @@ def make_commit_node():
             except Exception as _story_pos_err:
                 logger.warning("Story-position advance failed (non-fatal): %s", _story_pos_err)
 
+            # V10.0 Feature 4: Append choice metadata for player behavioral profiling
+            if intent != "META":
+                from backend.app.constants import PLAYER_PROFILE_HISTORY_MAX
+                _choice_history = world_state.setdefault("choice_history", [])
+                _si = state.get("structured_intent") or {}
+                _choice_history.append({
+                    "turn": next_turn_number,
+                    "tone": _si.get("tone_tag", "NEUTRAL") if _si else "NEUTRAL",
+                    "action_type": _si.get("action_type", "TALK") if _si else "TALK",
+                    "risk": _si.get("risk_level", "SAFE") if _si else "SAFE",
+                    "is_free_text": not bool(_si),
+                    "input_length": len(user_input or ""),
+                    "creative_deviation": bool(state.get("creative_deviation", False)),
+                })
+                if len(_choice_history) > PLAYER_PROFILE_HISTORY_MAX:
+                    _choice_history[:] = _choice_history[-PLAYER_PROFILE_HISTORY_MAX:]
+
             _ws_json_str = json.dumps(world_state)
             conn.execute(
                 "UPDATE campaigns SET world_state_json = ? WHERE id = ?",

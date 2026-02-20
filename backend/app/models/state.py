@@ -225,6 +225,9 @@ class GameState(BaseModel):
     recent_scene_hashes: list[str] = Field(default_factory=list)  # last 5 scene hashes
     scene_loop_detected: bool = False  # True when same hash appears 3+ times in recent history
 
+    # V10.0: Creative deviation — True when player submits unexpected free-text not matching any suggestion
+    creative_deviation: bool = False
+
     def cleared_for_next_turn(self) -> GameState:
         """Return a copy with transient fields reset; persistent and memory fields kept."""
         return self.model_copy(
@@ -273,5 +276,7 @@ class GameState(BaseModel):
                 "dialogue_turn": None,
                 # Phase 5.3: scene_loop_detected is transient; recent_scene_hashes persists
                 "scene_loop_detected": False,
+                # V10.0: creative_deviation is transient
+                "creative_deviation": False,
             }
         )

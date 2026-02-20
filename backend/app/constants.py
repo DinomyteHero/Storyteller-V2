@@ -469,6 +469,115 @@ NARRATOR_MODE_WORD_TARGETS: dict[str, dict[str, int]] = {
 VALID_NARRATOR_MODES: tuple[str, ...] = ("concise", "novel", "epic")
 DEFAULT_NARRATOR_MODE = "concise"
 
+# ── V10.0 Narrative Intelligence ─────────────────────────────────────
+
+# Feature 8: Narrative rhythm hints — prose style guidance based on scene context.
+# Maps composite keys to rhythm directives injected into the Director prompt.
+NARRATIVE_RHYTHM_HINTS: dict[str, str] = {
+    "combat_high": "Staccato. Short sentences. Fragments when impactful. Paragraphs get shorter as tension rises.",
+    "combat_low": "Measured tension. Mix short action beats with brief pauses. Build momentum.",
+    "dialogue_high": "Minimal prose between exchanges. Let voices carry the scene. Sharp, loaded silences.",
+    "dialogue_low": "Conversational flow. Allow breathing room. Body language fills the gaps.",
+    "exploration": "Languid. Sensory details. Let the world breathe. Longer sentences that unfold.",
+    "revelation": "Let one sentence stand alone. Surround with silence. The weight of what's said needs space.",
+    "emotional": "Internal texture. The character's body reacts before their mind catches up. Visceral detail.",
+    "climax": "Everything tightens. Short paragraphs. Each sentence a decision. No wasted words.",
+}
+
+
+def get_rhythm_hint(action_class: str, tension_level: str, scene_weight: str) -> str:
+    """Derive rhythm hint from scene context."""
+    if scene_weight == "CLIMAX":
+        return NARRATIVE_RHYTHM_HINTS["climax"]
+    action_map = {
+        "PHYSICAL_ACTION": "combat",
+        "DIALOGUE_WITH_ACTION": "combat",
+        "DIALOGUE_ONLY": "dialogue",
+    }
+    base_key = action_map.get(action_class, "exploration")
+    intensity = "high" if tension_level in ("ESCALATING", "PEAK") else "low"
+    return NARRATIVE_RHYTHM_HINTS.get(f"{base_key}_{intensity}", NARRATIVE_RHYTHM_HINTS["exploration"])
+
+
+# Feature 2: Dramatic irony — max NPC-unaware hints injected into Director.
+DRAMATIC_IRONY_MAX_HINTS = 3
+
+# Feature 7: Creative deviation — similarity threshold for detecting player creativity.
+CREATIVE_DEVIATION_SIMILARITY_THRESHOLD = 0.4
+
+# Feature 4: Player behavioral profiling
+PLAYER_PROFILE_INTERVAL = 10                  # Analyze every N turns
+PLAYER_PROFILE_MIN_TURNS = 10                 # Don't profile until enough data
+PLAYER_PROFILE_HISTORY_MAX = 100              # Max choice entries tracked
+PLAYER_BOREDOM_REPETITION_THRESHOLD = 0.7     # Same tone >70% of last 10 → boredom
+PLAYER_BOREDOM_INPUT_LENGTH_DECLINE = 0.5     # Avg input length dropped >50% → boredom
+
+# Feature 1: Information Economy / Revelation timing
+REVELATION_EVAL_INTERVAL = 5                  # Evaluate revelation queue every N turns
+REVELATION_QUEUE_MAX = 10                     # Max queued revelations
+REVELATION_EXPIRY_TURNS = 40                  # Expire if undelivered after N turns
+REVELATION_URGENCY_TURNS = 15                 # Boost score for aging revelations
+REVELATION_DIRECTOR_MAX = 3                   # Max revelations shown to Director per turn
+
+# Feature 3: Callback Crystallizer
+CALLBACK_CRYSTALLIZE_INTERVAL = 10            # Crystallize every N turns
+CALLBACK_SEEDS_MAX = 15                       # Max stored callback seeds
+CALLBACK_MAX_USES = 2                         # Max times a callback can echo
+CALLBACK_DIRECTOR_MAX = 2                     # Max callbacks shown to Director per turn
+
+# Feature 5: Foreshadowing hooks
+FORESHADOW_MAX_HINTS = 2                      # Max foreshadowing hints per turn
+
+# Feature 6: Companion wound stages
+COMPANION_WOUND_STAGES = ("surface", "deep", "core")
+
+# Feature 10: Arc mood profiles — tonal guidance by arc stage and campaign mood
+ARC_MOOD_PROFILES: dict[str, dict[str, str]] = {
+    "heroic": {
+        "SETUP": "Wonder and discovery. The world is vast and full of possibility.",
+        "RISING": "Growing stakes, forging alliances. Hope tested but enduring.",
+        "CLIMAX": "Sacrifice and triumph. The hero stands at the threshold.",
+        "RESOLUTION": "Peace earned. The world is changed, and so is the hero.",
+    },
+    "noir": {
+        "SETUP": "Cynicism and mystery. Nothing is what it seems. Trust is currency.",
+        "RISING": "Paranoia and betrayal. Every ally has an angle. Shadows deepen.",
+        "CLIMAX": "Desperate truth. The cost of knowing is paid in full.",
+        "RESOLUTION": "Pyrrhic victory. The case is closed but the scars remain.",
+    },
+    "tragic": {
+        "SETUP": "Hope and ambition. The protagonist reaches for something greater.",
+        "RISING": "Hubris and warnings ignored. The cracks are showing.",
+        "CLIMAX": "The fall. Consequences of pride or blind faith crash down.",
+        "RESOLUTION": "Acceptance or defiance. Not every story has a happy ending.",
+    },
+    "kishotenketsu": {
+        "SETUP": "Introduction. Establish the world and its rhythms without conflict.",
+        "RISING": "Development. Deepen understanding. Layer complexity without escalation.",
+        "CLIMAX": "The twist. Something unexpected reframes everything — not through conflict but revelation.",
+        "RESOLUTION": "Harmony. A new understanding integrates the twist into a richer whole.",
+    },
+    "mystery": {
+        "SETUP": "The question. Something doesn't add up. Curiosity is the hook.",
+        "RISING": "The trail. Each clue opens two doors. Red herrings and genuine leads intertwine.",
+        "CLIMAX": "The reveal. All pieces click — or the detective becomes the suspect.",
+        "RESOLUTION": "The reckoning. Truth has consequences. Some mysteries are better left buried.",
+    },
+}
+DEFAULT_ARC_MOOD_PROFILE = "heroic"
+
+# Feature 9: Thematic resonance — keywords for detecting themes from decisions
+THEME_REINFORCEMENT_KEYWORDS: dict[str, list[str]] = {
+    "cost_of_loyalty": ["loyal", "betray", "trust", "faith", "allegiance", "devoted"],
+    "power_corrupts": ["power", "corrupt", "control", "dominate", "authority", "tyrant"],
+    "redemption": ["redeem", "forgive", "atone", "second chance", "reform", "save"],
+    "sacrifice": ["sacrifice", "gave up", "cost", "price", "lost", "surrendered"],
+    "identity": ["who am i", "identity", "mask", "pretend", "true self", "disguise"],
+    "justice_vs_mercy": ["justice", "mercy", "punish", "spare", "revenge", "forgive"],
+    "survival": ["survive", "desperate", "hunger", "scarcity", "flee", "escape"],
+    "forbidden_knowledge": ["secret", "forbidden", "hidden", "ancient", "taboo", "dark"],
+}
+
 DIRECTOR_ENTITY_STOP_WORDS = frozenset({
     "the", "a", "an", "say", "ask", "look", "go", "investigate", "talk", "take", "try",
     "press", "move", "check", "scan", "gather", "intel", "about", "with", "toward",
