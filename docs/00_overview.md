@@ -17,7 +17,7 @@ The "Living World" mechanic is the core differentiator: every player action cost
 | **Deterministic Mechanic** | The `MechanicAgent` uses zero LLM calls. All dice rolls, DC computation, time costs, and event generation are pure Python. This guarantees reproducible gameplay mechanics regardless of model quality. |
 | **LLM-Driven Choices (V5.0)** | The `ChoiceCrafterNode` replaced the deterministic `SuggestionRefiner`. Player choices are now fully LLM-generated from the Narrator's prose, scene context, and arc state. This is an authoritative node — on failure it raises `AgentFailureError`, surfaced as a structured error to the player. |
 | **Event Sourcing** | The source of truth is an append-only event log (`turn_events` table). Normalized tables (`characters`, `inventory`, `campaigns.world_state_json`) are projections derived from events via `apply_projection()`. |
-| **Per-Role LLM Config** | Agent configuration is per-role via environment variables (`STORYTELLER_{ROLE}_MODEL`, `STORYTELLER_{ROLE}_PROVIDER`). Multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:4b` for lightweight roles (Architect, Casting, Biographer, KG, ChoiceCrafter). V7.0 adds per-role cloud provider routing (e.g., `anthropic` for quality-critical roles). |
+| **Per-Role LLM Config** | Agent configuration is per-role via environment variables (`STORYTELLER_{ROLE}_MODEL`, `STORYTELLER_{ROLE}_PROVIDER`). Multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:8b` for medium roles (ChoiceCrafter, Mechanic, CompanionSystem, WorldMind, QuestWeaver, Memory, Prologue, ArcScreenplay, Bible, EraForge), `qwen3:4b` for lightweight roles (Architect, Casting, Biographer, KG Extraction, IntentRouter, ArcWeaver, Continuity, Progression, PsychArchivist, RevelationAgent, CallbackCrystallizer). V7.0 adds per-role cloud provider routing (e.g., `anthropic` for quality-critical roles). |
 | **Deferred Maintenance Agents (V7.0+)** | Heavy maintenance agents (MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist) plus V10.0 intelligence agents (RevelationAgent, CallbackCrystallizer, PlayerProfileAgent) run post-commit via `pending_world_state_patches` table, reducing transaction hold time from 10-20s to ~2s. |
 | **Shared Pipeline Executor (V7.0)** | `run_turn()` via `_run_pipeline_with_timings()` with `get_pre_narrator_steps()`/`get_post_narrator_steps()` helpers ensures streaming and non-streaming paths execute identical node sequences. |
 | **SQLite WAL Mode (V7.0)** | `PRAGMA journal_mode=WAL` + `PRAGMA busy_timeout=5000` enabled in `backend/app/db/connection.py` for concurrent read safety. |
@@ -161,7 +161,8 @@ router → meta → commit → END
 - Python 3.11+
 - Ollama running locally (`http://localhost:11434`) with models pulled:
   - `ollama pull mistral-nemo` (Director/Narrator — quality-critical roles)
-  - `ollama pull qwen3:4b` (Architect, Casting, Biographer, KG, ChoiceCrafter — lightweight roles)
+  - `ollama pull qwen3:8b` (ChoiceCrafter, Mechanic, CompanionSystem, WorldMind, QuestWeaver, Memory — medium roles)
+  - `ollama pull qwen3:4b` (Architect, Casting, Biographer, KG Extraction — lightweight roles)
   - `ollama pull nomic-embed-text` (embedding)
 - Embeddings default to `sentence-transformers/all-MiniLM-L6-v2` (downloads automatically on first ingest/retrieval)
 
@@ -211,7 +212,7 @@ curl -X POST "http://localhost:8000/v2/campaigns/{campaign_id}/turn?player_id={p
 | Primary DB | SQLite (event sourcing + projections) |
 | Vector DB | LanceDB (RAG retrieval) |
 | Embeddings | `sentence-transformers/all-MiniLM-L6-v2` (384-dim, swappable via `EMBEDDING_MODEL` env) |
-| Default LLM | Ollama (local; multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:4b` for Architect/Casting/Biographer/KG/ChoiceCrafter, `qwen3:8b` for Mechanic/Ingestion, `nomic-embed-text` for embedding). V7.0: per-role cloud routing via `STORYTELLER_{ROLE}_PROVIDER` (Anthropic, OpenAI, OpenAI-compatible). |
+| Default LLM | Ollama (local; multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:8b` for ChoiceCrafter/Mechanic/CompanionSystem/WorldMind/QuestWeaver/Memory/Prologue/ArcScreenplay/Bible/EraForge, `qwen3:4b` for Architect/Casting/Biographer/KG Extraction/IntentRouter/ArcWeaver/Continuity/Progression/PsychArchivist/RevelationAgent/CallbackCrystallizer, `nomic-embed-text` for embedding). V7.0: per-role cloud routing via `STORYTELLER_{ROLE}_PROVIDER` (Anthropic, OpenAI, OpenAI-compatible). |
 | Frontend | SvelteKit (`frontend/`) |
 | Tests | `pytest` suite (run `python -m pytest backend/tests -q` for current count) |
 | Engine Version | V10.0 (V5.0 setting-agnostic base → V7.0 production-readiness → V8.0 multi-arc campaigns → V9.0 novel-length storytelling → V10.0 narrative intelligence: dramatic irony, creative deviation, rhythm hints, revelation timing, callback crystallization, player profiling, foreshadowing, thematic resonance, arc mood profiles, companion wound/reveal layers) |

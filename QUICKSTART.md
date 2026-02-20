@@ -1,4 +1,4 @@
-# Quick Start Guide — Storyteller AI V7.0
+# Quick Start Guide — Storyteller AI V10.0
 
 This guide covers setup, configuration, and running your first campaign.
 
@@ -12,23 +12,23 @@ This guide covers setup, configuration, and running your first campaign.
 
 ### Required Ollama Models
 
-Pull these before starting (matches V7.0 default role configuration):
+Pull these before starting (matches V10.0 default role configuration):
 
 ```bash
 # Quality-critical roles (Director + Narrator)
 ollama pull mistral-nemo:latest
 
-# Lightweight roles (ChoiceCrafter + Architect + Biographer + KG extraction)
+# Medium roles (ChoiceCrafter, Mechanic, CompanionSystem, WorldMind, QuestWeaver,
+# Memory, Prologue, ArcScreenplay, Bible, EraForge, SuggestionRefiner)
+ollama pull qwen3:8b
+
+# Lightweight roles (Architect, Biographer, Casting, KG Extraction, Continuity,
+# Progression, PsychArchivist, IntentRouter, ArcWeaver, CampaignInit,
+# RevelationAgent, CallbackCrystallizer)
 ollama pull qwen3:4b
 
 # Embeddings (required for RAG retrieval)
 ollama pull nomic-embed-text
-```
-
-Optional (for KG extraction and heavy ingestion):
-
-```bash
-ollama pull qwen3:8b
 ```
 
 ---
@@ -81,11 +81,11 @@ ERA_PACK_DIR=./data/static/era_packs
 # Ollama endpoint
 OLLAMA_BASE_URL=http://127.0.0.1:11434
 
-# Per-role LLM model config (V7.0 defaults)
+# Per-role LLM model config (V10.0 defaults)
 STORYTELLER_DIRECTOR_MODEL=mistral-nemo:latest
 STORYTELLER_NARRATOR_MODEL=mistral-nemo:latest
 STORYTELLER_ARCHITECT_MODEL=qwen3:4b
-STORYTELLER_CHOICE_CRAFTER_MODEL=qwen3:4b
+STORYTELLER_CHOICE_CRAFTER_MODEL=qwen3:8b
 
 # Feature flags
 ENABLE_BIBLE_CASTING=1         # Era pack NPC selection (recommended)
@@ -313,6 +313,7 @@ curl http://127.0.0.1:11434/api/tags
 ```bash
 ollama list
 ollama pull mistral-nemo:latest
+ollama pull qwen3:8b
 ollama pull qwen3:4b
 ollama pull nomic-embed-text
 ```

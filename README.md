@@ -180,7 +180,8 @@ python run_app.py --dev
 
 ```bash
 ollama pull mistral-nemo      # Director + Narrator (quality-critical)
-ollama pull qwen3:4b          # ChoiceCrafter + Architect + Biographer + KG
+ollama pull qwen3:8b          # ChoiceCrafter + Mechanic + CompanionSystem + WorldMind + QuestWeaver + Memory + more
+ollama pull qwen3:4b          # Architect + Biographer + KG Extraction + Continuity + lightweight roles
 ollama pull nomic-embed-text  # Embeddings (RAG)
 ```
 
@@ -200,7 +201,7 @@ VECTORDB_PATH=./data/lancedb
 STORYTELLER_DIRECTOR_MODEL=mistral-nemo:latest
 STORYTELLER_NARRATOR_MODEL=mistral-nemo:latest
 STORYTELLER_ARCHITECT_MODEL=qwen3:4b
-STORYTELLER_CHOICE_CRAFTER_MODEL=qwen3:4b
+STORYTELLER_CHOICE_CRAFTER_MODEL=qwen3:8b
 
 # Feature flags
 ENABLE_BIBLE_CASTING=1         # Era pack deterministic NPC selection
@@ -254,7 +255,7 @@ curl http://localhost:8000/health/detail
 **LLM connection failures**
 - Check Ollama is running: `ollama serve`
 - Check model is pulled: `ollama list`
-- Pull models: `ollama pull mistral-nemo && ollama pull qwen3:4b`
+- Pull models: `ollama pull mistral-nemo && ollama pull qwen3:8b && ollama pull qwen3:4b`
 - Check per-role config: `curl http://localhost:8000/health/detail`
 
 **`[SYSTEM] A narrative agent failed: NarratorAgent`**
