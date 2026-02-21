@@ -135,9 +135,19 @@ def make_world_sim_node():
                 logger.debug("Failed to load known NPCs for world sim", exc_info=True)
 
         # V4.0: LLM-based world simulation via WorldMindAgent
+        # V12.0: Unified cloud resolution
+        _wm_llm = None
+        try:
+            from backend.app.core.nodes._cloud_helper import make_turn_llm
+            from backend.app.core.nodes import dict_to_state
+            _wm_gs = dict_to_state(state)
+            _wm_llm = make_turn_llm("world_mind", _wm_gs, conn)
+        except Exception as _wm_cloud_err:
+            logger.debug("WorldMind cloud resolution failed, using default: %s", _wm_cloud_err)
+
         try:
             from backend.app.core.agents.world_mind_agent import WorldMindAgent
-            out = WorldMindAgent().simulate(
+            out = WorldMindAgent(llm=_wm_llm).simulate(
                 active_factions=active_factions,
                 turn_number=int(state.get("turn_number") or 0),
                 player_location=state.get("current_location") or "loc-cantina",

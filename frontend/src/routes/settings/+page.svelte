@@ -1,14 +1,17 @@
 <!--
-  Settings Page: Global LLM provider management and app configuration.
-  API keys are stored locally in the browser — never sent to an external server.
+  Settings Page: V12.0 — Cloud provider management, presets, per-agent overrides.
+  API keys are stored in the backend DB. Provider status fetched from backend.
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { apiFetch } from '$lib/api/client';
-  import { providers, type ProviderConfig } from '$lib/stores/providers';
+  import { providers, type ProviderStatus } from '$lib/stores/providers';
+  import { presets, type Preset } from '$lib/stores/presets';
   import { ui } from '$lib/stores/ui';
   import { THEME_NAMES } from '$lib/themes/tokens';
+  import PresetEditor from '$lib/components/settings/PresetEditor.svelte';
+  import type { TestResult } from '$lib/api/campaigns';
 
   interface AgentModelConfig {
     role: string;
@@ -46,83 +49,66 @@
   };
 
   const ROLE_LABELS: Record<string, string> = {
-    narrator: 'Narrator',
-    director: 'Director',
-    choice_crafter: 'Choice Crafter',
-    companion_system: 'Companion System',
-    architect: 'Architect',
-    bible: 'Campaign Bible',
-    world_mind: 'World Mind',
-    era_forge: 'Era Forge',
-    biographer: 'Biographer',
-    casting: 'Casting',
-    memory: 'Memory',
-    psych_archivist: 'Psych Archivist',
-    progression: 'Progression',
-    arc_weaver: 'Arc Weaver',
-    arc_screenplay: 'Arc Screenplay',
-    intent_router: 'Intent Router',
-    continuity: 'Continuity',
-    quest_weaver: 'Quest Weaver',
-    prologue: 'Prologue',
-    origin: 'Origin Story',
-    mechanic: 'Mechanic',
-    npc_render: 'NPC Voice',
-    suggestion_refiner: 'Suggestion Refiner',
-    revelation_agent: 'Revelation Agent',
-    callback_crystallizer: 'Callback Crystallizer',
-    embedding: 'Embedding',
-    ingestion_tagger: 'Ingestion Tagger',
-    kg_extractor: 'Knowledge Graph',
-    campaign_init: 'Campaign Init',
+    narrator: 'Narrator', director: 'Director', choice_crafter: 'Choice Crafter',
+    companion_system: 'Companion System', architect: 'Architect', bible: 'Campaign Bible',
+    world_mind: 'World Mind', era_forge: 'Era Forge', biographer: 'Biographer',
+    casting: 'Casting', memory: 'Memory', psych_archivist: 'Psych Archivist',
+    progression: 'Progression', arc_weaver: 'Arc Weaver', arc_screenplay: 'Arc Screenplay',
+    intent_router: 'Intent Router', continuity: 'Continuity', quest_weaver: 'Quest Weaver',
+    prologue: 'Prologue', origin: 'Origin Story', mechanic: 'Mechanic',
+    npc_render: 'NPC Voice', suggestion_refiner: 'Suggestion Refiner',
+    revelation_agent: 'Revelation Agent', callback_crystallizer: 'Callback Crystallizer',
+    embedding: 'Embedding', ingestion_tagger: 'Ingestion Tagger',
+    kg_extractor: 'Knowledge Graph', campaign_init: 'Campaign Init',
   };
 
-  let providerList = $state<ProviderConfig[]>([]);
+  let providerList = $state<ProviderStatus[]>([]);
+  let presetList = $state<Preset[]>([]);
   let editingKey = $state<string | null>(null);
   let keyInput = $state('');
-  let urlInput = $state('');
-  let showKeyFor = $state<string | null>(null);
   let savedMessage = $state('');
   let agentConfigs = $state<AgentModelConfig[]>([]);
   let showAdvanced = $state(false);
   let loadingAgents = $state(false);
+  let testingProvider = $state<string | null>(null);
+  let testResults = $state<Record<string, TestResult>>({});
+  let showPresetEditor = $state(false);
+  let editingPreset = $state<Preset | null>(null);
 
-  // Subscribe to provider store
-  providers.subscribe((val) => {
-    providerList = val;
+  // Subscribe to stores
+  providers.subscribe((val) => { providerList = val; });
+  presets.subscribe((val) => { presetList = val; });
+
+  onMount(async () => {
+    await Promise.all([providers.load(), presets.load()]);
   });
 
   async function loadAgentConfigs() {
     loadingAgents = true;
     try {
-      const resp = await apiFetch<{ agents: AgentModelConfig[] }>('/v2/model_config');
+      const resp = await apiFetch<{ agents: AgentModelConfig[]; available_providers: ProviderStatus[] }>('/v2/model_config');
       agentConfigs = resp.agents || [];
     } catch {
-      // Non-critical — agent config is read-only for now
+      // Non-critical
     }
     loadingAgents = false;
   }
 
   function startEditKey(providerId: string) {
-    const provider = providerList.find((p) => p.id === providerId);
     editingKey = providerId;
-    keyInput = provider?.apiKey || '';
-    urlInput = provider?.baseUrl || '';
+    keyInput = '';
   }
 
-  function saveKey(providerId: string) {
-    providers.setApiKey(providerId, keyInput.trim());
-    if (urlInput.trim()) {
-      providers.updateProvider(providerId, { baseUrl: urlInput.trim() });
-    }
+  async function saveKey(providerId: string) {
+    if (!keyInput.trim()) return;
+    await providers.setKey(providerId, keyInput.trim());
     editingKey = null;
     keyInput = '';
-    urlInput = '';
     flashSaved();
   }
 
-  function removeKey(providerId: string) {
-    providers.removeApiKey(providerId);
+  async function removeKey(providerId: string) {
+    await providers.removeKey(providerId);
     editingKey = null;
     flashSaved();
   }
@@ -130,17 +116,17 @@
   function cancelEdit() {
     editingKey = null;
     keyInput = '';
-    urlInput = '';
   }
 
-  function toggleKeyVisibility(providerId: string) {
-    showKeyFor = showKeyFor === providerId ? null : providerId;
-  }
-
-  function maskKey(key: string): string {
-    if (!key) return '';
-    if (key.length <= 8) return '****';
-    return key.slice(0, 4) + '...' + key.slice(-4);
+  async function runTest(providerId: string) {
+    testingProvider = providerId;
+    try {
+      const result = await providers.test(providerId);
+      testResults = { ...testResults, [providerId]: result };
+    } catch {
+      testResults = { ...testResults, [providerId]: { ok: false, latency_ms: 0, error: 'Request failed', model_used: null } };
+    }
+    testingProvider = null;
   }
 
   function flashSaved() {
@@ -151,6 +137,36 @@
   function goBack() {
     goto('/');
   }
+
+  function openCreatePreset() {
+    editingPreset = null;
+    showPresetEditor = true;
+  }
+
+  function openEditPreset(preset: Preset) {
+    editingPreset = preset;
+    showPresetEditor = true;
+  }
+
+  async function handlePresetSave(name: string, description: string, roleConfigs: Record<string, { provider: string; model: string }>) {
+    if (editingPreset) {
+      await presets.update(editingPreset.id, { name, description, role_configs: roleConfigs });
+    } else {
+      await presets.create(name, description, roleConfigs);
+    }
+    showPresetEditor = false;
+    editingPreset = null;
+    flashSaved();
+  }
+
+  async function handleDeletePreset(presetId: string) {
+    await presets.remove(presetId);
+    flashSaved();
+  }
+
+  $: connectedCount = providerList.filter((p) => p.has_key).length;
+  $: systemPresets = presetList.filter((p) => p.is_system);
+  $: userPresets = presetList.filter((p) => !p.is_system);
 </script>
 
 <div class="settings-page">
@@ -163,91 +179,87 @@
       {/if}
     </div>
 
-    <!-- LLM Providers -->
+    <!-- Cloud Providers -->
     <section class="settings-section">
-      <div class="section-header">LLM Providers</div>
+      <div class="section-header">Cloud LLM Providers</div>
       <p class="section-desc">
-        Configure cloud LLM providers for higher-quality prose. API keys are stored
-        locally in your browser and only sent to your backend server.
+        Connect cloud LLM providers for higher-quality prose. API keys are stored
+        securely in your backend database.
+        {#if connectedCount > 0}
+          <span class="connected-badge">{connectedCount} connected</span>
+        {/if}
       </p>
 
       <div class="provider-list">
         {#each providerList as provider}
-          <div class="provider-card" class:enabled={provider.enabled}>
+          <div class="provider-card" class:enabled={provider.has_key}>
             <div class="provider-header">
               <div class="provider-info">
                 <span class="provider-name">{provider.label}</span>
-                {#if provider.enabled}
-                  <span class="status-badge status-active">Active</span>
+                {#if provider.has_key}
+                  <span class="status-badge status-active">
+                    {provider.key_source === 'env' ? 'Env Var' : 'Connected'}
+                  </span>
                 {:else}
                   <span class="status-badge status-inactive">Not configured</span>
                 {/if}
               </div>
-              {#if provider.id !== 'ollama'}
+              <div class="provider-actions">
+                {#if provider.has_key}
+                  <button
+                    class="btn btn-small"
+                    onclick={() => runTest(provider.provider_id)}
+                    disabled={testingProvider === provider.provider_id}
+                  >
+                    {testingProvider === provider.provider_id ? 'Testing...' : 'Test'}
+                  </button>
+                {/if}
                 <button
                   class="btn btn-small"
-                  onclick={() => editingKey === provider.id ? cancelEdit() : startEditKey(provider.id)}
+                  onclick={() => editingKey === provider.provider_id ? cancelEdit() : startEditKey(provider.provider_id)}
                 >
-                  {editingKey === provider.id ? 'Cancel' : (provider.apiKey ? 'Edit' : 'Configure')}
+                  {editingKey === provider.provider_id ? 'Cancel' : (provider.has_key ? 'Edit Key' : 'Add Key')}
                 </button>
-              {/if}
+              </div>
             </div>
 
-            {#if provider.id === 'ollama'}
+            {#if provider.has_key && editingKey !== provider.provider_id}
               <div class="provider-detail">
-                <span class="detail-label">Endpoint:</span>
-                <span class="detail-value">{provider.baseUrl || 'http://localhost:11434'}</span>
+                <span class="detail-label">Key:</span>
+                <span class="detail-value mono">{provider.key_preview || '****'}</span>
+                <span class="detail-label" style="margin-left: 12px;">Models:</span>
+                <span class="detail-value">{provider.models.length}</span>
               </div>
-              <p class="provider-note">
-                Ollama runs locally and requires no API key. Make sure it's running
-                with <code>ollama serve</code>.
-              </p>
-            {:else if provider.apiKey && editingKey !== provider.id}
-              <div class="provider-detail">
-                <span class="detail-label">API Key:</span>
-                <span class="detail-value">
-                  {showKeyFor === provider.id ? provider.apiKey : maskKey(provider.apiKey)}
-                </span>
-                <button class="btn-icon" onclick={() => toggleKeyVisibility(provider.id)}>
-                  {showKeyFor === provider.id ? 'Hide' : 'Show'}
-                </button>
-              </div>
-              {#if provider.baseUrl}
-                <div class="provider-detail">
-                  <span class="detail-label">Base URL:</span>
-                  <span class="detail-value">{provider.baseUrl}</span>
-                </div>
-              {/if}
             {/if}
 
-            {#if editingKey === provider.id}
+            {#if testResults[provider.provider_id] && editingKey !== provider.provider_id}
+              {@const tr = testResults[provider.provider_id]}
+              <div class="test-result" class:ok={tr.ok} class:fail={!tr.ok}>
+                {#if tr.ok}
+                  OK ({tr.latency_ms}ms) — {tr.model_used}
+                {:else}
+                  Failed: {tr.error}
+                {/if}
+              </div>
+            {/if}
+
+            {#if editingKey === provider.provider_id}
               <div class="edit-form">
                 <div class="form-group">
-                  <label for="key-{provider.id}">API Key</label>
+                  <label for="key-{provider.provider_id}">API Key</label>
                   <input
-                    id="key-{provider.id}"
+                    id="key-{provider.provider_id}"
                     type="password"
                     bind:value={keyInput}
-                    placeholder={provider.apiKeyEnvVar ? `Paste your ${provider.apiKeyEnvVar}` : 'Enter API key'}
+                    placeholder="Paste your API key"
                   />
                 </div>
-                {#if provider.id === 'openai_compat'}
-                  <div class="form-group">
-                    <label for="url-{provider.id}">Base URL</label>
-                    <input
-                      id="url-{provider.id}"
-                      type="text"
-                      bind:value={urlInput}
-                      placeholder="https://api.example.com/v1"
-                    />
-                  </div>
-                {/if}
                 <div class="edit-actions">
-                  <button class="btn btn-primary btn-small" onclick={() => saveKey(provider.id)}>
+                  <button class="btn btn-primary btn-small" onclick={() => saveKey(provider.provider_id)}>
                     Save
                   </button>
-                  {#if provider.apiKey}
-                    <button class="btn btn-danger btn-small" onclick={() => removeKey(provider.id)}>
+                  {#if provider.has_key && provider.key_source !== 'env'}
+                    <button class="btn btn-danger btn-small" onclick={() => removeKey(provider.provider_id)}>
                       Remove Key
                     </button>
                   {/if}
@@ -256,7 +268,67 @@
             {/if}
           </div>
         {/each}
+
+        {#if providerList.length === 0}
+          <p class="empty-state">Loading providers...</p>
+        {/if}
       </div>
+    </section>
+
+    <!-- Presets -->
+    <section class="settings-section">
+      <div class="section-header">Cloud Presets</div>
+      <p class="section-desc">
+        Presets control which agent roles use cloud LLMs. System presets auto-resolve
+        to your connected providers. Create custom presets for fine-grained control.
+      </p>
+
+      {#if systemPresets.length > 0}
+        <h3 class="subsection-label">System Presets</h3>
+        <div class="preset-list">
+          {#each systemPresets as sp}
+            <div class="preset-card system">
+              <div class="preset-header">
+                <span class="preset-name">{sp.name}</span>
+                <span class="preset-badge">System</span>
+              </div>
+              <span class="preset-desc">{sp.description}</span>
+              <span class="preset-roles">
+                {Object.keys(sp.role_configs).length} role{Object.keys(sp.role_configs).length !== 1 ? 's' : ''} configured
+              </span>
+            </div>
+          {/each}
+        </div>
+      {/if}
+
+      <h3 class="subsection-label" style="margin-top: 12px;">Custom Presets</h3>
+      {#if userPresets.length > 0}
+        <div class="preset-list">
+          {#each userPresets as up}
+            <div class="preset-card user">
+              <div class="preset-header">
+                <span class="preset-name">{up.name}</span>
+                <div class="preset-actions">
+                  <button class="btn btn-small" onclick={() => openEditPreset(up)}>Edit</button>
+                  <button class="btn btn-small btn-danger" onclick={() => handleDeletePreset(up.id)}>Delete</button>
+                </div>
+              </div>
+              {#if up.description}
+                <span class="preset-desc">{up.description}</span>
+              {/if}
+              <span class="preset-roles">
+                {Object.keys(up.role_configs).length} role{Object.keys(up.role_configs).length !== 1 ? 's' : ''} configured
+              </span>
+            </div>
+          {/each}
+        </div>
+      {:else}
+        <p class="empty-state" style="padding: 8px 0;">No custom presets yet.</p>
+      {/if}
+
+      <button class="btn btn-primary" style="margin-top: 8px;" onclick={openCreatePreset}>
+        + Create Custom Preset
+      </button>
     </section>
 
     <!-- Display Settings -->
@@ -335,8 +407,8 @@
 
       {#if showAdvanced}
         <p class="section-desc">
-          Shows which LLM model each agent uses. Change models via environment variables
-          (e.g. <code>STORYTELLER_NARRATOR_MODEL=claude-sonnet-4-5-20250929</code>) or cloud presets.
+          Shows which LLM model each agent currently uses. Override individual agents
+          via custom presets or per-campaign settings.
         </p>
 
         {#if loadingAgents}
@@ -372,9 +444,17 @@
     </section>
 
     <!-- Version -->
-    <p class="version-info">Storyteller AI v2.16</p>
+    <p class="version-info">Storyteller AI v12.0</p>
   </div>
 </div>
+
+{#if showPresetEditor}
+  <PresetEditor
+    preset={editingPreset}
+    onSave={handlePresetSave}
+    onCancel={() => { showPresetEditor = false; editingPreset = null; }}
+  />
+{/if}
 
 <style>
   .settings-page {
@@ -442,6 +522,17 @@
     line-height: 1.5;
   }
 
+  .connected-badge {
+    display: inline-block;
+    background: rgba(0, 200, 100, 0.12);
+    color: #4ade80;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    margin-left: 4px;
+  }
+
   /* Provider cards */
   .provider-list {
     display: flex;
@@ -465,13 +556,19 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 6px;
+    gap: 8px;
   }
 
   .provider-info {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex: 1;
+  }
+
+  .provider-actions {
+    display: flex;
+    gap: 6px;
   }
 
   .provider-name {
@@ -510,43 +607,32 @@
 
   .detail-label {
     color: var(--text-muted);
-    min-width: 60px;
   }
 
   .detail-value {
     color: var(--text-secondary);
+  }
+
+  .detail-value.mono {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.8rem;
   }
 
-  .btn-icon {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 0.7rem;
-    cursor: pointer;
-    padding: 2px 6px;
-    font-family: inherit;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .btn-icon:hover {
-    color: var(--text-secondary);
-  }
-
-  .provider-note {
+  .test-result {
     font-size: var(--font-small);
-    color: var(--text-muted);
+    padding: 4px 10px;
     margin-top: 6px;
-    line-height: 1.4;
+    border-radius: 4px;
   }
 
-  .provider-note code {
-    background: var(--bg-input);
-    padding: 1px 6px;
-    border-radius: 4px;
-    font-size: 0.8rem;
+  .test-result.ok {
+    color: #4ade80;
+    background: rgba(0, 200, 100, 0.06);
+  }
+
+  .test-result.fail {
+    color: var(--accent-danger);
+    background: rgba(255, 80, 60, 0.06);
   }
 
   .edit-form {
@@ -586,6 +672,70 @@
 
   .btn-danger:hover {
     background: rgba(255, 80, 60, 0.1);
+  }
+
+  /* Presets */
+  .subsection-label {
+    font-size: var(--font-small);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 6px;
+    font-weight: 600;
+  }
+
+  .preset-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .preset-card {
+    padding: 10px 14px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--panel-radius);
+    background: var(--bg-panel);
+  }
+
+  .preset-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .preset-name {
+    font-weight: 600;
+    color: var(--text-heading);
+    font-size: var(--font-body);
+  }
+
+  .preset-badge {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    border: 1px solid var(--border-subtle);
+    padding: 1px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .preset-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .preset-desc {
+    display: block;
+    font-size: var(--font-small);
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .preset-roles {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 4px;
   }
 
   /* Display settings */

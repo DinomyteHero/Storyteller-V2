@@ -185,23 +185,20 @@ def make_director_node():
         except Exception as _hub_err:
             logger.debug("Hub system check failed (non-fatal): %s", _hub_err)
 
-        # V9.0: Per-campaign cloud quality override for Director
-        _cloud_preset = getattr(gs, "cloud_preset", None)
+        # V12.0: Unified cloud resolution for Director
         _turn_director = director
-        if _cloud_preset and _cloud_preset != "local":
-            from backend.app.config import resolve_cloud_config
-            _cloud_cfg = resolve_cloud_config("director", _cloud_preset)
-            if _cloud_cfg:
-                try:
-                    _cloud_llm = AgentLLM("director", config_override=_cloud_cfg)
-                    _turn_director = DirectorAgent(
-                        llm=_cloud_llm,
-                        style_retriever=style_retriever,
-                        lore_retriever=lore_retriever,
-                    )
-                    logger.info("Using cloud LLM for director (preset=%s)", _cloud_preset)
-                except Exception as _e:
-                    logger.warning("Cloud director init failed, using default: %s", _e)
+        try:
+            from backend.app.core.nodes._cloud_helper import make_turn_llm
+            _conn = state.get("__runtime_conn")
+            _turn_llm = make_turn_llm("director", gs, _conn)
+            if _turn_llm is not director._llm if hasattr(director, "_llm") else True:
+                _turn_director = DirectorAgent(
+                    llm=_turn_llm,
+                    style_retriever=style_retriever,
+                    lore_retriever=lore_retriever,
+                )
+        except Exception as _e:
+            logger.warning("Cloud director init failed, using default: %s", _e)
 
         arc_guidance = state.get("arc_guidance") or {}
         instructions, _plan_suggestions = _turn_director.plan(gs, kg_context=kg_context, arc_guidance=arc_guidance)

@@ -18,6 +18,8 @@ export class ApiError extends Error {
 export interface HealthDetailResponse {
   status: 'healthy' | 'degraded';
   ok: boolean;
+  cloud_ready?: boolean;
+  llm_ready?: boolean;
   checks?: {
     ollama?: {
       ok: boolean;
@@ -28,6 +30,15 @@ export interface HealthDetailResponse {
       models_loaded?: number;
       required_models?: string[];
       missing_required_models?: string[];
+    };
+    cloud_providers?: {
+      ok: boolean;
+      cloud_ready: boolean;
+      providers: Record<string, {
+        has_key: boolean;
+        key_source: 'db' | 'env' | null;
+        label: string;
+      }>;
     };
     [key: string]: unknown;
   };

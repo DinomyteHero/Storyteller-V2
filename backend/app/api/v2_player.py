@@ -274,7 +274,21 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest) -> dict[s
         next_campaign_pitch = ""
         try:
             from backend.app.core.agents.base import AgentLLM
-            llm = AgentLLM("campaign_init")
+            # V12.0: Cloud resolution for pitch generation
+            llm = None
+            try:
+                from backend.app.core.provider_resolver import make_agent_llm
+                _pitch_settings = {
+                    "cloud_preset": ws.get("cloud_preset"),
+                    "preferred_provider": ws.get("preferred_provider"),
+                    "custom_preset_id": ws.get("custom_preset_id"),
+                    "agent_overrides": ws.get("agent_overrides"),
+                }
+                llm = make_agent_llm("campaign_init", _pitch_settings, conn)
+            except Exception:
+                pass
+            if llm is None:
+                llm = AgentLLM("campaign_init")
             hooks_text = "; ".join(dangling_hooks[:5]) if dangling_hooks else "no unresolved threads"
             pitch_prompt = (
                 "Based on a completed RPG campaign, write a 1-2 sentence hook for the NEXT campaign.\n"
@@ -442,7 +456,21 @@ def era_transition(campaign_id: str, body: EraTransitionRequest) -> dict[str, An
         except (FileNotFoundError, KeyError, TypeError, ValueError):
             logger.debug("Setting rules lookup failed (non-fatal)", exc_info=True)
 
-        agent = EraTransitionSceneAgent()
+        # V12.0: Cloud resolution for EraTransitionSceneAgent
+        _era_scene_llm = None
+        try:
+            from backend.app.core.provider_resolver import make_agent_llm
+            _era_scene_settings = {
+                "cloud_preset": ws.get("cloud_preset"),
+                "preferred_provider": ws.get("preferred_provider"),
+                "custom_preset_id": ws.get("custom_preset_id"),
+                "agent_overrides": ws.get("agent_overrides"),
+            }
+            _era_scene_llm = make_agent_llm("era_transition_scene", _era_scene_settings, conn)
+        except Exception as _era_scene_err:
+            logger.debug("EraTransitionScene cloud resolution failed, using default: %s", _era_scene_err)
+
+        agent = EraTransitionSceneAgent(llm=_era_scene_llm)
         transition_scene = agent.generate(
             from_era=current_era, to_era=to_era,
             arc_consequences=arc_consequences, player=player,
@@ -582,11 +610,19 @@ def get_campaign_codex(campaign_id: str) -> dict[str, Any]:
 class CampaignSettings(BaseModel):
     narrator_mode: str = "concise"
     cloud_preset: str = "local"
+    # V12.0: Extended cloud settings
+    custom_preset_id: str | None = None
+    preferred_provider: str | None = None
+    agent_overrides: dict | None = None  # {"role": {"provider": "...", "model": "..."}}
 
 
 class CampaignSettingsResponse(BaseModel):
     narrator_mode: str
     cloud_preset: str
+    # V12.0: Extended cloud settings
+    custom_preset_id: str | None = None
+    preferred_provider: str | None = None
+    agent_overrides: dict | None = None
 
 
 @router.get("/campaigns/{campaign_id}/settings", response_model=CampaignSettingsResponse)
@@ -608,7 +644,13 @@ def get_campaign_settings(campaign_id: str):
         from backend.app.config import VALID_CLOUD_PRESETS
         if cloud_preset not in VALID_CLOUD_PRESETS:
             cloud_preset = "local"
-        return CampaignSettingsResponse(narrator_mode=narrator_mode, cloud_preset=cloud_preset)
+        return CampaignSettingsResponse(
+            narrator_mode=narrator_mode,
+            cloud_preset=cloud_preset,
+            custom_preset_id=ws.get("custom_preset_id"),
+            preferred_provider=ws.get("preferred_provider"),
+            agent_overrides=ws.get("agent_overrides"),
+        )
     finally:
         conn.close()
 
@@ -630,6 +672,26 @@ def patch_campaign_settings(campaign_id: str, body: CampaignSettings):
             detail=f"Invalid cloud_preset. Must be one of: {VALID_CLOUD_PRESETS}",
         )
 
+    # V12.0: Validate provider references
+    if body.preferred_provider:
+        from backend.app.core.provider_registry import CLOUD_PROVIDERS
+        if body.preferred_provider not in CLOUD_PROVIDERS and body.preferred_provider != "ollama":
+            raise HTTPException(
+                status_code=422,
+                detail=f"Invalid preferred_provider: {body.preferred_provider}",
+            )
+
+    if body.agent_overrides and isinstance(body.agent_overrides, dict):
+        from backend.app.core.provider_registry import CLOUD_PROVIDERS
+        for role, cfg in body.agent_overrides.items():
+            if isinstance(cfg, dict) and cfg.get("provider"):
+                pid = cfg["provider"]
+                if pid not in CLOUD_PROVIDERS and pid != "ollama":
+                    raise HTTPException(
+                        status_code=422,
+                        detail=f"Invalid provider '{pid}' in agent_overrides for role '{role}'",
+                    )
+
     conn = _get_conn()
     try:
         campaign = load_campaign(conn, campaign_id)
@@ -640,6 +702,19 @@ def patch_campaign_settings(campaign_id: str, body: CampaignSettings):
             ws = json.loads(ws)
         ws["narrator_mode"] = body.narrator_mode
         ws["cloud_preset"] = body.cloud_preset
+        # V12.0: Persist extended cloud settings
+        if body.custom_preset_id is not None:
+            ws["custom_preset_id"] = body.custom_preset_id
+        elif body.cloud_preset != "custom":
+            ws.pop("custom_preset_id", None)
+        if body.preferred_provider is not None:
+            ws["preferred_provider"] = body.preferred_provider
+        else:
+            ws.pop("preferred_provider", None)
+        if body.agent_overrides is not None:
+            ws["agent_overrides"] = body.agent_overrides
+        else:
+            ws.pop("agent_overrides", None)
         conn.execute(
             "UPDATE campaigns SET world_state_json = ? WHERE id = ?",
             (json.dumps(ws), campaign_id),
@@ -648,6 +723,9 @@ def patch_campaign_settings(campaign_id: str, body: CampaignSettings):
         return CampaignSettingsResponse(
             narrator_mode=body.narrator_mode,
             cloud_preset=body.cloud_preset,
+            custom_preset_id=ws.get("custom_preset_id"),
+            preferred_provider=ws.get("preferred_provider"),
+            agent_overrides=ws.get("agent_overrides"),
         )
     finally:
         conn.close()

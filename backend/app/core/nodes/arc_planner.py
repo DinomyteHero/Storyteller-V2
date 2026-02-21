@@ -81,6 +81,7 @@ def _determine_arc_stage_dynamic(
     current_stage: str | None,
     stage_start_turn: int,
     recent_narrative: str = "",
+    llm: Any | None = None,
 ) -> tuple[str, bool, dict]:
     """Determine arc stage using LLM semantic analysis with min/max safety guards.
 
@@ -124,6 +125,7 @@ def _determine_arc_stage_dynamic(
             open_threads=threads[-8:],
             consequence_hints=consequence_hints[:5],
             recent_narrative=recent_narrative,
+            llm=llm,
         )
         if result.get("should_advance"):
             idx = _STAGE_ORDER.index(current_stage) if current_stage in _STAGE_ORDER else 0
@@ -594,10 +596,22 @@ def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
         return {**state, "arc_guidance": arc_guidance}
 
     # ── Normal arc stage progression ──────────────────────────────────
+    # V12.0: Unified cloud resolution for ArcWeaver LLM
+    _arc_llm = None
+    try:
+        from backend.app.core.nodes._cloud_helper import make_turn_llm
+        from backend.app.core.nodes import dict_to_state
+        _arc_gs = dict_to_state(state)
+        _arc_conn = state.get("__runtime_conn")
+        _arc_llm = make_turn_llm("arc_weaver", _arc_gs, _arc_conn)
+    except Exception as _arc_cloud_err:
+        logger.debug("ArcWeaver cloud resolution failed, using default: %s", _arc_cloud_err)
+
     recent_narrative = "\n".join((state.get("recent_narrative") or [])[-2:])[:500]
     arc_stage, transition_occurred, arc_weaver_result = _determine_arc_stage_dynamic(
         turn_number, ledger, current_stage, stage_start_turn,
         recent_narrative=recent_narrative,
+        llm=_arc_llm,
     )
 
     if transition_occurred:

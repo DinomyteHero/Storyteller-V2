@@ -69,6 +69,11 @@ class SetupAutoRequest(BaseModel):
     species_id: str | None = None
     # Phase 6.1: Quick Start setup path (auto-defaults for missing fields).
     quick_start: bool = False
+    # V12.0: Cloud LLM settings for setup agents
+    cloud_preset: str | None = None  # "local" | "budget" | "balanced" | "quality" | "custom"
+    preferred_provider: str | None = None
+    custom_preset_id: str | None = None
+    agent_overrides: dict | None = None
 
 
 class SetupAutoResponse(BaseModel):

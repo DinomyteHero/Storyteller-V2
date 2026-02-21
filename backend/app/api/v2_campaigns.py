@@ -144,13 +144,33 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
     time.perf_counter()
     try:
         apply_quick_start_defaults(body)
+
+        # V12.0: Build campaign settings for cloud resolution of setup agents
+        _setup_campaign_settings = {
+            "cloud_preset": getattr(body, "cloud_preset", None),
+            "preferred_provider": getattr(body, "preferred_provider", None),
+            "custom_preset_id": getattr(body, "custom_preset_id", None),
+            "agent_overrides": getattr(body, "agent_overrides", None),
+        }
+
+        def _setup_llm(role: str) -> AgentLLM | None:
+            """Resolve LLM for a setup agent via cloud provider chain."""
+            try:
+                from backend.app.core.provider_resolver import make_agent_llm
+                return make_agent_llm(role, _setup_campaign_settings, conn)
+            except Exception:
+                try:
+                    return AgentLLM(role)
+                except Exception:
+                    return None
+
         try:
-            _bible = CampaignBibleAgent(llm=AgentLLM("bible"))
+            _bible = CampaignBibleAgent(llm=_setup_llm("bible"))
         except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
             logger.warning("Failed to initialize CampaignBibleAgent with LLM, using fallback: %s", e, exc_info=True)
             _bible = CampaignBibleAgent(llm=None)
         try:
-            _bio = BiographerAgent(llm=AgentLLM("biographer"))
+            _bio = BiographerAgent(llm=_setup_llm("biographer"))
         except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
             logger.warning("Failed to initialize BiographerAgent with LLM, using fallback: %s", e, exc_info=True)
             _bio = BiographerAgent(llm=None)
@@ -200,11 +220,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         ):
             try:
                 from backend.app.core.agents.era_forge_agent import EraForgeAgent
-                _era_forge_llm: AgentLLM | None = None
-                try:
-                    _era_forge_llm = AgentLLM("era_forge")
-                except (ConnectionError, TimeoutError, OSError, RuntimeError):
-                    logger.debug("EraForge LLM init failed, using None", exc_info=True)
+                _era_forge_llm = _setup_llm("era_forge")
                 _forge_agent = EraForgeAgent(llm=_era_forge_llm)
 
                 _loc_hints: list[str] = []
@@ -486,7 +502,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
 
         try:
             from backend.app.core.agents.arc_screenplay_agent import ArcScreenplayAgent
-            _arc_agent = ArcScreenplayAgent()
+            _arc_agent = ArcScreenplayAgent(llm=_setup_llm("arc_screenplay"))
             _arc_screenplay = _arc_agent.generate(
                 era_pack=era_pack_for_setup,
                 player_concept=body.player_concept or "",
@@ -506,7 +522,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         try:
             from backend.app.core.agents.prologue_agent import PrologueScreenplayAgent
             from backend.app.core.prologue_engine import initialize_prologue
-            _prologue_agent = PrologueScreenplayAgent(llm=AgentLLM("prologue"))
+            _prologue_agent = PrologueScreenplayAgent(llm=_setup_llm("prologue"))
             _prologue_screenplay = _prologue_agent.generate(
                 background_id=body.background_id or "",
                 species_id=body.species_id or "",

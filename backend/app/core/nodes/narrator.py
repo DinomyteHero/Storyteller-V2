@@ -88,27 +88,20 @@ def make_narrator_node():
         _narrator_logger = _logging.getLogger(__name__)
         gs = dict_to_state(state)
 
-        # V9.0: Per-campaign cloud quality override — use a turn-scoped narrator if needed
-        _cloud_preset = getattr(gs, "cloud_preset", None)
-        if _cloud_preset and _cloud_preset != "local":
-            from backend.app.config import resolve_cloud_config
-            _cloud_cfg = resolve_cloud_config("narrator", _cloud_preset)
-            if _cloud_cfg:
-                try:
-                    _cloud_llm = AgentLLM("narrator", config_override=_cloud_cfg)
-                    _turn_narrator = NarratorAgent(
-                        llm=_cloud_llm,
-                        lore_retriever=lore_retriever,
-                        voice_retriever=voice_retriever,
-                        style_retriever=style_retriever_fn,
-                    )
-                    _narrator_logger.info("Using cloud LLM for narrator (preset=%s)", _cloud_preset)
-                except Exception as _e:
-                    _narrator_logger.warning("Cloud narrator init failed, using default: %s", _e)
-                    _turn_narrator = narrator
-            else:
-                _turn_narrator = narrator
-        else:
+        # V12.0: Unified cloud resolution for Narrator
+        _turn_narrator = narrator
+        try:
+            from backend.app.core.nodes._cloud_helper import make_turn_llm
+            _conn = state.get("__runtime_conn")
+            _turn_llm = make_turn_llm("narrator", gs, _conn)
+            _turn_narrator = NarratorAgent(
+                llm=_turn_llm,
+                lore_retriever=lore_retriever,
+                voice_retriever=voice_retriever,
+                style_retriever=style_retriever_fn,
+            )
+        except Exception as _e:
+            _narrator_logger.warning("Cloud narrator init failed, using default: %s", _e)
             _turn_narrator = narrator
         nonlocal retrieval_guardrails
         campaign_dict_for_guardrails = getattr(gs, "campaign", None) or {}

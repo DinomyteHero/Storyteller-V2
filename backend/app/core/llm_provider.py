@@ -329,27 +329,53 @@ def create_provider(
 ) -> Any:
     """Factory: create an LLM provider client by name.
 
-    Supported providers: 'ollama', 'anthropic', 'openai', 'openai_compat'.
+    V12.0: Supports named cloud providers (anthropic, openai, xai, deepseek, google)
+    in addition to ollama and generic openai_compat.  Named providers auto-resolve
+    their base_url and client type from the provider registry.
+
+    Supported: 'ollama', 'anthropic', 'openai', 'openai_compat',
+               'xai', 'deepseek', 'google'.
     """
+    from backend.app.core.provider_registry import CLOUD_PROVIDERS
+
     effective_timeout = timeout or _DEFAULT_TIMEOUT
+
     if provider == "ollama":
         from backend.llm_client import LLMClient
         return LLMClient(base_url=base_url or None, model=model, timeout=effective_timeout)
-    elif provider == "anthropic":
-        return AnthropicClient(
-            model=model,
-            api_key=api_key or None,
-            base_url=base_url or None,
-            timeout=effective_timeout,
-        )
-    elif provider in ("openai", "openai_compat"):
+
+    # Check the cloud provider registry for named providers
+    if provider in CLOUD_PROVIDERS:
+        registry = CLOUD_PROVIDERS[provider]
+        effective_base_url = base_url or registry["base_url"]
+        client_type = registry["client_type"]
+
+        if client_type == "anthropic":
+            return AnthropicClient(
+                model=model,
+                api_key=api_key or None,
+                base_url=effective_base_url or None,
+                timeout=effective_timeout,
+            )
+        else:
+            # openai_compat covers: openai, xai, deepseek, google
+            return OpenAICompatClient(
+                model=model,
+                api_key=api_key or None,
+                base_url=effective_base_url or None,
+                timeout=effective_timeout,
+            )
+
+    # Legacy: bare openai_compat without registry entry
+    if provider == "openai_compat":
         return OpenAICompatClient(
             model=model,
             api_key=api_key or None,
             base_url=base_url or None,
             timeout=effective_timeout,
         )
-    else:
-        raise NotImplementedError(
-            f"Provider '{provider}' not supported. Supported: ollama, anthropic, openai, openai_compat."
-        )
+
+    raise NotImplementedError(
+        f"Provider '{provider}' not supported. "
+        f"Supported: ollama, {', '.join(CLOUD_PROVIDERS.keys())}, openai_compat."
+    )

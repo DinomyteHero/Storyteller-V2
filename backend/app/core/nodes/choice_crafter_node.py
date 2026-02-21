@@ -375,6 +375,15 @@ def make_choice_crafter_node():
         # GM Context Object (from scene_frame_node)
         gm_context = str(pre_context.get("gm_context") or state.get("gm_context") or "")
 
+        # V12.0: Unified cloud resolution for ChoiceCrafter
+        _cc_llm = None
+        try:
+            from backend.app.core.nodes._cloud_helper import make_turn_llm
+            _conn = state.get("__runtime_conn")
+            _cc_llm = make_turn_llm("choice_crafter", gs, _conn)
+        except Exception as _cc_e:
+            logger.debug("Cloud choice_crafter init skipped: %s", _cc_e)
+
         # Generate choices via LLM (with degraded 4-choice fallback on failure)
         _use_fallback = False
         try:
@@ -396,6 +405,7 @@ def make_choice_crafter_node():
                 stat_summary=stat_summary,
                 setting_style=setting_style,
                 gm_context=gm_context,
+                llm=_cc_llm,
             )
         except Exception as e:
             logger.warning("ChoiceCrafter LLM failed (%s); using 4-choice degraded fallback", e)

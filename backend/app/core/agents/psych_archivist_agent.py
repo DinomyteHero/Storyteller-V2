@@ -230,8 +230,8 @@ class PsychArchivistAgent:
     No deterministic fallback. If the LLM fails, the exception propagates.
     """
 
-    def __init__(self) -> None:
-        self._llm = AgentLLM("psych_archivist")
+    def __init__(self, llm=None) -> None:
+        self._llm = llm if llm is not None else AgentLLM("psych_archivist")
 
     def update(
         self,

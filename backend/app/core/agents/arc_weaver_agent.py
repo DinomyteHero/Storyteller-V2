@@ -65,13 +65,17 @@ def evaluate_arc_transition(
     consequence_hints: list[str],
     recent_narrative: str = "",
     player_tone_pattern: str = "",
+    llm: Any | None = None,
 ) -> dict[str, Any]:
     """Evaluate whether the arc should advance using LLM semantic analysis.
 
     Returns dict with: should_advance, justification, pacing_note, theme_note.
     Raises on LLM failure.
+
+    V12.0: Optional ``llm`` parameter allows cloud-resolved AgentLLM injection.
     """
-    llm = AgentLLM("arc_weaver")
+    if llm is None:
+        llm = AgentLLM("arc_weaver")
 
     parts = [
         f"CURRENT STAGE: {current_stage}",

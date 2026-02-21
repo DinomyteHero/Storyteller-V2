@@ -35,6 +35,17 @@
     },
   ] as const;
 
+  import { presets, type Preset } from '$lib/stores/presets';
+  import { goto } from '$app/navigation';
+
+  let presetList = $state<Preset[]>([]);
+  presets.subscribe((val) => { presetList = val; });
+
+  // Load presets on mount
+  $effect(() => {
+    presets.load();
+  });
+
   const CLOUD_PRESETS = [
     {
       value: 'local' as const,
@@ -61,6 +72,8 @@
       cost: '~$0.05/turn',
     },
   ] as const;
+
+  $: userPresets = presetList.filter((p) => !p.is_system);
 
   onMount(async () => {
     const cid = $campaignId;
@@ -156,7 +169,25 @@
         <span class="setting-card-desc">{preset.desc}</span>
       </button>
     {/each}
+    {#each userPresets as up}
+      <button
+        class="setting-card"
+        class:active={cloudPreset === 'custom'}
+        onclick={() => setCloudPreset('custom')}
+        disabled={saving}
+      >
+        <div class="setting-card-header">
+          <span class="setting-card-label">{up.name}</span>
+          <span class="setting-card-badge">Custom</span>
+        </div>
+        <span class="setting-card-desc">{up.description || `${Object.keys(up.role_configs).length} roles configured`}</span>
+      </button>
+    {/each}
   </div>
+
+  <button class="settings-link" onclick={() => goto('/settings')}>
+    Manage providers & presets
+  </button>
 
   {#if saving}
     <p class="save-status">Saving...</p>
@@ -257,5 +288,23 @@
     font-size: var(--font-small, 0.8rem);
     color: var(--color-renegade, #ff4a4a);
     margin-top: 8px;
+  }
+
+  .settings-link {
+    display: block;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: var(--font-small, 0.8rem);
+    cursor: pointer;
+    padding: 4px 0;
+    margin-top: 4px;
+    font-family: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--border-subtle);
+  }
+
+  .settings-link:hover {
+    color: var(--text-secondary);
   }
 </style>

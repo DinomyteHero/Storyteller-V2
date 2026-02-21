@@ -295,6 +295,11 @@ def build_initial_gamestate(
     _narrator_mode = ws.get("narrator_mode") or None
     _cloud_preset = ws.get("cloud_preset") or None
 
+    # V12.0: Load cloud-agnostic provider settings
+    _custom_preset_id = ws.get("custom_preset_id") or None
+    _preferred_provider = ws.get("preferred_provider") or None
+    _agent_overrides = ws.get("agent_overrides") or None
+
     return GameState(
         campaign_id=campaign_id,
         player_id=player_id,
@@ -310,4 +315,7 @@ def build_initial_gamestate(
         known_npcs=_known_npcs,
         narrator_mode=_narrator_mode,
         cloud_preset=_cloud_preset,
+        custom_preset_id=_custom_preset_id,
+        preferred_provider=_preferred_provider,
+        agent_overrides=_agent_overrides,
     )

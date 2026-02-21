@@ -20,6 +20,7 @@ from backend.app.api.v2_player import router as player_router
 from backend.app.api.v2_eraforge import router as eraforge_router
 from backend.app.api.v2_export import router as export_router
 from backend.app.api.v2_library import router as library_router
+from backend.app.api.v2_settings import router as settings_router
 from backend.app.config import DEFAULT_DB_PATH, MODEL_CONFIG
 from backend.app.core.error_handling import create_error_response, log_error_with_context
 from backend.app.db.migrate import apply_schema
@@ -230,11 +231,58 @@ def _collect_environment_diagnostics() -> dict:
     checks["db_mode"] = db_checks
     checks["migrations"] = migration_checks
 
-    critical_checks = ["ollama", "data_root", "era_packs", "db_mode", "migrations"]
-    overall_ok = all(bool((checks.get(k) or {}).get("ok")) for k in critical_checks)
+    # V12.0: Cloud provider diagnostics
+    cloud_providers_diag: dict[str, Any] = {}
+    cloud_ready = False
+    try:
+        from backend.app.core.provider_registry import CLOUD_PROVIDERS, resolve_api_key
+        _diag_conn = None
+        try:
+            _diag_conn = sqlite3.connect(str(DEFAULT_DB_PATH))
+            _diag_conn.row_factory = sqlite3.Row
+        except Exception:
+            pass
+        for pid, pinfo in CLOUD_PROVIDERS.items():
+            key = resolve_api_key(pid, _diag_conn) if _diag_conn else None
+            has_key = bool(key)
+            key_source = None
+            if has_key and _diag_conn:
+                try:
+                    row = _diag_conn.execute(
+                        "SELECT 1 FROM provider_keys WHERE provider_id = ?", (pid,)
+                    ).fetchone()
+                    key_source = "db" if row else "env"
+                except Exception:
+                    key_source = "env"
+            if has_key:
+                cloud_ready = True
+            cloud_providers_diag[pid] = {
+                "has_key": has_key,
+                "key_source": key_source,
+                "label": pinfo.get("label", pid),
+            }
+        if _diag_conn:
+            _diag_conn.close()
+    except Exception as _cp_err:
+        cloud_providers_diag["_error"] = str(_cp_err)
+
+    checks["cloud_providers"] = {
+        "ok": cloud_ready,
+        "cloud_ready": cloud_ready,
+        "providers": cloud_providers_diag,
+    }
+
+    # V12.0: Ollama is non-critical when cloud providers are available
+    ollama_ok = bool((checks.get("ollama") or {}).get("ok"))
+    non_llm_checks = ["data_root", "era_packs", "db_mode", "migrations"]
+    overall_ok = all(bool((checks.get(k) or {}).get("ok")) for k in non_llm_checks)
     if not checks.get("lancedb_tables", {}).get("ok", False):
         overall_ok = False
-    return {"ok": overall_ok, "checks": checks}
+    # LLM readiness: either Ollama or cloud providers must be available
+    llm_ready = ollama_ok or cloud_ready
+    if not llm_ready:
+        overall_ok = False
+    return {"ok": overall_ok, "cloud_ready": cloud_ready, "llm_ready": llm_ready, "checks": checks}
 
 def _validate_environment() -> None:
     """Log environment health checks at startup. Never fails — graceful degradation."""
@@ -461,6 +509,7 @@ app.include_router(starships_api.router)
 app.include_router(eraforge_router)
 app.include_router(export_router)
 app.include_router(library_router)
+app.include_router(settings_router)
 
 
 @app.get("/")

@@ -46,6 +46,16 @@ def companion_reaction_node(state: dict[str, Any]) -> dict[str, Any]:
     from backend.app.core.agents.companion_system_agent import generate_companion_reactions
     from backend.app.world.companion_bible import get_companion_by_id
 
+    # V12.0: Unified cloud resolution for CompanionSystem
+    gs = dict_to_state(state)
+    _comp_llm = None
+    try:
+        from backend.app.core.nodes._cloud_helper import make_turn_llm
+        _conn = state.get("__runtime_conn")
+        _comp_llm = make_turn_llm("companion_system", gs, _conn)
+    except Exception as _comp_e:
+        logger.debug("Cloud companion_system init skipped: %s", _comp_e)
+
     affinity_map = campaign.get("party_affinity") or {}
     recent_narrative = state.get("final_text") or ""
 
@@ -56,6 +66,7 @@ def companion_reaction_node(state: dict[str, Any]) -> dict[str, Any]:
         mechanic_result=mechanic_result,
         companion_getter=get_companion_by_id,
         recent_narrative=recent_narrative,
+        llm=_comp_llm,
     )
 
     # Extract affinity deltas and reasons from LLM reactions

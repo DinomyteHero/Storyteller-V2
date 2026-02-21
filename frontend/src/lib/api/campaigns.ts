@@ -185,7 +185,10 @@ export async function getEraCompanions(
 
 export interface CampaignSettings {
   narrator_mode: 'concise' | 'novel' | 'epic';
-  cloud_preset: 'local' | 'budget' | 'balanced' | 'quality';
+  cloud_preset: 'local' | 'budget' | 'balanced' | 'quality' | 'custom';
+  custom_preset_id?: string | null;
+  preferred_provider?: string | null;
+  agent_overrides?: Record<string, { provider: string; model: string }> | null;
 }
 
 export async function getCampaignSettings(
@@ -203,5 +206,111 @@ export async function patchCampaignSettings(
   return apiFetch<CampaignSettings>(
     `/v2/campaigns/${encodeURIComponent(campaignId)}/settings`,
     { method: 'PATCH', body: JSON.stringify(settings) }
+  );
+}
+
+// ── V12.0: Cloud Provider Management ─────────────────────────────────
+
+export interface ProviderStatus {
+  provider_id: string;
+  label: string;
+  has_key: boolean;
+  key_source: 'db' | 'env' | null;
+  key_preview: string;
+  models: { id: string; label: string; tier: string }[];
+}
+
+export interface TestResult {
+  ok: boolean;
+  latency_ms: number;
+  error: string | null;
+  model_used: string | null;
+}
+
+export interface Preset {
+  id: string;
+  name: string;
+  description: string;
+  role_configs: Record<string, { provider?: string; model?: string; tier?: string }>;
+  is_system: boolean;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface ResolvedRoleConfig {
+  provider: string;
+  model: string;
+  source: 'override' | 'preset' | 'env' | 'default';
+}
+
+export async function getProviders(): Promise<ProviderStatus[]> {
+  return apiFetch<ProviderStatus[]>('/v2/settings/providers');
+}
+
+export async function setProviderKey(
+  providerId: string,
+  apiKey: string
+): Promise<ProviderStatus> {
+  return apiFetch<ProviderStatus>(
+    `/v2/settings/providers/${encodeURIComponent(providerId)}/key`,
+    { method: 'PUT', body: JSON.stringify({ api_key: apiKey }) }
+  );
+}
+
+export async function removeProviderKey(
+  providerId: string
+): Promise<ProviderStatus> {
+  return apiFetch<ProviderStatus>(
+    `/v2/settings/providers/${encodeURIComponent(providerId)}/key`,
+    { method: 'DELETE' }
+  );
+}
+
+export async function testProvider(
+  providerId: string
+): Promise<TestResult> {
+  return apiFetch<TestResult>(
+    `/v2/settings/providers/${encodeURIComponent(providerId)}/test`,
+    { method: 'POST' },
+    35_000
+  );
+}
+
+export async function getPresets(): Promise<Preset[]> {
+  return apiFetch<Preset[]>('/v2/settings/presets');
+}
+
+export async function createPreset(
+  name: string,
+  description: string,
+  roleConfigs: Record<string, { provider: string; model: string }>
+): Promise<Preset> {
+  return apiFetch<Preset>('/v2/settings/presets', {
+    method: 'POST',
+    body: JSON.stringify({ name, description, role_configs: roleConfigs }),
+  });
+}
+
+export async function updatePreset(
+  presetId: string,
+  updates: { name?: string; description?: string; role_configs?: Record<string, { provider: string; model: string }> }
+): Promise<Preset> {
+  return apiFetch<Preset>(
+    `/v2/settings/presets/${encodeURIComponent(presetId)}`,
+    { method: 'PUT', body: JSON.stringify(updates) }
+  );
+}
+
+export async function deletePreset(presetId: string): Promise<void> {
+  await apiFetch(`/v2/settings/presets/${encodeURIComponent(presetId)}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function getResolvedConfig(
+  campaignId: string
+): Promise<{ campaign_id: string; roles: Record<string, ResolvedRoleConfig> }> {
+  return apiFetch(
+    `/v2/settings/campaigns/${encodeURIComponent(campaignId)}/resolved_config`
   );
 }

@@ -130,48 +130,53 @@ def _model_config() -> dict[str, dict[str, str]]:
 
 MODEL_CONFIG = _model_config()
 
-# Hybrid cloud presets: recommended per-role provider configs for routing
-# quality-critical roles to cloud while keeping structural roles on local Ollama.
-# Cost estimates assume Anthropic Claude Sonnet pricing (~$3/$15 per 1M in/out tokens).
-# See docs/HYBRID_CLOUD_SETUP.md for full setup guide.
-HYBRID_CLOUD_PRESETS: dict[str, dict[str, dict[str, str]]] = {
-    # Budget: only Narrator on cloud (~$0.012/turn)
+# V12.0: Provider-agnostic tier-based presets.
+# Roles specify a quality tier, not a specific provider.  At runtime the resolver
+# picks the best available provider+model based on which API keys are configured.
+# See backend.app.core.provider_resolver for resolution logic.
+SYSTEM_PRESETS: dict[str, dict[str, dict[str, str]]] = {
+    # Budget: only Narrator on cloud (~$0.01/turn)
     "budget": {
-        "narrator": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+        "narrator": {"tier": "quality"},
     },
-    # Balanced: quality-critical quartet on cloud (~$0.022/turn)
+    # Balanced: quality-critical quartet on cloud (~$0.02/turn)
     "balanced": {
-        "director": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
-        "narrator": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
-        "choice_crafter": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
-        "mechanic": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+        "director": {"tier": "quality"},
+        "narrator": {"tier": "quality"},
+        "choice_crafter": {"tier": "fast"},
+        "mechanic": {"tier": "fast"},
     },
-    # Quality: all narrative + strategic roles on cloud (~$0.045/turn)
+    # Quality: all narrative + strategic roles on cloud (~$0.05/turn)
     "quality": {
-        "director": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
-        "narrator": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
-        "choice_crafter": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
-        "mechanic": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
-        "companion_system": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
-        "bible": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
-        "prologue": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
-        "era_forge": {"provider": "anthropic", "model": "claude-sonnet-4-5-20250929"},
+        "director": {"tier": "quality"},
+        "narrator": {"tier": "quality"},
+        "choice_crafter": {"tier": "quality"},
+        "mechanic": {"tier": "quality"},
+        "companion_system": {"tier": "quality"},
+        "bible": {"tier": "quality"},
+        "prologue": {"tier": "quality"},
+        "era_forge": {"tier": "quality"},
+        "origin": {"tier": "quality"},
+        "arc_screenplay": {"tier": "quality"},
     },
 }
 
-VALID_CLOUD_PRESETS: tuple[str, ...] = ("local", "budget", "balanced", "quality")
+# Deprecated: kept for backward compat with existing code referencing HYBRID_CLOUD_PRESETS.
+# New code should use SYSTEM_PRESETS + provider_resolver.
+HYBRID_CLOUD_PRESETS = SYSTEM_PRESETS
+
+VALID_CLOUD_PRESETS: tuple[str, ...] = ("local", "budget", "balanced", "quality", "custom")
 
 
 def resolve_cloud_config(role: str, cloud_preset: str | None) -> dict | None:
-    """Return per-role provider override dict for a cloud preset, or None.
+    """Deprecated: use provider_resolver.resolve_agent_config() instead.
 
-    Used by node factories to apply per-campaign cloud routing without
-    changing global MODEL_CONFIG.  Returns None when the preset is 'local',
-    absent, or doesn't include the requested role.
+    Kept for backward compatibility. Returns a tier dict for the role
+    within the given system preset, or None.
     """
     if not cloud_preset or cloud_preset == "local":
         return None
-    preset = HYBRID_CLOUD_PRESETS.get(cloud_preset)
+    preset = SYSTEM_PRESETS.get(cloud_preset)
     if not preset:
         return None
     return preset.get(role)  # None if role not in this preset tier

@@ -198,6 +198,7 @@ def generate_companion_reactions(
     mechanic_result: Any,
     companion_getter: Any,
     recent_narrative: str = "",
+    llm: Any | None = None,
 ) -> list[dict[str, Any]]:
     """Generate authoritative companion reactions via LLM.
 
@@ -205,6 +206,8 @@ def generate_companion_reactions(
     emotional_state, tension_with, banter_line.
 
     Raises on failure — no deterministic fallback.
+
+    V12.0: Optional ``llm`` parameter allows cloud-resolved AgentLLM injection.
     """
     if not party or not mechanic_result:
         return []
@@ -245,7 +248,8 @@ def generate_companion_reactions(
     if not companions:
         return []
 
-    llm = AgentLLM("companion_system")
+    if llm is None:
+        llm = AgentLLM("companion_system")
     user_prompt = _build_context(companions, mr, recent_narrative)
 
     raw = llm.complete(_SYSTEM_PROMPT, user_prompt, json_mode=True, raw_json_mode=True)

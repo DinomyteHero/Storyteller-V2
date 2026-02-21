@@ -1,13 +1,22 @@
 /**
- * LLM provider configuration store.
+ * LLM provider configuration store — V12.0 refactor.
  *
- * API keys are stored in localStorage (never sent to our backend
- * except as Authorization headers when cloud LLMs are used).
- * Provider configs are managed locally and synced to the backend
- * via the /settings endpoints.
+ * API keys are now stored in the backend DB (via /v2/settings/providers).
+ * This store is a thin cache over the backend API. No more localStorage keys.
  */
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
+import {
+  getProviders,
+  setProviderKey as apiSetKey,
+  removeProviderKey as apiRemoveKey,
+  testProvider as apiTestProvider,
+  type ProviderStatus,
+  type TestResult,
+} from '$lib/api/campaigns';
 
+export type { ProviderStatus };
+
+/** Re-export for backward compat with existing imports */
 export interface ProviderConfig {
   id: string;
   label: string;
@@ -17,121 +26,101 @@ export interface ProviderConfig {
   enabled: boolean;
 }
 
-export interface AgentModelAssignment {
-  role: string;
-  label: string;
-  provider: string;
-  model: string;
-}
-
 const STORAGE_KEY = 'storyteller-providers';
 
-const DEFAULT_PROVIDERS: ProviderConfig[] = [
-  {
-    id: 'ollama',
-    label: 'Ollama (Local)',
-    apiKeyEnvVar: '',
-    apiKey: '',
-    baseUrl: 'http://localhost:11434',
-    enabled: true,
-  },
-  {
-    id: 'anthropic',
-    label: 'Anthropic (Claude)',
-    apiKeyEnvVar: 'ANTHROPIC_API_KEY',
-    apiKey: '',
-    baseUrl: '',
-    enabled: false,
-  },
-  {
-    id: 'openai',
-    label: 'OpenAI',
-    apiKeyEnvVar: 'OPENAI_API_KEY',
-    apiKey: '',
-    baseUrl: '',
-    enabled: false,
-  },
-  {
-    id: 'openai_compat',
-    label: 'OpenAI-Compatible',
-    apiKeyEnvVar: '',
-    apiKey: '',
-    baseUrl: '',
-    enabled: false,
-  },
-];
-
-function loadProviders(): ProviderConfig[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored) as ProviderConfig[];
-      // Merge with defaults to handle new providers added in updates
-      return DEFAULT_PROVIDERS.map((def) => {
-        const saved = parsed.find((p) => p.id === def.id);
-        return saved ? { ...def, ...saved } : def;
-      });
-    }
-  } catch {
-    // Corrupted storage — use defaults
-  }
-  return DEFAULT_PROVIDERS.map((p) => ({ ...p }));
-}
-
-function saveProviders(providers: ProviderConfig[]) {
-  try {
-    // Strip API keys from anything that shouldn't be persisted
-    // (we DO persist them locally — they never leave the browser
-    // except as headers to the user's own backend)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(providers));
-  } catch {
-    // Storage full or unavailable
-  }
-}
-
 function createProviderStore() {
-  const { subscribe, set, update } = writable<ProviderConfig[]>(loadProviders());
+  const { subscribe, set, update } = writable<ProviderStatus[]>([]);
+  let loaded = false;
 
   return {
     subscribe,
-    updateProvider(id: string, changes: Partial<ProviderConfig>) {
-      update((providers) => {
-        const updated = providers.map((p) =>
-          p.id === id ? { ...p, ...changes } : p
-        );
-        saveProviders(updated);
-        return updated;
-      });
+
+    /** Fetch provider statuses from backend. Call on app init. */
+    async load() {
+      try {
+        const statuses = await getProviders();
+        set(statuses);
+        loaded = true;
+      } catch {
+        // Backend unreachable — leave empty, will retry
+      }
     },
+
+    /** Whether the store has been loaded at least once. */
+    get loaded() {
+      return loaded;
+    },
+
+    /** Set or update an API key in the backend DB. */
+    async setKey(providerId: string, apiKey: string): Promise<ProviderStatus | null> {
+      try {
+        const updated = await apiSetKey(providerId, apiKey);
+        update((list) =>
+          list.map((p) => (p.provider_id === providerId ? updated : p))
+        );
+        return updated;
+      } catch {
+        return null;
+      }
+    },
+
+    /** Remove an API key from the backend DB. */
+    async removeKey(providerId: string): Promise<ProviderStatus | null> {
+      try {
+        const updated = await apiRemoveKey(providerId);
+        update((list) =>
+          list.map((p) => (p.provider_id === providerId ? updated : p))
+        );
+        return updated;
+      } catch {
+        return null;
+      }
+    },
+
+    /** Test provider connectivity. */
+    async test(providerId: string): Promise<TestResult> {
+      return apiTestProvider(providerId);
+    },
+
+    /** Check if any cloud provider has a key configured. */
+    get hasAnyCloudKey(): boolean {
+      const list = get({ subscribe });
+      return list.some((p) => p.has_key);
+    },
+
+    /** Get list of provider IDs that have keys configured. */
+    getConnectedProviders(): ProviderStatus[] {
+      return get({ subscribe }).filter((p) => p.has_key);
+    },
+
+    // ── Backward compat shims ──────────────────────────────
+
+    /** @deprecated Use setKey() instead */
     setApiKey(id: string, key: string) {
-      update((providers) => {
-        const updated = providers.map((p) =>
-          p.id === id ? { ...p, apiKey: key, enabled: !!key || p.id === 'ollama' } : p
-        );
-        saveProviders(updated);
-        return updated;
-      });
+      // Fire-and-forget for backward compat (old wizard/settings code)
+      this.setKey(id, key);
     },
+
+    /** @deprecated Use removeKey() instead */
     removeApiKey(id: string) {
-      update((providers) => {
-        const updated = providers.map((p) =>
-          p.id === id ? { ...p, apiKey: '', enabled: p.id === 'ollama' } : p
-        );
-        saveProviders(updated);
-        return updated;
-      });
+      this.removeKey(id);
     },
+
+    /** @deprecated Use load() instead */
+    updateProvider(_id: string, _changes: Partial<ProviderConfig>) {
+      // No-op — base URLs are now in the backend registry
+    },
+
     reset() {
-      const defaults = DEFAULT_PROVIDERS.map((p) => ({ ...p }));
-      saveProviders(defaults);
-      set(defaults);
+      set([]);
+      loaded = false;
     },
   };
 }
 
 export const providers = createProviderStore();
 
-/** Get the list of enabled provider IDs */
-export function getEnabledProviders(providerList: ProviderConfig[]): string[] {
-  return providerList.filter((p) => p.enabled).map((p) => p.id);
+/** Get the list of connected provider IDs */
+export function getEnabledProviders(providerList: ProviderStatus[]): string[] {
+  return providerList.filter((p) => p.has_key).map((p) => p.provider_id);
 }

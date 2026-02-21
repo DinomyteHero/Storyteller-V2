@@ -111,6 +111,7 @@ def run_deferred_maintenance(
     state_snapshot: dict,
     events_snapshot: list,
     arc_guidance: dict | None,
+    campaign_settings: dict | None = None,
 ) -> None:
     """Run deferred maintenance agents in a background thread.
 
@@ -127,6 +128,7 @@ def run_deferred_maintenance(
         state_snapshot: Relevant subset of pipeline state (player, present_npcs, etc.)
         events_snapshot: Serialized events from this turn
         arc_guidance: Arc guidance dict from pipeline state
+        campaign_settings: Cloud LLM settings for provider resolution (V12.0)
     """
     def _background():
         try:
@@ -139,6 +141,7 @@ def run_deferred_maintenance(
                 state=state_snapshot,
                 events=events_snapshot,
                 arc_guidance=arc_guidance,
+                campaign_settings=campaign_settings,
             )
         except Exception as e:
             logger.error(
@@ -154,6 +157,27 @@ def run_deferred_maintenance(
     thread.start()
 
 
+def _resolve_deferred_llm(role: str, campaign_settings: dict | None, db_path: str):
+    """Resolve an AgentLLM for a deferred agent using campaign settings.
+
+    Creates a temporary DB connection for key resolution.
+    Returns None on failure (agent will use its default LLM).
+    """
+    if not campaign_settings:
+        return None
+    try:
+        from backend.app.core.provider_resolver import make_agent_llm
+        from backend.app.db.connection import get_connection
+        conn = get_connection(db_path)
+        try:
+            return make_agent_llm(role, campaign_settings, conn)
+        finally:
+            conn.close()
+    except Exception as e:
+        logger.debug("Deferred LLM resolution for %s failed: %s", role, e)
+        return None
+
+
 def _run_agents(
     db_path: str,
     campaign_id: str,
@@ -163,6 +187,7 @@ def _run_agents(
     state: dict,
     events: list,
     arc_guidance: dict | None,
+    campaign_settings: dict | None = None,
 ) -> None:
     """Execute the 4 deferred maintenance agents and write their patches."""
     import copy
@@ -183,9 +208,10 @@ def _run_agents(
     def _run_memory():
         if present_npcs and final_text:
             from backend.app.core.agents.memory_agent import MemoryAgent
+            _mem_llm = _resolve_deferred_llm("memory", campaign_settings, db_path)
             authoritative_call(
                 "MemoryAgent",
-                MemoryAgent().update,
+                MemoryAgent(llm=_mem_llm).update,
                 world_state=world_state,
                 final_text=final_text,
                 turn_number=turn_number,
@@ -197,7 +223,8 @@ def _run_agents(
         if not (final_text and intent != "META"):
             return
         from backend.app.core.agents.quest_weaver_agent import QuestWeaverAgent
-        _qw = QuestWeaverAgent()
+        _qw_llm = _resolve_deferred_llm("quest_weaver", campaign_settings, db_path)
+        _qw = QuestWeaverAgent(llm=_qw_llm)
         _qw_events = [
             {"event_type": e.get("event_type", ""), "payload": e.get("payload", {})}
             for e in events
@@ -258,9 +285,10 @@ def _run_agents(
             return
         try:
             from backend.app.core.agents.revelation_agent import RevelationAgent
+            _rev_llm = _resolve_deferred_llm("revelation_agent", campaign_settings, db_path)
             authoritative_call(
                 "RevelationAgent",
-                RevelationAgent().evaluate,
+                RevelationAgent(llm=_rev_llm).evaluate,
                 world_state=world_state,
                 arc_stage=_arc,
                 turn_number=turn_number,
@@ -276,9 +304,10 @@ def _run_agents(
             return
         try:
             from backend.app.core.agents.callback_crystallizer_agent import CallbackCrystallizerAgent
+            _cb_llm = _resolve_deferred_llm("callback_crystallizer", campaign_settings, db_path)
             authoritative_call(
                 "CallbackCrystallizerAgent",
-                CallbackCrystallizerAgent().crystallize,
+                CallbackCrystallizerAgent(llm=_cb_llm).crystallize,
                 world_state=world_state,
                 recent_narrative="\n".join(recent_narrative[-3:])[:900] if recent_narrative else "",
                 turn_number=turn_number,
@@ -341,6 +370,7 @@ def _run_agents(
         # ProgressionAgent
         if final_text and intent != "META" and turn_number % _progression_interval == 0:
             from backend.app.core.agents.progression_agent import ProgressionAgent
+            _prog_llm = _resolve_deferred_llm("progression", campaign_settings, db_path)
             _prog_player = state.get("player")
             _prog_stats: dict = {}
             _prog_psych: dict = {}
@@ -353,7 +383,7 @@ def _run_agents(
             try:
                 authoritative_call(
                     "ProgressionAgent",
-                    ProgressionAgent().advance,
+                    ProgressionAgent(llm=_prog_llm).advance,
                     world_state=world_state,
                     player_stats=_prog_stats,
                     psych_profile=_prog_psych,
@@ -370,6 +400,7 @@ def _run_agents(
         # PsychArchivistAgent
         if final_text and intent != "META":
             from backend.app.core.agents.psych_archivist_agent import PsychArchivistAgent
+            _pa_llm = _resolve_deferred_llm("psych_archivist", campaign_settings, db_path)
             _psych_player = state.get("player")
             _psych_profile: dict = {}
             _psych_bg = ""
@@ -385,7 +416,7 @@ def _run_agents(
             try:
                 authoritative_call(
                     "PsychArchivistAgent",
-                    PsychArchivistAgent().update,
+                    PsychArchivistAgent(llm=_pa_llm).update,
                     world_state=world_state,
                     current_psych_profile=_psych_profile,
                     background=_psych_bg,

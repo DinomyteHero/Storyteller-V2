@@ -141,8 +141,8 @@ class CallbackCrystallizerAgent:
     into the narrative when trigger conditions match.
     """
 
-    def __init__(self) -> None:
-        self._llm = AgentLLM("callback_crystallizer")
+    def __init__(self, llm=None) -> None:
+        self._llm = llm if llm is not None else AgentLLM("callback_crystallizer")
 
     def crystallize(
         self,

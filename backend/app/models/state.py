@@ -173,7 +173,12 @@ class GameState(BaseModel):
 
     # V9.0: Novel-Length Story — narrator mode and cloud quality preset (persistent, per-campaign)
     narrator_mode: str | None = None  # "concise" | "novel" | "epic" — controls scene length + prose quality
-    cloud_preset: str | None = None  # "local" | "budget" | "balanced" | "quality" — per-campaign cloud routing
+    cloud_preset: str | None = None  # "local" | "budget" | "balanced" | "quality" | "custom"
+
+    # V12.0: Cloud-agnostic provider system
+    custom_preset_id: str | None = None  # UUID of user preset (when cloud_preset == "custom")
+    preferred_provider: str | None = None  # "anthropic" | "openai" | "xai" | "deepseek" | "google"
+    agent_overrides: dict | None = None  # {"role": {"provider": "...", "model": "..."}}
 
     # Memory (kept across turns)
     history: list[str] = Field(default_factory=list)  # last ~10 turn summaries

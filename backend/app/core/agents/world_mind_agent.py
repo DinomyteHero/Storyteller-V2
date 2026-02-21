@@ -318,8 +318,8 @@ class WorldMindAgent:
     No deterministic fallback. If the LLM fails, the exception propagates.
     """
 
-    def __init__(self) -> None:
-        self._llm = AgentLLM("world_mind")
+    def __init__(self, llm: Any | None = None) -> None:
+        self._llm = llm if llm is not None else AgentLLM("world_mind")
 
     def simulate(
         self,

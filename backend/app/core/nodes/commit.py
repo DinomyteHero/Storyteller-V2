@@ -284,9 +284,18 @@ def make_commit_node():
                     {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
                     for e in events
                 ]
+                # V12.0: Unified cloud resolution for ContinuityAgent
+                _cont_llm = None
+                try:
+                    from backend.app.core.nodes._cloud_helper import make_turn_llm
+                    from backend.app.core.nodes import dict_to_state
+                    _cont_gs = dict_to_state(state)
+                    _cont_llm = make_turn_llm("continuity", _cont_gs, conn)
+                except Exception as _cont_cloud_err:
+                    logger.debug("Continuity cloud resolution failed, using default: %s", _cont_cloud_err)
                 authoritative_call(
                     "ContinuityAgent",
-                    ContinuityAgent().update,
+                    ContinuityAgent(llm=_cont_llm).update,
                     world_state=world_state,
                     final_text=final_text,
                     user_input=user_input,
@@ -815,6 +824,16 @@ def make_commit_node():
                 "player": state.get("player"),
                 "current_location": state.get("current_location"),
             }
+            # V12.0: Extract campaign settings for deferred agent cloud resolution
+            _deferred_campaign_settings = None
+            try:
+                from backend.app.core.nodes._cloud_helper import get_campaign_settings
+                from backend.app.core.nodes import dict_to_state
+                _deferred_gs = dict_to_state(state)
+                _deferred_campaign_settings = get_campaign_settings(_deferred_gs)
+            except Exception:
+                pass
+
             run_deferred_maintenance(
                 db_path=_db_path,
                 campaign_id=campaign_id,
@@ -824,6 +843,7 @@ def make_commit_node():
                 state_snapshot=_state_snapshot,
                 events_snapshot=_events_snapshot,
                 arc_guidance=arc_guidance if isinstance(arc_guidance, dict) else {},
+                campaign_settings=_deferred_campaign_settings,
             )
             _mark_segment("deferred_agents_launched")
 

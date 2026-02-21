@@ -167,9 +167,9 @@ class ModelConfigResponse(BaseModel):
     agents: list[AgentModelConfig]
 
 
-@router.get("/model_config", response_model=ModelConfigResponse)
+@router.get("/model_config")
 async def get_model_config():
-    """Return the current per-agent model configuration."""
+    """Return the current per-agent model configuration and available cloud providers."""
     from backend.app.config import MODEL_CONFIG
 
     agents = []
@@ -180,4 +180,22 @@ async def get_model_config():
             model=cfg.get("model", ""),
             base_url=cfg.get("base_url", ""),
         ))
-    return ModelConfigResponse(agents=agents)
+
+    # V12.0: Include provider registry and available providers
+    available_providers: list[dict] = []
+    try:
+        from backend.app.core.provider_registry import get_all_provider_statuses
+        from backend.app.config import DEFAULT_DB_PATH
+        from backend.app.db.connection import get_connection
+        conn = get_connection(DEFAULT_DB_PATH)
+        try:
+            available_providers = get_all_provider_statuses(conn)
+        finally:
+            conn.close()
+    except Exception:
+        pass
+
+    return {
+        "agents": [a.model_dump() for a in agents],
+        "available_providers": available_providers,
+    }

@@ -281,13 +281,17 @@ def generate_choices(
     stat_summary: str = "",
     setting_style: str = "an interactive narrative RPG",
     gm_context: str = "",
+    llm: Any | None = None,
 ) -> list[dict[str, str]]:
     """Generate 3-6 player choices via LLM.
 
     Raises ValueError on failure after one retry — caller should catch and use fallback.
     Returns list of dicts with keys: text, tone, meaning, risk, consequence_hint.
+
+    V12.0: Optional ``llm`` parameter allows cloud-resolved AgentLLM injection.
     """
-    llm = AgentLLM("choice_crafter")
+    if llm is None:
+        llm = AgentLLM("choice_crafter")
 
     system_prompt = _get_system_prompt().replace("__SETTING_STYLE__", setting_style)
 

@@ -219,16 +219,24 @@ def make_encounter_node():
         elif spawn_request and not npcs:
             allowed, _reason = can_introduce_new_npc(conn, campaign_id, state)
             if allowed:
+                # V12.0: Unified cloud resolution for CastingAgent
                 try:
-                    casting = CastingAgent(llm=AgentLLM("casting"))
+                    from backend.app.core.nodes._cloud_helper import make_turn_llm
+                    from backend.app.core.nodes import dict_to_state
+                    _cast_gs = dict_to_state(state)
+                    _cast_llm = make_turn_llm("casting", _cast_gs, conn)
+                    casting = CastingAgent(llm=_cast_llm)
                 except Exception as e:
                     logger.warning(
-                        "Failed to initialize CastingAgent with LLM for campaign %s, using fallback: %s",
+                        "Failed to initialize CastingAgent with cloud LLM for campaign %s, using fallback: %s",
                         campaign_id,
                         e,
                         exc_info=True,
                     )
-                    casting = CastingAgent(llm=None)
+                    try:
+                        casting = CastingAgent(llm=AgentLLM("casting"))
+                    except Exception:
+                        casting = CastingAgent(llm=None)
                 introduced_names = get_introduced_npc_names(conn, campaign_id)
                 ws = throttle_load_world_state(conn, campaign_id)
                 triggers = ws.get("npc_introduction_triggers") or []

@@ -4,7 +4,7 @@
 -->
 <script lang="ts">
   import { getHealthDetail } from '$lib/api/client';
-  import { providers } from '$lib/stores/providers';
+  import { providers, type ProviderStatus } from '$lib/stores/providers';
   import { goto } from '$app/navigation';
 
   interface Props {
@@ -19,7 +19,23 @@
   let ollamaError = $state('');
   let missingModels = $state<string[]>([]);
   let cloudKeyInput = $state('');
-  let cloudProvider = $state<'anthropic' | 'openai'>('anthropic');
+  let cloudProvider = $state('anthropic');
+  let providerList = $state<ProviderStatus[]>([]);
+  let cloudKeySaved = $state(false);
+  let testingCloud = $state(false);
+  let cloudTestOk = $state<boolean | null>(null);
+
+  // Subscribe to provider store
+  providers.subscribe((val) => { providerList = val; });
+
+  // V12.0: All 5 cloud providers
+  const CLOUD_PROVIDERS = [
+    { id: 'anthropic', label: 'Anthropic (Claude)', placeholder: 'sk-ant-...' },
+    { id: 'openai', label: 'OpenAI', placeholder: 'sk-...' },
+    { id: 'xai', label: 'xAI (Grok)', placeholder: 'xai-...' },
+    { id: 'deepseek', label: 'DeepSeek', placeholder: 'sk-...' },
+    { id: 'google', label: 'Google (Gemini)', placeholder: 'AI...' },
+  ];
 
   async function checkOllama() {
     ollamaChecking = true;
@@ -36,6 +52,8 @@
       } else if (missingModels.length > 0) {
         ollamaError = `Ollama is running but ${missingModels.length} required model${missingModels.length > 1 ? 's are' : ' is'} missing.`;
       }
+      // Also load provider statuses
+      await providers.load();
     } catch {
       ollamaOk = false;
       ollamaReachable = false;
@@ -46,6 +64,7 @@
 
   function skipToCloud() {
     step = 'cloud';
+    providers.load();
   }
 
   function goToOllamaCheck() {
@@ -53,11 +72,27 @@
     checkOllama();
   }
 
-  function saveCloudKey() {
+  async function saveCloudKey() {
     if (cloudKeyInput.trim()) {
-      providers.setApiKey(cloudProvider, cloudKeyInput.trim());
+      await providers.setKey(cloudProvider, cloudKeyInput.trim());
+      cloudKeySaved = true;
     }
     step = 'ready';
+  }
+
+  async function testCloudProvider() {
+    if (!cloudKeyInput.trim()) return;
+    testingCloud = true;
+    cloudTestOk = null;
+    // Save key first, then test
+    await providers.setKey(cloudProvider, cloudKeyInput.trim());
+    try {
+      const result = await providers.test(cloudProvider);
+      cloudTestOk = result.ok;
+    } catch {
+      cloudTestOk = false;
+    }
+    testingCloud = false;
   }
 
   function skipCloud() {
@@ -89,6 +124,8 @@
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text).catch(() => {});
   }
+
+  $: hasAnyCloudKey = providerList.some((p) => p.has_key);
 </script>
 
 <div class="wizard-overlay">
@@ -172,16 +209,18 @@
       <div class="wizard-step fade-in">
         <h2>Cloud LLM (Optional)</h2>
         <p class="wizard-desc">
-          For higher quality prose, you can connect a cloud LLM provider.
-          This is completely optional — local Ollama works great on its own.
+          For higher quality prose, connect a cloud LLM provider.
+          This is optional — local Ollama works great on its own.
+          You can add more providers later in Settings.
         </p>
 
         <div class="cloud-form">
           <div class="form-group">
             <label>Provider</label>
             <select bind:value={cloudProvider}>
-              <option value="anthropic">Anthropic (Claude)</option>
-              <option value="openai">OpenAI</option>
+              {#each CLOUD_PROVIDERS as cp}
+                <option value={cp.id}>{cp.label}</option>
+              {/each}
             </select>
           </div>
           <div class="form-group">
@@ -189,9 +228,24 @@
             <input
               type="password"
               bind:value={cloudKeyInput}
-              placeholder={cloudProvider === 'anthropic' ? 'sk-ant-...' : 'sk-...'}
+              placeholder={CLOUD_PROVIDERS.find((p) => p.id === cloudProvider)?.placeholder || 'Enter API key'}
             />
           </div>
+          {#if cloudKeyInput.trim()}
+            <button
+              class="btn btn-small"
+              onclick={testCloudProvider}
+              disabled={testingCloud}
+              style="align-self: flex-start;"
+            >
+              {testingCloud ? 'Testing...' : 'Test Connection'}
+            </button>
+            {#if cloudTestOk === true}
+              <span class="test-ok">Connected successfully!</span>
+            {:else if cloudTestOk === false}
+              <span class="test-fail">Connection failed. Check your API key.</span>
+            {/if}
+          {/if}
         </div>
 
         <div class="wizard-actions">
@@ -204,7 +258,7 @@
 
     {:else if step === 'ready'}
       <div class="wizard-step fade-in">
-        {#if !ollamaReachable && !cloudKeyInput.trim()}
+        {#if !ollamaReachable && !hasAnyCloudKey}
           <h2>Almost There</h2>
           <p class="wizard-desc">
             Ollama must be running to play. Start it with <code class="inline-code">ollama serve</code>,
@@ -233,12 +287,12 @@
               <div class="summary-item ok">Local LLM: Ready</div>
             {:else if ollamaReachable && missingModels.length > 0}
               <div class="summary-item warn">Local LLM: {missingModels.length} model{missingModels.length > 1 ? 's' : ''} missing (may affect quality)</div>
-            {:else if !ollamaReachable && cloudKeyInput.trim()}
+            {:else if !ollamaReachable && hasAnyCloudKey}
               <div class="summary-item warn">Local LLM: Not running (using cloud instead)</div>
             {:else}
               <div class="summary-item warn">Local LLM: Not detected</div>
             {/if}
-            {#if cloudKeyInput.trim()}
+            {#if hasAnyCloudKey}
               <div class="summary-item ok">Cloud LLM: Configured</div>
             {:else}
               <div class="summary-item neutral">Cloud LLM: Not configured</div>
@@ -443,6 +497,16 @@
     border-radius: 3px;
     font-size: 0.85rem;
     font-family: monospace;
+  }
+
+  .test-ok {
+    font-size: var(--font-small);
+    color: #4ade80;
+  }
+
+  .test-fail {
+    font-size: var(--font-small);
+    color: var(--accent-danger);
   }
 
   /* Cloud form */

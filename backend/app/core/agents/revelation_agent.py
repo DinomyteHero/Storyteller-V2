@@ -127,8 +127,8 @@ class RevelationAgent:
     information when conditions are dramatically optimal.
     """
 
-    def __init__(self) -> None:
-        self._llm = AgentLLM("revelation_agent")
+    def __init__(self, llm=None) -> None:
+        self._llm = llm if llm is not None else AgentLLM("revelation_agent")
 
     def evaluate(
         self,
