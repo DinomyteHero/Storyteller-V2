@@ -40,4 +40,11 @@ def prompt_registry_snapshot() -> dict[str, str]:
 
     return {
         "suggestion_refiner_system": _safe_version("suggestion_refiner_system"),
+        "choice_crafter_system": _safe_version("choice_crafter_system"),
+        "continuity_system": _safe_version("continuity_system"),
+        "memory_system": _safe_version("memory_system"),
+        "intent_router_system": _safe_version("intent_router_system"),
+        "quest_weaver_generate_system": _safe_version("quest_weaver_generate_system"),
+        "quest_weaver_evaluate_system": _safe_version("quest_weaver_evaluate_system"),
+        "progression_system": _safe_version("progression_system"),
     }

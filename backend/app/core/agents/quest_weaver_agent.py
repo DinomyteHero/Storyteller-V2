@@ -21,7 +21,8 @@ import logging
 import uuid
 from typing import Any
 
-from backend.app.core.agents.base import AgentLLM, ensure_json
+from backend.app.core.agents.base import AgentLLM, BaseAgent, ensure_json
+from backend.app.prompts.registry import load_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -123,61 +124,7 @@ def _format_arc_hooks(arc_stage: str, dynamic_quests: list[dict]) -> str:
 
 
 def _build_generate_system_prompt() -> str:
-    return """\
-You are the Quest Weaver — a narrative AI that generates dynamic quests for a
-living RPG world. Your quests feel like natural outgrowths of the player's story
-rather than pre-packaged missions. They emerge from faction conflicts, NPC agendas,
-player obligations, and unresolved world tensions.
-
-You receive: current world state, known NPCs, active factions, arc stage, recent
-narrative, consequence hints, and existing quests to avoid.
-
-Generate 1-2 new quests that:
-1. Flow from established world tensions — not random assignments
-2. Involve NPCs and factions already present in the story
-3. Have 2-3 short stages with clear narrative-language objectives
-4. Match the arc stage tone and urgency:
-   - SETUP: Exploration and relationship quests. Low urgency. Help player discover new themes.
-   - RISING: Escalation quests. Medium-high urgency. Entangle with faction conflicts.
-   - CLIMAX: Time-pressured quests. High urgency. Real consequences for delay.
-   - INTERLUDE: Optional side quests. Low stakes. Character-building or comic relief.
-5. Include a compelling hook that explains how the player discovers this quest
-6. Are distinct from any existing active or completed quests
-7. If "previous arc hooks" are provided, weave at least one quest from those
-   unresolved threads to maintain saga continuity
-
-CRITICAL RULES:
-- Quest IDs must be unique slugs (e.g., "dq-heist-alderaan", "dq-koss-debt")
-- Narrative conditions describe what completing a stage LOOKS LIKE in prose —
-  they are NOT code conditions (e.g., "Player delivers the device to Kira's
-  safehouse and she confirms receipt" not "FLAG_SET: device_delivered=true")
-- Keep objectives under 20 words. Keep descriptions under 40 words.
-- urgency: "low" (optional background), "medium" (meaningful pressure),
-  "high" (time-sensitive, consequences if ignored)
-
-Return ONLY a single valid JSON object. No markdown. No preamble.
-
-[JSON OUTPUT SCHEMA]
-{
-  "quests": [
-    {
-      "id": string,                   // unique slug: "dq-<descriptor>"
-      "title": string,                // 3-6 word compelling title
-      "description": string,          // 2-3 sentences: what's at stake and why
-      "hook": string,                 // 1 sentence: how player learns about this
-      "urgency": string,              // "low"|"medium"|"high"
-      "stages": [                     // 2-3 stages
-        {
-          "stage_id": string,
-          "objective": string,        // clear ≤20 word player-facing task
-          "narrative_condition": string  // what completion looks like in prose
-        }
-      ],
-      "reward_hint": string,          // narrative reward hint (not mechanical)
-      "faction_connection": string    // faction name or null
-    }
-  ]
-}"""
+    return load_prompt("quest_weaver_generate_system")
 
 
 def _build_generate_user_prompt(
@@ -226,36 +173,7 @@ Output only the JSON object."""
 
 
 def _build_evaluate_system_prompt() -> str:
-    return """\
-You are the Quest Completion Evaluator. You read recent narrative prose and
-determine whether any active quest objectives have been fulfilled or failed.
-
-You receive:
-- Active dynamic quests with their stage objectives and narrative conditions
-- The narrated prose from this turn
-- Notable game events
-
-A stage's narrative_condition describes what completion looks like in prose.
-Evaluate whether the recent narrative satisfies those conditions.
-
-A quest is COMPLETED when its final stage is resolved.
-A quest is FAILED when it becomes narratively impossible to complete
-(e.g., the quest-giver is dead, the objective location is destroyed).
-
-Be conservative: only mark complete/failed when the narrative clearly supports it.
-Partial progress or related events alone do NOT complete a stage.
-
-Return ONLY a single valid JSON object. No markdown. No preamble.
-
-[JSON OUTPUT SCHEMA]
-{
-  "completed_quest_ids": [string],   // quest IDs fully completed this turn
-  "failed_quest_ids": [string],      // quest IDs that became impossible
-  "stage_advanced_ids": [string],    // quest IDs that advanced a stage (not completed)
-  "progress_notes": {                // optional 1-sentence note per quest
-    "<quest_id>": string
-  }
-}"""
+    return load_prompt("quest_weaver_evaluate_system")
 
 
 def _build_evaluate_user_prompt(
@@ -390,7 +308,7 @@ def _events_summary(events: list[dict]) -> str:
 # ---------------------------------------------------------------------------
 
 
-class QuestWeaverAgent:
+class QuestWeaverAgent(BaseAgent):
     """LLM-driven dynamic quest generation and completion evaluation.
 
     Generates contextually-grounded quests from the living world state and
@@ -401,8 +319,10 @@ class QuestWeaverAgent:
     faction_connection, generated_turn, current_stage_idx, status.
     """
 
+    _role = "quest_weaver"
+
     def __init__(self) -> None:
-        self._llm = AgentLLM("quest_weaver")
+        super().__init__()
 
     def generate(
         self,

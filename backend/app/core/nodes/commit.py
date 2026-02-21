@@ -408,6 +408,23 @@ def make_commit_node():
                 except Exception as _complete_err:
                     logger.warning("Campaign completion update failed (non-fatal): %s", _complete_err)
 
+            # Persist origin arc state (contains stages_visited for completion tracking)
+            if isinstance(arc_guidance, dict) and "origin_arc_state" in arc_guidance:
+                world_state["origin_arc_state"] = arc_guidance["origin_arc_state"]
+
+            # Auto-complete origin when all stages visited → transition to prologue
+            if world_state.get("origin_mode"):
+                try:
+                    from backend.app.core.origin_engine import (
+                        is_origin_complete,
+                        transition_origin_to_prologue,
+                    )
+                    if is_origin_complete(world_state):
+                        logger.info("Origin complete for campaign %s — transitioning to prologue", campaign_id)
+                        transition_origin_to_prologue(world_state)
+                except Exception as _origin_err:
+                    logger.warning("Origin completion check failed (non-fatal): %s", _origin_err)
+
             # Persist prologue arc state (contains stages_visited for completion tracking)
             if isinstance(arc_guidance, dict) and "prologue_arc_state" in arc_guidance:
                 world_state["prologue_arc_state"] = arc_guidance["prologue_arc_state"]

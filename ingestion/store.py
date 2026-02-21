@@ -7,12 +7,14 @@ unless allow_overwrite=True (for rebuild scripts).
 Idempotency: chunks with duplicate IDs are skipped on add_chunks.
 Chunk IDs should be stable content hashes (see stable_chunk_id).
 """
+from __future__ import annotations
+
 import hashlib
 import json
 import logging
 import os
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import lancedb
 import pyarrow as pa
@@ -104,14 +106,14 @@ _REBUILD_HINT = (
 )
 
 
-def _characters_to_json(chars: list) -> str:
+def _characters_to_json(chars: list[Any]) -> str:
     """Serialize characters list to JSON string for storage (max compatibility)."""
     if not chars:
         return "[]"
     return json.dumps([str(c) for c in chars])
 
 
-def _related_npcs_to_json(npcs: list) -> str:
+def _related_npcs_to_json(npcs: list[Any]) -> str:
     """Serialize related_npcs list to JSON string for storage (max compatibility)."""
     if not npcs:
         return "[]"
@@ -125,7 +127,7 @@ def _entities_to_json(entities: dict | None) -> str:
     return json.dumps(entities)
 
 
-def _chunk_to_row(chunk: dict, embedding: List[float]) -> dict:
+def _chunk_to_row(chunk: dict[str, Any], embedding: List[float]) -> dict[str, Any]:
     """Build a LanceDB row from chunk dict and its embedding.
 
     Supports both canonical {text, metadata} and legacy flat chunks.

@@ -14,6 +14,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from backend.app.api import v2_campaigns as v2_campaigns_api, starships as starships_api
+from backend.app.api.v2_turn import router as turn_router
+from backend.app.api.v2_content import router as content_router
+from backend.app.api.v2_player import router as player_router
 from backend.app.api.v2_eraforge import router as eraforge_router
 from backend.app.api.v2_export import router as export_router
 from backend.app.api.v2_library import router as library_router
@@ -42,7 +45,7 @@ def _parse_cors_allowlist(raw: str) -> list[str]:
     ]
 
 
-DEV_MODE = _env_flag("STORYTELLER_DEV_MODE", default=True)
+DEV_MODE = _env_flag("STORYTELLER_DEV_MODE", default=False)
 API_TOKEN = os.environ.get("STORYTELLER_API_TOKEN", "").strip()
 CORS_ALLOW_ORIGINS = _parse_cors_allowlist(os.environ.get("STORYTELLER_CORS_ALLOW_ORIGINS", ""))
 
@@ -351,8 +354,8 @@ async def auth_middleware(request: Request, call_next):
 
 
 _RATE_LIMITS: dict[str, list[float]] = _defaultdict(list)
-_RATE_LIMIT_WINDOW = 60  # seconds
-_RATE_LIMIT_MAX = 10     # max turn requests per minute per IP
+_RATE_LIMIT_WINDOW = int(os.environ.get("STORYTELLER_RATE_LIMIT_WINDOW", "60"))
+_RATE_LIMIT_MAX = int(os.environ.get("STORYTELLER_RATE_LIMIT_MAX", "10"))
 
 
 @app.middleware("http")
@@ -451,6 +454,9 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # V2 is the official path (LangGraph engine)
 app.include_router(v2_campaigns_api.router)
+app.include_router(turn_router)
+app.include_router(content_router)
+app.include_router(player_router)
 app.include_router(starships_api.router)
 app.include_router(eraforge_router)
 app.include_router(export_router)

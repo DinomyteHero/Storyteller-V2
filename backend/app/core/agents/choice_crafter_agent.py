@@ -16,6 +16,7 @@ import re
 from typing import Any
 
 from backend.app.core.agents.base import AgentLLM
+from backend.app.prompts.registry import load_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -29,76 +30,10 @@ _VALID_MEANINGS = frozenset({
 })
 _VALID_IMPACT_TIERS = frozenset({"ripple", "wave", "tsunami"})
 
-_SYSTEM_PROMPT = """\
-You are the Choice Architect for an interactive narrative RPG (__SETTING_STYLE__).
 
-Your job: generate 3-6 player choices that define WHAT THE PLAYER CAN DO NEXT.
-
-## RULES
-
-1. TONE SPREAD — Produce 3-6 choices with at least 2 different tones represented.
-   Available tones: PARAGON (bold, direct, decisive), INVESTIGATE (cautious, analytical),
-   RENEGADE (deceptive, ruthless, cunning), NEUTRAL (tactical pause, lateral move).
-   Tone spread is a GUIDELINE — let the scene determine what's natural. Not every scene
-   needs all 4 tones. A combat escape may have 2 RENEGADE options and no INVESTIGATE.
-
-2. ACTION TYPE — Each choice must have an action_type describing WHAT KIND of action it is:
-   - TALK: pure dialogue, conversation, asking questions
-   - DO: physical action, combat, stealth, persuasion attempt
-   - INVESTIGATE: search, examine, analyze, gather information
-   - TRAVEL: move to a new location, leave the scene
-   - USE_ABILITY: use a specific skill, item, or ability
-   - WAIT: observe, pause, pass time strategically
-
-3. SCENE-SPECIFIC — Every choice must directly respond to what just happened in the
-   prose. Reference specific NPCs by name, specific locations, specific events. Never
-   produce generic options like "Look around" or "Wait and see."
-
-4. DISTINCT APPROACHES — Choices must represent genuinely different courses of action,
-   not different phrasings of the same thing. Each should lead to a meaningfully
-   different outcome.
-
-5. CONSEQUENCE HINTS — Each choice has a consequence_hint (max 60 chars): a specific,
-   narratively-grounded preview. NOT "may gain trust" but "Kessa may reveal her contact"
-   or "guards will be on alert for an hour."
-
-6. RISK JUSTIFICATION — If a choice is RISKY or DANGEROUS, the risk must be narratively
-   justified in context (e.g., "the guards just changed shifts" or "you're outnumbered").
-
-7. IMPACT TIER — Tag each choice with impact_tier:
-   - ripple: local consequence
-   - wave: regional/faction-level consequence
-   - tsunami: world-changing consequence (rare, major inflection points)
-   Default to ripple unless the action is clearly major.
-
-8. THE LATERAL MOVE — At least one choice should be something unexpected that opens
-   a new angle the player might not have considered.
-
-9. STAT GATES — When the STAT CONTEXT section indicates a high stat (>= 6), you may
-   prefix ONE choice with a stat gate like [PERSUADE], [TECH], [COMBAT], [FORCE], etc.
-
-10. OBLIGATIONS — When ACTIVE OBLIGATIONS are listed, at least one choice should reference
-    or advance one of them. Players should feel their past decisions matter.
-
-11. LENGTH — Each choice text should be 8-20 words. Concise but specific.
-
-12. CANON CHARACTERS — When an NPC is marked [CANON], offer choices that ENGAGE with them
-    meaningfully. Do NOT offer choices that would kill, permanently injure, or fundamentally
-    alter a canon character's established fate.
-
-## OUTPUT FORMAT
-
-Output ONLY a JSON array of 3-6 objects. No markdown, no explanation, no wrapping.
-
-[
-  {"text": "string", "tone": "PARAGON|INVESTIGATE|RENEGADE|NEUTRAL", "action_type": "TALK|DO|INVESTIGATE|TRAVEL|USE_ABILITY|WAIT", "meaning": "tag", "risk": "SAFE|RISKY|DANGEROUS", "impact_tier": "ripple|wave|tsunami", "consequence_hint": "specific clause (max 60 chars)"},
-  ...
-]
-
-Valid meaning tags: reveal_values, probe_belief, challenge_premise, seek_history,
-set_boundary, pragmatic, deflect, offer_alliance, express_doubt, invoke_authority,
-show_vulnerability, make_demand.
-"""
+def _get_system_prompt() -> str:
+    """Load system prompt from prompts/v1/choice_crafter_system.txt."""
+    return load_prompt("choice_crafter_system")
 
 
 def _classify_impact_tier(text: str, risk: str = "SAFE") -> str:
@@ -352,7 +287,7 @@ def generate_choices(
     """
     llm = AgentLLM("choice_crafter")
 
-    system_prompt = _SYSTEM_PROMPT.replace("__SETTING_STYLE__", setting_style)
+    system_prompt = _get_system_prompt().replace("__SETTING_STYLE__", setting_style)
 
     user_prompt = _build_context(
         final_text=final_text,

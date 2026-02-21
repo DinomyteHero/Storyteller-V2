@@ -65,19 +65,34 @@
         value: c.period_id.toUpperCase(),
         label: c.period_display_name,
         settingId: c.setting_id,
+        summary: c.summary || '',
       }));
     }
     return Object.entries(ERA_LABELS)
       .filter(([k]) => k !== 'CUSTOM')
-      .map(([value, label]) => ({ value, label, settingId: null }));
+      .map(([value, label]) => ({ value, label, settingId: null, summary: ERA_DESCRIPTIONS[value] || '' }));
   });
 
   let isSubmitting = $state(false);
   let errorMessage = $state('');
+  // Setup progress indicator — multi-stage feedback during setupAuto + opening turn
+  let setupStage = $state<'idle' | 'generating_character' | 'building_world' | 'writing_prologue' | 'entering_world'>('idle');
+  const SETUP_STAGE_LABELS: Record<string, string> = {
+    generating_character: 'Generating your character...',
+    building_world: 'Building your world...',
+    writing_prologue: 'Writing your prologue...',
+    entering_world: 'Entering the world...',
+  };
   let cyoaAnswerIndices = $state<Record<number, number>>({});
   let eraCompanions = $state<CompanionPreview[]>([]);
   let loadingCompanions = $state(false);
   let selectedDifficulty = $state<'easy' | 'normal' | 'hard'>('normal');
+  let selectedScale = $state<'small' | 'medium' | 'large' | 'epic'>('medium');
+  const SCALE_OPTIONS = [
+    { value: 'small' as const, label: 'Short Story', desc: 'A focused adventure (1 arc, ~20 turns)' },
+    { value: 'medium' as const, label: 'Standard', desc: 'A full campaign (2-3 arcs, ~50 turns)' },
+    { value: 'large' as const, label: 'Epic', desc: 'An extended saga (4-5 arcs, ~80+ turns)' },
+  ] as const;
   let continueSagaContext = $state<{
     saga_id: string | null;
     legacy_id: number | null;
@@ -306,13 +321,23 @@
   }
 
   async function submitSetupRequest(request: SetupAutoRequest): Promise<void> {
-    const result = await setupAuto(request);
-    campaignId.set(result.campaign_id);
-    playerId.set(result.player_id);
-    const sheetName = (result.character_sheet?.name as string | undefined) || $charName.trim();
-    generatedName = sheetName;
-    setupResult = result;
-    creationStep.set(999);
+    // Simulate multi-stage progress during the single setupAuto call
+    setupStage = 'generating_character';
+    const stageTimer1 = setTimeout(() => { setupStage = 'building_world'; }, 4000);
+    const stageTimer2 = setTimeout(() => { setupStage = 'writing_prologue'; }, 9000);
+    try {
+      const result = await setupAuto(request);
+      campaignId.set(result.campaign_id);
+      playerId.set(result.player_id);
+      const sheetName = (result.character_sheet?.name as string | undefined) || $charName.trim();
+      generatedName = sheetName;
+      setupResult = result;
+      creationStep.set(999);
+    } finally {
+      clearTimeout(stageTimer1);
+      clearTimeout(stageTimer2);
+      setupStage = 'idle';
+    }
   }
 
   // Phase 1: Generate character + campaign, then show the sheet for review.
@@ -369,6 +394,7 @@
         legacy_id: continueSagaContext?.legacy_id ?? null,
         saga_id: continueSagaContext?.saga_id ?? null,
         difficulty: selectedDifficulty,
+        campaign_scale: selectedScale,
         species_id: $charSpecies ?? null,
       };
 
@@ -464,6 +490,7 @@
   async function startAdventure() {
     if (!setupResult) return;
     isStartingAdventure = true;
+    setupStage = 'entering_world';
     errorMessage = '';
 
     try {
@@ -518,12 +545,19 @@
         lastTurnResponse.set(turnResult);
       }
 
-      // Route to prologue if prologue_mode is active, otherwise straight to play
-      goto((setupResult as any).prologue_mode ? '/prologue' : '/play');
+      // Route: origin → prologue → play (based on active modes)
+      if ((setupResult as any).origin_mode) {
+        goto('/origin');
+      } else if ((setupResult as any).prologue_mode) {
+        goto('/prologue');
+      } else {
+        goto('/play');
+      }
     } catch (e) {
       errorMessage = e instanceof Error ? e.message : String(e);
     } finally {
       isStartingAdventure = false;
+      setupStage = 'idle';
     }
   }
 
@@ -534,6 +568,31 @@
 </script>
 
 <div class="creation-container">
+  <!-- Setup progress overlay — shown during setupAuto + opening turn -->
+  {#if setupStage !== 'idle'}
+    <div class="setup-overlay" role="status" aria-live="polite">
+      <div class="setup-progress">
+        <div class="setup-spinner"></div>
+        <p class="setup-stage-label">{SETUP_STAGE_LABELS[setupStage] ?? 'Setting up...'}</p>
+        <div class="setup-stages">
+          <div class="setup-stage-dot" class:done={['building_world', 'writing_prologue', 'entering_world'].includes(setupStage)} class:active={setupStage === 'generating_character'}></div>
+          <div class="setup-stage-line" class:done={['building_world', 'writing_prologue', 'entering_world'].includes(setupStage)}></div>
+          <div class="setup-stage-dot" class:done={['writing_prologue', 'entering_world'].includes(setupStage)} class:active={setupStage === 'building_world'}></div>
+          <div class="setup-stage-line" class:done={['writing_prologue', 'entering_world'].includes(setupStage)}></div>
+          <div class="setup-stage-dot" class:done={setupStage === 'entering_world'} class:active={setupStage === 'writing_prologue'}></div>
+          <div class="setup-stage-line" class:done={setupStage === 'entering_world'}></div>
+          <div class="setup-stage-dot" class:active={setupStage === 'entering_world'}></div>
+        </div>
+        <div class="setup-stage-names">
+          <span>Character</span>
+          <span>World</span>
+          <span>Prologue</span>
+          <span>Enter</span>
+        </div>
+      </div>
+    </div>
+  {/if}
+
   <div class="creation-content">
     {#if continueSagaContext?.saga_id}
       <div class="saga-banner card" role="status" aria-live="polite">
@@ -618,18 +677,18 @@
         </div>
 
         <div class="form-field">
-          <p class="field-label" id="gender-label">Gender</p>
+          <p class="field-label" id="gender-label">How should the narrator refer to your character?</p>
           <div class="gender-row" role="group" aria-labelledby="gender-label">
             <button
               class="btn gender-btn"
               class:selected={$charGender === 'male'}
               onclick={() => charGender.set('male')}
-            >Male</button>
+            >He / Him</button>
             <button
               class="btn gender-btn"
               class:selected={$charGender === 'female'}
               onclick={() => charGender.set('female')}
-            >Female</button>
+            >She / Her</button>
           </div>
         </div>
 
@@ -649,7 +708,9 @@
                 }}
               >
                 <div class="era-name">{option.label}</div>
-                {#if ERA_DESCRIPTIONS[option.value]}
+                {#if option.summary}
+                  <div class="era-desc">{option.summary}</div>
+                {:else if ERA_DESCRIPTIONS[option.value]}
                   <div class="era-desc">{ERA_DESCRIPTIONS[option.value]}</div>
                 {/if}
               </button>
@@ -665,7 +726,7 @@
             class="btn btn-primary"
             disabled={isSubmitting}
             onclick={quickStartAdventure}
-          >{isSubmitting ? 'Setting up...' : 'Quick Start'}</button>
+          >{isSubmitting ? (SETUP_STAGE_LABELS[setupStage] ?? 'Setting up...') : 'Quick Start'}</button>
           <button
             class="btn btn-primary"
             disabled={!$charName.trim() || isSubmitting}
@@ -731,6 +792,12 @@
                 <div class="bg-desc">{bg.description}</div>
                 {#if statsStr}
                   <div class="bg-stats">{statsStr}</div>
+                {/if}
+                {#if isSelected && bg.questions?.[0]?.choices?.[0]?.effects?.thread_seed}
+                  <div class="bg-hook">
+                    <span class="bg-hook-label">Your story might begin:</span>
+                    <span class="bg-hook-text">{bg.questions[0].choices[0].effects.thread_seed}</span>
+                  </div>
                 {/if}
               </button>
             {/each}
@@ -1048,6 +1115,23 @@
           </div>
         {/if}
 
+        <!-- Story Length Selection -->
+        <div class="difficulty-section">
+          <h3 class="difficulty-heading">Story Length</h3>
+          <div class="difficulty-cards">
+            {#each SCALE_OPTIONS as opt}
+              <button
+                class="card difficulty-card"
+                class:selected={selectedScale === opt.value}
+                onclick={() => selectedScale = opt.value}
+              >
+                <div class="difficulty-name">{opt.label}</div>
+                <div class="difficulty-desc">{opt.desc}</div>
+              </button>
+            {/each}
+          </div>
+        </div>
+
         <!-- Difficulty Selection -->
         <div class="difficulty-section">
           <h3 class="difficulty-heading">Difficulty</h3>
@@ -1076,7 +1160,7 @@
             disabled={isSubmitting}
             onclick={beginAdventure}
           >
-            {isSubmitting ? 'Setting up...' : 'Begin Adventure'}
+            {isSubmitting ? (SETUP_STAGE_LABELS[setupStage] ?? 'Setting up...') : 'Begin Adventure'}
           </button>
         </div>
       </div>
@@ -1092,6 +1176,94 @@
     justify-content: center;
     padding: 2rem;
     padding-top: 3rem;
+    position: relative;
+  }
+
+  /* Setup progress overlay */
+  .setup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(10, 10, 15, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .setup-progress {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .setup-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #e8c56a;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .setup-stage-label {
+    font-size: 1.1rem;
+    color: rgba(240, 230, 200, 0.9);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .setup-stages {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .setup-stage-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    transition: background 0.4s ease, box-shadow 0.4s ease;
+  }
+
+  .setup-stage-dot.active {
+    background: #e8c56a;
+    box-shadow: 0 0 8px rgba(232, 197, 106, 0.5);
+  }
+
+  .setup-stage-dot.done {
+    background: rgba(160, 224, 128, 0.7);
+  }
+
+  .setup-stage-line {
+    width: 40px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    transition: background 0.4s ease;
+  }
+
+  .setup-stage-line.done {
+    background: rgba(160, 224, 128, 0.4);
+  }
+
+  .setup-stage-names {
+    display: flex;
+    gap: 24px;
+    font-size: 0.7rem;
+    color: rgba(240, 230, 200, 0.4);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   .creation-content {
@@ -1334,6 +1506,25 @@
     color: var(--text-muted);
     margin-top: 6px;
     font-family: 'JetBrains Mono', monospace;
+  }
+  .bg-hook {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+  .bg-hook-label {
+    display: block;
+    color: rgba(232, 197, 106, 0.6);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 3px;
+  }
+  .bg-hook-text {
+    color: rgba(240, 230, 200, 0.65);
+    font-style: italic;
   }
 
   /* Step actions */

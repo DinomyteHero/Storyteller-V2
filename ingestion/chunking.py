@@ -1,6 +1,8 @@
 """Token-based chunking utilities."""
+from __future__ import annotations
+
 import os
-from typing import List
+from typing import Any, List
 
 import tiktoken
 
@@ -11,15 +13,15 @@ _TOKENIZER_CACHE_KEY = "ingestion_tokenizer"
 
 
 class _DummyTokenizer:
-    def encode(self, text: str):
+    def encode(self, text: str) -> list[str]:
         return text.split()
 
     def decode(self, tokens: list[str]) -> str:
         return " ".join(tokens)
 
 
-def get_tokenizer():
-    """Get or create tokenizer instance."""
+def get_tokenizer() -> Any:
+    """Get or create tokenizer instance (tiktoken Encoding or _DummyTokenizer)."""
     cached = get_cache_value(_TOKENIZER_CACHE_KEY, lambda: None)
     if cached is not None:
         return cached

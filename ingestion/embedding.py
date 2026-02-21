@@ -3,9 +3,11 @@
 Model and dimension from shared.config (EMBEDDING_MODEL, EMBEDDING_DIMENSION).
 Default: sentence-transformers/all-MiniLM-L6-v2, 384 dims.
 """
+from __future__ import annotations
+
 import logging
 import os
-from typing import List, Union
+from typing import Any, List, Union
 
 from shared.cache import clear_cache, get_cache_value, set_cache_value
 
@@ -14,7 +16,7 @@ logger = logging.getLogger(__name__)
 _ENCODER_CACHE_KEY = "ingestion_embedding_encoder"
 
 
-def get_encoder(model_name: str | None = None):
+def get_encoder(model_name: str | None = None) -> Any:
     """Return a lazy-loaded SentenceTransformer encoder."""
     if model_name is None:
         from shared.config import EMBEDDING_MODEL

@@ -23,8 +23,9 @@ import json
 import logging
 from typing import Any
 
-from backend.app.core.agents.base import AgentLLM, ensure_json
+from backend.app.core.agents.base import AgentLLM, BaseAgent, ensure_json
 from backend.app.constants import LEDGER_MAX_FACTS, LEDGER_MAX_THREADS
+from backend.app.prompts.registry import load_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -107,55 +108,7 @@ def _format_turn_events(events: list[dict]) -> str:
 
 
 def _build_system_prompt() -> str:
-    return """\
-You are the Narrative Continuity Archivist for a narrative RPG. Your role is to
-maintain the Truth Ledger — a precise record of what has happened, what remains
-unresolved, and what obligations the player character has created.
-
-You receive:
-- The current ledger (established facts, open threads, consequence hints)
-- This turn's narrated prose
-- The player's action and its mechanical outcome
-- Notable game events from this turn
-
-You must output a JSON object with these fields:
-
-1. NEW_FACTS — Precise new facts established this turn that are NOT already in the ledger.
-   Focus on narrative significance: NPC deaths, location changes, alliances made/broken,
-   secrets revealed, oaths taken. NOT duplicate of mechanical events already in the ledger.
-
-2. SUPERSEDED_FACTS — Exact text of existing facts that are now false or outdated.
-   For example: if the player just killed "Draven Koss", remove any fact stating he's alive.
-   Use EXACT text from the existing facts list (index shown in brackets).
-
-3. RESOLVED_THREADS — Exact text of open threads that were addressed or closed this turn.
-   A thread is resolved when the question it poses has been answered by narrative events.
-
-4. NEW_THREADS — New unresolved tensions, questions, or hooks opened this turn.
-   Write as compelling narrative questions or tensions, not generic filler.
-
-5. CONSEQUENCE_HINTS — Active obligations, promises, and deadlines the player has created.
-   Examples: "Promised Kira to return with intel by dawn", "Owes Mira 500 credits",
-   "ISB now knows the player's face — hunters incoming". Max 2 per turn, only when earned.
-
-CRITICAL RULES:
-- Only extract facts with real narrative weight. Skip trivial events.
-- SUPERSEDED_FACTS must be exact text matches from the [indexed] fact list.
-- RESOLVED_THREADS must be exact text matches from the open threads list.
-- NEW_THREADS must be specific and tied to what just happened — no generic filler.
-- CONSEQUENCE_HINTS are precious — only generate when a real obligation was created.
-- Be concise: facts ≤15 words, hints ≤20 words.
-
-Return ONLY a single valid JSON object. No markdown. No preamble.
-
-[JSON OUTPUT SCHEMA]
-{
-  "new_facts": [string],           // 0-4 precise new narrative facts
-  "superseded_facts": [string],    // exact text of facts to remove
-  "resolved_threads": [string],    // exact text of threads to close
-  "new_threads": [string],         // 0-2 new narrative threads/tensions
-  "consequence_hints": [string]    // 0-2 active obligations for Director attention
-}"""
+    return load_prompt("continuity_system")
 
 
 def _build_user_prompt(
@@ -270,7 +223,7 @@ def _normalize_output(
 # ---------------------------------------------------------------------------
 
 
-class ContinuityAgent:
+class ContinuityAgent(BaseAgent):
     """LLM-managed Truth Ledger 2.0.
 
     Runs after update_ledger() (deterministic mechanical extraction) to apply
@@ -281,8 +234,10 @@ class ContinuityAgent:
     No deterministic fallback. If the LLM fails, the exception propagates.
     """
 
+    _role = "continuity"
+
     def __init__(self) -> None:
-        self._llm = AgentLLM("continuity")
+        super().__init__()
 
     def update(
         self,

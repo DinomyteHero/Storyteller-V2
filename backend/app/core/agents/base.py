@@ -303,6 +303,35 @@ class AgentLLM:
             raise
 
 
+class BaseAgent:
+    """Lightweight base class for LLM-backed agents.
+
+    Supports two initialization patterns:
+    - Internal creation: subclass sets _role, __init__ creates AgentLLM(role)
+    - Injection: caller passes llm=AgentLLM(...) to __init__
+
+    Subclasses should set _role as a class attribute or pass it to super().__init__().
+    The LLM instance is lazily available via self._llm.
+    """
+
+    _role: str = ""
+
+    def __init__(self, role: str | None = None, llm: AgentLLM | None = None) -> None:
+        if role:
+            self._role = role
+        if not self._role:
+            raise ValueError(f"{type(self).__name__} must define _role or pass role= to __init__")
+        self._llm = llm or AgentLLM(self._role)
+
+    def _complete_json(self, system_prompt: str, user_prompt: str) -> str:
+        """Call LLM with json_mode=True. Returns raw JSON string."""
+        return self._llm.complete(system_prompt, user_prompt, json_mode=True)
+
+    def _complete_text(self, system_prompt: str, user_prompt: str) -> str:
+        """Call LLM with json_mode=False. Returns raw text."""
+        return self._llm.complete(system_prompt, user_prompt, json_mode=False)
+
+
 # Backward compat
 def now_iso() -> str:
     from datetime import datetime, timezone

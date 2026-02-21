@@ -476,6 +476,19 @@ def arc_planner_node(state: dict[str, Any]) -> dict[str, Any]:
     ws = campaign.get("world_state_json") if isinstance(campaign, dict) else {}
     ws = ws if isinstance(ws, dict) else {}
 
+    # ── Origin branch (runs before prologue) ─────────────────────────
+    if ws.get("origin_mode"):
+        try:
+            from backend.app.core.origin_engine import build_origin_arc_guidance
+            arc_guidance = build_origin_arc_guidance(ws, turn_number)
+            return {**state, "arc_guidance": arc_guidance}
+        except Exception as _origin_err:
+            logger.warning(
+                "Origin arc_guidance failed (non-fatal), falling back to prologue/normal: %s",
+                _origin_err,
+            )
+            # Fall through to prologue or normal arc planner
+
     # ── Prologue branch ────────────────────────────────────────────────
     if ws.get("prologue_mode"):
         try:

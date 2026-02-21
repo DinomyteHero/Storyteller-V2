@@ -1,6 +1,7 @@
 """Agent layer: bible, architect, biographer, mechanic, encounter, director, narrator, casting, resolution, memory, world_mind, continuity, quest_weaver, progression, psych_archivist, era_forge."""
 from backend.app.core.agents.base import (
     AgentLLM,
+    BaseAgent,
     LLMProvider,
     ensure_json,
     now_iso,
@@ -24,6 +25,7 @@ from backend.app.core.agents.psych_archivist_agent import PsychArchivistAgent
 
 __all__ = [
     "AgentLLM",
+    "BaseAgent",
     "LLMProvider",
     "ensure_json",
     "now_iso",

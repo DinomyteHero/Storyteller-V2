@@ -14,7 +14,8 @@ import logging
 import sqlite3
 from typing import Any
 
-from backend.app.core.agents.base import AgentLLM, ensure_json
+from backend.app.core.agents.base import AgentLLM, BaseAgent, ensure_json
+from backend.app.prompts.registry import load_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -51,50 +52,7 @@ def _format_history(history: list[dict]) -> str:
 
 
 def _build_system_prompt() -> str:
-    return """\
-You are the Progression Archivist for a narrative RPG. Your role is to award
-meaningful character growth based on what the player has actually done in the story.
-
-You receive:
-- The player's current stats and any narrative abilities already unlocked
-- Their psychological profile (mood, stress, trauma)
-- Their background and what kind of character they are
-- A summary of recent story events, established facts, and consequence hints
-- Past progression milestones (to avoid repetition)
-
-You must output a JSON object with these fields:
-
-1. STAT_CHANGES — A dict of stat names mapped to integer deltas (+1 or +2 only).
-   Award 1-3 stats per milestone. Only award stats that already exist in the player's
-   current stats. Growth must be earned by narrative action, not arbitrary.
-
-2. NEW_ABILITY — A single short narrative ability string, or null.
-   Example: "Underworld Contacts", "Ghost Protocol (can attempt vanish once per scene)",
-   "Silver Tongue (advantage on persuasion in social standoffs)".
-   Null if no ability is meaningfully earned this arc.
-
-3. NARRATIVE_JUSTIFICATION — One sentence explaining what the player did to earn
-   this progression. Ground it in specific recent events from the facts/narrative.
-
-4. GROWTH_THEME — One of: "combat", "social", "survival", "knowledge", "leadership",
-   "spiritual", "criminal", "diplomatic"
-
-CRITICAL RULES:
-- STAT_CHANGES values must be +1 or +2. Never negative. Never 0.
-- Only include stats that appear in the player's current stats dict.
-- NEW_ABILITY should be specific and tied to the story — not generic "+3 to skill".
-- NARRATIVE_JUSTIFICATION must reference something that actually happened.
-- Do not repeat abilities the player already has.
-
-Return ONLY a single valid JSON object. No markdown. No preamble.
-
-[JSON OUTPUT SCHEMA]
-{
-  "stat_changes": {"stat_name": int, ...},   // 1-3 existing stats, values +1 or +2
-  "new_ability": string | null,               // one narrative ability or null
-  "narrative_justification": string,          // <=30 words
-  "growth_theme": string                      // one of the listed themes
-}"""
+    return load_prompt("progression_system")
 
 
 def _build_user_prompt(
@@ -209,7 +167,7 @@ def _normalize_output(
 # ---------------------------------------------------------------------------
 
 
-class ProgressionAgent:
+class ProgressionAgent(BaseAgent):
     """LLM-driven narrative character progression.
 
     Awards stat growth and narrative abilities every ~10 turns based on
@@ -219,8 +177,10 @@ class ProgressionAgent:
     No deterministic fallback. If the LLM fails, the exception propagates.
     """
 
+    _role = "progression"
+
     def __init__(self) -> None:
-        self._llm = AgentLLM("progression")
+        super().__init__()
 
     def advance(
         self,

@@ -20,41 +20,17 @@ import json
 import logging
 from typing import Any
 
-from backend.app.core.agents.base import AgentLLM, ensure_json
+from backend.app.core.agents.base import AgentLLM, BaseAgent, ensure_json
+from backend.app.prompts.registry import load_prompt
 
 logger = logging.getLogger(__name__)
 
 _MAX_MEMORIES_PER_NPC = 10
 _MAX_NARRATIVE_CHARS = 600
-_MEMORY_SYSTEM_PROMPT = """You are the Memory Keeper for an AI narrative RPG. After each story turn you update \
-the narrative memory of NPCs who appeared in the scene.
 
-Your job: read what just happened, then update each NPC's memory record.
 
-Rules:
-- Keep memories concrete and specific (what actually happened, not vague generalities)
-- Each memory entry must start with "Turn {N}:" so the reader knows when it happened
-- Keep the memories list to AT MOST 10 entries — if there are already 10, remove the oldest one before adding
-- emotional_state must be 1–3 vivid adjectives reflecting their current feeling toward the player
-- agenda must be 1 sentence about what this NPC wants FROM the player
-- next_move must be 1 sentence about what this NPC will likely DO next (not say — do)
-- Be psychologically honest: a hostile NPC does not suddenly like the player after one good turn
-- DO NOT add memories that didn't actually happen in this turn's narrative
-
-Return ONLY a JSON object. No markdown, no preamble.
-
-Output schema:
-{
-  "npc_updates": [
-    {
-      "npc_id": string,
-      "emotional_state": string,
-      "memories": [string],
-      "agenda": string,
-      "next_move": string
-    }
-  ]
-}"""
+def _get_memory_system_prompt() -> str:
+    return load_prompt("memory_system")
 
 
 def _build_events_summary(npc_id: str, npc_name: str, events: list[dict]) -> str:
@@ -181,7 +157,7 @@ def update_npc_states(
     )
 
     raw_text = llm.complete(
-        system_prompt=_MEMORY_SYSTEM_PROMPT,
+        system_prompt=_get_memory_system_prompt(),
         user_prompt=user_prompt,
         json_mode=True,
     )
@@ -271,15 +247,17 @@ def format_npc_memory_for_narrator(npc_id: str, npc_states: dict[str, dict]) -> 
     return "\n".join(lines) if lines else ""
 
 
-class MemoryAgent:
+class MemoryAgent(BaseAgent):
     """LLM-based NPC narrative memory manager.
 
     Runs after each story turn to update per-NPC memory in world_state_json["npc_states"].
     Call update() from the commit node after the main DB transaction completes.
     """
 
+    _role = "memory"
+
     def __init__(self) -> None:
-        self._llm = AgentLLM("memory")
+        super().__init__()
 
     def update(
         self,
