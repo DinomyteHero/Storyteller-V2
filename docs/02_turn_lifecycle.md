@@ -36,7 +36,7 @@ A single turn flows through a LangGraph `StateGraph` that is compiled once on fi
 - 3 new deferred agents run post-commit: RevelationAgent (every 5 turns), CallbackCrystallizerAgent (every 10 turns), PlayerProfileAgent (every 10 turns, deterministic)
 - Commit node records choice history for player profiling
 
-## Pipeline Topology (V10.0)
+## Pipeline Topology (V11.0)
 
 ```mermaid
 flowchart TD
@@ -51,12 +51,13 @@ flowchart TD
 
     MECHANIC --> ENCOUNTER
     ENCOUNTER --> WORLDSIM[WorldSim Node]
-    WORLDSIM --> COMPANION[Companion Reaction Node]
-    COMPANION --> MOMENTS[Moments Node]
+    WORLDSIM --> MOMENTS[Moments Node]
     MOMENTS --> ARCPLAN[Arc Planner Node]
-    ARCPLAN --> SCENEFRAME[Scene Frame Node]
+    ARCPLAN --> INTERLUDE[Interlude Node]
+    INTERLUDE --> SCENEFRAME[Scene Frame Node]
     SCENEFRAME --> DIRECTOR[Director Node]
-    DIRECTOR --> NARRATOR[Narrator Node]
+    DIRECTOR --> COMPANION[Companion Reaction Node]
+    COMPANION --> NARRATOR[Narrator Node]
     NARRATOR --> VALIDATOR[Narrative Validator Node]
     VALIDATOR --> CHOICECRAFTER[Choice Crafter Node]
     CHOICECRAFTER --> COMMIT
@@ -67,6 +68,7 @@ flowchart TD
     style COMMIT fill:#ff9,stroke:#333
     style WORLDSIM fill:#9ff,stroke:#333
     style ARCPLAN fill:#cfc,stroke:#333
+    style INTERLUDE fill:#ffc,stroke:#333
     style VALIDATOR fill:#fcf,stroke:#333
     style CHOICECRAFTER fill:#f9c,stroke:#333
     style MOMENTS fill:#cff,stroke:#333
@@ -152,7 +154,7 @@ Also:
 
 ### 4) WorldSim (Living World)
 
-**File:** `backend/app/core/nodes/world_sim.py` (calls `backend/app/core/agents/architect.py` or `backend/app/world/faction_engine.py`)
+**File:** `backend/app/core/nodes/world_sim.py` (calls `backend/app/core/agents/world_mind_agent.py` or `backend/app/world/faction_engine.py`)
 
 **Purpose:** Run off-screen simulation on tick-boundary crossing or travel.
 
@@ -166,7 +168,7 @@ Also:
 **When triggered:**
 
 - Loads current `active_factions` from DB (`campaigns.world_state_json.active_factions`).
-- Calls `CampaignArchitect.simulate_off_screen(...)` (LLM with deterministic fallback) or the deterministic `faction_engine.simulate_faction_tick()`.
+- Calls `WorldMindAgent.simulate()` (LLM with deterministic fallback) or the deterministic `faction_engine.simulate_faction_tick()`.
 - Produces:
   - `world_sim_events` (hidden faction moves / plot ticks)
   - `world_sim_rumors` as public rumor events (`is_public_rumor=true`)
@@ -178,34 +180,13 @@ Also:
 
 ---
 
-### 5) Companion Reaction
-
-**File:** `backend/app/core/nodes/companion.py` (uses `backend/app/core/companion_reactions.py`)
-
-**Purpose:** Deterministic party/alignment/faction updates + banter + inter-party dynamics.
-
-- Applies alignment + faction reputation deltas (currently derived from tone tags and heuristics).
-- Updates `party_affinity`, `loyalty_progress`, and queues 0-1 banter lines from BANTER_POOL (17 styles).
-- May enqueue a short "news banter" line based on briefing items.
-- **Inter-party tensions:** `compute_inter_party_tensions()` detects opposing reactions among companions and generates tension context for Director/Narrator.
-- **Companion-initiated events:**
-  - `COMPANION_REQUEST` at TRUSTED loyalty level
-  - `COMPANION_QUEST` at LOYAL loyalty level
-  - `COMPANION_CONFRONTATION` on sharp affinity drop
-- Companion reactions summary (`companion_reactions_summary`) injected into campaign for Narrator context.
-- **V10.0 — Wound/Reveal Layers:** After affinity updates, checks each companion's `revelation_stages` (from `data/companions.yaml`). When affinity crosses a threshold, advances the companion's wound layer (surface → deep → core), sets `revealed_this_turn = True`, and stores in `world_state["companion_revelations"]`. The Director receives trigger text to weave the revelation into the scene. Max one stage advancement per companion per turn.
-
-No DB access. LLM calls via CompanionSystemAgent (V5.0).
-
----
-
-### 6) Moments (V5.0 — NEW)
+### 5) Moments (V5.0)
 
 **File:** `backend/app/core/nodes/moments.py`
 
 **Purpose:** Check and fire `EraMoment` triggers defined in the era pack.
 
-**Pipeline position:** `companion_reaction → moments → arc_planner`
+**Pipeline position:** `world_sim → moments → arc_planner`
 
 **Trigger conditions (all specified must pass):**
 - `companion_id + affinity_threshold`: companion affinity >= threshold
@@ -226,7 +207,7 @@ No DB access. LLM calls via CompanionSystemAgent (V5.0).
 
 ---
 
-### 7) Arc Planner
+### 6) Arc Planner
 
 **File:** `backend/app/core/nodes/arc_planner.py`
 
@@ -243,6 +224,33 @@ No DB writes, no LLM.
 
 ---
 
+### 7) Interlude (V8.0)
+
+**File:** `backend/app/core/nodes/interlude.py`
+
+**Purpose:** Lightweight deterministic scene between arcs — provides breathing room between arc RESOLUTION and new arc SETUP.
+
+**Pipeline position:** `arc_planner → interlude → scene_frame`
+
+**Behavior:**
+
+- Checks `arc_guidance.get("interlude_active")`.
+- If `False`: pass-through — returns state unchanged.
+- If `True`: builds downtime context from:
+  - `campaign.news_feed` (up to 2 items)
+  - `state.active_rumors` (up to 3 items)
+  - `world_state.banter_queue` (first item)
+- Constructs `director_instructions` for a reflective, low-stakes scene.
+- Advances `pending_world_time_minutes` by `INTERLUDE_TIME_SKIP_HOURS * 60`.
+
+No DB access. No LLM calls. Deterministic.
+
+**State fields read:** `arc_guidance`, `campaign`, `world_state_json`, `active_rumors`, `pending_world_time_minutes`
+
+**Output keys set:** `director_instructions`, `pending_world_time_minutes`
+
+---
+
 ### 8) Scene Frame
 
 **File:** `backend/app/core/nodes/scene_frame.py`
@@ -254,7 +262,7 @@ No DB writes, no LLM.
 
 ---
 
-### 9) Director
+### 9) Director (LLM)
 
 **File:** `backend/app/core/nodes/director.py` (agent in `backend/app/core/agents/director.py`)
 
@@ -277,7 +285,30 @@ The Director generates **text-only scene instructions** (no JSON schema, no sugg
 
 ---
 
-### 10) Narrator
+### 10) Companion Reaction
+
+**File:** `backend/app/core/nodes/companion.py` (uses `backend/app/core/agents/companion_system_agent.py` and `backend/app/core/companion_reactions.py`)
+
+**Purpose:** Party/alignment/faction updates + banter + inter-party dynamics. Runs after Director so companion reactions can be informed by scene context.
+
+**Pipeline position:** `director → companion_reaction → narrator`
+
+- Applies alignment + faction reputation deltas (currently derived from tone tags and heuristics).
+- Updates `party_affinity`, `loyalty_progress`, and queues 0-1 banter lines from BANTER_POOL (17 styles).
+- May enqueue a short "news banter" line based on briefing items.
+- **Inter-party tensions:** `compute_inter_party_tensions()` detects opposing reactions among companions and generates tension context for Director/Narrator.
+- **Companion-initiated events:**
+  - `COMPANION_REQUEST` at TRUSTED loyalty level
+  - `COMPANION_QUEST` at LOYAL loyalty level
+  - `COMPANION_CONFRONTATION` on sharp affinity drop
+- Companion reactions summary (`companion_reactions_summary`) injected into campaign for Narrator context.
+- **V10.0 — Wound/Reveal Layers:** After affinity updates, checks each companion's `revelation_stages` (from `data/companions.yaml`). When affinity crosses a threshold, advances the companion's wound layer (surface → deep → core), sets `revealed_this_turn = True`, and stores in `world_state["companion_revelations"]`. The Director receives trigger text to weave the revelation into the scene. Max one stage advancement per companion per turn.
+
+LLM calls via `generate_companion_reactions()` from CompanionSystemAgent module. No DB access.
+
+---
+
+### 11) Narrator (LLM)
 
 **File:** `backend/app/core/nodes/narrator.py` (agent in `backend/app/core/agents/narrator.py`; prompt construction in `narrator_prompt.py`; output post-processing in `narrator_postprocess.py`)
 
@@ -302,7 +333,7 @@ The Narrator writes **only prose** (5-8 sentences, max 250 words). `embedded_sug
 
 ---
 
-### 11) Narrative Validator
+### 12) Narrative Validator
 
 **File:** `backend/app/core/nodes/narrative_validator.py`
 
@@ -314,7 +345,7 @@ The Narrator writes **only prose** (5-8 sentences, max 250 words). `embedded_sug
 
 ---
 
-### 12) Choice Crafter (V5.0 — replaces Suggestion Refiner)
+### 13) Choice Crafter (V5.0 — replaces Suggestion Refiner)
 
 **File:** `backend/app/core/nodes/choice_crafter_node.py`
 
@@ -335,7 +366,7 @@ The Narrator writes **only prose** (5-8 sentences, max 250 words). `embedded_sug
 
 ---
 
-### 13) Commit (Single Transaction Boundary)
+### 14) Commit (Single Transaction Boundary)
 
 **File:** `backend/app/core/nodes/commit.py`
 
@@ -384,12 +415,13 @@ Most fields are defined in `backend/app/models/state.py`.
 | `mechanic_result` | Router (TALK) or Mechanic (ACTION) | TALK uses a synthesized result (time cost only) |
 | `present_npcs`, `spawn_events`, `throttle_events`, `active_rumors` | Encounter | `spawn_events`/`throttle_events` are committed later |
 | `pending_world_time_minutes`, `world_sim_*`, `new_rumors` | WorldSim | WorldSim is pure (no DB writes) |
-| `campaign.party_*`, `campaign.alignment`, `campaign.faction_reputation`, `campaign.banter_queue` | Companion Reaction | Pure; includes inter-party tensions |
 | `arc_guidance.fired_moments_beats`, `arc_guidance.scene_instructions` | Moments Node (V5.0) | Prepended to scene instructions for Director |
 | `arc_guidance` | Arc Planner | Arc stage, tension, hero beat, pacing |
+| `director_instructions`, `pending_world_time_minutes` | Interlude (V8.0) | Pass-through when not between arcs |
 | `scene_frame` | Scene Frame | `topic_primary`, `subtext`, `npc_agenda` |
 | `director_instructions` | Director | Text-only pacing instructions for Narrator |
 | `shared_kg_character_context`, `shared_episodic_memories` | Director | Shared for Narrator (avoids duplicate retrieval) |
+| `campaign.party_*`, `campaign.alignment`, `campaign.faction_reputation`, `campaign.banter_queue` | Companion Reaction | Runs after Director; includes inter-party tensions |
 | `suggested_actions` | ChoiceCrafter (V5.0) | 4 LLM-generated choices; `ActionSuggestion` dicts |
 | `player_responses` | ChoiceCrafter (V5.0) | `PlayerResponse` dicts for `DialogueTurn` |
 | `final_text`, `lore_citations` | Narrator | Prose-only; may append banter; may add warnings |

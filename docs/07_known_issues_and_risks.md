@@ -38,6 +38,17 @@ Last updated: V11.0 architecture revision.
 
 ---
 
+## Resolved (Documentation)
+
+| Issue | Status | Resolution |
+| ------- | -------- | ----------- |
+| MechanicAgent documentation claimed zero-LLM but agent now uses ResolutionAgent (LLM-backed) | ✅ Resolved | Docs updated to reflect MechanicAgent delegates narrative resolution to ResolutionAgent |
+| Event type names in projections were wrong in docs (ITEM_ACQUIRED→ITEM_GET, ITEM_LOST→ITEM_LOSE) | ✅ Resolved | Docs corrected to use actual event type names (`ITEM_GET`, `ITEM_LOSE`) |
+| `player_starships` table had wrong `campaign_id` type (INTEGER instead of TEXT) | ✅ Resolved | Fixed in migration 0040 (schema fixes — `campaign_id` type corrected) |
+| 28 API endpoints were undocumented | ✅ Resolved | All endpoints now documented across API docs (settings, provider, preset, EraForge, export routes) |
+
+---
+
 ## Active Issues
 
 ### ~~1. Authoritative agent failures still require user retry~~

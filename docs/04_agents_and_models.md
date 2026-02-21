@@ -1,37 +1,45 @@
 # 04 — Agents & LLM Plumbing
 
-## Agent Summary (Current — V10.0)
+## Agent Summary (Current — V12.0)
 
 > **V7.0 change:** MemoryAgent, QuestWeaverAgent, ProgressionAgent, and PsychArchivistAgent now run as **deferred maintenance agents** post-commit via `deferred_agents.py`. They write to the `pending_world_state_patches` table rather than directly modifying world state during the turn transaction. This reduces transaction hold time from 10-20s to ~2s on maintenance turns.
 
 > **V10.0 change:** Three new deferred agents added: **RevelationAgent** (LLM, every 5 turns — evaluates hidden info for dramatic timing), **CallbackCrystallizerAgent** (LLM, every 10 turns — captures peak moments for future echo), and **PlayerProfileAgent** (deterministic, every 10 turns — analyzes player choice patterns for Director guidance).
 
+> **V11.0 change:** `BaseAgent` lightweight base class introduced for new agents — provides lazy `AgentLLM` initialization and `_complete_json()` / `_complete_text()` convenience methods.
+
+All agent files are located in `backend/app/core/agents/`.
+
 | Component | File | Deterministic? | LLM? | Authoritative? | Output | Fallback Behavior |
 | ----------- | ------ | :---: | :---: | :---: | ------- | --------- |
-| **MechanicAgent** | `agents/mechanic.py` | Yes | No | N/A | `MechanicOutput` (dice/DC/time/events) | Pure-Python; always succeeds |
-| **EncounterManager** | `agents/encounter.py` | Yes | No (default) | N/A | `present_npcs`, `spawn_events` | Deterministic; optional LLM cast path if both flags off |
-| **DirectorAgent** | `agents/director.py` | No | Yes | No | `director_instructions` (text-only) | Returns empty instructions; pipeline continues |
-| **NarratorAgent** | `agents/narrator.py` | No | Yes | Yes | `final_text` (prose) | `AgentFailureError` on failure (caught at graph level) |
-| **ChoiceCrafterAgent** | `agents/choice_crafter_agent.py` | No | Yes | Yes | 4x player choices (setting-agnostic) | `AgentFailureError` on failure (caught at graph level) |
-| **WorldMindAgent** | `agents/world_mind_agent.py` | No | Yes | No | World events, rumors, faction updates | Falls back to deterministic faction engine |
-| **CampaignArchitect** | `agents/architect.py` | No | Yes | No | Campaign blueprint, off-screen simulation | Returns minimal scaffold |
-| **BiographerAgent** | `agents/biographer.py` | No | Yes | No | Character background text | Returns default background |
-| **CastingAgent** | `agents/casting.py` | No | Yes | No | NPC cast list | Falls back to Bible casting / procedural |
-| **IntentRouterAgent** | `agents/intent_router_agent.py` | No | Yes | No | Route classification assist | Falls back to keyword-based routing |
-| **CompanionSystemAgent** | `agents/companion_system_agent.py` | No | Yes | No | Extended companion interactions | Skipped on failure |
-| **ContinuityAgent** | `agents/continuity_agent.py` | No | Yes | No | Continuity check results | Skipped on failure |
-| **EraTransitionSceneAgent** | `agents/era_transition_scene_agent.py` | No | Yes | No | Era transition scene text | Skipped on failure |
-| **MemoryAgent** | `agents/memory_agent.py` | No | Yes | No | Long-term memory summaries | Skipped on failure |
-| **ProgressionAgent** | `agents/progression_agent.py` | No | Yes | No | Story/player progression updates | Skipped on failure |
-| **PrologueAgent** | `agents/prologue_agent.py` | No | Yes | No | Campaign opening narration | Skipped on failure |
-| **PsychArchivistAgent** | `agents/psych_archivist_agent.py` | No | Yes | No | Psychology profile updates | Skipped on failure |
-| **QuestWeaverAgent** | `agents/quest_weaver_agent.py` | No | Yes | No | Quest narrative text | Skipped on failure |
-| **ResolutionAgent** | `agents/resolution_agent.py` | No | Yes | No | Story resolution scenes | Skipped on failure |
-| **ArcScreenplayAgent** | `agents/arc_screenplay_agent.py` | No | Yes | No | Act-level screenplay plan | Skipped on failure |
-| **ArcWeaverAgent** | `agents/arc_weaver_agent.py` | No | Yes | No | Thread weaving between arcs | Skipped on failure |
-| **RevelationAgent** (V10.0) | `agents/revelation_agent.py` | No | Yes | No | Revelation queue updates | Skipped on failure |
-| **CallbackCrystallizerAgent** (V10.0) | `agents/callback_crystallizer_agent.py` | No | Yes | No | Callback seeds for peak moments | Skipped on failure |
-| **PlayerProfileAgent** (V10.0) | `agents/player_profile_agent.py` | Yes | No | No | Player behavior profile | Skipped on failure |
+| **MechanicAgent** | `mechanic.py` | No | Yes (via ResolutionAgent) | No | `MechanicOutput` (dice/DC/time/events) | Deterministic fallback in mechanic node |
+| **ResolutionAgent** | `resolution_agent.py` | No | Yes | No | LLM-driven action resolution using Storyteller Core rules | Deterministic fallback |
+| **EncounterManager** | `encounter.py` | Yes | No (default) | N/A | `present_npcs`, `spawn_events` | Deterministic; optional LLM cast path if both flags off |
+| **DirectorAgent** | `director.py` | No | Yes | No | `director_instructions` (text-only) | Returns empty instructions; pipeline continues |
+| **NarratorAgent** | `narrator.py` | No | Yes | Yes | `final_text` (prose) | `AgentFailureError` on failure (caught at graph level) |
+| **ChoiceCrafterAgent** | `choice_crafter_agent.py` | No | Yes | Yes | 4x player choices (setting-agnostic) | `AgentFailureError` on failure (caught at graph level) |
+| **WorldMindAgent** | `world_mind_agent.py` | No | Yes | No | World events, rumors, faction updates | Falls back to deterministic faction engine |
+| **CampaignArchitect** | `architect.py` | No | Yes | No | Campaign blueprint, off-screen simulation | Returns minimal scaffold |
+| **BiographerAgent** | `biographer.py` | No | Yes | No | Character background text | Returns default background |
+| **CastingAgent** | `casting.py` | No | Yes | No | NPC cast list | Falls back to Bible casting / procedural |
+| **IntentRouter** | `intent_router_agent.py` | No | Yes | No | Route classification assist (function-based, no class) | Falls back to keyword-based routing |
+| **CompanionSystem** | `companion_system_agent.py` | No | Yes | No | Extended companion interactions (function-based, no class) | Skipped on failure |
+| **ContinuityAgent** | `continuity_agent.py` | No | Yes | No | Continuity check results (extends BaseAgent) | Skipped on failure |
+| **EraTransitionSceneAgent** | `era_transition_scene_agent.py` | No | Yes | No | Era transition scene text | Skipped on failure |
+| **MemoryAgent** | `memory_agent.py` | No | Yes | No | Long-term memory summaries (extends BaseAgent) | Skipped on failure |
+| **ProgressionAgent** | `progression_agent.py` | No | Yes | No | Story/player progression updates (extends BaseAgent) | Skipped on failure |
+| **PrologueScreenplayAgent** | `prologue_agent.py` | No | Yes | No | Campaign opening narration | Skipped on failure |
+| **PsychArchivistAgent** | `psych_archivist_agent.py` | No | Yes | No | Psychology profile updates | Skipped on failure |
+| **QuestWeaverAgent** | `quest_weaver_agent.py` | No | Yes | No | Quest narrative text (extends BaseAgent) | Skipped on failure |
+| **CampaignBibleAgent** | `campaign_bible_agent.py` | No | Yes | No | Campaign screenplay bible | Skipped on failure |
+| **EraForgeAgent** | `era_forge_agent.py` | No | Yes | No | Era pack auto-generation | Skipped on failure |
+| **OriginScreenplayAgent** | `origin_agent.py` | No | Yes | No | Origin story / playable backstory generation | Skipped on failure |
+| **ArcScreenplayAgent** | `arc_screenplay_agent.py` | No | Yes | No | Per-arc narrative blueprint | Skipped on failure |
+| **ArcWeaverAgent** | `arc_weaver_agent.py` | No | Yes | No | Thread weaving between arcs | Skipped on failure |
+| **LegacyAgent** | `legacy_agent.py` | No | Yes | No | Character legacy summaries for saga continuity | Skipped on failure |
+| **RevelationAgent** (V10.0) | `revelation_agent.py` | No | Yes | No | Revelation queue updates | Skipped on failure |
+| **CallbackCrystallizerAgent** (V10.0) | `callback_crystallizer_agent.py` | No | Yes | No | Callback seeds for peak moments | Skipped on failure |
+| **PlayerProfileAgent** (V10.0) | `player_profile_agent.py` | Yes | No | No | Player behavior profile | Skipped on failure |
 
 ---
 
@@ -103,7 +111,7 @@ LLM_TIMEOUT=300  # Default fallback timeout
 | Director | `mistral-nemo:latest` | Quality-critical; generates scene instructions |
 | Narrator | `mistral-nemo:latest` | Quality-critical; generates prose (authoritative) |
 | ChoiceCrafter | `qwen3:8b` | Player choice generation (authoritative) |
-| Mechanic | `qwen3:8b` | Deterministic mechanics (config-assigned, agent is zero-LLM) |
+| Mechanic | `qwen3:8b` | Action resolution via ResolutionAgent (LLM with deterministic fallback) |
 | CompanionSystem | `qwen3:8b` | Extended companion interactions + voice |
 | WorldMind | `qwen3:8b` | Contextual world simulation (LLM-driven) |
 | QuestWeaver | `qwen3:8b` | Dynamic quest generation (deferred) |
@@ -112,7 +120,7 @@ LLM_TIMEOUT=300  # Default fallback timeout
 | ArcScreenplay | `qwen3:8b` | Per-arc narrative blueprint |
 | Bible | `qwen3:8b` | Campaign bible generation (one-shot at setup) |
 | EraForge | `qwen3:8b` | Era pack auto-generation |
-| SuggestionRefiner | `qwen3:8b` | Legacy choice refinement |
+| Origin | `qwen3:8b` | Origin story / playable backstory generation |
 | Architect | `qwen3:4b` | Campaign blueprint + off-screen simulation |
 | Casting | `qwen3:4b` | Legacy NPC casting path |
 | Biographer | `qwen3:4b` | Character background |
@@ -134,16 +142,11 @@ LLM_TIMEOUT=300  # Default fallback timeout
 
 ### MechanicAgent — `backend/app/core/agents/mechanic.py`
 
-**Zero LLM calls.** Pure Python.
+**LLM-based via ResolutionAgent.** Routes action resolution through `ResolutionAgent`, an LLM-based Game Master that resolves player actions using Storyteller Core rules. The mechanic node falls back to deterministic resolution if the LLM call fails.
 
 **Responsibilities:**
 - Map user action text to `action_type` (COMBAT, STEALTH, PERSUADE, INVESTIGATE, MOVE/TRAVEL, DIALOGUE_ONLY, USE_ITEM, CRAFT, SKILL_CHECK, GENERIC)
-- Compute DC (difficulty class) from action type + modifiers
-- Apply advantage/disadvantage from player stats and location environment
-- Apply arc-stage DC modifier (`_ARC_DC_MODIFIER`: SETUP=-2, RISING=0, CLIMAX=+3, RESOLUTION=-1)
-- Apply environmental modifiers (`environmental_modifiers()`: location tag, weapon check, time-of-day)
-- Roll 1d20 + stat modifier vs DC
-- Handle critical success/failure
+- Resolve actions via `ResolutionAgent` (LLM-driven DC, dice, events, consequences)
 - Compute `time_cost_minutes` (action-type weighted, modified by success)
 - Compute `stress_delta` (risk tier: SAFE=0, RISKY=+1, DANGEROUS=+2; critical_failure=+3)
 - Compute alignment delta (PARAGON/RENEGADE tone scaffold for companion reactions)

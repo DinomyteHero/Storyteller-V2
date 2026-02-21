@@ -1,6 +1,6 @@
 # Storyteller V1.0 Roadmap — Remaining Work
 
-Last updated: V11.0 pre-release hardening pass (post-`6e2abcb`).
+Last updated: V12.0 documentation pass (2026-02-21, post-`b79f9ff`).
 
 Items from the original roadmap that have been completed are removed. This document tracks only remaining work. Section 4 (Launch Readiness Audit) contains the authoritative must-fix list; sections 1–3 cover polish, cleanup, and packaging that are distinct from launch-gate items.
 
@@ -235,3 +235,272 @@ The following sections from the original roadmap have been fully implemented and
 | 7 | Fix first-run wizard dismiss/close behavior | Should | **DONE** — `ondismiss` prop wired, immediate close without page reload |
 | 8 | Add model pull guidance/automation to first-run flow | Must | **DONE** — Missing model list, copy-to-clipboard `ollama pull` commands, "Check Again" button |
 | 9 | Complete setting-agnostic cleanup beyond `era_pack_models.py` | Should | **DONE** — `kg/extractor.py`, `kg/synthesis.py` parameterized; `biographer.py` documented; `genre_triggers.py` merge-based override system |
+
+---
+
+## 5. V1.0 RELEASE PACKAGING PLAN
+
+### 5.1 Release Scope
+
+The v1.0 release ships as a **launcher-supported local application** (not a native binary). Users install prerequisites manually, then use `run_app.py` or `start_app.bat` to launch. The target audience for v1 is technical users and AI/narrative system engineers who can manage a Python + Node.js + Ollama environment.
+
+### 5.2 Pre-Release Packaging Checklist
+
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 1 | Bump `pyproject.toml` version to `1.0.0` | **OPEN** | Currently `0.1.0` |
+| 2 | Finalize `.env.example` with all V12.0 vars | **OPEN** | Verify provider_keys, preset, preferences env vars are documented |
+| 3 | Ensure `run_app.py --validate-packs` passes on all shipped era packs | **OPEN** | Era pack minimum viability contract |
+| 4 | Verify clean-machine install (Windows) | **OPEN** | Fresh Python 3.11+, Node.js, Ollama install → `pip install -e .` → `run_app.py --dev` |
+| 5 | Verify clean-machine install (macOS) | **OPEN** | Same path on macOS |
+| 6 | Create `CHANGELOG.md` entry for v1.0 | **OPEN** | Summarize V5.0→V12.0 feature set |
+| 7 | Tag release commit as `v1.0.0` | **OPEN** | After all gates pass |
+| 8 | Generate `.tar.gz` / `.zip` source distribution | **OPEN** | `git archive` or GitHub release |
+
+### 5.3 Release Artifacts
+
+```
+storyteller-v1.0.0/
+├── backend/                 # Python backend (FastAPI + LangGraph)
+├── frontend/                # SvelteKit frontend (source; built on first launch)
+├── ingestion/               # Lore ingestion pipeline
+├── shared/                  # Shared utilities
+├── storyteller/             # CLI module
+├── data/
+│   └── static/              # Era packs, setting packs, companions, starships
+├── scripts/
+│   └── bootstrap.sh         # One-step setup script
+├── .env.example             # Environment template
+├── .env.production.example  # Production template
+├── pyproject.toml            # Python config (version 1.0.0)
+├── Makefile                 # Build automation
+├── run_app.py               # Unified launcher (auto-installs npm deps)
+├── start_app.bat            # Windows shortcut
+├── Dockerfile               # Docker build
+├── docker-compose.yml       # Full-stack Docker Compose
+├── QUICKSTART.md            # Getting started guide
+├── README.md                # Project overview
+└── CHANGELOG.md             # Version history
+```
+
+**Excluded from release:** `venv/`, `data/storyteller.db`, `data/lancedb/`, `node_modules/`, `__pycache__/`, `.git/`, test files (optional inclusion).
+
+### 5.4 Installation Flow (User-Facing)
+
+```
+1. Install prerequisites:
+   - Python 3.11+
+   - Node.js 18+
+   - Ollama (https://ollama.ai)
+
+2. Extract release archive
+
+3. First-time setup:
+   $ cd storyteller-v1.0.0
+   $ cp .env.example .env        # Edit if needed
+   $ pip install -e .             # Install Python deps
+   $ ollama pull mistral-nemo     # Pull primary LLM
+   $ ollama pull qwen3:8b         # Pull secondary LLM
+   $ ollama pull qwen3:4b         # Pull lightweight LLM
+
+4. Launch:
+   $ python run_app.py --dev      # Starts backend + frontend
+   # OR on Windows:
+   $ start_app.bat
+
+5. Open browser to http://localhost:5173
+```
+
+---
+
+## 6. MANUAL TESTING STRATEGY
+
+### 6.1 Test Tiers
+
+| Tier | What | How | When |
+|------|------|-----|------|
+| **T0: Automated Gates** | Unit + integration tests, release-gate markers | `make test`, `python -m pytest -m release_gate` | Every commit / PR |
+| **T1: Smoke Test** | End-to-end pipeline validation | `python -m pytest backend/tests/test_e2e_smoke_flow.py` | Every release candidate |
+| **T2: Manual Functional** | Full player journey walkthrough | Human tester follows script below | Every release candidate |
+| **T3: Exploratory** | Freeform play sessions, edge cases | 30-60 min unscripted gameplay | Before final v1.0 tag |
+
+### 6.2 Manual Test Script (T2)
+
+Execute each scenario sequentially. Record PASS/FAIL and any notes.
+
+#### Scenario 1: Fresh Install & First Run
+
+```
+[ ] Install from clean machine (no prior Storyteller data)
+[ ] Run `pip install -e .` — no errors
+[ ] Run `python run_app.py --dev` — backend starts, frontend builds
+[ ] Open http://localhost:5173 — home page loads
+[ ] First-run wizard appears
+[ ] Wizard shows Ollama status (connected or guidance to install)
+[ ] Wizard shows required models (with pull commands if missing)
+[ ] After models are available, wizard allows proceeding
+```
+
+#### Scenario 2: Campaign Creation
+
+```
+[ ] Click "New Campaign" or equivalent
+[ ] Select a universe/setting (Star Wars or Forgotten Realms)
+[ ] Select an era pack
+[ ] Character creation: name, species, background selection
+[ ] Campaign scale selection (Short/Medium/Long/Epic)
+[ ] Campaign creates successfully — redirected to prologue or play
+[ ] Prologue/origin story renders (if applicable)
+```
+
+#### Scenario 3: Core Gameplay Loop
+
+```
+[ ] First turn: type an action and submit
+[ ] Turn processes — loading indicator visible
+[ ] Narrator prose appears (5-8 sentences, reasonable quality)
+[ ] 4 player choices appear (diverse tones: Paragon/Investigate/Renegade/Neutral)
+[ ] HUD shows location, time, companion info
+[ ] Select a choice — next turn processes correctly
+[ ] Repeat for 5+ turns — no crashes, no "stuck" states
+```
+
+#### Scenario 4: Streaming Turn
+
+```
+[ ] Submit a turn that uses streaming (/turn_stream)
+[ ] Prose streams token-by-token (visible progressive rendering)
+[ ] After stream completes, choices appear
+[ ] No duplicate text or missing segments
+```
+
+#### Scenario 5: World Simulation
+
+```
+[ ] Play enough turns to cross a world tick boundary (~4 in-game hours)
+[ ] News feed updates with world events
+[ ] Rumors appear in context
+[ ] NPC movements/faction changes reflect in world state
+```
+
+#### Scenario 6: Companion System
+
+```
+[ ] Companion is present in party
+[ ] Companion reactions appear in narrative context
+[ ] Banter lines appear occasionally (non-combat turns)
+[ ] Affinity changes based on player choices (check via /state endpoint)
+```
+
+#### Scenario 7: Quest System
+
+```
+[ ] Quest activates based on trigger conditions
+[ ] Quest progress tracked in quest log
+[ ] Quest completion updates world state
+```
+
+#### Scenario 8: Save/Resume/Rewind
+
+```
+[ ] Close browser tab mid-session
+[ ] Reopen — campaign appears in campaign list
+[ ] Resume campaign — state is correct (turn number, location, NPCs)
+[ ] Rewind to previous turn — world state restored correctly
+[ ] Continue play after rewind — no corruption
+```
+
+#### Scenario 9: Settings & Cloud LLM (V12.0)
+
+```
+[ ] Navigate to Settings page
+[ ] Provider list shows available providers
+[ ] Can enter and test an API key (if cloud provider available)
+[ ] Can create a custom LLM preset
+[ ] Can assign preset to a campaign
+[ ] Turns execute using configured provider/model
+```
+
+#### Scenario 10: Library & Lore Ingestion
+
+```
+[ ] Navigate to Library page
+[ ] Upload a text/PDF file for ingestion
+[ ] Ingestion job starts and completes
+[ ] Ingested lore appears in subsequent turns (RAG retrieval)
+[ ] Can create/delete lore source collections
+```
+
+#### Scenario 11: EraForge (V12.0)
+
+```
+[ ] Use EraForge to suggest a new era pack
+[ ] Generate the era pack from suggestions
+[ ] Generated pack appears in era selection
+[ ] Can create a campaign using the generated pack
+```
+
+#### Scenario 12: Campaign Completion
+
+```
+[ ] Play a campaign to arc completion (or use /complete endpoint)
+[ ] Epilogue renders correctly
+[ ] Campaign marked as completed
+[ ] Can start a new campaign (saga continuity if applicable)
+```
+
+#### Scenario 13: Error Recovery
+
+```
+[ ] Stop Ollama mid-turn — verify graceful error message, not crash
+[ ] Restart Ollama — verify turns resume normally
+[ ] Submit empty input — verify validation error returned
+[ ] Submit extremely long input — verify 413 response
+[ ] Rapid-fire turn submissions — verify rate limiting (429)
+```
+
+### 6.3 Automated Test Commands Reference
+
+```bash
+# Full test suite
+make test
+
+# Release-gate tests only
+python -m pytest -m release_gate -q
+
+# Backend unit tests
+python -m pytest backend/tests -q
+
+# Ingestion tests
+python -m pytest ingestion -q --ignore=ingestion/test_tagger_pipeline.py
+
+# E2E smoke test (requires running backend)
+python -m pytest backend/tests/test_e2e_smoke_flow.py -q
+
+# Frontend unit tests
+cd frontend && npm test -- --run
+
+# Frontend E2E (requires running app)
+cd frontend && npm run test:e2e
+
+# Specific test suites
+python -m pytest backend/tests/test_turn_stream_pre_pipeline_order.py -q
+python -m pytest backend/tests/test_turn_idempotency.py -q
+python -m pytest backend/tests/test_health_detail.py -q
+
+# Quick sanity check
+make check
+```
+
+### 6.4 Known Test Gaps (Track for v1.1)
+
+| Gap | Risk | Mitigation |
+|-----|------|------------|
+| No automated narrative quality scoring | Medium | Manual review of 10+ turn transcripts per release candidate |
+| Era pack content depth not validated beyond file presence | Medium | Manual playthrough of each shipped era pack (2-3 turns each) |
+| No load/stress testing | Low (single-user local app) | Monitor p95 latency during manual testing |
+| Cloud provider integration not testable in CI | Low | Manual test with at least one cloud provider before release |
+
+---
+
+*Assessed against: Storyteller-V2 at V12.0 (2026-02-21)*

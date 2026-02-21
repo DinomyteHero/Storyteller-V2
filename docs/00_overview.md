@@ -6,7 +6,7 @@ Storyteller AI (current codebase, project version 0.1.0, engine version V11.0) i
 
 The "Living World" mechanic is the core differentiator: every player action costs in-game time (in minutes). When accumulated time crosses a configurable tick boundary (default 4 hours), a **WorldSim** node fires a deterministic faction simulation (with optional LLM-driven world narrative) that moves NPC factions, generates rumors, and feeds a Mass Effect-style news briefing system — making the world feel alive even when the player isn't directly interacting with those factions.
 
-**V5.0 introduced setting-agnostic architecture; V7.0 adds production-readiness; V8.0 adds multi-arc campaigns; V9.0 adds novel-length storytelling; V10.0 adds narrative intelligence; V11.0 adds player experience UX.** Agents no longer hardcode universe names, species, or factions. All setting-specific content comes from `SettingRules` (stored in `world_state_json["setting_rules"]`) and era pack YAML files, loaded via the `ContentRepository` singleton. V10.0 adds dramatic irony, creative input detection, narrative rhythm hints, revelation timing, callback crystallization, player behavioral profiling, foreshadowing hooks, thematic resonance across arcs, arc mood profiles, and companion wound/reveal layers. V11.0 adds Universe & Story UX (frontend), UI-exposed lore source management, and optional portrait/key art serving (feature-flagged).
+**V5.0 introduced setting-agnostic architecture; V7.0 adds production-readiness; V8.0 adds multi-arc campaigns; V9.0 adds novel-length storytelling; V10.0 adds narrative intelligence; V11.0 adds player experience UX; V12.0 adds cloud provider management, user LLM presets, and per-campaign LLM configuration.** Agents no longer hardcode universe names, species, or factions. All setting-specific content comes from `SettingRules` (stored in `world_state_json["setting_rules"]`) and era pack YAML files, loaded via the `ContentRepository` singleton. V10.0 adds dramatic irony, creative input detection, narrative rhythm hints, revelation timing, callback crystallization, player behavioral profiling, foreshadowing hooks, thematic resonance across arcs, arc mood profiles, and companion wound/reveal layers. V11.0 adds Universe & Story UX (frontend), UI-exposed lore source management, and optional portrait/key art serving (feature-flagged).
 
 ## Key Design Principles
 
@@ -14,7 +14,7 @@ The "Living World" mechanic is the core differentiator: every player action cost
 | ----------- | --------------- |
 | **Local-First** | Default provider is Ollama (local LLMs). No cloud dependency required. |
 | **Single Transaction Boundary** | Only `CommitNode` (the last pipeline node) writes to the database. All preceding nodes are pure functions that pass state forward. This prevents partial-write corruption. |
-| **Deterministic Mechanic** | The `MechanicAgent` uses zero LLM calls. All dice rolls, DC computation, time costs, and event generation are pure Python. This guarantees reproducible gameplay mechanics regardless of model quality. |
+| **Deterministic Mechanic (with LLM resolution)** | The `MechanicAgent` handles dice rolls, DC computation, time costs, and event generation in pure Python. As of V12.0, it delegates narrative resolution to `ResolutionAgent` (LLM-backed) for richer outcome descriptions. Core mechanics remain deterministic. |
 | **LLM-Driven Choices (V5.0)** | The `ChoiceCrafterNode` replaced the deterministic `SuggestionRefiner`. Player choices are now fully LLM-generated from the Narrator's prose, scene context, and arc state. This is an authoritative node — on failure it raises `AgentFailureError`, surfaced as a structured error to the player. |
 | **Event Sourcing** | The source of truth is an append-only event log (`turn_events` table). Normalized tables (`characters`, `inventory`, `campaigns.world_state_json`) are projections derived from events via `apply_projection()`. |
 | **Per-Role LLM Config** | Agent configuration is per-role via environment variables (`STORYTELLER_{ROLE}_MODEL`, `STORYTELLER_{ROLE}_PROVIDER`). Multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:8b` for medium roles (ChoiceCrafter, Mechanic, CompanionSystem, WorldMind, QuestWeaver, Memory, Prologue, ArcScreenplay, Bible, EraForge), `qwen3:4b` for lightweight roles (Architect, Casting, Biographer, KG Extraction, IntentRouter, ArcWeaver, Continuity, Progression, PsychArchivist, RevelationAgent, CallbackCrystallizer). V7.0 adds per-role cloud provider routing (e.g., `anthropic` for quality-critical roles). |
@@ -83,18 +83,19 @@ graph TD
         API["POST /v2/campaigns/{id}/turn"]
     end
 
-    subgraph "LangGraph Pipeline (graph.py) — V10.0"
+    subgraph "LangGraph Pipeline (graph.py) — V12.0"
         R[Router Node] --> | META| META[Meta Node]
         R --> | TALK| ENC[Encounter Node]
         R --> | ACTION| MECH[Mechanic Node]
         MECH --> ENC
         ENC --> WS[WorldSim Node]
-        WS --> CR[Companion Reaction Node]
-        CR --> MOM[Moments Node]
+        WS --> MOM[Moments Node]
         MOM --> ARC[Arc Planner Node]
-        ARC --> SF[Scene Frame Node]
+        ARC --> INT[Interlude Node]
+        INT --> SF[Scene Frame Node]
         SF --> DIR[Director Node]
-        DIR --> NAR[Narrator Node]
+        DIR --> CR[Companion Reaction Node]
+        CR --> NAR[Narrator Node]
         NAR --> VAL[Narrative Validator Node]
         VAL --> CC[Choice Crafter Node]
         CC --> COMMIT[Commit Node]
@@ -132,11 +133,11 @@ graph TD
     COMMIT --> API
 ```
 
-## Pipeline Topology (V10.0 — unchanged in V11.0)
+## Pipeline Topology (V10.0 — updated in V12.0: 15 nodes including interlude)
 
 **ACTION / TALK path:**
 ```
-router → mechanic → encounter → world_sim → companion_reaction → moments → arc_planner → scene_frame → director → narrator → narrative_validator → choice_crafter → commit → END
+router → mechanic → encounter → world_sim → moments → arc_planner → interlude → scene_frame → director → companion_reaction → narrator → narrative_validator → choice_crafter → commit → END
 ```
 
 **META path:**
@@ -157,6 +158,7 @@ router → meta → commit → END
 - Novel-length storytelling with campaign settings support (V9.0)
 - V10.0 narrative intelligence: 3 new deferred agents (Revelation, Callback Crystallizer, Player Profile), creative deviation detection in router, narrative rhythm hints, dramatic irony tags, foreshadowing hooks, thematic resonance, arc mood profiles, and companion wound/reveal layers — all zero-latency (deferred or prompt-only)
 - V11.0 player experience: no pipeline topology changes. Universe & Story UX (frontend-only), lore source management (`lore_sources` table + API endpoints), optional portrait/key art serving (feature-flagged via `ENABLE_PORTRAITS`). New fields: `portrait_key` on NPC/companion models, `key_art` on location models, `portrait_url`/`location_art_url` in API responses.
+- V12.0 cloud provider & preset system: cloud provider key management (`provider_keys` table, settings endpoints), user LLM presets (`user_presets` table, preset endpoints), per-campaign LLM configuration (campaign settings endpoints), EraForge generation endpoints (suggest, generate, refine-canon, list packs), novel export endpoint, app preferences persistence (`app_preferences` table), schema fixes migration (0040 — `campaign_id` type fix in `player_starships`). Pipeline adds `interlude` node between `arc_planner` and `scene_frame`; `companion_reaction` moved after `director` (15 nodes total).
 
 ## Quickstart
 
@@ -219,4 +221,4 @@ curl -X POST "http://localhost:8000/v2/campaigns/{campaign_id}/turn?player_id={p
 | Default LLM | Ollama (local; multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:8b` for ChoiceCrafter/Mechanic/CompanionSystem/WorldMind/QuestWeaver/Memory/Prologue/ArcScreenplay/Bible/EraForge, `qwen3:4b` for Architect/Casting/Biographer/KG Extraction/IntentRouter/ArcWeaver/Continuity/Progression/PsychArchivist/RevelationAgent/CallbackCrystallizer, `nomic-embed-text` for embedding). V7.0: per-role cloud routing via `STORYTELLER_{ROLE}_PROVIDER` (Anthropic, OpenAI, OpenAI-compatible). |
 | Frontend | SvelteKit (`frontend/`) |
 | Tests | `pytest` suite (run `python -m pytest backend/tests -q` for current count) |
-| Engine Version | V11.0 (V5.0 setting-agnostic base → V7.0 production-readiness → V8.0 multi-arc campaigns → V9.0 novel-length storytelling → V10.0 narrative intelligence → V11.0 player experience: Universe & Story UX, lore source management, optional portrait/key art layer) |
+| Engine Version | V12.0 (V5.0 setting-agnostic base → V7.0 production-readiness → V8.0 multi-arc campaigns → V9.0 novel-length storytelling → V10.0 narrative intelligence → V11.0 player experience → V12.0 cloud provider management, user LLM presets, per-campaign LLM configuration, EraForge endpoints, export endpoints) |

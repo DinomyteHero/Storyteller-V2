@@ -18,7 +18,7 @@ Legend:
 | Invariant | Status | Notes |
 | ----------- | -------- | ------- |
 | **Single Transaction Boundary** — only `CommitNode` writes to DB | ✅ | `backend/app/core/nodes/commit.py` is the only node that calls `conn.commit()`. All other nodes are pure functions. |
-| **Deterministic Mechanic** — `MechanicAgent` uses zero LLM calls | ✅ | `backend/app/core/agents/mechanic.py` is pure Python. |
+| **Deterministic Mechanic (with LLM resolution)** — `MechanicAgent` core mechanics are pure Python; narrative resolution delegated to `ResolutionAgent` (LLM) | ⚠️ | `backend/app/core/agents/mechanic.py` core logic is deterministic. `ResolutionAgent` provides LLM-backed narrative descriptions (V12.0). |
 | **Prose-Only Narrator** — `final_text` contains only prose, no embedded choice text | ✅ | `embedded_suggestions = None` always. `_strip_structural_artifacts()` and `_truncate_overlong_prose()` enforced in `narrator_postprocess.py`. |
 | **Event Sourcing** — `turn_events` is append-only | ✅ | No DELETE or UPDATE on `turn_events`. `apply_projection()` replays from event log. |
 | **Connection-Agnostic Graph** — LangGraph pipeline contains no captured DB connections | ✅ | Connection injected via `state["__runtime_conn"]` at `run_turn()` invocation time. Not a closure capture. |
@@ -97,6 +97,20 @@ Legend:
 | **Pydantic validation hardening** — enum validation, input size limits | 🎮 ✅ | `CampaignScale`, `CampaignMode`, `Difficulty` as `Literal` types. `MAX_USER_INPUT_CHARS` validated in Pydantic model via `Field(max_length=...)`. |
 | **DEV_MODE defaults to False** — requires explicit opt-in | 🎮 ✅ | `_env_flag("STORYTELLER_DEV_MODE", default=False)` in `main.py`. |
 | **Rate limit configurable** — via `STORYTELLER_RATE_LIMIT_MAX` env var | 🎮 ✅ | `int(os.environ.get("STORYTELLER_RATE_LIMIT_MAX", "10"))` in `main.py`. |
+
+---
+
+## V12.0 Architecture (Cloud Provider & Preset System)
+
+| Feature | Status | Notes |
+| --------- | -------- | ------- |
+| **Cloud provider key management** — `provider_keys` table, settings endpoints | ✅ | Provider key CRUD via settings API. Supports multiple cloud providers. |
+| **User LLM presets** — `user_presets` table, preset endpoints | ✅ | Users can save and load named LLM configuration presets. |
+| **Per-campaign LLM configuration** — campaign settings endpoints | ✅ | Campaign-level LLM provider/model overrides via dedicated settings endpoints. |
+| **EraForge generation endpoints** — suggest, generate, refine-canon, list packs | ✅ | `v2_eraforge.py` endpoints for AI-assisted era pack creation and refinement. |
+| **Novel export endpoint** | ✅ | `v2_export.py` endpoint for exporting campaign narrative as novel format. |
+| **App preferences persistence** — `app_preferences` table | ✅ | User application preferences stored in dedicated table. |
+| **Schema fixes migration** — 0040: `campaign_id` type fix | ✅ | Migration 0040 corrects `campaign_id` column type in `player_starships` from INTEGER to TEXT. |
 
 ---
 

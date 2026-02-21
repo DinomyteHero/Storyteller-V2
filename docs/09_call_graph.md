@@ -60,7 +60,7 @@ python -m ingestion.ingest_lore --input ./data/lore/...
 
 ---
 
-## Turn Pipeline Call Graph (V10.0)
+## Turn Pipeline Call Graph (V12.0)
 
 Full call graph for an `intent=ACTION` turn:
 
@@ -74,7 +74,8 @@ graph.run_turn(conn, state)
   │
   ├─ nodes/mechanic.py:mechanic_node(state)  [if intent=ACTION]
   │    └─ agents/mechanic.py:MechanicAgent.resolve(state)
-  │         └─ [pure Python: action_type, DC, roll, time_cost, events, stress_delta]
+  │         ├─ [pure Python: action_type, DC, roll, time_cost, events, stress_delta]
+  │         └─ agents/resolution_agent.py:ResolutionAgent  [LLM-backed narrative resolution, V12.0]
   │
   ├─ nodes/encounter.py:encounter_node(state)
   │    └─ agents/encounter.py:EncounterManager.select_npcs(conn, ...)
@@ -90,13 +91,7 @@ graph.run_turn(conn, state)
   │    ├─ world/faction_engine.py:simulate_faction_tick(...)  [deterministic fallback]
   │    └─ models/news.py:rumors_to_news_feed(rumors)
   │
-  ├─ nodes/companion.py:companion_reaction_node(state)
-  │    └─ core/companion_reactions.py:compute_reactions(state)
-  │         ├─ [alignment deltas, faction reputation deltas]
-  │         ├─ [banter_queue append from BANTER_POOL]
-  │         └─ compute_inter_party_tensions(party, companion_states)
-  │
-  ├─ nodes/moments.py:moments_node(state)  [V5.0 — NEW]
+  ├─ nodes/moments.py:moments_node(state)
   │    └─ content/repository.py:CONTENT_REPOSITORY.get_pack(era_id)
   │         └─ [check EraMoment triggers: arc_stage, turn_number, affinity, location, quest, alignment]
   │         └─ [fire moment: inject narrative_beat into arc_guidance.scene_instructions]
@@ -106,6 +101,9 @@ graph.run_turn(conn, state)
   │         ├─ core/genre_triggers.py:detect_genre(user_input)
   │         ├─ core/era_transition.py:check_era_transition(world_state)
   │         └─ core/story_position.py:compute_story_position(...)
+  │
+  ├─ nodes/interlude.py:interlude_node(state)  [V12.0 — NEW]
+  │    └─ [interlude scene generation between arcs]
   │
   ├─ nodes/scene_frame.py:scene_frame_node(state)
   │    └─ [extract topic_primary, subtext, npc_agenda from scene state]
@@ -125,6 +123,12 @@ graph.run_turn(conn, state)
   │         ├─ core/personality_profile.py:build_profile(present_npcs)
   │         ├─ core/setting_context.py:get_setting_rules(state)
   │         └─ llm_client.py:LLMClient.chat(DIRECTOR_MODEL)  [non-authoritative LLM, text-only]
+  │
+  ├─ nodes/companion.py:companion_reaction_node(state)
+  │    └─ core/companion_reactions.py:compute_reactions(state)
+  │         ├─ [alignment deltas, faction reputation deltas]
+  │         ├─ [banter_queue append from BANTER_POOL]
+  │         └─ compute_inter_party_tensions(party, companion_states)
   │
   ├─ nodes/narrator.py:narrator_node(state)
   │    └─ agents/narrator.py:NarratorAgent.generate(state)  [AUTHORITATIVE LLM]
@@ -193,11 +197,12 @@ graph.run_turn(conn, state)
 | `mechanic_node` | — | Only `intent=ACTION` |
 | `encounter_node` | ✅ | — |
 | `world_sim_node` (WorldSim) | — | Only on tick boundary or TRAVEL |
-| `companion_reaction_node` | ✅ | — |
 | `moments_node` | ✅ | EraMoments only fire if triggers match |
 | `arc_planner_node` | ✅ | — |
+| `interlude_node` | — | Only during arc transitions (V12.0) |
 | `scene_frame_node` | ✅ | — |
 | `director_node` | ✅ | — |
+| `companion_reaction_node` | ✅ | — |
 | `narrator_node` | ✅ | — |
 | `narrative_validator_node` | ✅ | — |
 | `choice_crafter_node` | ✅ | — |

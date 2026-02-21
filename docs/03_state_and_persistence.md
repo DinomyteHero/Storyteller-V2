@@ -76,7 +76,7 @@ class GameState(BaseModel):
 
 ## SQLite Database Schema
 
-Schema is applied via `backend/app/db/migrate.py`, which runs all SQL files in `backend/app/db/migrations/` in order. **36 migrations** are currently applied (0001 through 0036, with 0024 absent — the sequence jumps from 0023 to 0025).
+Schema is applied via `backend/app/db/migrate.py`, which runs all SQL files in `backend/app/db/migrations/` in order. **41 migrations** are currently applied (0001 through 0041, with 0024 absent — the sequence jumps from 0023 to 0025).
 
 ### Core Tables
 
@@ -107,23 +107,26 @@ Stores both player characters and NPCs.
 ```sql
 characters (
     id TEXT PRIMARY KEY,
-    campaign_id TEXT REFERENCES campaigns(id),
-    name TEXT,
-    character_type TEXT,  -- "player" | "npc" | "companion"
-    stats_json TEXT,      -- JSON: character stats
-    hp_current INTEGER,
-    hp_max INTEGER,
+    campaign_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    role TEXT NOT NULL,         -- "player" | "npc" | "companion"
     location_id TEXT,
-    planet_id TEXT,
+    stats_json TEXT NOT NULL DEFAULT '{}',
+    hp_current INTEGER NOT NULL DEFAULT 0,
+    relationship_score INTEGER,
+    secret_agenda TEXT,
     credits INTEGER DEFAULT 0,
-    background TEXT,
-    gender TEXT,
-    cyoa_answers TEXT,    -- JSON: choose-your-own-adventure answers
-    psych_profile_json TEXT,  -- JSON: {current_mood, stress_level, active_trauma}
-    created_at TEXT,
-    updated_at TEXT
+    background TEXT,            -- added via migration 0006+
+    gender TEXT,                -- added via migration 0015
+    cyoa_answers TEXT,          -- JSON: choose-your-own-adventure answers (migration 0013)
+    psych_profile TEXT DEFAULT '{}',  -- JSON: {current_mood, stress_level, active_trauma} (migration 0004)
+    created_at TEXT,            -- added via migration 0006+
+    updated_at TEXT,            -- added via migration 0006+
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
 )
 ```
+
+> **Note:** The original init schema (0001) uses `role` (not `character_type`) and `psych_profile` (not `psych_profile_json`). There is no `hp_max` or `planet_id` column — HP max is derived from `stats_json`.
 
 #### `turn_events` (Append-Only)
 
@@ -132,13 +135,14 @@ The immutable event log.
 ```sql
 turn_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    campaign_id TEXT REFERENCES campaigns(id),
-    turn_number INTEGER,
-    event_type TEXT,      -- e.g., "MOVE", "COMBAT", "DIALOGUE", "NPC_SPAWN", "STARSHIP_ACQUIRED", etc.
-    payload_json TEXT,    -- JSON: event-specific payload
-    is_hidden INTEGER DEFAULT 0,   -- hidden events not shown to player
-    is_public_rumor INTEGER DEFAULT 0,  -- rumor events surfaced in news feed
-    created_at TEXT
+    campaign_id TEXT NOT NULL,
+    turn_number INTEGER NOT NULL,
+    event_type TEXT NOT NULL,      -- e.g., "MOVE", "DAMAGE", "ITEM_GET", "NPC_SPAWN", "STARSHIP_ACQUIRED", etc.
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    is_hidden INTEGER NOT NULL DEFAULT 0,   -- hidden events not shown to player
+    is_public_rumor INTEGER DEFAULT 0,  -- rumor events surfaced in news feed (migration 0004)
+    timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
 )
 ```
 
@@ -146,16 +150,16 @@ Events are **never updated or deleted**. `is_hidden=1` events are for internal s
 
 #### `inventory`
 
-Item ownership. Normalized from `ITEM_ACQUIRED` / `ITEM_LOST` events via projections.
+Item ownership. Normalized from `ITEM_GET` / `ITEM_LOSE` events via projections.
 
 ```sql
 inventory (
-    campaign_id TEXT,
-    character_id TEXT,
-    item_name TEXT,
-    quantity INTEGER DEFAULT 1,
-    item_data_json TEXT,
-    PRIMARY KEY (campaign_id, character_id, item_name)
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL,          -- references characters(id)
+    item_name TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    attributes_json TEXT NOT NULL DEFAULT '{}',
+    FOREIGN KEY (owner_id) REFERENCES characters(id)
 )
 ```
 
@@ -166,12 +170,13 @@ Audit trail of exactly what the player saw.
 ```sql
 rendered_turns (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    campaign_id TEXT,
-    turn_number INTEGER,
-    final_text TEXT,
-    suggested_actions_json TEXT,
-    intent TEXT,
-    created_at TEXT
+    campaign_id TEXT NOT NULL,
+    turn_number INTEGER NOT NULL,
+    text TEXT NOT NULL,                           -- narrator prose output
+    citations_json TEXT NOT NULL DEFAULT '[]',    -- lore citation references
+    suggested_actions_json TEXT NOT NULL DEFAULT '[]',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
 )
 ```
 
@@ -190,19 +195,20 @@ episodic_memories (
 )
 ```
 
-#### `starships`
+#### `player_starships`
 
 Player-acquired starships (earned in-story; no starting ship).
 
 ```sql
-starships (
-    id TEXT PRIMARY KEY,
-    campaign_id TEXT REFERENCES campaigns(id),
-    player_id TEXT,
-    name TEXT,
-    class TEXT,
-    stats_json TEXT,
-    acquisition_type TEXT  -- "quest" | "purchase" | "salvage" | "faction" | "theft"
+player_starships (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    campaign_id TEXT NOT NULL,          -- fixed to TEXT in migration 0040
+    ship_type TEXT NOT NULL,            -- references starship ID from starships.yaml (e.g., "ship-reb-yt1300")
+    custom_name TEXT,                   -- player's custom ship name (optional)
+    upgrades_json TEXT NOT NULL DEFAULT '{}',  -- JSON with installed upgrades
+    acquired_at TEXT NOT NULL DEFAULT (datetime('now')),
+    acquired_method TEXT NOT NULL,      -- "background" | "purchase" | "quest" | "salvage" | "faction_reward"
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
 )
 ```
 
@@ -401,6 +407,46 @@ lore_sources (
 ```
 
 Migration 0036 also adds `source_id TEXT REFERENCES lore_sources(id)` to the `ingestion_jobs` table for linking jobs to sources.
+
+#### `provider_keys` (V12.0)
+
+Cloud-agnostic API key storage. Keys entered via the Settings UI are persisted here; resolved at runtime with DB first, then env var fallback.
+
+```sql
+provider_keys (
+    provider_id   TEXT PRIMARY KEY,       -- "anthropic" | "openai" | "xai" | "deepseek" | "google"
+    api_key       TEXT NOT NULL,
+    created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+)
+```
+
+#### `user_presets` (V12.0)
+
+User-created LLM presets. Each preset stores per-role provider+model configs as JSON. System presets (budget/balanced/quality) are defined in code, not this table.
+
+```sql
+user_presets (
+    id            TEXT PRIMARY KEY,
+    name          TEXT NOT NULL UNIQUE,
+    description   TEXT NOT NULL DEFAULT '',
+    role_configs  TEXT NOT NULL DEFAULT '{}',   -- JSON: {role: {provider, model}}
+    created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+)
+```
+
+#### `app_preferences` (V12.0)
+
+App-level preferences synced from the frontend settings UI.
+
+```sql
+app_preferences (
+    key        TEXT PRIMARY KEY,
+    value      TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+)
+```
 
 #### Knowledge Graph Tables (Optional)
 
@@ -608,18 +654,19 @@ Event handlers currently dispatched:
 
 | Event Type | Projection Action |
 | ------------ | ------------------- |
-| `MOVE` | Update `characters.location_id`, `characters.planet_id` |
+| `MOVE` | Update `characters.location_id` |
 | `DAMAGE` | Update `characters.hp_current` |
 | `HEAL` | Update `characters.hp_current` (capped at `hp_max`) |
-| `ITEM_ACQUIRED` | Upsert `inventory` row |
-| `ITEM_LOST` | Delete or decrement `inventory` row |
-| `CREDITS_GAINED` | Increment `characters.credits` |
-| `CREDITS_LOST` | Decrement `characters.credits` (floor 0) |
-| `RELATIONSHIP_CHANGED` | Update `relationships` table |
+| `ITEM_GET` | Upsert `inventory` row |
+| `ITEM_LOSE` | Delete or decrement `inventory` row |
+| `RELATIONSHIP` | Update relationship score on characters |
+| `FLAG_SET` | Store flag in `world_state_json.flags` |
+| `WORLD_TIME_ADVANCE` | Advance `campaigns.world_time_minutes` |
+| `PLAYER_PSYCH_UPDATE` | Update `characters.psych_profile` |
+| `NPC_DEPART` | Mark NPC as departed |
+| `FACTION_MOVE`, `NPC_ACTION`, `PLOT_TICK`, `RUMOR_SPREAD` | Append to `turn_events_public` (world sim events) |
 | `NPC_SPAWN` | Insert `characters` row (if not exists) |
-| `STARSHIP_ACQUIRED` | Insert `starships` row |
-| `NPC_INTRODUCTION_RECORDED` | Update encounter throttling state |
-| `LAST_LOCATION_UPDATED` | Update encounter throttling state |
+| `STARSHIP_ACQUIRED` | Insert `player_starships` row, update `world_state_json` flags |
 
 ---
 
@@ -715,5 +762,10 @@ Called by the Commit node via `process_quests_for_turn(world_state, era, turn_nu
 | 0034 | generated_era_packs table |
 | 0035 | ingestion_jobs table (file upload + background ingestion) |
 | 0036 | lore_sources table + ingestion_jobs.source_id column (V11.0 source management) |
+| 0037 | truth_facts index on campaign_id for performance |
+| 0038 | provider_keys table (cloud-agnostic API key storage, V12.0) |
+| 0039 | user_presets table (user-created LLM presets, V12.0) |
+| 0040 | Schema fixes: player_starships.campaign_id type fix (INTEGER→TEXT), missing indexes |
+| 0041 | app_preferences table (app-level settings from frontend, V12.0) |
 
 > **Note:** Migration 0024 does not exist — the numbering jumps from 0023 to 0025.

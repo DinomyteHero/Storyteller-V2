@@ -4,8 +4,8 @@ Source of truth: `backend/app/core/graph.py`, `backend/app/core/nodes/world_sim.
 
 ## Pipeline Order
 
-- `ACTION`: `router -> mechanic -> encounter -> world_sim -> companion_reaction -> moments -> arc_planner -> scene_frame -> director -> narrator -> narrative_validator -> choice_crafter -> commit`
-- `TALK`: `router -> encounter -> world_sim -> companion_reaction -> moments -> arc_planner -> scene_frame -> director -> narrator -> narrative_validator -> choice_crafter -> commit`
+- `ACTION`: `router -> mechanic -> encounter -> world_sim -> moments -> arc_planner -> interlude -> scene_frame -> director -> companion_reaction -> narrator -> narrative_validator -> choice_crafter -> commit`
+- `TALK`: `router -> encounter -> world_sim -> moments -> arc_planner -> interlude -> scene_frame -> director -> companion_reaction -> narrator -> narrative_validator -> choice_crafter -> commit`
 - `META`: `router -> meta -> commit`
 
 ## Matrix
@@ -14,15 +14,16 @@ Source of truth: `backend/app/core/graph.py`, `backend/app/core/nodes/world_sim.
 |---|---|---|---|---|
 | `router` (Intent Router) | ALL | Every turn | No | Yes (routing gate) |
 | `meta` | META | Every META turn | No | Yes (META output) |
-| `MechanicAgent` | ACTION | Every ACTION turn | No | Yes (mechanical outcome) |
+| `MechanicAgent` (+ `ResolutionAgent`) | ACTION | Every ACTION turn | Yes (via ResolutionAgent, V12.0) | Yes (mechanical outcome) |
 | `encounter` | ACTION, TALK | Every ACTION/TALK turn | No | Yes (scene participants/context) |
 | `WorldMindAgent` (`world_sim`) | ACTION, TALK | Conditional: when world tick boundary crossed OR travel occurred OR `world_reaction_needed` | Yes | Yes (world sim outputs) |
-| `CompanionSystemAgent` (`companion_reaction`) | ACTION, TALK | Every ACTION/TALK turn when party exists | Yes | Yes (affinity/reaction updates) |
 | `moments` | ACTION, TALK | Every ACTION/TALK turn | No | Yes |
 | `ArcWeaver` evaluation (inside `arc_planner`) | ACTION, TALK | Conditional: only in arc transition window (after min-turn guard) | Yes | Yes (arc transition recommendation within hard guards) |
 | `arc_planner` deterministic logic | ACTION, TALK | Every ACTION/TALK turn | No | Yes |
+| `interlude` (V12.0) | ACTION, TALK | Conditional: only during arc transitions | No | Yes (interlude scene) |
 | `scene_frame` | ACTION, TALK | Every ACTION/TALK turn | No | Yes |
 | `DirectorAgent` | ACTION, TALK | Every ACTION/TALK turn | Yes | Yes |
+| `CompanionSystemAgent` (`companion_reaction`) | ACTION, TALK | Every ACTION/TALK turn when party exists | Yes | Yes (affinity/reaction updates) |
 | `NarratorAgent` | ACTION, TALK | Every ACTION/TALK turn | Yes | Yes |
 | `narrative_validator` | ACTION, TALK | Every ACTION/TALK turn | No | Yes |
 | `ChoiceCrafterAgent` (`choice_crafter`) | ACTION, TALK | Every ACTION/TALK turn | Yes | Yes |
@@ -36,10 +37,16 @@ Source of truth: `backend/app/core/graph.py`, `backend/app/core/nodes/world_sim.
 | `RevelationAgent` (in commit, V10.0) | ACTION, TALK | Every `REVELATION_EVAL_INTERVAL` turns (currently 5), non-META, when narrator prose exists | Yes | No (deferred, non-blocking) |
 | `CallbackCrystallizerAgent` (in commit, V10.0) | ACTION, TALK | Every `CALLBACK_CRYSTALLIZE_INTERVAL` turns (currently 10), non-META, when narrator prose exists | Yes | No (deferred, non-blocking) |
 | `PlayerProfileAgent` (in commit, V10.0) | ACTION, TALK | Every `PLAYER_PROFILE_INTERVAL` turns (currently 10), min `PLAYER_PROFILE_MIN_TURNS` (10) turns into campaign | No | No (deferred, deterministic) |
+| `ResolutionAgent` (V12.0) | ACTION | Every ACTION turn (called by MechanicAgent) | Yes | Yes (narrative resolution) |
+| `CampaignBibleAgent` (V12.0) | Setup | Campaign creation only | Yes | Yes (campaign bible generation) |
+| `EraForgeAgent` (V12.0) | On-demand | EraForge API calls (suggest, generate, refine-canon) | Yes | Yes (era pack generation) |
+| `OriginScreenplayAgent` (V12.0) | Setup | Origin story generation during campaign creation | Yes | Yes (origin screenplay) |
+| `LegacyAgent` (V12.0) | Setup | Legacy/saga character transfer | Yes | Yes (legacy bridging) |
 
 ## LLM Call Counts (Current)
 
-- Typical ACTION/TALK turn: `Director + Narrator + ChoiceCrafter + CompanionSystem` plus optional `WorldMind` and optional `ArcWeaver`.
+- Typical ACTION turn: `Director + Narrator + ChoiceCrafter + CompanionSystem + ResolutionAgent (via MechanicAgent)` plus optional `WorldMind` and optional `ArcWeaver`.
+- Typical TALK turn: `Director + Narrator + ChoiceCrafter + CompanionSystem` plus optional `WorldMind` and optional `ArcWeaver`.
 - Maintenance ACTION/TALK turn (`turn % 5 == 0`): above plus `Continuity`, `QuestWeaver` (evaluate and/or generate), optional `Progression`, and `PsychArchivist`.
 - V10.0 deferred intelligence turns: `RevelationAgent` (every 5 turns), `CallbackCrystallizer` (every 10 turns). `PlayerProfileAgent` is deterministic (no LLM cost).
 - META turn: deterministic (`meta + commit`) with no required LLM path.
