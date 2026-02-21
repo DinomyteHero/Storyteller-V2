@@ -209,15 +209,7 @@ ROLE_TOKEN_BUDGETS: dict[str, dict[str, int]] = {
 
 # Thematic resonance (Phase 3)
 LEDGER_MAX_THEMES = 3
-THEME_REINFORCEMENT_KEYWORDS: dict[str, list[str]] = {
-    "cost_of_loyalty": ["betray", "trust", "loyal", "sacrifice", "faith", "oath"],
-    "power_corrupts": ["power", "corrupt", "control", "dominate", "authority"],
-    "redemption": ["forgive", "atone", "redeem", "second chance", "regret"],
-    "survival_vs_morality": ["survive", "moral", "choice", "cost", "compromise"],
-    "identity_and_belonging": ["belong", "identity", "home", "outsider", "accept"],
-    "hope_against_darkness": ["hope", "dark", "light", "resist", "endure", "defiance"],
-    "duty_vs_desire": ["duty", "desire", "want", "must", "obligation", "freedom"],
-}
+# THEME_REINFORCEMENT_KEYWORDS defined below (Feature 9: Thematic resonance)
 
 # Dynamic arc staging (Phase 4)
 ARC_MIN_TURNS: dict[str, int] = {"SETUP": 3, "RISING": 5, "CLIMAX": 5, "RESOLUTION": 3}
