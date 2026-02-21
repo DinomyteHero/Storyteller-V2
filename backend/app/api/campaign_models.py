@@ -1,10 +1,20 @@
 """Pydantic request/response models for V2 campaign API."""
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from backend.app.models.state import ActionSuggestion
 from backend.app.models.turn_contract import Intent, TurnContract
+
+# Validated enums for campaign configuration
+CampaignScale = Literal["small", "medium", "large", "epic"]
+CampaignMode = Literal["historical", "sandbox"]
+Difficulty = Literal["easy", "normal", "hard"]
+
+# Max player input length (characters)
+MAX_USER_INPUT_CHARS = 4000
 
 
 # --- Request / Response models ---
@@ -19,7 +29,7 @@ class CreateCampaignRequest(BaseModel):
     player_stats: dict[str, int] = Field(default_factory=dict)
     hp_current: int = 10
     # V3.1: Campaign scale — controls NPC/location/quest density
-    campaign_scale: str = "medium"  # small | medium | large | epic
+    campaign_scale: CampaignScale = "medium"
 
 
 class CreateCampaignResponse(BaseModel):
@@ -50,11 +60,11 @@ class SetupAutoRequest(BaseModel):
     legacy_id: int | None = None
     saga_id: str | None = None
     # V3.0: Campaign mode — "historical" (lore immutable) or "sandbox" (player reshapes galaxy)
-    campaign_mode: str = "historical"
+    campaign_mode: CampaignMode = "historical"
     # V3.1: Campaign scale — controls NPC/location/quest density
-    campaign_scale: str = "medium"  # small | medium | large | epic
+    campaign_scale: CampaignScale = "medium"
     # V3.2: Difficulty — affects DC, damage, and HP modifiers
-    difficulty: str = "normal"  # easy | normal | hard
+    difficulty: Difficulty = "normal"
     # Phase 0.7: Species selection (written to world_state_json["species_id"])
     species_id: str | None = None
     # Phase 6.1: Quick Start setup path (auto-defaults for missing fields).
@@ -119,7 +129,7 @@ class StructuredIntentPayload(BaseModel):
 
 
 class TurnRequest(BaseModel):
-    user_input: str = ""
+    user_input: str = Field(default="", max_length=MAX_USER_INPUT_CHARS)
     intent: Intent | None = None
     structured_intent: StructuredIntentPayload | None = None
     debug: bool = False

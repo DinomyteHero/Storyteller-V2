@@ -42,7 +42,7 @@ def _parse_cors_allowlist(raw: str) -> list[str]:
     ]
 
 
-DEV_MODE = _env_flag("STORYTELLER_DEV_MODE", default=True)
+DEV_MODE = _env_flag("STORYTELLER_DEV_MODE", default=False)
 API_TOKEN = os.environ.get("STORYTELLER_API_TOKEN", "").strip()
 CORS_ALLOW_ORIGINS = _parse_cors_allowlist(os.environ.get("STORYTELLER_CORS_ALLOW_ORIGINS", ""))
 
@@ -351,8 +351,8 @@ async def auth_middleware(request: Request, call_next):
 
 
 _RATE_LIMITS: dict[str, list[float]] = _defaultdict(list)
-_RATE_LIMIT_WINDOW = 60  # seconds
-_RATE_LIMIT_MAX = 10     # max turn requests per minute per IP
+_RATE_LIMIT_WINDOW = int(os.environ.get("STORYTELLER_RATE_LIMIT_WINDOW", "60"))
+_RATE_LIMIT_MAX = int(os.environ.get("STORYTELLER_RATE_LIMIT_MAX", "10"))
 
 
 @app.middleware("http")

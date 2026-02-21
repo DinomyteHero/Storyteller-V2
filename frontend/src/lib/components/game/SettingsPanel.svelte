@@ -69,8 +69,8 @@
       const settings = await getCampaignSettings(cid);
       narratorMode = settings.narrator_mode;
       cloudPreset = settings.cloud_preset;
-    } catch (e) {
-      console.warn('Failed to load settings:', e);
+    } catch {
+      // Settings load failed — use defaults silently
     }
     loaded = true;
   });
@@ -88,9 +88,8 @@
         narrator_mode: mode,
         cloud_preset: preset,
       });
-    } catch (e) {
+    } catch {
       error = 'Failed to save settings.';
-      console.error('Settings save error:', e);
     }
     saving = false;
   }

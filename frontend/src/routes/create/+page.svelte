@@ -74,6 +74,14 @@
 
   let isSubmitting = $state(false);
   let errorMessage = $state('');
+  // Setup progress indicator — multi-stage feedback during setupAuto + opening turn
+  let setupStage = $state<'idle' | 'generating_character' | 'building_world' | 'writing_prologue' | 'entering_world'>('idle');
+  const SETUP_STAGE_LABELS: Record<string, string> = {
+    generating_character: 'Generating your character...',
+    building_world: 'Building your world...',
+    writing_prologue: 'Writing your prologue...',
+    entering_world: 'Entering the world...',
+  };
   let cyoaAnswerIndices = $state<Record<number, number>>({});
   let eraCompanions = $state<CompanionPreview[]>([]);
   let loadingCompanions = $state(false);
@@ -306,13 +314,23 @@
   }
 
   async function submitSetupRequest(request: SetupAutoRequest): Promise<void> {
-    const result = await setupAuto(request);
-    campaignId.set(result.campaign_id);
-    playerId.set(result.player_id);
-    const sheetName = (result.character_sheet?.name as string | undefined) || $charName.trim();
-    generatedName = sheetName;
-    setupResult = result;
-    creationStep.set(999);
+    // Simulate multi-stage progress during the single setupAuto call
+    setupStage = 'generating_character';
+    const stageTimer1 = setTimeout(() => { setupStage = 'building_world'; }, 4000);
+    const stageTimer2 = setTimeout(() => { setupStage = 'writing_prologue'; }, 9000);
+    try {
+      const result = await setupAuto(request);
+      campaignId.set(result.campaign_id);
+      playerId.set(result.player_id);
+      const sheetName = (result.character_sheet?.name as string | undefined) || $charName.trim();
+      generatedName = sheetName;
+      setupResult = result;
+      creationStep.set(999);
+    } finally {
+      clearTimeout(stageTimer1);
+      clearTimeout(stageTimer2);
+      setupStage = 'idle';
+    }
   }
 
   // Phase 1: Generate character + campaign, then show the sheet for review.
@@ -464,6 +482,7 @@
   async function startAdventure() {
     if (!setupResult) return;
     isStartingAdventure = true;
+    setupStage = 'entering_world';
     errorMessage = '';
 
     try {
@@ -524,6 +543,7 @@
       errorMessage = e instanceof Error ? e.message : String(e);
     } finally {
       isStartingAdventure = false;
+      setupStage = 'idle';
     }
   }
 
@@ -534,6 +554,31 @@
 </script>
 
 <div class="creation-container">
+  <!-- Setup progress overlay — shown during setupAuto + opening turn -->
+  {#if setupStage !== 'idle'}
+    <div class="setup-overlay" role="status" aria-live="polite">
+      <div class="setup-progress">
+        <div class="setup-spinner"></div>
+        <p class="setup-stage-label">{SETUP_STAGE_LABELS[setupStage] ?? 'Setting up...'}</p>
+        <div class="setup-stages">
+          <div class="setup-stage-dot" class:done={['building_world', 'writing_prologue', 'entering_world'].includes(setupStage)} class:active={setupStage === 'generating_character'}></div>
+          <div class="setup-stage-line" class:done={['building_world', 'writing_prologue', 'entering_world'].includes(setupStage)}></div>
+          <div class="setup-stage-dot" class:done={['writing_prologue', 'entering_world'].includes(setupStage)} class:active={setupStage === 'building_world'}></div>
+          <div class="setup-stage-line" class:done={['writing_prologue', 'entering_world'].includes(setupStage)}></div>
+          <div class="setup-stage-dot" class:done={setupStage === 'entering_world'} class:active={setupStage === 'writing_prologue'}></div>
+          <div class="setup-stage-line" class:done={setupStage === 'entering_world'}></div>
+          <div class="setup-stage-dot" class:active={setupStage === 'entering_world'}></div>
+        </div>
+        <div class="setup-stage-names">
+          <span>Character</span>
+          <span>World</span>
+          <span>Prologue</span>
+          <span>Enter</span>
+        </div>
+      </div>
+    </div>
+  {/if}
+
   <div class="creation-content">
     {#if continueSagaContext?.saga_id}
       <div class="saga-banner card" role="status" aria-live="polite">
@@ -665,7 +710,7 @@
             class="btn btn-primary"
             disabled={isSubmitting}
             onclick={quickStartAdventure}
-          >{isSubmitting ? 'Setting up...' : 'Quick Start'}</button>
+          >{isSubmitting ? (SETUP_STAGE_LABELS[setupStage] ?? 'Setting up...') : 'Quick Start'}</button>
           <button
             class="btn btn-primary"
             disabled={!$charName.trim() || isSubmitting}
@@ -1076,7 +1121,7 @@
             disabled={isSubmitting}
             onclick={beginAdventure}
           >
-            {isSubmitting ? 'Setting up...' : 'Begin Adventure'}
+            {isSubmitting ? (SETUP_STAGE_LABELS[setupStage] ?? 'Setting up...') : 'Begin Adventure'}
           </button>
         </div>
       </div>
@@ -1092,6 +1137,94 @@
     justify-content: center;
     padding: 2rem;
     padding-top: 3rem;
+    position: relative;
+  }
+
+  /* Setup progress overlay */
+  .setup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(10, 10, 15, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .setup-progress {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .setup-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #e8c56a;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .setup-stage-label {
+    font-size: 1.1rem;
+    color: rgba(240, 230, 200, 0.9);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .setup-stages {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .setup-stage-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    transition: background 0.4s ease, box-shadow 0.4s ease;
+  }
+
+  .setup-stage-dot.active {
+    background: #e8c56a;
+    box-shadow: 0 0 8px rgba(232, 197, 106, 0.5);
+  }
+
+  .setup-stage-dot.done {
+    background: rgba(160, 224, 128, 0.7);
+  }
+
+  .setup-stage-line {
+    width: 40px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    transition: background 0.4s ease;
+  }
+
+  .setup-stage-line.done {
+    background: rgba(160, 224, 128, 0.4);
+  }
+
+  .setup-stage-names {
+    display: flex;
+    gap: 24px;
+    font-size: 0.7rem;
+    color: rgba(240, 230, 200, 0.4);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   .creation-content {
