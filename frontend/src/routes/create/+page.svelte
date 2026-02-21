@@ -65,11 +65,12 @@
         value: c.period_id.toUpperCase(),
         label: c.period_display_name,
         settingId: c.setting_id,
+        summary: c.summary || '',
       }));
     }
     return Object.entries(ERA_LABELS)
       .filter(([k]) => k !== 'CUSTOM')
-      .map(([value, label]) => ({ value, label, settingId: null }));
+      .map(([value, label]) => ({ value, label, settingId: null, summary: ERA_DESCRIPTIONS[value] || '' }));
   });
 
   let isSubmitting = $state(false);
@@ -86,6 +87,12 @@
   let eraCompanions = $state<CompanionPreview[]>([]);
   let loadingCompanions = $state(false);
   let selectedDifficulty = $state<'easy' | 'normal' | 'hard'>('normal');
+  let selectedScale = $state<'small' | 'medium' | 'large' | 'epic'>('medium');
+  const SCALE_OPTIONS = [
+    { value: 'small' as const, label: 'Short Story', desc: 'A focused adventure (1 arc, ~20 turns)' },
+    { value: 'medium' as const, label: 'Standard', desc: 'A full campaign (2-3 arcs, ~50 turns)' },
+    { value: 'large' as const, label: 'Epic', desc: 'An extended saga (4-5 arcs, ~80+ turns)' },
+  ] as const;
   let continueSagaContext = $state<{
     saga_id: string | null;
     legacy_id: number | null;
@@ -387,6 +394,7 @@
         legacy_id: continueSagaContext?.legacy_id ?? null,
         saga_id: continueSagaContext?.saga_id ?? null,
         difficulty: selectedDifficulty,
+        campaign_scale: selectedScale,
         species_id: $charSpecies ?? null,
       };
 
@@ -663,18 +671,18 @@
         </div>
 
         <div class="form-field">
-          <p class="field-label" id="gender-label">Gender</p>
+          <p class="field-label" id="gender-label">How should the narrator refer to your character?</p>
           <div class="gender-row" role="group" aria-labelledby="gender-label">
             <button
               class="btn gender-btn"
               class:selected={$charGender === 'male'}
               onclick={() => charGender.set('male')}
-            >Male</button>
+            >He / Him</button>
             <button
               class="btn gender-btn"
               class:selected={$charGender === 'female'}
               onclick={() => charGender.set('female')}
-            >Female</button>
+            >She / Her</button>
           </div>
         </div>
 
@@ -694,7 +702,9 @@
                 }}
               >
                 <div class="era-name">{option.label}</div>
-                {#if ERA_DESCRIPTIONS[option.value]}
+                {#if option.summary}
+                  <div class="era-desc">{option.summary}</div>
+                {:else if ERA_DESCRIPTIONS[option.value]}
                   <div class="era-desc">{ERA_DESCRIPTIONS[option.value]}</div>
                 {/if}
               </button>
@@ -776,6 +786,12 @@
                 <div class="bg-desc">{bg.description}</div>
                 {#if statsStr}
                   <div class="bg-stats">{statsStr}</div>
+                {/if}
+                {#if isSelected && bg.questions?.[0]?.choices?.[0]?.effects?.thread_seed}
+                  <div class="bg-hook">
+                    <span class="bg-hook-label">Your story might begin:</span>
+                    <span class="bg-hook-text">{bg.questions[0].choices[0].effects.thread_seed}</span>
+                  </div>
                 {/if}
               </button>
             {/each}
@@ -1092,6 +1108,23 @@
             </div>
           </div>
         {/if}
+
+        <!-- Story Length Selection -->
+        <div class="difficulty-section">
+          <h3 class="difficulty-heading">Story Length</h3>
+          <div class="difficulty-cards">
+            {#each SCALE_OPTIONS as opt}
+              <button
+                class="card difficulty-card"
+                class:selected={selectedScale === opt.value}
+                onclick={() => selectedScale = opt.value}
+              >
+                <div class="difficulty-name">{opt.label}</div>
+                <div class="difficulty-desc">{opt.desc}</div>
+              </button>
+            {/each}
+          </div>
+        </div>
 
         <!-- Difficulty Selection -->
         <div class="difficulty-section">
@@ -1467,6 +1500,25 @@
     color: var(--text-muted);
     margin-top: 6px;
     font-family: 'JetBrains Mono', monospace;
+  }
+  .bg-hook {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+  .bg-hook-label {
+    display: block;
+    color: rgba(232, 197, 106, 0.6);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 3px;
+  }
+  .bg-hook-text {
+    color: rgba(240, 230, 200, 0.65);
+    font-style: italic;
   }
 
   /* Step actions */
