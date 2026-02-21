@@ -14,9 +14,9 @@
   }
 
   let screenplay = $state<PrologueScreenplay | null>(null);
-  let isCompleting = $state(false);
+  let phase = $state<'loading' | 'crawl' | 'ready'>('loading');
+  let crawlDone = $state(false);
   let errorMessage = $state('');
-  let prologueCompleted = $state(false);
 
   onMount(async () => {
     const cid = $campaignId;
@@ -24,7 +24,6 @@
       goto('/');
       return;
     }
-    // Fetch world state to get prologue screenplay
     try {
       const resp = await apiFetch<{ campaign_id: string; world_state: Record<string, unknown> }>(
         `/v2/campaigns/${cid}/world_state`
@@ -34,47 +33,51 @@
         screenplay = ws.prologue_screenplay as PrologueScreenplay;
       }
       if (!ws.prologue_mode) {
-        // Prologue already done — redirect to play
         goto('/play');
         return;
       }
+      // Show cinematic crawl, then transition to briefing
+      phase = 'crawl';
+      setTimeout(() => {
+        crawlDone = true;
+        phase = 'ready';
+      }, 6000);
     } catch {
-      // If we can't load world state, skip prologue
       goto('/play');
     }
   });
 
-  async function completePrologue() {
-    const cid = $campaignId;
-    if (!cid || isCompleting) return;
-    isCompleting = true;
-    errorMessage = '';
-    try {
-      await apiFetch(`/v2/campaigns/${cid}/prologue/complete`, {
-        method: 'POST',
-        body: JSON.stringify({ player_id: $playerId }),
-      });
-      prologueCompleted = true;
-      // Brief pause to let the "completed" state show before redirecting
-      setTimeout(() => goto('/play'), 800);
-    } catch (e) {
-      errorMessage = e instanceof Error ? e.message : 'Failed to complete prologue';
-      isCompleting = false;
-    }
+  function enterGame() {
+    goto('/play');
   }
 
-  async function skipPrologue() {
-    await completePrologue();
+  function skipToGame() {
+    goto('/play');
   }
 </script>
 
 <div class="prologue-container">
-  {#if !screenplay}
+  {#if phase === 'loading'}
     <div class="loading">
       <div class="loading-spinner"></div>
       <p>Loading your story...</p>
     </div>
-  {:else}
+
+  {:else if phase === 'crawl' && screenplay}
+    <div class="crawl-container" role="status" aria-live="polite">
+      <div class="crawl-text">
+        <div class="crawl-chapter">Prologue</div>
+        <h1 class="crawl-title">{screenplay.prologue_title}</h1>
+        {#if screenplay.opening_narration}
+          <p class="crawl-narration">{screenplay.opening_narration}</p>
+        {/if}
+      </div>
+      <button class="skip-crawl" onclick={() => { phase = 'ready'; crawlDone = true; }}>
+        Skip
+      </button>
+    </div>
+
+  {:else if phase === 'ready' && screenplay}
     <div class="prologue-content fade-in">
       <div class="chapter-label">Chapter: Prologue</div>
       <h1 class="prologue-title">{screenplay.prologue_title}</h1>
@@ -99,19 +102,11 @@
                 <li>
                   <span class="npc-name">{npc.name}</span>
                   <span class="npc-role">({npc.role})</span>
-                  {#if npc.motivation}
-                    <span class="npc-motivation">— {npc.motivation}</span>
-                  {/if}
                 </li>
               {/each}
             </ul>
           </div>
         {/if}
-
-        <div class="detail-block departure">
-          <h3>What Moves You Forward</h3>
-          <p>{screenplay.departure_trigger}</p>
-        </div>
       </div>
 
       {#if errorMessage}
@@ -119,24 +114,10 @@
       {/if}
 
       <div class="prologue-actions">
-        {#if prologueCompleted}
-          <p class="completed-msg">Prologue complete. Beginning your adventure...</p>
-        {:else}
-          <button
-            class="btn btn-primary btn-begin"
-            disabled={isCompleting}
-            onclick={completePrologue}
-          >
-            {isCompleting ? 'Starting...' : 'Begin Your Story'}
-          </button>
-          <button
-            class="btn btn-ghost"
-            disabled={isCompleting}
-            onclick={skipPrologue}
-          >
-            Skip Prologue
-          </button>
-        {/if}
+        <button class="btn btn-primary btn-begin" onclick={enterGame}>
+          Begin Your Story
+        </button>
+        <p class="prologue-hint">Your prologue will play out as the first scenes of the game.</p>
       </div>
     </div>
   {/if}
@@ -173,6 +154,82 @@
     to { transform: rotate(360deg); }
   }
 
+  /* Opening crawl */
+  .crawl-container {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    animation: crawlFade 6s ease-in-out;
+    position: relative;
+  }
+
+  .crawl-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .crawl-chapter {
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(232, 197, 106, 0.5);
+  }
+
+  .crawl-title {
+    font-size: 2.5rem;
+    color: #e8c56a;
+    margin: 0;
+    line-height: 1.2;
+    animation: crawlTitleReveal 2s ease-out;
+  }
+
+  .crawl-narration {
+    font-size: 1.1rem;
+    color: rgba(240, 230, 200, 0.7);
+    line-height: 1.8;
+    font-style: italic;
+    font-family: 'Noto Serif', serif;
+    animation: crawlTextReveal 3s ease-out 1s both;
+  }
+
+  .skip-crawl {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(240, 230, 200, 0.35);
+    padding: 0.4rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.15s;
+  }
+
+  .skip-crawl:hover {
+    color: rgba(240, 230, 200, 0.7);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  @keyframes crawlFade {
+    0% { opacity: 0; transform: translateY(30px); }
+    15% { opacity: 1; transform: translateY(0); }
+    85% { opacity: 1; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes crawlTitleReveal {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes crawlTextReveal {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Briefing content */
   .prologue-content {
     max-width: 680px;
     width: 100%;
@@ -245,10 +302,6 @@
     margin: 0;
   }
 
-  .detail-block.departure {
-    border-color: rgba(232, 197, 106, 0.2);
-  }
-
   .npc-list {
     list-style: none;
     padding: 0;
@@ -274,18 +327,17 @@
     margin-left: 0.35rem;
   }
 
-  .npc-motivation {
-    color: rgba(240, 230, 200, 0.45);
-    font-size: 0.82rem;
-    font-style: italic;
-    margin-left: 0.35rem;
-  }
-
   .prologue-actions {
     display: flex;
     gap: 1rem;
     flex-direction: column;
     align-items: center;
+  }
+
+  .prologue-hint {
+    font-size: 0.8rem;
+    color: rgba(240, 230, 200, 0.35);
+    text-align: center;
   }
 
   .btn {
@@ -297,11 +349,6 @@
     transition: all 0.15s;
     background: transparent;
     color: rgba(240, 230, 200, 0.85);
-  }
-
-  .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
   }
 
   .btn-primary {
@@ -319,22 +366,6 @@
     min-width: 200px;
     padding: 0.8rem 2rem;
     font-size: 1.05rem;
-  }
-
-  .btn-ghost {
-    border-color: rgba(255, 255, 255, 0.1);
-    font-size: 0.85rem;
-    color: rgba(240, 230, 200, 0.45);
-  }
-
-  .btn-ghost:hover:not(:disabled) {
-    color: rgba(240, 230, 200, 0.7);
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-
-  .completed-msg {
-    color: #a0e080;
-    font-size: 0.95rem;
   }
 
   .error {
