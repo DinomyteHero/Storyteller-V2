@@ -204,7 +204,7 @@
       <button class="btn menu-btn press-scale" onclick={() => goto('/library')}>
         Browse Universes
       </button>
-      <button class="btn menu-btn press-scale" onclick={() => showSettings = true}>
+      <button class="btn menu-btn press-scale" onclick={() => goto('/settings')}>
         Settings
       </button>
     </div>
