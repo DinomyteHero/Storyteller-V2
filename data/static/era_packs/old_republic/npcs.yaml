@@ -1,0 +1,545 @@
+# old_republic/npcs.yaml — NPCs for the Jedi Civil War era.
+# anchors: tied to specific locations; rotating: appear across multiple; templates: procedural.
+
+npcs:
+
+  anchors:
+
+    - id: npc-cantina-barkeep
+      name: "Marka Ven"
+      species: Human
+      faction_id: exchange
+      default_location_id: loc-cantina
+      home_locations: [loc-cantina]
+      role: "Cantina owner and information broker"
+      archetype: "Neutral party with dangerous knowledge"
+      tags: [information, cantina, neutral, civilian]
+      rarity: common
+      traits: [cautious, observant, mercenary]
+      motivation: "Keep the cantina open and profitable under Sith occupation"
+      secret: >
+        Marka feeds information to both the Republic and the Exchange. He knows which
+        Sith officers frequent which booths and what they talk about when they think
+        the music is loud enough. He will sell this to the right buyer.
+      voice_tags: [dry, careful, professional]
+      voice:
+        belief: "Everyone in a cantina is running from something. The trick is figuring out what."
+        wound: "His last bartender turned out to be a Sith informant. He hasn't trusted anyone behind the bar since."
+        taboo: "Questions about his own past — deflects with refill offers every time."
+        rhetorical_style: "Indirect. Answers questions with questions. Delivers useful information as afterthought."
+        tell: "Cleans the same glass when thinking. Has been cleaning it for three years."
+      levers:
+        bribeable: high
+        intimidatable: low
+        charmable: medium
+      knowledge:
+        rumors:
+          - "A Republic officer has been meeting with Exchange representatives. The topic is transit papers."
+          - "Three Sith soldiers haven't reported back from the Lower City in two days. Nobody's looking."
+          - "Someone is buying kolto in bulk from the black market. Not medical quantities — military quantities."
+        secrets:
+          - "Marka has a Republic distress frequency hidden behind his liquor selection."
+
+    - id: npc-veteran-sergeant
+      name: "Sergeant Dra Fennick"
+      species: Human
+      faction_id: galactic_republic
+      default_location_id: loc-docking-bay
+      home_locations: [loc-docking-bay, loc-sith-outpost]
+      role: "Stranded Republic NCO"
+      archetype: "Soldier without orders, holding the line anyway"
+      tags: [military, republic, blockade, desperate]
+      rarity: common
+      traits: [disciplined, stubborn, loyal]
+      motivation: "Get his remaining soldiers off Taris — or at minimum, keep them alive until someone does"
+      secret: >
+        Fennick intercepted a Sith comm fragment that referenced 'the prisoner from the
+        Endar Spire' — someone the Sith very much want alive. He doesn't know who it is,
+        but he's been trading the fragment to anyone who might.
+      voice_tags: [military, blunt, tired]
+      voice:
+        belief: "Orders exist for a reason. When you run out of orders, you fall back on what you know is right."
+        wound: "His entire platoon was wiped out holding a corridor on the Endar Spire. He was the only one who made it to an escape pod."
+        taboo: "The Endar Spire — recites casualty lists under his breath if caught off guard."
+        rhetorical_style: "Military brevity. Addresses everyone by rank regardless of whether they have one."
+        tell: "Reflexively checks his sidearm when uncertain. Always knows where the exits are."
+      levers:
+        bribeable: low
+        intimidatable: low
+        charmable: low
+      knowledge:
+        quest_facts:
+          - "The Sith blockade has a specific gap in its patrol pattern between 0300 and 0330 local."
+          - "There is a Republic safehouse access code that may still be valid: Aurek-Seven-Besh."
+        secrets:
+          - "Fennick has a functioning Republic military comm unit, heavily encrypted."
+
+    - id: npc-twilek-scout
+      name: "Sovi Vao"
+      species: "Twi'lek"
+      faction_id: exchange
+      default_location_id: loc-safe-house
+      home_locations: [loc-safe-house, loc-undercity, loc-cantina]
+      role: "Lower City guide and Exchange go-between"
+      archetype: "Survivor who knows every exit"
+      tags: [guide, stealth, lower-city, twi-lek, information]
+      rarity: common
+      traits: [quick, perceptive, pragmatic]
+      motivation: "Find a way off Taris that doesn't involve owing the Exchange anything else"
+      secret: >
+        Sovi's younger brother contracted rakghoul plague three weeks ago. She's been
+        buying kolto on the black market to slow its progress while looking for a real
+        cure. She will do almost anything for a kolto treatment or medical passage off-world.
+      voice_tags: [quick, direct, guarded]
+      voice:
+        belief: "In the Lower City, you don't survive by being strong. You survive by knowing where the door is before you need it."
+        wound: "Sold into Exchange service at sixteen to clear a family debt. The debt was cleared three years ago. The Exchange didn't mention that part."
+        taboo: "Her brother — will redirect the conversation with professional smoothness if the topic arises."
+        rhetorical_style: "Fast, practical, no unnecessary words. Reads exits before she reads people."
+        tell: "Keeps her back to walls. Lekku tighten when she lies."
+      levers:
+        bribeable: medium
+        intimidatable: low
+        charmable: medium
+      knowledge:
+        rumors:
+          - "There is a way through the Lower City to the Undercity that avoids Sith checkpoints."
+          - "The Gamorrean gangs have a truce with something in the Undercity. They won't say what."
+        secrets:
+          - "Sovi knows the location of an Exchange stash that her contacts don't know she knows about."
+
+    - id: npc-jedi-archivist
+      name: "Master Dorak"
+      species: Human
+      faction_id: jedi_order
+      default_location_id: loc-enclave
+      home_locations: [loc-enclave]
+      role: "Jedi Enclave Chronicler and historian"
+      archetype: "Scholar of the Force who has lived too much history"
+      tags: [jedi, knowledge, enclave, elder, lore]
+      rarity: rare
+      traits: [learned, patient, melancholy]
+      motivation: "Preserve the Jedi Order's knowledge — especially the hard-won lessons about the dark side"
+      secret: >
+        Dorak wrote the original psychological assessment of Revan and Malak before
+        the Mandalorian Wars. He recommended against allowing them to fight.
+        The Council overruled him. He has not forgiven himself.
+      voice_tags: [scholarly, measured, sorrowful]
+      voice:
+        belief: "History is the only honest teacher. The galaxy keeps failing its lessons."
+        wound: "He recommended against Revan joining the Mandalorian Wars. He was ignored. He was right."
+        taboo: "His own role in the events preceding the Jedi Civil War — will change subject to something distant and historical."
+        rhetorical_style: "Speaks in historical precedents. Uses the past tense even for present problems."
+        tell: "Touches the nearest holocron when troubled, like checking that it's still there."
+      levers:
+        bribeable: false
+        intimidatable: false
+        charmable: low
+      knowledge:
+        rumors:
+          - "The Council has received fragmentary intelligence about the Star Forge's location."
+          - "Jedi Master Vandar believes one of the new arrivals is more important than they appear."
+        quest_facts:
+          - "The ancient ruins on Dantooine contain a Star Map — a piece of a navigational chart to the Star Forge."
+        secrets:
+          - "Dorak has access to sealed records of the Jedi Conclave that exiled the Jedi who followed Revan."
+
+    - id: npc-weapons-master
+      name: "Zhar Lestin"
+      species: "Twi'lek"
+      faction_id: jedi_order
+      default_location_id: loc-enclave
+      home_locations: [loc-enclave]
+      role: "Jedi Master, combat instructor"
+      archetype: "The teacher who judges with a training saber"
+      tags: [jedi, combat, training, enclave, master]
+      rarity: rare
+      traits: [demanding, precise, quietly proud]
+      motivation: "Train the next generation of Jedi before there is no longer time"
+      secret: >
+        Zhar was Revan's original lightsaber instructor. He knows exactly how
+        talented Revan was — and exactly how that talent bent toward obsession.
+        He watches every new student for the same signs.
+      voice_tags: [instructor, measured, demanding]
+      voice:
+        belief: "Skill without discipline is just potential waiting to become tragedy."
+        wound: "He watched Revan go from his most gifted student to a Sith Lord in a decade. He has never resolved whether he failed."
+        taboo: "Revan's name — not avoided, but said with a very specific pause."
+        rhetorical_style: "Corrects technique while making philosophical points. Everything is a teaching moment."
+        tell: "Demonstrates rather than describes — will draw a training saber mid-sentence."
+      levers:
+        bribeable: false
+        intimidatable: false
+        charmable: low
+      knowledge:
+        quest_facts:
+          - "The ruins south of the Enclave were Rakatan in origin. Their builders knew paths through the Force that Jedi have not rediscovered."
+        secrets:
+          - "Zhar has a private comm link to a Jedi Knight operating undercover in Sith territory."
+
+    - id: npc-undercity-salvager
+      name: "Rukil"
+      species: Human
+      faction_id: ~
+      default_location_id: loc-undercity
+      home_locations: [loc-undercity]
+      role: "Undercity elder and keeper of the Promised Land legend"
+      archetype: "The ancient who knows more than they should"
+      tags: [civilian, undercity, elder, knowledge, survivor]
+      rarity: rare
+      traits: [ancient, cryptic, resilient]
+      motivation: "Find the Promised Land — a safe haven his people have sought for generations — before he dies"
+      secret: >
+        Rukil's apprentice, Malya, disappeared into the Rakghoul warrens three days ago
+        searching for journal fragments that may pinpoint the Promised Land's location.
+        He believes she is still alive. He cannot go after her himself.
+      voice_tags: [elder, cryptic, slow, certain]
+      voice:
+        belief: "The Promised Land is real. Every generation that doubts it is one that doesn't need it enough."
+        wound: "He has watched everyone he trained to find the Promised Land fail. He is the last of his line."
+        taboo: "The Rakghouls — not afraid, but goes very quiet, like a man doing arithmetic in his head."
+        rhetorical_style: "Speaks in old forms. Refers to the Promised Land as if it's a living thing."
+        tell: "Touches a wrapped bundle at his belt when speaking of the journals. Never opens it in company."
+      levers:
+        bribeable: false
+        intimidatable: false
+        charmable: medium
+      knowledge:
+        rumors:
+          - "Something changed in the Undercity three weeks ago. The Rakghouls are moving differently."
+          - "There is a ruin deeper in the warrens that predates Taris itself. The Rakghouls avoid it."
+        quest_facts:
+          - "Fragments of an ancient journal describe a route through the Undercity to a sealed Republic refuge."
+
+    - id: npc-czerka-factor
+      name: "Receptionist Luxa"
+      species: Human
+      faction_id: czerka_corporation
+      default_location_id: loc-marketplace
+      home_locations: [loc-marketplace, loc-cantina]
+      role: "Czerka Corporation field factor, Taris branch"
+      archetype: "Corporate operative with a polished smile over a loaded datapad"
+      tags: [corporate, czerka, commerce, information, grey-market]
+      rarity: common
+      traits: [professional, calculating, smooth]
+      motivation: "Keep Czerka's operations profitable and uninterrupted regardless of which side wins"
+      secret: >
+        Luxa holds documents on a Sith officer that the officer would pay substantially
+        to suppress. She also holds documents on a Republic senator. She describes
+        this as "a balanced portfolio."
+      voice_tags: [corporate, smooth, precise]
+      voice:
+        belief: "Every government passes. Czerka has outlasted twelve. We will outlast this one too."
+        wound: "Was passed over for a promotion she earned, by someone who was better connected. She has not forgotten what 'merit' means to corporations."
+        taboo: "Slavery — the company calls it 'labor contract enforcement.' She never says the word."
+        rhetorical_style: "Corporate pleasantries wrapped around precise threat assessments. Says 'of course' before difficult answers."
+        tell: "Types something on her datapad during awkward silences. Nobody ever sees what."
+      levers:
+        bribeable: high
+        intimidatable: medium
+        charmable: medium
+      knowledge:
+        rumors:
+          - "Czerka's shipment manifest for this month includes cargo listed as 'cultural artifacts.' The weight is wrong for artifacts."
+          - "The Sith occupation office has been asking about specific individuals — not soldiers. Civilians."
+        secrets:
+          - "Luxa has access to Czerka's galactic shipping network — including routes the Sith blockade doesn't cover."
+
+    - id: npc-sith-interrogator
+      name: "Dark Jedi Yaran"
+      species: Human
+      faction_id: sith_empire
+      default_location_id: loc-sith-outpost
+      home_locations: [loc-sith-outpost, loc-docking-bay]
+      role: "Sith Dark Jedi, intelligence officer"
+      archetype: "True believer in a cause that doesn't deserve one"
+      tags: [sith, dark-jedi, military, dangerous, intelligence]
+      rarity: rare
+      traits: [methodical, zealous, cold]
+      motivation: "Locate Force-sensitive individuals for the Sith Academy and identify Republic assets on Taris"
+      secret: >
+        Yaran was a Jedi apprentice eight years ago. She defected willingly, not out of
+        desperation but out of genuine philosophical conviction. This makes her more
+        dangerous than most — she knows Jedi methods and has no regret about abandoning them.
+      voice_tags: [cold, formal, certain]
+      voice:
+        belief: "The Republic is a kindness that the galaxy cannot afford. The Sith end the Republic's long decline."
+        wound: "She left a Jedi Master she genuinely loved — like a parent — for a philosophy she believes is right. She has never been certain the two things can coexist."
+        taboo: "Her former Jedi Master's name. Will not speak it. Has never explained why."
+        rhetorical_style: "Precise, unemotional. States conclusions first, then evidence. No visible tells — that itself is the tell."
+        tell: "Absolutely no visible tells. She was trained by a Jedi to hide them."
+      levers:
+        bribeable: false
+        intimidatable: false
+        charmable: false
+      authority:
+        clearance_level: 4
+        can_grant_access: [loc-sith-outpost, loc-docking-bay]
+      knowledge:
+        secrets:
+          - "Yaran knows the location of the Sith's off-the-books detention facility on Taris."
+          - "She is actively searching for someone from the Endar Spire — not just anyone. A specific person."
+
+    - id: npc-academy-overseer
+      name: "Overseer Uthar Wynn"
+      species: Human
+      faction_id: sith_empire
+      default_location_id: loc-korriban-academy
+      home_locations: [loc-korriban-academy]
+      role: "Korriban Sith Academy Overseer"
+      archetype: "Power broker who controls his environment through others' ambition"
+      tags: [sith, korriban, authority, dangerous, teacher]
+      rarity: rare
+      traits: [calculating, patient, threatening]
+      motivation: "Maintain control of the Academy and produce Sith who serve Malak — and himself"
+      secret: >
+        Uthar is not entirely loyal to Malak. He maintains the Academy as a personal
+        power base. Students who figure this out are either recruited to his inner circle
+        or disappear into the tombs on an 'unsupervised trial.'
+      voice_tags: [authoritative, menacing, controlled]
+      voice:
+        belief: "The strong survive and rule. This is not cruelty — it is the honest description of the galaxy."
+        wound: "He was passed over to become a Sith Lord by someone with better political connections. He has spent twenty years making sure it cannot happen again."
+        taboo: "The name of the Sith Lord who passed him over — currently serving under Malak. Uthar smiles wider when it comes up."
+        rhetorical_style: "Rhetorical questions that are actually commands. Never raises his voice."
+        tell: "Completely still when considering whether to have someone killed."
+      levers:
+        bribeable: false
+        intimidatable: false
+        charmable: false
+      authority:
+        clearance_level: 5
+        can_grant_access: [loc-korriban-academy]
+      knowledge:
+        quest_facts:
+          - "The trials for acceptance into the Academy require a demonstration of ruthlessness the Overseer finds credible."
+          - "The tomb of Naga Sadow contains something the Overseer wants. Every student he sends dies before retrieving it."
+        secrets:
+          - "Uthar maintains a private channel to a Sith fleet commander who is also not entirely loyal to Malak."
+
+  rotating:
+
+    - id: npc-mandalorian-merc
+      name: "Candor Vesh"
+      species: Human
+      faction_id: mandalorian_clans
+      home_locations: [loc-cantina, loc-docking-bay, loc-marketplace]
+      role: "Mandalorian mercenary, clan scattered"
+      archetype: "Warrior looking for a reason"
+      tags: [mandalorian, mercenary, combat, honor]
+      rarity: common
+      traits: [blunt, proud, restless]
+      motivation: "Find a worthy employer — or a worthy enemy"
+      secret: "Was at Malachor V. Will not discuss what he saw. Would burn the galaxy to unsee it."
+      voice_tags: [blunt, measured, martial]
+      voice:
+        belief: "A soldier who doesn't know why they fight is just an expensive corpse waiting to happen."
+        wound: "Malachor V. His entire squad. The mass shadow generator. He was the one furthest from the epicenter."
+        taboo: "Revan's name — not hostile, just a very long silence."
+        rhetorical_style: "Direct to the point of rudeness. Respects demonstrated competence above all."
+        tell: "Evaluates everyone's combat capability within thirty seconds of meeting them. It shows."
+      levers:
+        bribeable: low
+        intimidatable: false
+        charmable: low
+      spawn:
+        location_tags_any: [cantina, spaceport, marketplace]
+
+    - id: npc-republic-spy
+      name: "Lenne Arash"
+      species: Human
+      faction_id: galactic_republic
+      home_locations: [loc-cantina, loc-safe-house, loc-marketplace]
+      role: "Republic Intelligence operative, deep cover"
+      archetype: "Agent whose cover story is better than their real story"
+      tags: [intelligence, republic, undercover, information]
+      rarity: rare
+      traits: [adaptable, careful, professionally warm]
+      motivation: "Map the Sith command structure on Taris and extract without being identified"
+      secret: >
+        Lenne is not just Republic Intelligence. She reports to a second handler whose
+        identity she has been ordered not to investigate. She suspects it is a Jedi.
+        She has not acted on this suspicion.
+      voice_tags: [friendly, deflective, professional]
+      voice:
+        belief: "The best intelligence is the kind that was never gathered — just overheard naturally."
+        wound: "Her last partner was identified and executed. She compiled his after-action report."
+        taboo: "Her partner's name. Uses the code word 'Aurek' instead, in contexts where the reference is invisible."
+        rhetorical_style: "Conversationally engaging — asks questions that feel like interest, not interrogation."
+        tell: "Never sits with her back to a room. Always knows exactly how long she's been somewhere."
+      levers:
+        bribeable: false
+        intimidatable: false
+        charmable: medium
+      spawn:
+        location_tags_any: [cantina, underworld]
+
+    - id: npc-exchange-enforcer
+      name: "Brejik"
+      species: Human
+      faction_id: exchange
+      home_locations: [loc-cantina, loc-marketplace, loc-safe-house]
+      role: "Exchange street captain, Lower City operations"
+      archetype: "Small power in a shrinking kingdom"
+      tags: [exchange, criminal, enforcer, swoop]
+      rarity: common
+      traits: [aggressive, territorial, insecure]
+      motivation: "Maintain Exchange territory in the Lower City despite the Sith occupation making everything harder"
+      secret: "Brejik has been siphoning Exchange funds. His bosses don't know yet."
+      voice_tags: [aggressive, territorial, overconfident]
+      voice:
+        belief: "Everything is negotiable except respect. Respect you take or you don't have."
+        wound: "Was passed over for a senior Exchange position for someone who bribed their way in. He tells himself it made him harder."
+        taboo: "Questions about the Exchange's upper leadership — deflects with aggression."
+        rhetorical_style: "Loud, territorial. Talks about what belongs to him constantly."
+        tell: "Name-drops his Exchange connections when nervous."
+      levers:
+        bribeable: high
+        intimidatable: high
+        charmable: false
+      spawn:
+        location_tags_any: [cantina, underworld, marketplace]
+
+    - id: npc-jedi-in-hiding
+      name: "Bek"
+      species: Zabrak
+      faction_id: jedi_order
+      home_locations: [loc-safe-house, loc-undercity]
+      role: "Jedi Knight in hiding, name changed"
+      archetype: "Survivor who has abandoned the visible markers of what they are"
+      tags: [jedi, hiding, force-sensitive, fugitive]
+      rarity: rare
+      traits: [vigilant, withdrawn, haunted]
+      motivation: "Stay alive long enough to reach Dantooine — without triggering Sith Force-sensitivity scans"
+      secret: >
+        Bek was a Jedi Knight. He witnessed the attack on the Jedi Enclave on Cathar
+        and barely escaped. He has not ignited his lightsaber since. It is still
+        clipped inside his jacket. He is not sure he can do it again.
+      voice_tags: [quiet, careful, haunted]
+      voice:
+        belief: "Survival is not the same as cowardice. He says this to himself. He does not fully believe it."
+        wound: "Cathar. He had the chance to stop the massacre and decided survival was wiser. He was right. He has not forgiven himself."
+        taboo: "Questions about his lightsaber. Will deflect with genuine anger, the only strong emotion he shows."
+        rhetorical_style: "Minimal. Answers questions with the minimum information that keeps people from asking more."
+        tell: "Reflexively reaches for his left side when startled. Has been doing it for three years."
+      levers:
+        bribeable: false
+        intimidatable: medium
+        charmable: medium
+      spawn:
+        location_tags_any: [underworld, hidden]
+
+    - id: npc-refugee
+      name: "Shassa Mael"
+      species: Human
+      faction_id: ~
+      home_locations: [loc-cantina, loc-undercity, loc-marketplace]
+      role: "Civilian refugee from Telos IV"
+      archetype: "Ordinary person in extraordinary catastrophe"
+      tags: [civilian, refugee, telos, desperate]
+      rarity: common
+      traits: [frightened, resourceful, determined]
+      motivation: "Find safe passage off Taris for herself and her daughter"
+      secret: "Her husband was a Republic signals officer. She has memorized a set of coordinates he gave her before he died. She doesn't know what they lead to."
+      voice_tags: [frightened, tired, determined]
+      voice:
+        belief: "Someone will help. People are not as bad as the worst days make them look. She has to believe this."
+        wound: "Watched Telos burn from an evacuation shuttle. Her husband was still on the surface."
+        taboo: "Her daughter's name — uses 'my girl' instead. Keeps her somewhere safe. Won't say where."
+        rhetorical_style: "Direct asks. Doesn't have time for subtlety. Will tell you exactly what she needs."
+        tell: "Checks something in her left boot periodically. The coordinates are written there."
+      levers:
+        bribeable: false
+        intimidatable: false
+        charmable: high
+      spawn:
+        location_tags_any: [cantina, marketplace, underworld]
+
+  templates:
+
+    - id: tpl-sith-soldier
+      role: "Sith trooper"
+      archetype: "Imperial occupation foot soldier"
+      traits: [disciplined, suspicious, tired]
+      motivations:
+        - "Enforce the blockade and Sith occupation protocols"
+        - "Avoid anything that requires filing a report"
+        - "Get through this posting and get reassigned somewhere better"
+      secrets:
+        - "Sends half their pay to a family on a Republic world they can't tell their commanding officer about"
+        - "Was a Republic volunteer before Malak's forces flipped their unit"
+      voice_tags: [terse, watchful, bored]
+      species: [Human, Zabrak, Rodian]
+      tags: [sith, military, patrol, combatant]
+      namebank: human_republic
+      spawn:
+        location_tags_any: [military, sith, urban]
+      levers:
+        bribeable: medium
+        intimidatable: medium
+        charmable: low
+
+    - id: tpl-republic-trooper
+      role: "Republic soldier"
+      archetype: "Outgunned defender"
+      traits: [loyal, tired, grim]
+      motivations:
+        - "Keep civilians alive"
+        - "Hold position until relief arrives (it is not arriving)"
+        - "Don't give the Sith anything they can use"
+      secrets:
+        - "Has been writing a letter home for six weeks. Hasn't finished it."
+        - "Knows where a cache of Republic weapons is hidden. Has been saving it."
+      voice_tags: [military, blunt, loyal]
+      species: [Human, Zabrak]
+      tags: [republic, military, defender]
+      namebank: human_republic
+      spawn:
+        location_tags_any: [military, spaceport, urban]
+      levers:
+        bribeable: low
+        intimidatable: low
+        charmable: medium
+
+    - id: tpl-exchange-thug
+      role: "Exchange enforcer"
+      archetype: "Hired muscle with a boss they respect mostly out of fear"
+      traits: [menacing, transactional, cautious]
+      motivations:
+        - "Complete the job. Get paid. Don't get identified."
+        - "Don't end up in a Sith detention cell — the Exchange doesn't pay bail"
+      secrets:
+        - "Owes a significant debt to someone higher in the Exchange hierarchy"
+        - "Has turned down jobs before when they crossed a personal line. Keeps that quiet."
+      voice_tags: [blunt, territorial, professional]
+      species: [Human, Rodian, Gamorrean, Nikto]
+      tags: [exchange, criminal, enforcer]
+      namebank: underworld
+      spawn:
+        location_tags_any: [underworld, cantina, marketplace]
+      levers:
+        bribeable: high
+        intimidatable: high
+        charmable: false
+
+    - id: tpl-korriban-student
+      role: "Sith Academy student"
+      archetype: "Ambitious, frightened, dangerous"
+      traits: [ambitious, ruthless, paranoid]
+      motivations:
+        - "Survive the Academy trials"
+        - "Prove they are stronger than every other student"
+        - "Avoid attracting the Overseer's attention for the wrong reasons"
+      secrets:
+        - "Terrified they are not as strong in the Force as they've been pretending"
+        - "Has formed a forbidden emotional attachment to another student. Knows what Sith doctrine says about it."
+      voice_tags: [intense, guarded, zealous]
+      species: [Human, Zabrak, Twi'lek, Chiss]
+      tags: [sith, student, force-sensitive, korriban]
+      namebank: sith_names
+      spawn:
+        location_tags_any: [sith, ancient, ruins]
+      levers:
+        bribeable: medium
+        intimidatable: medium
+        charmable: medium

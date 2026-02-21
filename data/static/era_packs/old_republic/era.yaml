@@ -224,3 +224,65 @@ setting_rules:
   historical_lore_label: "established Star Wars Legends / KOTOR lore"
   bypass_methods: ["force", "force_dark", "sith_amulet", "mandalorian_rage"]
   fallback_background: "A traveler in the age of the Jedi Civil War."
+
+# Atmospheric prose fragments injected by NarratorPrompt for scene-setting.
+atmosphere_fragments:
+  opening: >
+    The air here smelled of ozone and old stone — the particular scent of a galaxy
+    at war with itself, four thousand years deep in a conflict no single person started
+    and no single battle would end.
+  ambient: >
+    Somewhere above, a Sith blockade patrol swept its searchlights across the night sky.
+    You had learned not to look up when they passed.
+  tension: >
+    The Force tightened around the moment like a hand closing around a blade.
+    Whatever happened next would matter in ways that couldn't be undone.
+  calm: >
+    For a breath, the Jedi Civil War seemed impossibly far away — just a name in
+    dispatches, a rumor in another city, someone else's catastrophe.
+  hook: >
+    The past was never far from the surface in the Old Republic. It was always just
+    beneath your boots, waiting to be unearthed by the wrong question
+    or the right stranger.
+
+# Background figures keyed by location tag — non-interactable scene atmosphere.
+background_figures:
+  cantina:
+    - "a Duros in a battered flight jacket nursing something amber and watching the door"
+    - "two Republic soldiers arguing over dejarik, voices low, eyes careful"
+    - "a Twi'lek dancer moving through the smoke, expression professionally absent"
+    - "a hooded figure in the corner booth who hasn't touched their drink"
+    - "a Rodian merchant tallying inventory on a datapad, oblivious to everything"
+  marketplace:
+    - "Czerka vendors calling out prices with the specific energy of people who are paid on commission"
+    - "a Republic patrol moving through the crowd, armor newly scratched, faces newly tired"
+    - "a street child weaving between stalls with practiced invisibility"
+    - "an elderly Ithorian examining produce with methodical suspicion"
+    - "a pair of off-worlders arguing over a translation droid's error"
+  spaceport:
+    - "a fuel technician running line checks with the glazed expression of the third shift"
+    - "a customs officer interrogating a freighter captain about a suspiciously light manifest"
+    - "maintenance droids trundling past in a line, beeping to each other"
+    - "a Republic dispatcher barking departure codes into a comm that keeps cutting out"
+  hangar:
+    - "a mechanic buried to the elbow in a starfighter's ventral housing"
+    - "a loadlifter droid stacking crates with no regard for anyone's feet"
+    - "a pilot running pre-flight checks, lips moving silently through the checklist"
+  underworld:
+    - "a scarred enforcer using the wall as a chair and the silence as a statement"
+    - "a slicer hunched over a cracked datapad, fingers moving too fast to follow"
+    - "a Gamorrean bodyguard rotating one thick shoulder, bored and ready"
+    - "a masked courier making an exchange in a doorway, both parties pretending to look elsewhere"
+  enclave:
+    - "Padawans practicing lightsaber forms in the courtyard, counting breaths between strikes"
+    - "a Jedi Master seated in meditation, expression suggesting they are somewhere else entirely"
+    - "a protocol droid cataloguing recovered artifacts with fastidious care"
+    - "Jedi Initiates walking in pairs, deep in earnest, whispered debate"
+  ruins:
+    - "crumbling pillars carved with glyphs in a language older than the Republic"
+    - "a vine-covered archway that once led somewhere important"
+    - "scattered debris suggesting a hasty departure that happened centuries ago"
+  default:
+    - "a few locals moving through their routines, eyes downcast in the way of people in a war"
+    - "a maintenance droid trundling a slow patrol, light blinking amber"
+    - "a figure in a doorway who stops watching you just a moment too late"

@@ -1,0 +1,200 @@
+# old_republic/items.yaml — Equipment and artifacts for the Jedi Civil War era.
+# Items modify check difficulty when equipped; type and rarity inform narrative weight.
+
+items:
+
+  - id: item-blaster-pistol
+    name: "Blaster Pistol"
+    description: >
+      The standard sidearm of soldiers, criminals, and cautious civilians across the
+      galaxy. This one is well-maintained — someone who owned it before you believed
+      in keeping their options open.
+    type: weapon
+    rarity: common
+    value: 350
+    tags: [ranged, sidearm, common-equipment]
+    discoverable_at: [loc-marketplace, loc-docking-bay, loc-cantina]
+    mechanics:
+      difficulty_modifier: -1
+      stat_bonus:
+        Combat: 1
+      weight_class: light
+
+  - id: item-blaster-rifle
+    name: "Blaster Rifle"
+    description: >
+      Military-grade repeating blaster. Requires both hands and leaves little doubt
+      about intentions. The kind of weapon that makes Sith checkpoints nervous,
+      which means carrying one openly is a declaration more than a precaution.
+    type: weapon
+    rarity: uncommon
+    value: 1200
+    tags: [ranged, military, heavy]
+    discoverable_at: [loc-docking-bay, loc-sith-outpost, loc-marketplace]
+    mechanics:
+      difficulty_modifier: -2
+      stat_bonus:
+        Combat: 2
+      weight_class: medium
+
+  - id: item-vibroblade
+    name: "Vibroblade"
+    description: >
+      A short-range melee weapon with a high-frequency vibration generator along the
+      blade edge. Effective against most armor types. Preferred by those who need
+      something quiet, close, and reliable. Old Republic manufacture; the quality shows.
+    type: weapon
+    rarity: common
+    value: 500
+    tags: [melee, silent, close-range]
+    discoverable_at: [loc-marketplace, loc-safe-house, loc-cantina]
+    mechanics:
+      difficulty_modifier: -1
+      stat_bonus:
+        Combat: 1
+        Stealth: 1
+      weight_class: light
+
+  - id: item-lightsaber
+    name: "Lightsaber"
+    description: >
+      The weapon of the Jedi — and of the Sith. Plasma blade sustained by a kyber
+      crystal attuned to its wielder through the Force. Cuts through most materials
+      without resistance. Carrying one in public on a Sith-occupied world is either
+      a statement of extraordinary confidence or extraordinary poor judgement.
+      Possibly both.
+    type: weapon
+    rarity: rare
+    value: 0
+    tags: [melee, force-user, iconic, restricted]
+    discoverable_at: [loc-enclave, loc-korriban-academy]
+    mechanics:
+      difficulty_modifier: -2
+      stat_bonus:
+        Combat: 3
+      weight_class: light
+      skill_requirement: "General >= 3"
+
+  - id: item-kolto-pack
+    name: "Kolto Medpac"
+    description: >
+      A pressurized canister of kolto — the galaxy's primary healing agent, harvested
+      from the oceans of Manaan. Application is immediate: spray on the wound, wait
+      thirty seconds, walk away with a scar instead of a corpse. Limited supply;
+      prices have tripled since the blockade.
+    type: consumable
+    rarity: common
+    value: 400
+    tags: [healing, medical, kolto, essential]
+    discoverable_at: [loc-marketplace, loc-safe-house, loc-cantina, loc-enclave]
+    mechanics:
+      difficulty_modifier: 2
+      consumable: true
+      uses: 1
+      weight_class: light
+
+  - id: item-jedi-robe
+    name: "Jedi Travelling Robe"
+    description: >
+      Undyed, unadorned, practical. The Jedi Order's robes are designed to be
+      unremarkable from a distance — a philosophy about humility that also happens
+      to be excellent operational security. The inner lining contains reinforced
+      weave panels that provide more protection than the exterior suggests.
+    type: armor
+    rarity: uncommon
+    value: 800
+    tags: [armor, jedi, light, concealed]
+    discoverable_at: [loc-enclave]
+    mechanics:
+      difficulty_modifier: 1
+      stat_bonus:
+        General: 1
+      weight_class: light
+
+  - id: item-mandalorian-armor
+    name: "Mandalorian Battle Armor"
+    description: >
+      Beskar-reinforced full-plate combat armor, customized by its last owner and
+      passed through at least three warriors' hands. Each dent and repair tells a
+      story. Mandalorian armor is not just protection — it is identity. Wearing
+      someone else's is complicated by Mandalorian custom. That complexity is
+      something to work out later.
+    type: armor
+    rarity: rare
+    value: 4000
+    tags: [armor, heavy, mandalorian, beskar]
+    discoverable_at: [loc-docking-bay, loc-cantina]
+    mechanics:
+      difficulty_modifier: 2
+      stat_bonus:
+        Combat: 1
+      weight_class: heavy
+
+  - id: item-datapad
+    name: "Encrypted Datapad"
+    description: >
+      A standard-issue Republic military datapad with a non-standard encryption
+      layer added by a non-standard previous owner. Contains partial records —
+      some operational, some personal. Whatever's on it is worth something to someone,
+      which is the only thing you know for certain.
+    type: document
+    rarity: common
+    value: 200
+    tags: [information, encrypted, document]
+    discoverable_at: [loc-docking-bay, loc-cantina, loc-safe-house]
+    mechanics:
+      difficulty_modifier: -1
+      weight_class: light
+
+  - id: item-sith-holocron
+    name: "Sith Holocron"
+    description: >
+      A dark-sided data repository in the shape of a black polyhedron, glowing faintly
+      with contained dark side energy. The Sith lord preserved within answers questions
+      in the voice of certainty. What the holocron teaches is accurate. What it omits
+      is more important. Prolonged use has been noted to affect decision-making in ways
+      the user does not perceive as influence.
+    type: document
+    rarity: legendary
+    value: 0
+    tags: [dark-side, force-artifact, dangerous, restricted]
+    discoverable_at: [loc-korriban-academy]
+    mechanics:
+      difficulty_modifier: -3
+      stat_bonus:
+        General: 2
+      weight_class: light
+      skill_requirement: "General >= 2"
+
+  - id: item-exchange-credit-chip
+    name: "Exchange Credit Chip — Unmarked"
+    description: >
+      A high-denomination credit chip issued through Exchange-controlled channels,
+      untraceable to any registered account. Twenty thousand credits encoded in
+      a chip the size of a thumbnail. This kind of money opens doors, ends
+      conversations, and occasionally starts very different ones.
+    type: key
+    rarity: uncommon
+    value: 20000
+    tags: [credits, bribery, exchange, leverage]
+    discoverable_at: [loc-safe-house, loc-cantina]
+    mechanics:
+      difficulty_modifier: 3
+      weight_class: light
+
+  - id: item-star-map-fragment
+    name: "Star Map Fragment — Rakatan"
+    description: >
+      An ancient navigational artifact constructed by the Rakata — the Infinite
+      Empire that predated the Republic by twenty-five thousand years. This fragment
+      contains partial coordinates to somewhere significant. The Rakata called it
+      the Star Forge. The Jedi Council has been receiving fragmented intelligence
+      about something with that name. This is not a coincidence.
+    type: key
+    rarity: legendary
+    value: 0
+    tags: [rakatan, navigation, ancient, quest-item, star-forge]
+    discoverable_at: [loc-enclave, loc-korriban-academy, loc-undercity]
+    mechanics:
+      difficulty_modifier: 0
+      weight_class: light

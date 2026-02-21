@@ -1,0 +1,146 @@
+# old_republic/namebanks.yaml — Name pools for procedural NPC generation.
+# Keyed by culture/archetype. Used by NpcResolver for template-generated NPCs.
+
+human_republic:
+  - Carth
+  - Dalen
+  - Forn
+  - Saul
+  - Dorak
+  - Elban
+  - Kotan
+  - Revan
+  - Brejik
+  - Gannen
+  - Mira
+  - Arani
+  - Lene
+  - Shassa
+  - Dava
+  - Kalani
+  - Vima
+  - Sarna
+  - Yun
+  - Bek
+  - Ferren
+  - Jomas
+  - Rishi
+  - Celinn
+  - Darius
+  - Sarn
+  - Kellith
+  - Maera
+  - Taris
+  - Ondine
+
+sith_names:
+  - Yaran
+  - Uthar
+  - Bandon
+  - Darven
+  - Kelborn
+  - Mekel
+  - Thalia
+  - Kel
+  - Vrook
+  - Sion
+  - Traya
+  - Nihilus
+  - Darth
+  - Malak
+  - Revan
+  - Adrenas
+  - Guras
+  - Vash
+  - Atris
+  - Kavar
+  - Kreia
+  - Zez
+
+twi_lek:
+  - Mission
+  - Griff
+  - Sovi
+  - Juhani
+  - Kelvarra
+  - Lethon
+  - Vana
+  - Lyn
+  - Shar
+  - Brel
+  - Numa
+  - Rila
+  - Dasha
+  - Syr
+  - Thana
+  - Ola
+  - Vette
+  - Kira
+
+mandalorian:
+  - Canderous
+  - Kelborn
+  - Kumus
+  - Xarga
+  - Bralor
+  - Dred
+  - Veela
+  - Davik
+  - Gortash
+  - Mandalore
+  - Vesh
+  - Tor
+  - Ordo
+  - Fenn
+  - Shysa
+  - Reau
+  - Var
+  - Nok
+
+underworld:
+  - Brejik
+  - Davik
+  - Luxa
+  - Zax
+  - Hudrow
+  - Ajuur
+  - Gurney
+  - Senni
+  - Lorn
+  - Kono
+  - Suvam
+  - Griff
+  - Ratrin
+  - Holdan
+  - Calo
+  - Bendak
+  - Shaleena
+  - Gant
+
+rodian:
+  - Gurney
+  - Holdan
+  - Rekka
+  - Sond
+  - Drevk
+  - Karath
+  - Vorn
+  - Selven
+  - Nuk
+  - Gend
+  - Reelo
+  - Korrr
+  - Dash
+
+wookiee:
+  - Zaalbar
+  - Freyyr
+  - Chuundar
+  - Gorwooken
+  - Rorworr
+  - Jaarak
+  - Ssoorr
+  - Bacca
+  - Mrrfp
+  - Korrr
+  - Tyvokka

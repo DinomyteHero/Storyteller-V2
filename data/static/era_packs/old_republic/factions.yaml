@@ -1,0 +1,137 @@
+# old_republic/factions.yaml — Factions for the Jedi Civil War era.
+
+factions:
+
+  - id: galactic_republic
+    name: "Galactic Republic"
+    tags: [military, government, light-side-aligned, law]
+    home_locations: [loc-docking-bay, loc-marketplace, loc-sith-outpost]
+    goals:
+      - "Repel Darth Malak's Sith armada and end the Jedi Civil War"
+      - "Maintain Senate authority and democratic governance"
+      - "Protect civilian populations under Sith occupation"
+      - "Support the Jedi Order's efforts to locate and destroy the Star Forge"
+    hostility_matrix:
+      sith_empire: -100
+      jedi_order: 80
+      exchange: -30
+      mandalorian_clans: -20
+    metadata:
+      description: >
+        The Galactic Republic is fighting for its survival. Its Senate meets on
+        Coruscant under increasingly desperate circumstances; its military is
+        stretched across a dozen fronts. Republic soldiers are exhausted,
+        undersupplied, and still fighting because the alternative is a galaxy
+        ruled by Darth Malak.
+
+  - id: jedi_order
+    name: "Jedi Order"
+    tags: [force-sensitive, light-side, ancient, enclave]
+    home_locations: [loc-enclave]
+    goals:
+      - "Train new Jedi to replace those lost in the Mandalorian Wars"
+      - "Locate the Star Forge and end its threat to the galaxy"
+      - "Guide the Republic without becoming a military force"
+      - "Preserve the Jedi Code as a bulwark against the dark side"
+    hostility_matrix:
+      galactic_republic: 80
+      sith_empire: -100
+      exchange: -40
+      mandalorian_clans: -10
+    metadata:
+      description: >
+        The Jedi Order is a shadow of itself. The Mandalorian Wars and the Jedi
+        Civil War have claimed hundreds of masters and knights. The Dantooine
+        Enclave trains padawans under a Council that carries the weight of every
+        bad decision made in the last two decades. The Jedi are still trying to
+        figure out how Revan happened — and whether they are responsible for it.
+
+  - id: sith_empire
+    name: "Sith Empire"
+    tags: [military, dark-side, conquest, authoritarian]
+    home_locations: [loc-sith-outpost, loc-korriban-academy, loc-docking-bay]
+    goals:
+      - "Complete the conquest of the Galactic Republic"
+      - "Destroy the Jedi Order and eliminate all Force-sensitive opposition"
+      - "Harness the Star Forge's production capacity to fuel endless expansion"
+      - "Establish Darth Malak as undisputed Dark Lord and ruler of the galaxy"
+    hostility_matrix:
+      galactic_republic: -100
+      jedi_order: -100
+      exchange: -30
+      mandalorian_clans: -20
+    metadata:
+      description: >
+        Darth Malak's Sith Empire is not the shadowy conspiracy of later years — it
+        is a conquering army with a navy, an academy, and territory it holds openly.
+        It governs occupied worlds through fear and military presence, uses Dark Jedi
+        as officers, and draws new recruits from the desperate and the ambitious.
+        The Star Forge gives it an industrial advantage that should be impossible to
+        overcome — unless someone destroys the Forge itself.
+
+  - id: exchange
+    name: "The Exchange"
+    tags: [criminal, black-market, mercenary, opportunist]
+    home_locations: [loc-cantina, loc-safe-house, loc-marketplace]
+    goals:
+      - "Profit from both sides of the war without committing to either"
+      - "Expand criminal networks through Sith-blockaded worlds"
+      - "Eliminate competition — especially bounty hunters who work outside Exchange contracts"
+      - "Acquire Force-sensitive individuals (bounty: substantial, reason: classified)"
+    hostility_matrix:
+      galactic_republic: -20
+      sith_empire: -20
+      jedi_order: -50
+      mandalorian_clans: 0
+    metadata:
+      description: >
+        The Exchange thrives in the cracks of a war. Republic supply lines create
+        black markets; Sith blockades create smuggling demand; desperate people
+        create leverage. The Exchange controls underworld operations on dozens of
+        worlds and enforces its contracts with a reliability that most governments
+        would envy. Its leadership is diffuse and paranoid — exactly as intended.
+
+  - id: mandalorian_clans
+    name: "Mandalorian Clans"
+    tags: [warrior, mercenary, honor-code, scattered]
+    home_locations: [loc-cantina, loc-docking-bay]
+    goals:
+      - "Reclaim Mandalorian honor after the defeat at Malachor V"
+      - "Reunite the clans under a worthy Mandalore"
+      - "Find enemies worth fighting — on terms that mean something"
+      - "Preserve the Resol'nare (Mandalorian code) in a galaxy that has forgotten what it means"
+    hostility_matrix:
+      galactic_republic: -10
+      sith_empire: -30
+      jedi_order: -20
+      exchange: 0
+    metadata:
+      description: >
+        The Mandalorian Wars ended at Malachor V — and what ended there was not just
+        the war but the Mandalorian people as a unified force. Clans are scattered,
+        honor codes are disputed, and the mask of Mandalore has not been claimed.
+        Individual warriors work as mercenaries, bodyguards, and bounty hunters.
+        A few gather quietly, watching for whoever will reunite them. Canderous Ordo
+        is one of these watchers. He is patient. He is very good at waiting.
+
+  - id: czerka_corporation
+    name: "Czerka Corporation"
+    tags: [corporate, mercenary, exploitative, grey-market]
+    home_locations: [loc-marketplace]
+    goals:
+      - "Maintain profitable operations regardless of which side controls the sector"
+      - "Exploit planetary resources with minimum regulatory interference"
+      - "Expand slavery operations under corporate euphemisms"
+      - "Sell weapons, ships, and information to the highest bidder"
+    hostility_matrix:
+      galactic_republic: 0
+      sith_empire: 0
+      jedi_order: -20
+      exchange: -10
+    metadata:
+      description: >
+        Czerka Corporation doesn't care who wins the Jedi Civil War. It has
+        contracts with the Republic, licensed operations on Sith-held worlds,
+        and a standing order to keep the legal department ahead of any war crimes
+        tribunals that might eventually convene. Its factor on Taris is particularly
+        skilled at the corporate version of looking the other way.
