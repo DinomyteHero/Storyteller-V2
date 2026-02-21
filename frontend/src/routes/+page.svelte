@@ -3,6 +3,7 @@
   import { ui } from '$lib/stores/ui';
   import { campaignId, playerId, lastTurnResponse } from '$lib/stores/game';
   import { THEME_NAMES } from '$lib/themes/tokens';
+  import FirstRunWizard from '$lib/components/FirstRunWizard.svelte';
   import {
     getSavedCampaigns,
     getSavedCampaignMap,
@@ -26,6 +27,17 @@
   let loadError = $state('');
   let lastPlayedCampaign = $state<SavedCampaign | null>(getLastPlayed());
   let resumingLast = $state(false);
+  let showFirstRun = $state(false);
+
+  // Check if this is the first time the user visits
+  try {
+    const done = localStorage.getItem('storyteller-first-run-complete');
+    if (!done) {
+      showFirstRun = true;
+    }
+  } catch {
+    // localStorage unavailable
+  }
 
   function handleNewCampaign() {
     goto('/create');
@@ -381,6 +393,11 @@
       </button>
     </div>
   </div>
+{/if}
+
+<!-- First-run setup wizard -->
+{#if showFirstRun}
+  <FirstRunWizard />
 {/if}
 
 <style>
