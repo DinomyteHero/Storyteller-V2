@@ -13,34 +13,13 @@ import logging
 import re
 
 from backend.app.core.agents.base import AgentLLM
+from backend.app.prompts.registry import load_prompt
 
 logger = logging.getLogger(__name__)
 
-_SYSTEM_PROMPT = """\
-You classify player input for an interactive narrative RPG.
 
-## CATEGORIES
-
-- META: System commands — help, save, load, quit, menu
-- TALK: Pure dialogue with no world-changing intent — greeting, asking a question,
-  making conversation. The world state does NOT change.
-- ACTION: Anything that requires mechanical resolution — combat, stealth, persuasion,
-  movement, using items, investigating, casting abilities. The world state CHANGES.
-
-## RULES
-
-- When unsure, classify as ACTION. It is always safe to resolve mechanically.
-- Dialogue that tries to CHANGE someone's behavior (persuade, threaten, bribe, deceive,
-  negotiate) is ACTION, not TALK.
-- Dialogue that is purely informational (ask a question, greet, chat) is TALK.
-- Physical actions (fight, sneak, steal, move, search) are always ACTION.
-- "I say hello" = TALK. "I convince him to let us pass" = ACTION.
-
-## OUTPUT
-
-Output ONLY a JSON object:
-{"intent": "META|TALK|ACTION", "rationale": "brief explanation"}
-"""
+def _get_system_prompt() -> str:
+    return load_prompt("intent_router_system")
 
 
 def classify_intent(user_input: str) -> dict[str, str]:
@@ -52,7 +31,7 @@ def classify_intent(user_input: str) -> dict[str, str]:
     llm = AgentLLM("intent_router")
 
     raw = llm.complete(
-        _SYSTEM_PROMPT,
+        _get_system_prompt(),
         f'Player says: "{user_input}"\n\nClassify:',
         json_mode=True,
         raw_json_mode=True,
