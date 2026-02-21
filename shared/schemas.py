@@ -133,6 +133,55 @@ class PrologueScreenplay(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Origin Story — playable backstory before the prologue (Dragon Age: Origins)
+# ---------------------------------------------------------------------------
+
+class OriginNpc(BaseModel):
+    """An NPC in the origin story."""
+
+    name: str
+    role: str = Field(..., description="mentor, rival, victim, authority, companion")
+    relationship_to_player: str = Field(
+        default="neutral",
+        description="How this NPC relates to the player: ally, rival, authority, neutral",
+    )
+
+
+class OriginScreenplay(BaseModel):
+    """OriginScreenplayAgent output: playable backstory before the prologue.
+
+    This generates a short 3-turn interactive backstory sequence that lets
+    the player experience their character's background through gameplay.
+    Stored in ``world_state_json["origin_screenplay"]``.
+    """
+
+    origin_title: str = Field(..., description="Short evocative title for the origin chapter")
+    setting_description: str = Field(
+        ...,
+        description="2-3 sentence description of where/when this origin takes place",
+    )
+    opening_scene: str = Field(
+        ...,
+        description="Atmospheric opening narration for the first scene (3-4 sentences)",
+    )
+    dilemma: str = Field(
+        ...,
+        description="The moral/tactical dilemma the player faces (1-2 sentences)",
+    )
+    resolution_hook: str = Field(
+        ...,
+        description="How the origin connects to the main story (1 sentence)",
+    )
+    npc_cast: List[OriginNpc] = Field(
+        default_factory=list,
+        description="1-3 NPCs present during the origin story",
+    )
+    tone: str = Field(default="intimate", description="intimate, tense, bittersweet, hopeful")
+    background_id: str = Field(default="", description="Background that triggered this origin")
+    species_id: str = Field(default="", description="Player species")
+
+
+# ---------------------------------------------------------------------------
 # Phase 2.1 — Arc Screenplay
 # ---------------------------------------------------------------------------
 

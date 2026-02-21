@@ -82,6 +82,9 @@ def _model_config() -> dict[str, dict[str, str]]:
         "revelation_agent": {"provider": "ollama", "model": "qwen3:4b"},
         # V10.0: Callback Crystallizer — identifies peak moments for future echo (~10 turns)
         "callback_crystallizer": {"provider": "ollama", "model": "qwen3:4b"},
+        # Origin Story — generates playable backstory blueprint at campaign creation.
+        # Override to cloud for quality: STORYTELLER_ORIGIN_PROVIDER=anthropic
+        "origin": {"provider": "ollama", "model": "qwen3:8b"},
         # Phase 0.4: Prologue Screenplay — generates opening scene blueprint at campaign creation.
         # Override to cloud for quality: STORYTELLER_PROLOGUE_PROVIDER=anthropic
         "prologue": {"provider": "ollama", "model": "qwen3:8b"},
