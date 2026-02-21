@@ -18,55 +18,62 @@ from backend.app.core.nodes.narrative_validator import (  # noqa: E402
 
 class TestMechanicConsistency:
     def test_success_language_on_failure_warns(self):
-        warnings = _check_mechanic_consistency(
+        corrected, warnings, repairs = _check_mechanic_consistency(
             "You succeeded in breaking the lock.", {"success": False}
         )
         assert len(warnings) == 1
-        assert "success language" in warnings[0]
+        assert "mechanic contradiction" in warnings[0].lower() or "repaired" in warnings[0].lower()
+        assert len(repairs) >= 1
+        assert "succeeded" not in corrected.lower() or "struggled" in corrected.lower()
 
     def test_manages_to_on_failure_warns(self):
-        warnings = _check_mechanic_consistency(
+        corrected, warnings, repairs = _check_mechanic_consistency(
             "You managed to slip past the guard.", {"success": False}
         )
         assert len(warnings) == 1
+        assert len(repairs) >= 1
 
     def test_failure_language_on_success_warns(self):
-        warnings = _check_mechanic_consistency(
+        corrected, warnings, repairs = _check_mechanic_consistency(
             "You fumbled the attempt.", {"success": True}
         )
         assert len(warnings) == 1
-        assert "failure language" in warnings[0]
+        assert "mechanic contradiction" in warnings[0].lower() or "repaired" in warnings[0].lower()
+        assert len(repairs) >= 1
 
     def test_miss_on_success_warns(self):
-        warnings = _check_mechanic_consistency(
+        corrected, warnings, repairs = _check_mechanic_consistency(
             "Your shot missed the target.", {"success": True}
         )
         assert len(warnings) == 1
+        assert len(repairs) >= 1
 
     def test_no_warning_when_success_matches(self):
-        warnings = _check_mechanic_consistency(
+        corrected, warnings, repairs = _check_mechanic_consistency(
             "You succeeded brilliantly.", {"success": True}
         )
         assert len(warnings) == 0
+        assert len(repairs) == 0
 
     def test_no_warning_when_failure_matches(self):
-        warnings = _check_mechanic_consistency(
+        corrected, warnings, repairs = _check_mechanic_consistency(
             "You failed to pick the lock.", {"success": False}
         )
         assert len(warnings) == 0
+        assert len(repairs) == 0
 
     def test_no_warning_without_success_field(self):
-        warnings = _check_mechanic_consistency(
+        corrected, warnings, repairs = _check_mechanic_consistency(
             "Something happened.", {"action_type": "TALK"}
         )
         assert len(warnings) == 0
 
     def test_no_warning_on_empty_text(self):
-        warnings = _check_mechanic_consistency("", {"success": False})
+        corrected, warnings, repairs = _check_mechanic_consistency("", {"success": False})
         assert len(warnings) == 0
 
     def test_no_warning_on_none_mechanic(self):
-        warnings = _check_mechanic_consistency("You succeeded.", None)
+        corrected, warnings, repairs = _check_mechanic_consistency("You succeeded.", None)
         assert len(warnings) == 0
 
 class TestNarrativeValidatorNode:
