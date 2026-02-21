@@ -1,11 +1,14 @@
 """EPUB file reading and parsing utilities."""
-import ebooklib
-from ebooklib import epub
-from bs4 import BeautifulSoup
-import re
-from typing import List, Tuple, Optional
-from pathlib import Path
+from __future__ import annotations
+
 import logging
+import re
+from pathlib import Path
+from typing import List, Optional, Tuple
+
+import ebooklib
+from bs4 import BeautifulSoup
+from ebooklib import epub
 
 logger = logging.getLogger(__name__)
 
