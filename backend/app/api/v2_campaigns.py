@@ -203,7 +203,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                 try:
                     _era_forge_llm = AgentLLM("era_forge")
                 except Exception:
-                    pass
+                    logger.debug("EraForge LLM init failed, using None", exc_info=True)
                 _forge_agent = EraForgeAgent(llm=_era_forge_llm)
 
                 _loc_hints: list[str] = []
@@ -240,8 +240,8 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                 for rcc in _refined:
                     try:
                         _refined_rules.append(CanonCharacterRule.model_validate(rcc))
-                    except Exception:
-                        pass
+                    except (ValueError, TypeError):
+                        logger.debug("Canon character rule validation failed for %r", rcc)
                 if _refined_rules:
                     era_pack_for_setup = era_pack_for_setup.model_copy(
                         update={"canon_characters": _refined_rules}
@@ -807,7 +807,7 @@ def crystallize_memory(campaign_id: str, body: CrystallizeMemoryRequest) -> dict
         for item in row:
             try:
                 payload = json.loads(item["payload_json"] or "{}")
-            except Exception:
+            except (json.JSONDecodeError, TypeError):
                 payload = {}
             if isinstance(payload, dict):
                 txt = payload.get("text") or payload.get("description")

@@ -186,7 +186,7 @@ def get_saga_detail(saga_id: str) -> SagaDetailResponse:
                 if row["legacy_json"]:
                     legacy_doc = json.loads(row["legacy_json"])
                     excerpt = str(legacy_doc.get("crystallized_memories_summary") or "")[:220] or None
-            except Exception:
+            except (json.JSONDecodeError, TypeError, KeyError):
                 excerpt = None
             items.append(
                 SagaCampaignSummary(
@@ -331,7 +331,7 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest) -> dict[s
             if p_row and p_row["name"]:
                 character_name = str(p_row["name"])
         except Exception:
-            pass
+            logger.debug("Character name lookup failed (non-fatal)", exc_info=True)
 
         character_legacy_doc: dict[str, Any] = {}
         character_legacy_id: int | None = None
@@ -413,7 +413,7 @@ def era_transition(campaign_id: str, body: EraTransitionRequest) -> dict[str, An
             try:
                 player = load_player_by_id(conn, campaign_id, player_id) or {}
             except Exception:
-                pass
+                logger.debug("Player load failed for era transition (non-fatal)", exc_info=True)
 
         arc_consequences = capture_consequences(ws, player, [], [])
 
@@ -423,7 +423,7 @@ def era_transition(campaign_id: str, body: EraTransitionRequest) -> dict[str, An
             if era_pack and era_pack.locations:
                 available_locations = [loc.id for loc in era_pack.locations]
         except Exception:
-            pass
+            logger.debug("Era pack location lookup failed (non-fatal)", exc_info=True)
 
         transition_bridge = ""
         try:
@@ -431,7 +431,7 @@ def era_transition(campaign_id: str, body: EraTransitionRequest) -> dict[str, An
                 (current_era.upper(), to_era.upper()), ""
             ) or f"The galaxy shifts from {current_era} to {to_era}."
         except Exception:
-            pass
+            logger.debug("Transition bridge lookup failed (non-fatal)", exc_info=True)
 
         setting_rules = None
         try:
@@ -439,7 +439,7 @@ def era_transition(campaign_id: str, body: EraTransitionRequest) -> dict[str, An
             if era_pack_obj:
                 setting_rules = era_pack_obj.setting_rules
         except Exception:
-            pass
+            logger.debug("Setting rules lookup failed (non-fatal)", exc_info=True)
 
         agent = EraTransitionSceneAgent()
         transition_scene = agent.generate(
@@ -507,7 +507,7 @@ def complete_prologue(campaign_id: str, body: CompletePrologueRequest | None = N
             try:
                 player = load_player_by_id(conn, campaign_id, player_id) or {}
             except Exception:
-                pass
+                logger.debug("Player load failed for prologue completion (non-fatal)", exc_info=True)
 
         origin_context = build_origin_context_manifest(ws, player)
 
@@ -564,7 +564,7 @@ def get_campaign_codex(campaign_id: str) -> dict[str, Any]:
                 if era_pack:
                     total_available = len(era_pack.codex or [])
             except Exception:
-                pass
+                logger.debug("Codex era pack lookup failed (non-fatal)", exc_info=True)
 
         unlocked = get_unlocked_codex_entries(ws, era_pack)
 

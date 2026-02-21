@@ -160,7 +160,7 @@ def _idempotency_lookup(
         )
     try:
         payload = json.loads(row["response_json"] or "{}")
-    except Exception:
+    except (json.JSONDecodeError, TypeError):
         payload = {}
     return payload if isinstance(payload, dict) else {}
 
@@ -574,7 +574,7 @@ def post_turn(
                 if isinstance(ws_for_npc, str):
                     try:
                         ws_for_npc = json.loads(ws_for_npc)
-                    except Exception:
+                    except (json.JSONDecodeError, TypeError):
                         ws_for_npc = {}
                 npc_states_map = (ws_for_npc or {}).get("npc_states") or {} if isinstance(ws_for_npc, dict) else {}
                 npc_contexts = []
@@ -594,7 +594,7 @@ def post_turn(
                 if npc_contexts:
                     active_npc_contexts_out = npc_contexts
         except Exception:
-            pass
+            logger.debug("NPC context enrichment failed (non-fatal)", exc_info=True)
 
         if party_status and camp:
             try:
@@ -602,14 +602,14 @@ def post_turn(
                 if isinstance(ws_spoken, str):
                     try:
                         ws_spoken = json.loads(ws_spoken)
-                    except Exception:
+                    except (json.JSONDecodeError, TypeError):
                         ws_spoken = {}
                 spoken_map = (ws_spoken or {}).get("companion_spoken_reactions") or {} if isinstance(ws_spoken, dict) else {}
                 if spoken_map:
                     for item in party_status:
                         item.spoken_reaction = spoken_map.get(item.id) or spoken_map.get(item.name)
             except Exception:
-                pass
+                logger.debug("Companion spoken reaction enrichment failed (non-fatal)", exc_info=True)
 
         response_payload = TurnResponse(
             narrated_text=result.final_text or "",
@@ -669,7 +669,7 @@ def post_turn(
                 )
                 conn.commit()
             except Exception:
-                pass
+                logger.debug("Idempotency cleanup failed (non-fatal)", exc_info=True)
         if turn_lock_acquired:
             turn_lock_ctx.__exit__(None, None, None)
         conn.close()
@@ -840,7 +840,7 @@ def post_turn_stream(
                     if mem_block:
                         kg_context = (kg_context + "\n\n" + mem_block) if kg_context else mem_block
                 except Exception:
-                    pass
+                    logger.debug("Episodic memory retrieval failed (non-fatal)", exc_info=True)
 
             from backend.app.rag.lore_retriever import retrieve_lore
             from backend.app.rag.retrieval_bundles import NARRATOR_DOC_TYPES, NARRATOR_SECTION_KINDS
@@ -1042,7 +1042,7 @@ def post_turn_stream(
                     )
                     conn.commit()
                 except Exception:
-                    pass
+                    logger.debug("SSE idempotency cleanup failed (non-fatal)", exc_info=True)
             if turn_lock_acquired:
                 turn_lock_ctx.__exit__(None, None, None)
             conn.close()
@@ -1071,7 +1071,7 @@ def get_validation_failures(
             payload = {}
             try:
                 payload = json.loads(r["event_json"] or "{}")
-            except Exception:
+            except (json.JSONDecodeError, TypeError):
                 payload = {}
             if payload.get("event_type") != "turn_contract_validation_failure":
                 continue
