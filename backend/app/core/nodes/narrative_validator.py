@@ -58,6 +58,29 @@ _FAILURE_TO_SUCCESS_REWRITES: list[tuple[re.Pattern, str]] = [
 ]
 
 
+def _preserve_case(original: str, replacement: str) -> str:
+    """Return replacement with case matching the original word's first character."""
+    if not original:
+        return replacement
+    if original.isupper():
+        return replacement.upper()
+    if original[0].isupper():
+        return replacement[0].upper() + replacement[1:]
+    return replacement
+
+
+def _make_case_preserving_replacer(replacement: str):
+    """Create a regex replacer function that preserves the case of the matched text."""
+    def replacer(m: re.Match) -> str:
+        orig = m.group(0)
+        # For multi-word replacements, preserve case of the first word only
+        first_orig = orig.split()[0]
+        first_repl = replacement.split()[0]
+        rest = replacement[len(first_repl):]
+        return _preserve_case(first_orig, first_repl) + rest
+    return replacer
+
+
 def _rewrite_contradictions(
     final_text: str,
     success: bool,
@@ -70,13 +93,13 @@ def _rewrite_contradictions(
         # Narrator wrote success language but mechanic failed — rewrite to failure
         for pat, replacement in _SUCCESS_TO_FAILURE_REWRITES:
             if pat.search(corrected):
-                corrected = pat.sub(replacement, corrected)
+                corrected = pat.sub(_make_case_preserving_replacer(replacement), corrected)
                 repairs.append(f"Rewrote success language '{pat.pattern}' → '{replacement}' (mechanic=failure)")
     elif success is True:
         # Narrator wrote failure language but mechanic succeeded — rewrite to success
         for pat, replacement in _FAILURE_TO_SUCCESS_REWRITES:
             if pat.search(corrected):
-                corrected = pat.sub(replacement, corrected)
+                corrected = pat.sub(_make_case_preserving_replacer(replacement), corrected)
                 repairs.append(f"Rewrote failure language '{pat.pattern}' → '{replacement}' (mechanic=success)")
 
     return corrected, repairs
@@ -250,8 +273,6 @@ def narrative_validator_node(state: dict[str, Any]) -> dict[str, Any]:
     ledger = ws.get("ledger") if isinstance(ws, dict) else {}
     if not isinstance(ledger, dict):
         ledger = {}
-    ledger.get("constraints") or []
-
     validation_warnings: list[str] = []
 
     # Check 1: Mechanic consistency (BLOCKING — rewrites contradictions)

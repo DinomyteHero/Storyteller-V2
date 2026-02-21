@@ -19,6 +19,7 @@
     startStreaming, appendToken, finishStreaming, finishProcessing, failStreaming, resetStreaming
   } from '$lib/stores/streaming';
   import { ui, ollamaStatus } from '$lib/stores/ui';
+  import { preferences } from '$lib/stores/preferences';
   import { humanizeLocation, formatTimeDelta, safeInt } from '$lib/utils/format';
   import { parseNarrative } from '$lib/utils/narrative';
   import { startTypewriter } from '$lib/utils/typewriter';
@@ -28,8 +29,6 @@
   import type { ActionSuggestion, StorySummaryResponse, TurnResponse, TranscriptTurn } from '$lib/api/types';
 
   // V3.0: KOTOR-soul components
-  import DialogueWheel from '$lib/components/choices/DialogueWheel.svelte';
-  import NpcSpeech from '$lib/components/narrative/NpcSpeech.svelte';
   import SceneContext from '$lib/components/narrative/SceneContext.svelte';
   import CompanionSidebar from '$lib/components/game/CompanionSidebar.svelte';
   import AlignmentIndicator from '$lib/components/game/AlignmentIndicator.svelte';
@@ -51,12 +50,18 @@
   // Reorg: Extracted sub-components
   import HudBar from '$lib/components/game/HudBar.svelte';
 
+  import { onDestroy } from 'svelte';
+
   let isSendingTurn = $state(false);
   let narrativeEl: HTMLDivElement | undefined = $state();
   let drawerEl: HTMLElement | undefined = $state();
   let showPreviously = $state(false);
   let isCompleting = $state(false);
   let isEngineUnavailable = $derived($ollamaStatus.status === 'down');
+
+  // SSE stream cancellation
+  let streamController: AbortController | null = null;
+  onDestroy(() => { streamController?.abort(); });
 
   // Phase 3.4: Rewind/Undo state
   let showRewindConfirm = $state(false);
@@ -175,6 +180,7 @@
     }
     // Baseline unread count so items already in the feed when resuming don't show as new
     markIntelRead();
+    preferences.load();
     fetchTranscript();
     fetchStorySoFarSummary();
     // V7.0: Auto-expand Story So Far when resuming an existing campaign
@@ -308,7 +314,14 @@
 
   // Choices ready? (not streaming, not sending, has choices, typewriter done)
   // V3.0: check both DialogueTurn player_responses (primary) and suggested_actions (fallback)
-  let hasChoices = $derived($playerResponses.length > 0 || $suggestedActions.length > 0);
+  // V13.0: Suppress fallback choices when preference is disabled
+  let isFallbackTurn = $derived(
+    ($lastTurnResponse?.warnings ?? []).some(w => w.includes('degraded') || w.includes('fallback'))
+  );
+  let hasChoices = $derived(
+    ($playerResponses.length > 0 || $suggestedActions.length > 0)
+    && !(!$preferences.enable_choice_fallbacks && isFallbackTurn)
+  );
   let choicesReady = $derived(
     !$isStreaming && !isSendingTurn && hasChoices && !typewriterActive && !isEngineUnavailable
   );
@@ -541,9 +554,10 @@
       const useStreaming = $ui.enableStreaming && mode !== 'PASSAGE';
       if (useStreaming) {
         startStreaming();
+        streamController = new AbortController();
         let finalResponse: TurnResponse | null = null;
         let streamErrored = false;
-        for await (const event of streamTurn(cId, pId, userInput, structuredIntent)) {
+        for await (const event of streamTurn(cId, pId, userInput, structuredIntent, streamController.signal)) {
           if (event.type === 'token' && event.text) {
             appendToken(event.text);
           } else if (event.type === 'narrator_done') {
@@ -977,6 +991,8 @@
               sessionStorage.setItem('completionParty', JSON.stringify($partyStatus ?? []));
               goto('/complete');
             } catch (e) {
+              console.error('Campaign completion failed:', e);
+              failStreaming(e instanceof Error ? e.message : 'Failed to complete campaign');
               isCompleting = false;
             }
           }}

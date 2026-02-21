@@ -1,8 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { ui } from '$lib/stores/ui';
   import { campaignId, playerId, lastTurnResponse } from '$lib/stores/game';
-  import { THEME_NAMES } from '$lib/themes/tokens';
   import FirstRunWizard from '$lib/components/FirstRunWizard.svelte';
   import {
     getSavedCampaigns,
@@ -18,7 +16,6 @@
   import { ERA_LABELS } from '$lib/utils/constants';
   import type { CampaignSummary as ApiCampaignSummary } from '$lib/api/types';
 
-  let showSettings = $state(false);
   let showLoadModal = $state(false);
   let savedCampaigns = $state<SavedCampaign[]>([]);
   let loadingCampaignId = $state<string | null>(null);
@@ -308,87 +305,6 @@
       {/if}
 
       <button class="btn" style="margin-top: 16px; width: 100%;" onclick={() => showLoadModal = false}>
-        Close
-      </button>
-    </div>
-  </div>
-{/if}
-
-<!-- Settings modal -->
-{#if showSettings}
-  <div
-    class="modal-overlay"
-    onclick={(e) => e.currentTarget === e.target && (showSettings = false)}
-    onkeydown={(e) => e.key === 'Escape' && (showSettings = false)}
-    role="dialog"
-    aria-modal="true"
-    aria-label="Settings"
-    tabindex="0"
-  >
-    <div class="modal-content" role="document">
-      <h2>Settings</h2>
-
-      <div class="setting-group">
-        <label for="theme-select">Theme</label>
-        <select
-          id="theme-select"
-          value={$ui.theme}
-          onchange={(e) => ui.setTheme((e.target as HTMLSelectElement).value)}
-        >
-          {#each THEME_NAMES as name}
-            <option value={name}>{name}</option>
-          {/each}
-        </select>
-      </div>
-
-      <div class="setting-group">
-        <label for="font-scale-select">Text Size</label>
-        <select
-          id="font-scale-select"
-          value={String($ui.fontScale ?? 1.0)}
-          onchange={(e) => ui.setFontScale(parseFloat((e.target as HTMLSelectElement).value))}
-        >
-          <option value="0.8">Small (80%)</option>
-          <option value="1.0">Normal (100%)</option>
-          <option value="1.2">Large (120%)</option>
-          <option value="1.5">Extra Large (150%)</option>
-        </select>
-      </div>
-
-      <div class="setting-group">
-        <label class="toggle-label">
-          <input
-            type="checkbox"
-            checked={$ui.enableStreaming}
-            onchange={() => ui.toggleStreaming()}
-          />
-          Enable SSE Streaming
-        </label>
-      </div>
-
-      <div class="setting-group">
-        <label class="toggle-label">
-          <input
-            type="checkbox"
-            checked={$ui.enableTypewriter}
-            onchange={() => ui.toggleTypewriter()}
-          />
-          Typewriter Effect
-        </label>
-      </div>
-
-      <div class="setting-group">
-        <label class="toggle-label">
-          <input
-            type="checkbox"
-            checked={$ui.showDebug}
-            onchange={() => ui.toggleDebug()}
-          />
-          Show Debug Info
-        </label>
-      </div>
-
-      <button class="btn" style="margin-top: 16px; width: 100%;" onclick={() => showSettings = false}>
         Close
       </button>
     </div>

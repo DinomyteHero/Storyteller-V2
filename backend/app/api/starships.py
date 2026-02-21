@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 from backend.app.db.connection import get_db  # noqa: E402
 from backend.app.config import DATA_ROOT  # noqa: E402
 
-router = APIRouter(prefix="/starships", tags=["starships"])
+router = APIRouter(prefix="/v2/starships", tags=["starships"])
 
 
 def _load_starship_definitions() -> dict[str, StarshipDefinition]:
@@ -75,7 +75,7 @@ def get_starship_definition(ship_type: str):
 
 
 @router.get("/campaign/{campaign_id}", response_model=List[PlayerStarshipResponse])
-def list_player_starships(campaign_id: int, conn: sqlite3.Connection = Depends(get_db)):
+def list_player_starships(campaign_id: str, conn: sqlite3.Connection = Depends(get_db)):
     """
     List all starships owned by a campaign.
     Returns full ship data with definitions and available upgrades.
@@ -132,7 +132,7 @@ def list_player_starships(campaign_id: int, conn: sqlite3.Connection = Depends(g
 
 @router.post("/campaign/{campaign_id}/acquire", response_model=PlayerStarshipResponse)
 def acquire_starship(
-    campaign_id: int,
+    campaign_id: str,
     request: PlayerStarshipCreate,
     conn: sqlite3.Connection = Depends(get_db)
 ):

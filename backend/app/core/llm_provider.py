@@ -13,16 +13,17 @@ import os
 from typing import Any, Dict, Iterator, Optional, Protocol, runtime_checkable
 
 import httpx
+from contextvars import ContextVar
 
 logger = logging.getLogger(__name__)
 
 _DEFAULT_TIMEOUT = float(os.environ.get("LLM_TIMEOUT", os.environ.get("OLLAMA_TIMEOUT", "300")))
 
-_last_token_counts: dict[str, int] = {"input": 0, "output": 0}
+_last_token_counts: ContextVar[dict[str, int]] = ContextVar("_last_token_counts", default={"input": 0, "output": 0})
 
 
 def get_last_token_counts() -> dict[str, int]:
-    return dict(_last_token_counts)
+    return dict(_last_token_counts.get())
 
 
 class LLMProviderError(Exception):
@@ -116,12 +117,11 @@ class AnthropicClient:
             raise LLMProviderError("Anthropic returned non-JSON response") from exc
 
         # Record token usage from response
-        global _last_token_counts
         usage = body.get("usage") or {}
-        _last_token_counts = {
+        _last_token_counts.set({
             "input": int(usage.get("input_tokens", 0)),
             "output": int(usage.get("output_tokens", 0)),
-        }
+        })
 
         # Extract text from content blocks
         content = body.get("content", [])
@@ -129,7 +129,10 @@ class AnthropicClient:
         for block in content:
             if isinstance(block, dict) and block.get("type") == "text":
                 text_parts.append(block.get("text", ""))
-        return "".join(text_parts)
+        text = "".join(text_parts).strip()
+        if not text:
+            raise LLMProviderError("Anthropic returned empty response (no text content)")
+        return text
 
     def complete_stream(self, prompt: str, system_prompt: Optional[str] = None) -> Iterator[str]:
         """Stream tokens from Anthropic SSE API."""
@@ -259,17 +262,19 @@ class OpenAICompatClient:
             raise LLMProviderError("OpenAI-compatible returned non-JSON response") from exc
 
         # Record token usage from response
-        global _last_token_counts
         usage = body.get("usage") or {}
-        _last_token_counts = {
+        _last_token_counts.set({
             "input": int(usage.get("prompt_tokens", 0)),
             "output": int(usage.get("completion_tokens", 0)),
-        }
+        })
 
         choices = body.get("choices", [])
         if not choices:
-            return ""
-        return choices[0].get("message", {}).get("content", "")
+            raise LLMProviderError("OpenAI-compatible returned empty choices list")
+        text = (choices[0].get("message", {}).get("content", "") or "").strip()
+        if not text:
+            raise LLMProviderError("OpenAI-compatible returned empty response content")
+        return text
 
     def complete_stream(self, prompt: str, system_prompt: Optional[str] = None) -> Iterator[str]:
         """Stream tokens from OpenAI-compatible SSE API."""

@@ -408,6 +408,29 @@ def make_choice_crafter_node():
                 llm=_cc_llm,
             )
         except Exception as e:
+            # Check if fallback choices are allowed (DB preference → env var → default True)
+            _allow_fallback = True
+            try:
+                _pref_conn = state.get("__runtime_conn")
+                if _pref_conn:
+                    _pref_row = _pref_conn.execute(
+                        "SELECT value FROM app_preferences WHERE key = 'enable_choice_fallbacks'"
+                    ).fetchone()
+                    if _pref_row:
+                        _val = _pref_row["value"] if hasattr(_pref_row, "keys") else _pref_row[0]
+                        _allow_fallback = str(_val).lower() in ("1", "true", "yes")
+            except Exception:
+                pass  # Table may not exist yet
+            # Env var override (takes precedence if explicitly set to disable)
+            import os as _os
+            _env_val = _os.environ.get("ENABLE_CHOICE_FALLBACKS", "").strip().lower()
+            if _env_val in ("0", "false", "no"):
+                _allow_fallback = False
+
+            if not _allow_fallback:
+                logger.error("ChoiceCrafter LLM failed and fallback disabled: %s", e)
+                raise
+
             logger.warning("ChoiceCrafter LLM failed (%s); using 4-choice degraded fallback", e)
             immediate_situation = scene_frame.get("immediate_situation", "") if isinstance(scene_frame, dict) else ""
             items = _make_fallback_choices(final_text, loc, immediate_situation)

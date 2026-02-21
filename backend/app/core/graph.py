@@ -143,7 +143,7 @@ def get_pipeline_steps(intent: str) -> list[tuple[str, Any]]:
 def get_pre_narrator_steps(intent: str) -> list[tuple[str, Any]]:
     """Return pipeline steps BEFORE the narrator node (for streaming path)."""
     steps = get_pipeline_steps(intent)
-    return [(name, fn) for name, fn in steps if name == "narrator"][0:0] or [
+    return [
         (name, fn) for name, fn in steps
         if name not in ("narrator", "narrative_validator", "choice_crafter", "commit")
     ]

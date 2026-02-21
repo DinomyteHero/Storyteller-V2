@@ -1,8 +1,8 @@
-"""App config: per-role model selection, hybrid cloud presets, DB/table constants, env overrides.
+"""App config: per-role model selection, cloud presets, DB/table constants, env overrides.
 
 Specialist swapping: only one local model loaded per agent call to avoid >12GB VRAM.
-Hybrid cloud: quality-critical roles (director, narrator, choice_crafter, mechanic) can be
-routed to cloud (Anthropic Claude) via STORYTELLER_{ROLE}_PROVIDER env vars for lower latency.
+Cloud routing: quality-critical roles can be routed to any supported cloud provider
+(Anthropic, OpenAI, xAI, DeepSeek, Google) via STORYTELLER_{ROLE}_PROVIDER env vars.
 Per-role env overrides: STORYTELLER_{ROLE}_PROVIDER, STORYTELLER_{ROLE}_MODEL,
 STORYTELLER_{ROLE}_BASE_URL (fallback: {ROLE}_*).
 """
@@ -159,67 +159,46 @@ SYSTEM_PRESETS: dict[str, dict[str, dict[str, str]]] = {
         "origin": {"tier": "quality"},
         "arc_screenplay": {"tier": "quality"},
     },
-}
-
-# Deprecated: kept for backward compat with existing code referencing HYBRID_CLOUD_PRESETS.
-# New code should use SYSTEM_PRESETS + provider_resolver.
-HYBRID_CLOUD_PRESETS = SYSTEM_PRESETS
-
-VALID_CLOUD_PRESETS: tuple[str, ...] = ("local", "budget", "balanced", "quality", "custom")
-
-
-def resolve_cloud_config(role: str, cloud_preset: str | None) -> dict | None:
-    """Deprecated: use provider_resolver.resolve_agent_config() instead.
-
-    Kept for backward compatibility. Returns a tier dict for the role
-    within the given system preset, or None.
-    """
-    if not cloud_preset or cloud_preset == "local":
-        return None
-    preset = SYSTEM_PRESETS.get(cloud_preset)
-    if not preset:
-        return None
-    return preset.get(role)  # None if role not in this preset tier
-
-
-# Hardware profile presets: suggested model assignments by GPU tier.
-# Only one model is loaded at a time (specialist swapping), so the
-# constraint is *peak VRAM for the largest loaded model*.
-#   qwen3:8b     ~5 GB  (fits all GPUs)
-#   mistral-nemo ~7 GB  (fits 4070 12GB, 3080 10GB)
-#   qwen2.5:14b  ~10 GB (fits 4070 12GB, tight on 3080 10GB)
-HARDWARE_PROFILES: dict[str, dict[str, str]] = {
-    "rtx_4070_12gb": {
-        "narrator": "mistral-nemo:latest",
-        "director": "mistral-nemo:latest",
-        "architect": "qwen3:4b",
-        "casting": "qwen3:4b",
-        "biographer": "qwen3:4b",
-        "ingestion_tagger": "qwen3:8b",
-        "kg_extractor": "qwen3:4b",
-        "suggestion_refiner": "qwen3:8b",
-    },
-    "rtx_3080_10gb": {
-        "narrator": "qwen3:8b",
-        "director": "qwen3:8b",
-        "architect": "qwen3:4b",
-        "casting": "qwen3:4b",
-        "biographer": "qwen3:4b",
-        "ingestion_tagger": "qwen3:8b",
-        "kg_extractor": "qwen3:4b",
-        "suggestion_refiner": "qwen3:8b",
-    },
-    "rtx_4090_24gb": {
-        "narrator": "mistral-nemo:latest",
-        "director": "mistral-nemo:latest",
-        "architect": "mistral-nemo:latest",
-        "casting": "qwen3:8b",
-        "biographer": "qwen3:8b",
-        "ingestion_tagger": "qwen3:8b",
-        "kg_extractor": "qwen3:8b",
-        "suggestion_refiner": "qwen3:8b",
+    # Cloud All: routes ALL LLM roles to cloud — no Ollama required (~$0.08/turn).
+    # Use for laptop testing, cloud deployment, or when Ollama is unavailable.
+    "cloud_all": {
+        # Narrative (quality-critical)
+        "director": {"tier": "quality"},
+        "narrator": {"tier": "quality"},
+        "choice_crafter": {"tier": "quality"},
+        "companion_system": {"tier": "quality"},
+        # World building
+        "architect": {"tier": "fast"},
+        "bible": {"tier": "quality"},
+        "world_mind": {"tier": "fast"},
+        "era_forge": {"tier": "quality"},
+        # Character & memory
+        "biographer": {"tier": "fast"},
+        "casting": {"tier": "fast"},
+        "memory": {"tier": "fast"},
+        "psych_archivist": {"tier": "fast"},
+        "progression": {"tier": "fast"},
+        # Structure & analysis
+        "arc_weaver": {"tier": "fast"},
+        "arc_screenplay": {"tier": "quality"},
+        "intent_router": {"tier": "fast"},
+        "continuity": {"tier": "fast"},
+        "quest_weaver": {"tier": "fast"},
+        # Special
+        "prologue": {"tier": "quality"},
+        "origin": {"tier": "quality"},
+        "mechanic": {"tier": "fast"},
+        "suggestion_refiner": {"tier": "fast"},
+        "revelation_agent": {"tier": "fast"},
+        "callback_crystallizer": {"tier": "fast"},
+        # Infrastructure (LLM-based only — embedding uses local sentence-transformers)
+        "campaign_init": {"tier": "fast"},
+        "kg_extractor": {"tier": "fast"},
+        "ingestion_tagger": {"tier": "fast"},
     },
 }
+
+VALID_CLOUD_PRESETS: tuple[str, ...] = ("local", "budget", "balanced", "quality", "cloud_all", "custom")
 
 
 def _log_resolved_model_config() -> None:
@@ -275,6 +254,8 @@ ENABLE_CLOUD_BLUEPRINT = _env_flag("ENABLE_CLOUD_BLUEPRINT", default=False)
 ENABLE_SCALE_ADVISOR = _env_flag("ENABLE_SCALE_ADVISOR", default=False)
 # V11.0: Portrait/key art serving (optional, default off to avoid costs)
 ENABLE_PORTRAITS = _env_flag("ENABLE_PORTRAITS", default=False)
+# V13.0: Allow generic fallback choices when ChoiceCrafter LLM fails (disable for LLM-only)
+ENABLE_CHOICE_FALLBACKS = _env_flag("ENABLE_CHOICE_FALLBACKS", default=True)
 
 # World simulation (V2.5): tick interval in hours (default 4 = 240 min)
 # Override via WORLD_TICK_INTERVAL_HOURS env. See backend.app.time_economy for action costs.
@@ -351,6 +332,7 @@ def get_role_timeout(role: str) -> float:
         "choice_crafter": 60.0,
         "narrator": 120.0,
         "director": 120.0,
+        "intent_router": 15.0,
     }
     return _ROLE_TIMEOUT_DEFAULTS.get(role, 300.0)
 

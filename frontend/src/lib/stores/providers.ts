@@ -26,8 +26,6 @@ export interface ProviderConfig {
   enabled: boolean;
 }
 
-const STORAGE_KEY = 'storyteller-providers';
-
 function createProviderStore() {
   const { subscribe, set, update } = writable<ProviderStatus[]>([]);
   let loaded = false;

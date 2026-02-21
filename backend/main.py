@@ -419,7 +419,7 @@ async def rate_limit_middleware(request: Request, call_next):
     if len(_RATE_LIMITS[client_ip]) >= _RATE_LIMIT_MAX:
         return JSONResponse(
             status_code=429,
-            content={"error": "Rate limit exceeded. Max 10 turn requests per minute.", "error_code": "RATE_LIMIT"},
+            content={"error": f"Rate limit exceeded. Max {_RATE_LIMIT_MAX} turn requests per minute.", "error_code": "RATE_LIMIT"},
         )
     _RATE_LIMITS[client_ip].append(now)
     return await call_next(request)
@@ -428,9 +428,6 @@ async def rate_limit_middleware(request: Request, call_next):
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     """Handle HTTPExceptions with structured error responses."""
-    if hasattr(request, "path_params") and "campaign_id" in request.path_params:
-        request.path_params.get("campaign_id")
-    
     node = "api"
     if "/turn" in request.url.path:
         node = "turn"

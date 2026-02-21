@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+
+_DEV_MODE = os.environ.get("STORYTELLER_DEV_MODE", "").strip().lower() in ("1", "true", "yes")
 
 from backend.app.content.repository import CONTENT_REPOSITORY
 from backend.app.api.campaign_setup import _catalog_items, _resolve_requested_period
@@ -37,6 +40,8 @@ def get_content_summary(setting_id: str, period_id: str) -> dict[str, Any]:
         setting_id=setting_id, period_id=period_id, time_period=None,
     )
     pack = CONTENT_REPOSITORY.get_content(s, p)
+    if pack is None:
+        raise HTTPException(status_code=404, detail=f"Content pack not found for setting={s}, period={p}")
     playable = bool(pack.locations) and bool(pack.backgrounds)
     return {
         "setting_id": s,
@@ -124,6 +129,8 @@ def get_era_companions(era_id: str) -> dict[str, Any]:
 @router.get("/debug/era-packs")
 def debug_era_packs() -> dict[str, Any]:
     """Debug endpoint showing loaded era packs and their backgrounds count."""
+    if not _DEV_MODE:
+        raise HTTPException(status_code=404, detail="Not found")
     from shared.config import ERA_PACK_DIR
     from pathlib import Path
 
@@ -168,7 +175,7 @@ class ModelConfigResponse(BaseModel):
 
 
 @router.get("/model_config")
-async def get_model_config():
+def get_model_config():
     """Return the current per-agent model configuration and available cloud providers."""
     from backend.app.config import MODEL_CONFIG
 

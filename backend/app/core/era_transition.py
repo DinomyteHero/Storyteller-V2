@@ -374,7 +374,7 @@ def build_transition_summary(
 
     if mode == "sandbox":
         summary += (
-            "\n\nThe galaxy remembers what you changed. "
+            "\n\nThe world remembers what you changed. "
             "History has diverged from the path that was written."
         )
 

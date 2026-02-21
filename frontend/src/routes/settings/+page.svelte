@@ -8,6 +8,7 @@
   import { apiFetch } from '$lib/api/client';
   import { providers, type ProviderStatus } from '$lib/stores/providers';
   import { presets, type Preset } from '$lib/stores/presets';
+  import { preferences } from '$lib/stores/preferences';
   import { ui } from '$lib/stores/ui';
   import { THEME_NAMES } from '$lib/themes/tokens';
   import PresetEditor from '$lib/components/settings/PresetEditor.svelte';
@@ -75,12 +76,12 @@
   let showPresetEditor = $state(false);
   let editingPreset = $state<Preset | null>(null);
 
-  // Subscribe to stores
-  providers.subscribe((val) => { providerList = val; });
-  presets.subscribe((val) => { presetList = val; });
+  // Sync stores to local state via $effect
+  $effect(() => { providerList = $providers; });
+  $effect(() => { presetList = $presets; });
 
   onMount(async () => {
-    await Promise.all([providers.load(), presets.load()]);
+    await Promise.all([providers.load(), presets.load(), preferences.load()]);
   });
 
   async function loadAgentConfigs() {
@@ -164,9 +165,9 @@
     flashSaved();
   }
 
-  $: connectedCount = providerList.filter((p) => p.has_key).length;
-  $: systemPresets = presetList.filter((p) => p.is_system);
-  $: userPresets = presetList.filter((p) => !p.is_system);
+  let connectedCount = $derived(providerList.filter((p) => p.has_key).length);
+  let systemPresets = $derived(presetList.filter((p) => p.is_system));
+  let userPresets = $derived(presetList.filter((p) => !p.is_system));
 </script>
 
 <div class="settings-page">
@@ -393,6 +394,20 @@
           />
           Show Debug Info
         </label>
+      </div>
+
+      <div class="setting-row toggle-row">
+        <label class="toggle-label">
+          <input
+            type="checkbox"
+            checked={$preferences.enable_choice_fallbacks}
+            onchange={() => preferences.setChoiceFallbacks(!$preferences.enable_choice_fallbacks)}
+          />
+          Allow Fallback Choices
+        </label>
+        <span class="section-desc" style="margin: 0; padding: 2px 0 0 28px; font-size: 0.85em;">
+          Show generic choices when LLM fails. Disable for LLM-only mode.
+        </span>
       </div>
     </section>
 

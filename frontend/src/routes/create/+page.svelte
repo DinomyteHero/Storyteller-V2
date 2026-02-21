@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { setupAuto, getEraCompanions, patchCharacterName } from '$lib/api/campaigns';
   import type { CompanionPreview } from '$lib/api/campaigns';
   import type { SetupAutoResponse } from '$lib/api/types';
@@ -27,6 +27,10 @@
   import type { EraBackground, EraSpecies, SetupAutoRequest, BackgroundQuestion } from '$lib/api/types';
 
   let contentCatalog = $state<ContentCatalogEntry[]>([]);
+
+  // SSE stream cancellation
+  let streamController: AbortController | null = null;
+  onDestroy(() => { streamController?.abort(); });
 
   // Group content catalog by setting_id for Universe selection (Phase 1.4)
   interface UniverseGroup {
@@ -524,7 +528,8 @@
         startStreaming();
         try {
           let finalResponse = null;
-          for await (const event of streamTurn(cid, pid, '[OPENING_SCENE]')) {
+          streamController = new AbortController();
+          for await (const event of streamTurn(cid, pid, '[OPENING_SCENE]', null, streamController.signal)) {
             if (event.type === 'token' && event.text) {
               appendToken(event.text);
             } else if (event.type === 'done') {

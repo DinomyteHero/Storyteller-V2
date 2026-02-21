@@ -76,6 +76,8 @@ def set_provider_key(provider_id: str, body: SetKeyRequest) -> dict[str, Any]:
                ON CONFLICT(provider_id) DO UPDATE SET
                  api_key = excluded.api_key,
                  updated_at = datetime('now')""",
+            # KNOWN LIMITATION (v1.0): API keys stored in plaintext in SQLite.
+            # Encryption at rest planned for v1.1.
             (provider_id, body.api_key.strip()),
         )
         conn.commit()
@@ -124,6 +126,8 @@ def test_provider(provider_id: str) -> TestResult:
             test_model = model_id
             break
     if not test_model:
+        if not provider["models"]:
+            return TestResult(ok=False, error=f"Provider {provider_id} has no models configured")
         test_model = next(iter(provider["models"]))
 
     from backend.app.core.llm_provider import create_provider
@@ -212,11 +216,12 @@ def _system_presets_as_dicts() -> list[dict[str, Any]]:
     for preset_id, roles in SYSTEM_PRESETS.items():
         result.append({
             "id": preset_id,
-            "name": preset_id.capitalize(),
+            "name": {"cloud_all": "Cloud All"}.get(preset_id, preset_id.capitalize()),
             "description": {
                 "budget": "Narrator on cloud (~$0.01/turn)",
                 "balanced": "Core roles on cloud (~$0.02/turn)",
                 "quality": "All narrative roles on cloud (~$0.05/turn)",
+                "cloud_all": "All roles on cloud — no Ollama required (~$0.08/turn)",
             }.get(preset_id, ""),
             "role_configs": roles,
             "is_system": True,
@@ -262,6 +267,7 @@ def create_preset(body: CreatePresetRequest) -> dict[str, Any]:
         row = conn.execute("SELECT * FROM user_presets WHERE id = ?", (preset_id,)).fetchone()
         return _preset_row_to_dict(row)
     except Exception as e:
+        conn.rollback()
         if "UNIQUE constraint" in str(e):
             raise HTTPException(status_code=409, detail=f"Preset name '{body.name}' already exists")
         raise
@@ -386,3 +392,59 @@ def get_resolved_config(campaign_id: str) -> dict[str, Any]:
         return {"campaign_id": campaign_id, "roles": roles}
     finally:
         conn.close()
+
+
+# ---------------------------------------------------------------------------
+# App preferences (synced from frontend settings UI)
+# ---------------------------------------------------------------------------
+
+_PREFERENCE_DEFAULTS: dict[str, str] = {
+    "enable_choice_fallbacks": "true",
+}
+
+
+class PreferencesRequest(BaseModel):
+    preferences: dict[str, str]
+
+
+@router.get("/preferences")
+def get_preferences() -> dict[str, Any]:
+    """Return all app preferences with defaults applied."""
+    conn = _get_conn()
+    try:
+        rows = conn.execute("SELECT key, value FROM app_preferences").fetchall()
+        prefs = {row["key"]: row["value"] for row in rows}
+    except Exception:
+        prefs = {}
+    finally:
+        conn.close()
+    # Apply defaults for known preferences
+    for key, default in _PREFERENCE_DEFAULTS.items():
+        prefs.setdefault(key, default)
+    return {"preferences": prefs}
+
+
+@router.put("/preferences")
+def update_preferences(body: PreferencesRequest) -> dict[str, Any]:
+    """Upsert one or more app preferences."""
+    conn = _get_conn()
+    try:
+        for key, value in body.preferences.items():
+            conn.execute(
+                """INSERT INTO app_preferences (key, value, updated_at)
+                   VALUES (?, ?, datetime('now'))
+                   ON CONFLICT(key) DO UPDATE SET
+                     value = excluded.value,
+                     updated_at = datetime('now')""",
+                (key, value),
+            )
+        conn.commit()
+        rows = conn.execute("SELECT key, value FROM app_preferences").fetchall()
+        prefs = {row["key"]: row["value"] for row in rows}
+    except Exception:
+        prefs = {}
+    finally:
+        conn.close()
+    for key, default in _PREFERENCE_DEFAULTS.items():
+        prefs.setdefault(key, default)
+    return {"preferences": prefs}

@@ -19,7 +19,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from backend.app.config import DEFAULT_DB_PATH, ENABLE_BIBLE_CASTING
+from backend.app.config import DEFAULT_DB_PATH
 from backend.app.content.repository import CONTENT_REPOSITORY
 from backend.app.db.connection import get_connection
 from backend.app.core.state_loader import build_initial_gamestate, load_player_by_id, load_campaign
@@ -45,7 +45,7 @@ from backend.app.api.campaign_models import (  # noqa: F401
     SagaCreateRequest, SagaSummary, SagaCampaignSummary, SagaDetailResponse,
 )
 from backend.app.api.campaign_setup import (  # noqa: F401
-    DEFAULT_LOCATIONS, NPC_CAST,
+    _FALLBACK_LOCATIONS, _FALLBACK_NPC_CAST,
     _location_pool,
     _create_npc_cast, _create_npc_cast_from_skeleton,
     _catalog_items, _resolve_requested_period,
@@ -141,7 +141,6 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
     from backend.app.core.agents.base import AgentLLM
 
     conn = _get_conn()
-    time.perf_counter()
     try:
         apply_quick_start_defaults(body)
 
@@ -185,7 +184,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         available_locations = (
             list(era_pack_for_setup.start_location_pool)
             if (era_pack_for_setup and era_pack_for_setup.start_location_pool)
-            else DEFAULT_LOCATIONS
+            else _FALLBACK_LOCATIONS
         )
         character_sheet = _bio.build(
             body.player_concept, era_for_setup,
@@ -592,7 +591,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         bible_location_ids = [
             loc.get("id", "") if isinstance(loc, dict) else str(loc)
             for loc in (bible_dict.get("locations") or [])
-        ] or DEFAULT_LOCATIONS
+        ] or _FALLBACK_LOCATIONS
         _create_npc_cast_from_skeleton(
             conn, campaign_id,
             {"npc_cast": bible_dict.get("npc_cast", []), "locations": bible_location_ids},
@@ -680,9 +679,7 @@ def create_campaign(body: CreateCampaignRequest) -> dict[str, Any]:
         player_id = str(uuid.uuid4())
 
         companion_state = build_initial_companion_state(world_time_minutes=0, era=body.time_period)
-        active_factions = []
-        create_default_npcs = True
-        world_state = {"active_factions": active_factions, **companion_state}
+        world_state = {"active_factions": [], **companion_state}
         world_state["story_position"] = initialize_story_position(
             setting_id=body.setting_id if hasattr(body, "setting_id") else None,
             period_id=body.time_period,
@@ -704,8 +701,7 @@ def create_campaign(body: CreateCampaignRequest) -> dict[str, Any]:
             (player_id, campaign_id, body.player_name, "Player", body.starting_location,
              json.dumps(body.player_stats), body.hp_current, None, None),
         )
-        if create_default_npcs:
-            _create_npc_cast(conn, campaign_id, body.starting_location)
+        _create_npc_cast(conn, campaign_id, body.starting_location)
         _seed_default_objective(conn, campaign_id)
         conn.commit()
 

@@ -192,18 +192,31 @@ ROLE_TOKEN_BUDGETS: dict[str, dict[str, int]] = {
     "architect": {"max_context_tokens": 8192, "reserved_output_tokens": 2048},
     "director": {"max_context_tokens": 8192, "reserved_output_tokens": 2048},
     "narrator": {"max_context_tokens": 8192, "reserved_output_tokens": 2048},
-    # Lighter roles: smaller context for faster inference
+    "choice_crafter": {"max_context_tokens": 6144, "reserved_output_tokens": 1024},
+    "companion_system": {"max_context_tokens": 6144, "reserved_output_tokens": 1024},
+    # World building roles
+    "world_mind": {"max_context_tokens": 6144, "reserved_output_tokens": 2048},
+    "era_forge": {"max_context_tokens": 6144, "reserved_output_tokens": 2048},
+    # Character & memory roles
     "casting": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
     "biographer": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
+    "psych_archivist": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
+    # Structure & analysis roles
+    "arc_weaver": {"max_context_tokens": 6144, "reserved_output_tokens": 2048},
+    "arc_screenplay": {"max_context_tokens": 6144, "reserved_output_tokens": 2048},
+    "intent_router": {"max_context_tokens": 2048, "reserved_output_tokens": 512},
+    # Mechanic and resolution
     "mechanic": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
+    # Special roles
+    "prologue": {"max_context_tokens": 6144, "reserved_output_tokens": 2048},
+    "origin": {"max_context_tokens": 6144, "reserved_output_tokens": 2048},
     "npc_render": {"max_context_tokens": 2048, "reserved_output_tokens": 512},
-    # Ingestion tagger: moderate context, low output
-    "ingestion_tagger": {"max_context_tokens": 4096, "reserved_output_tokens": 512},
-    # Knowledge graph extractor: moderate context, moderate output
-    "kg_extractor": {"max_context_tokens": 6144, "reserved_output_tokens": 2048},
-    # Suggestion refiner: small context (prose + scene), small output (JSON array)
     "suggestion_refiner": {"max_context_tokens": 2048, "reserved_output_tokens": 512},
-    # Campaign init: generous output for world generation (cloud models have big windows)
+    "revelation_agent": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
+    "callback_crystallizer": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
+    # Infrastructure roles
+    "ingestion_tagger": {"max_context_tokens": 4096, "reserved_output_tokens": 512},
+    "kg_extractor": {"max_context_tokens": 6144, "reserved_output_tokens": 2048},
     "campaign_init": {"max_context_tokens": 8192, "reserved_output_tokens": 4096},
 }
 

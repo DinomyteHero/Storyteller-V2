@@ -173,9 +173,6 @@ class NarratorAgent:
         if DEV_CONTEXT_STATS:
             state.context_stats = budget_report.to_context_stats()
 
-        bool(lore_chunks)
-        bool(voice_snippets_by_char and any(voice_snippets_by_char.values()))
-
         if self._llm is not None:
             try:
                 raw = self._llm.generate(system_prompt=system, user_prompt=user)
@@ -456,9 +453,6 @@ class NarratorAgent:
         )
         # Append correction instruction to user prompt
         user = user + f"\n\nCORRECTION REQUIRED: {correction}\nRewrite the narrative to fix the above issue."
-
-        bool(lore_chunks)
-        bool(voice_snippets_by_char and any(voice_snippets_by_char.values()))
 
         if self._llm is not None:
             raw = self._llm.generate(system_prompt=system, user_prompt=user)

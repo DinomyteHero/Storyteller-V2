@@ -16,42 +16,42 @@ from backend.app.core.text_utils import normalize_identifier
 
 logger = logging.getLogger(__name__)
 
-# Default location pool (starting_location is always included)
-DEFAULT_LOCATIONS = [
-    "loc-cantina",
+# Fallback location pool — only used when the era pack provides no location data
+_FALLBACK_LOCATIONS = [
+    "loc-tavern",
     "loc-marketplace",
-    "loc-docking-bay",
-    "loc-lower-streets",
-    "loc-hangar",
-    "loc-spaceport",
+    "loc-docking-area",
+    "loc-back-streets",
+    "loc-workshop",
+    "loc-port",
 ]
 
-# NPC cast: 1 Villain, 1 Rival, 2 Merchants, 2 Informants, 6 Generic
-NPC_CAST = [
-    {"name": "Draven Koss", "role": "Villain", "secret_agenda": "Seeks to dominate the sector through ruthless control."},
-    {"name": "Vekk Tano", "role": "Rival", "secret_agenda": "Wants to beat you to the prize — ambitious and relentless."},
-    {"name": "Nura Besh", "role": "Merchant", "secret_agenda": "Deals in black market goods through Twi'lek trade networks."},
-    {"name": "Gorrak Mun", "role": "Merchant", "secret_agenda": "Holds a grudge against the syndicate — Sullustan never forgets."},
-    {"name": "Whisper", "role": "Informant", "secret_agenda": "Bothan spymaster — sells secrets to the highest bidder."},
-    {"name": "Zeel Kaat", "role": "Informant", "secret_agenda": "Devaronian who works for multiple factions."},
-    {"name": "TK-4471", "role": "Guard", "secret_agenda": "Bribable but loyal to the post."},
-    {"name": "Hera Solus", "role": "Local", "secret_agenda": "Mirialan who knows more than she lets on."},
+# Fallback NPC cast — only used when the era pack provides no NPC data
+_FALLBACK_NPC_CAST = [
+    {"name": "Viktor Kane", "role": "Villain", "secret_agenda": "Seeks to dominate the region through ruthless control."},
+    {"name": "Sera Thorne", "role": "Rival", "secret_agenda": "Wants to beat you to the prize — ambitious and relentless."},
+    {"name": "Nura Besh", "role": "Merchant", "secret_agenda": "Deals in contraband through an underground trade network."},
+    {"name": "Gorrak Mun", "role": "Merchant", "secret_agenda": "Holds a grudge against the syndicate — never forgets a slight."},
+    {"name": "Whisper", "role": "Informant", "secret_agenda": "Spymaster — sells secrets to the highest bidder."},
+    {"name": "Zeel Kaat", "role": "Informant", "secret_agenda": "Works for multiple factions and trusts none."},
+    {"name": "Guard-47", "role": "Guard", "secret_agenda": "Bribable but loyal to the post."},
+    {"name": "Elara Solus", "role": "Local", "secret_agenda": "Knows more than she lets on."},
     {"name": "Renn Voss", "role": "Pilot", "secret_agenda": "Smuggles on the side — fast hands, faster ship."},
-    {"name": "Grumthar", "role": "Barkeep", "secret_agenda": "Ithorian barkeep — eavesdrops for the right price."},
-    {"name": "Pix", "role": "Mechanic", "secret_agenda": "Jawa tinkerer — sells intel on ship traffic."},
-    {"name": "Sarik Vey", "role": "Stranger", "secret_agenda": "Chiss operative — just passing through, or so they claim."},
+    {"name": "Grumthar", "role": "Barkeep", "secret_agenda": "Barkeep — eavesdrops for the right price."},
+    {"name": "Pix", "role": "Mechanic", "secret_agenda": "Tinkerer — sells intel on transport traffic."},
+    {"name": "Sarik Vey", "role": "Stranger", "secret_agenda": "Operative — just passing through, or so they claim."},
 ]
 
 
 def _location_pool(starting_location: str) -> list[str]:
     """Return a small set of locations including starting_location."""
-    pool = list(dict.fromkeys([starting_location] + DEFAULT_LOCATIONS))
+    pool = list(dict.fromkeys([starting_location] + _FALLBACK_LOCATIONS))
     return pool
 
 def _create_npc_cast(conn, campaign_id: str, starting_location: str) -> None:
     """Insert 12 NPCs: 1 Villain, 1 Rival, 2 Merchants, 2 Informants, 6 Generic. Do not leak secret_agenda."""
     pool = _location_pool(starting_location)
-    for i, npc_def in enumerate(NPC_CAST):
+    for i, npc_def in enumerate(_FALLBACK_NPC_CAST):
         nid = str(uuid.uuid4())
         location_id = random.choice(pool)
         role = npc_def["role"]
@@ -78,9 +78,9 @@ def _create_npc_cast(conn, campaign_id: str, starting_location: str) -> None:
         )
 
 def _create_npc_cast_from_skeleton(conn, campaign_id: str, skeleton: dict, starting_location: str) -> None:
-    """Insert NPCs from skeleton.npc_cast; locations from skeleton.locations or DEFAULT_LOCATIONS."""
-    pool = list(dict.fromkeys([starting_location] + (skeleton.get("locations") or DEFAULT_LOCATIONS)))
-    npc_cast = skeleton.get("npc_cast") or NPC_CAST
+    """Insert NPCs from skeleton.npc_cast; locations from skeleton.locations or _FALLBACK_LOCATIONS."""
+    pool = list(dict.fromkeys([starting_location] + (skeleton.get("locations") or _FALLBACK_LOCATIONS)))
+    npc_cast = skeleton.get("npc_cast") or _FALLBACK_NPC_CAST
     for npc_def in npc_cast[:12]:
         nid = str(uuid.uuid4())
         location_id = random.choice(pool)
@@ -126,7 +126,8 @@ def _resolve_requested_period(*, setting_id: str | None, period_id: str | None, 
     if time_period:
         era = normalize_identifier(time_period)
         for item in items:
-            if item["period_id"] == era or item["legacy_era_id"].strip().lower() == era:
+            legacy_era = (item.get("legacy_era_id") or "").strip().lower()
+            if item["period_id"] == era or legacy_era == era:
                 return item["setting_id"], item["period_id"], item["legacy_era_id"]
         # Legacy compatibility: unknown time_period falls back to default instead of hard-failing.
         # Canonical callers should use setting_id/period_id for strict validation.
@@ -155,9 +156,13 @@ def apply_quick_start_defaults(body: Any) -> Any:
         return body
 
     if not getattr(body, "setting_id", None) and not getattr(body, "period_id", None) and not getattr(body, "time_period", None):
-        body.setting_id = "star_wars_legends"
-        body.period_id = "rebellion"
-        body.time_period = "REBELLION"
+        catalog = _catalog_items()
+        if catalog:
+            first = catalog[0]
+            body.setting_id = first["setting_id"]
+            body.period_id = first["period_id"]
+        else:
+            logger.warning("Quick start: no content packs available")
 
     player_concept = str(getattr(body, "player_concept", "") or "").strip()
     if not player_concept:

@@ -312,7 +312,7 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest) -> dict[s
             if dangling_hooks:
                 next_campaign_pitch = f"Unfinished business awaits: {dangling_hooks[0]}"
             else:
-                next_campaign_pitch = "A new chapter begins. The galaxy remembers your choices."
+                next_campaign_pitch = "A new chapter begins. The world remembers your choices."
 
         major_decisions = list(ws.get("major_decisions", []))
         major_decisions.append({

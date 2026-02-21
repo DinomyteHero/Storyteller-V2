@@ -222,8 +222,8 @@ def _seed_default_objective(conn, campaign_id: str) -> None:
         VALUES (?, ?, ?, ?, ?, ?, 'active', datetime('now'), datetime('now'))""",
         (
             oid, campaign_id,
-            "Establish your foothold",
-            "Secure intelligence and identify the primary opposition.",
+            "Begin your journey",
+            "Explore your surroundings and understand the local situation.",
             json.dumps({"type": "discover_opposition"}),
             json.dumps({"progress": 0, "target": 3}),
         ),
@@ -920,6 +920,73 @@ def post_turn_stream(
             canonical_year_label = canonical_year_label_from_campaign(campaign=result_gs.campaign, world_state=_ws_sse_raw)
             warnings_out = getattr(result_gs, "warnings", None) or []
 
+            # Compute party/alignment/faction/NPC fields for done_payload (mirrors non-streaming path)
+            party_status: list[PartyStatusItem] | None = None
+            alignment_out: dict | None = None
+            faction_reputation_out: dict | None = None
+            if camp:
+                party_ids = camp.get("party") or []
+                if party_ids:
+                    party_status = []
+                    for cid in party_ids:
+                        comp = get_companion_by_id(cid)
+                        name = comp.get("name", cid) if comp else cid
+                        affinity = (camp.get("party_affinity") or {}).get(cid, 0)
+                        loyalty = (camp.get("loyalty_progress") or {}).get(cid, 0)
+                        mood_tag = affinity_to_mood_tag(affinity)
+                        party_status.append(
+                            PartyStatusItem(id=cid, name=name, affinity=affinity, loyalty_progress=loyalty, mood_tag=mood_tag)
+                        )
+                    _ws_spoken = _ws_sse_raw or {}
+                    spoken_map = _ws_spoken.get("companion_spoken_reactions") or {} if isinstance(_ws_spoken, dict) else {}
+                    if spoken_map:
+                        for item in party_status:
+                            item.spoken_reaction = spoken_map.get(item.id) or spoken_map.get(item.name)
+                aln = camp.get("alignment")
+                if isinstance(aln, dict):
+                    alignment_out = {"light_dark": aln.get("light_dark", 0), "paragon_renegade": aln.get("paragon_renegade", 0)}
+                fr = camp.get("faction_reputation")
+                if isinstance(fr, dict) and fr:
+                    faction_reputation_out = dict(fr)
+
+            news_feed_out = None
+            if camp:
+                nf = camp.get("news_feed")
+                if isinstance(nf, list) and nf:
+                    news_feed_out = [item if isinstance(item, dict) else getattr(item, "model_dump", lambda **kw: item)(mode="json") for item in nf[:NEWS_FEED_MAX]]
+
+            consequence_type_out: str | None = None
+            _stream_mr_raw = result_gs.mechanic_result
+            if _stream_mr_raw is not None:
+                consequence_type_out = getattr(_stream_mr_raw, "consequence_type", None) or (
+                    _stream_mr_raw.get("consequence_type") if isinstance(_stream_mr_raw, dict) else None
+                )
+
+            active_npc_contexts_out: list[dict] | None = None
+            try:
+                scene_frame_raw = getattr(result_gs, "scene_frame", None) or {}
+                present_npcs_raw = scene_frame_raw.get("present_npcs") or [] if isinstance(scene_frame_raw, dict) else []
+                if present_npcs_raw:
+                    npc_states_map = (_ws_sse_raw or {}).get("npc_states") or {} if isinstance(_ws_sse_raw, dict) else {}
+                    npc_contexts = []
+                    for npc_ref in present_npcs_raw:
+                        if not isinstance(npc_ref, dict):
+                            continue
+                        npc_id = npc_ref.get("id") or ""
+                        npc_name = npc_ref.get("name") or npc_id
+                        npc_state = npc_states_map.get(npc_id) or npc_states_map.get(npc_name) or {}
+                        npc_contexts.append({
+                            "id": npc_id, "name": npc_name,
+                            "role": npc_ref.get("role") or "",
+                            "emotional_state": npc_state.get("emotional_state") or "",
+                            "agenda": npc_state.get("agenda") or "",
+                            "next_move": npc_state.get("next_move") or "",
+                        })
+                    if npc_contexts:
+                        active_npc_contexts_out = npc_contexts
+            except (KeyError, TypeError, ValueError):
+                logger.debug("NPC context enrichment failed (non-fatal)", exc_info=True)
+
             beats_remaining, scene_transition_note, force_scene_transition = _decrement_beats(conn, campaign_id, camp)
             ws_live = _world_state_dict(camp)
             objectives = _active_objectives(conn, campaign_id)
@@ -997,6 +1064,22 @@ def post_turn_stream(
                 "turn_contract": turn_contract.model_dump(mode="json"),
                 "mechanic_notes": _stream_mechanic_notes,
                 "bridge_paragraph": getattr(result_gs, "bridge_paragraph", None),
+                "party_status": [
+                    (s.model_dump(mode="json") if hasattr(s, "model_dump") else s)
+                    for s in (party_status or [])
+                ] or None,
+                "alignment": alignment_out,
+                "faction_reputation": faction_reputation_out,
+                "news_feed": news_feed_out,
+                "consequence_type": consequence_type_out,
+                "active_npc_contexts": active_npc_contexts_out,
+                "world_sim_ran": bool(getattr(result_gs, "world_sim_ran", False)),
+                "arc_stage": (getattr(result_gs, "arc_guidance", None) or {}).get("arc_stage"),
+                "current_arc_number": (getattr(result_gs, "arc_guidance", None) or {}).get("current_arc_number"),
+                "current_arc_id": (getattr(result_gs, "arc_guidance", None) or {}).get("current_arc_id"),
+                "campaign_complete": bool((getattr(result_gs, "arc_guidance", None) or {}).get("campaign_complete", False)),
+                "epilogue_active": bool((getattr(result_gs, "arc_guidance", None) or {}).get("epilogue_active", False)),
+                "location_art_url": getattr(result_gs, "location_art_url", None),
             }
             if DEV_CONTEXT_STATS:
                 merged_timings = {}

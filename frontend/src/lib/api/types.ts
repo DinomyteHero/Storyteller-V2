@@ -338,6 +338,21 @@ export interface SSEEvent {
   mechanic_notes?: MechanicNotes | null;
   // Phase 4.1: Bridge paragraph
   bridge_paragraph?: string | null;
+  // V3.2: Alignment
+  alignment?: { light_dark: number; paragon_renegade: number } | null;
+  // V4.1: Consequences + NPC contexts
+  consequence_type?: string | null;
+  active_npc_contexts?: NpcContext[] | null;
+  // Living world
+  world_sim_ran?: boolean;
+  // V8.0: Arc progress
+  arc_stage?: string | null;
+  current_arc_number?: number | null;
+  current_arc_id?: string | null;
+  campaign_complete?: boolean;
+  epilogue_active?: boolean;
+  // V11.0: Location art
+  location_art_url?: string | null;
 }
 
 export interface EraBackground {

@@ -1,5 +1,8 @@
 /**
  * Saga API client — browse and manage multi-campaign Stories.
+ *
+ * NOTE: This module is not yet wired to the UI. It is scaffolded for a future
+ * feature (multi-campaign sagas). Do not remove.
  */
 import { apiFetch } from './client';
 

@@ -16,7 +16,6 @@
   let screenplay = $state<PrologueScreenplay | null>(null);
   let phase = $state<'loading' | 'crawl' | 'ready'>('loading');
   let crawlDone = $state(false);
-  let errorMessage = $state('');
 
   onMount(async () => {
     const cid = $campaignId;
@@ -108,10 +107,6 @@
           </div>
         {/if}
       </div>
-
-      {#if errorMessage}
-        <p class="error">{errorMessage}</p>
-      {/if}
 
       <div class="prologue-actions">
         <button class="btn btn-primary btn-begin" onclick={enterGame}>
