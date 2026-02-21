@@ -545,8 +545,14 @@
         lastTurnResponse.set(turnResult);
       }
 
-      // Route to prologue if prologue_mode is active, otherwise straight to play
-      goto((setupResult as any).prologue_mode ? '/prologue' : '/play');
+      // Route: origin → prologue → play (based on active modes)
+      if ((setupResult as any).origin_mode) {
+        goto('/origin');
+      } else if ((setupResult as any).prologue_mode) {
+        goto('/prologue');
+      } else {
+        goto('/play');
+      }
     } catch (e) {
       errorMessage = e instanceof Error ? e.message : String(e);
     } finally {
