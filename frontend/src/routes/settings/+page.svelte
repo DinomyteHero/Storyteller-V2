@@ -3,10 +3,79 @@
   API keys are stored locally in the browser — never sent to an external server.
 -->
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { apiFetch } from '$lib/api/client';
   import { providers, type ProviderConfig } from '$lib/stores/providers';
   import { ui } from '$lib/stores/ui';
   import { THEME_NAMES } from '$lib/themes/tokens';
+
+  interface AgentModelConfig {
+    role: string;
+    provider: string;
+    model: string;
+    base_url: string;
+  }
+
+  // Agent role display names and categories
+  const AGENT_CATEGORIES: Record<string, { label: string; roles: string[] }> = {
+    narrative: {
+      label: 'Narrative (Quality-Critical)',
+      roles: ['narrator', 'director', 'choice_crafter', 'companion_system'],
+    },
+    world: {
+      label: 'World Building',
+      roles: ['architect', 'bible', 'world_mind', 'era_forge'],
+    },
+    character: {
+      label: 'Character & Memory',
+      roles: ['biographer', 'casting', 'memory', 'psych_archivist', 'progression'],
+    },
+    structure: {
+      label: 'Structure & Analysis',
+      roles: ['arc_weaver', 'arc_screenplay', 'intent_router', 'continuity', 'quest_weaver'],
+    },
+    special: {
+      label: 'Special',
+      roles: ['prologue', 'origin', 'mechanic', 'npc_render', 'suggestion_refiner', 'revelation_agent', 'callback_crystallizer'],
+    },
+    infrastructure: {
+      label: 'Infrastructure',
+      roles: ['embedding', 'ingestion_tagger', 'kg_extractor', 'campaign_init'],
+    },
+  };
+
+  const ROLE_LABELS: Record<string, string> = {
+    narrator: 'Narrator',
+    director: 'Director',
+    choice_crafter: 'Choice Crafter',
+    companion_system: 'Companion System',
+    architect: 'Architect',
+    bible: 'Campaign Bible',
+    world_mind: 'World Mind',
+    era_forge: 'Era Forge',
+    biographer: 'Biographer',
+    casting: 'Casting',
+    memory: 'Memory',
+    psych_archivist: 'Psych Archivist',
+    progression: 'Progression',
+    arc_weaver: 'Arc Weaver',
+    arc_screenplay: 'Arc Screenplay',
+    intent_router: 'Intent Router',
+    continuity: 'Continuity',
+    quest_weaver: 'Quest Weaver',
+    prologue: 'Prologue',
+    origin: 'Origin Story',
+    mechanic: 'Mechanic',
+    npc_render: 'NPC Voice',
+    suggestion_refiner: 'Suggestion Refiner',
+    revelation_agent: 'Revelation Agent',
+    callback_crystallizer: 'Callback Crystallizer',
+    embedding: 'Embedding',
+    ingestion_tagger: 'Ingestion Tagger',
+    kg_extractor: 'Knowledge Graph',
+    campaign_init: 'Campaign Init',
+  };
 
   let providerList = $state<ProviderConfig[]>([]);
   let editingKey = $state<string | null>(null);
@@ -14,11 +83,25 @@
   let urlInput = $state('');
   let showKeyFor = $state<string | null>(null);
   let savedMessage = $state('');
+  let agentConfigs = $state<AgentModelConfig[]>([]);
+  let showAdvanced = $state(false);
+  let loadingAgents = $state(false);
 
   // Subscribe to provider store
   providers.subscribe((val) => {
     providerList = val;
   });
+
+  async function loadAgentConfigs() {
+    loadingAgents = true;
+    try {
+      const resp = await apiFetch<{ agents: AgentModelConfig[] }>('/v2/model_config');
+      agentConfigs = resp.agents || [];
+    } catch {
+      // Non-critical — agent config is read-only for now
+    }
+    loadingAgents = false;
+  }
 
   function startEditKey(providerId: string) {
     const provider = providerList.find((p) => p.id === providerId);
@@ -239,6 +322,53 @@
           Show Debug Info
         </label>
       </div>
+    </section>
+
+    <!-- Advanced: Per-Agent Model Config -->
+    <section class="settings-section">
+      <button class="advanced-toggle" onclick={() => { showAdvanced = !showAdvanced; if (showAdvanced && agentConfigs.length === 0) loadAgentConfigs(); }}>
+        <span class="section-header" style="border: none; margin: 0; padding: 0;">
+          Advanced: Agent Model Config
+        </span>
+        <span class="toggle-arrow" class:open={showAdvanced}>&rsaquo;</span>
+      </button>
+
+      {#if showAdvanced}
+        <p class="section-desc">
+          Shows which LLM model each agent uses. Change models via environment variables
+          (e.g. <code>STORYTELLER_NARRATOR_MODEL=claude-sonnet-4-5-20250929</code>) or cloud presets.
+        </p>
+
+        {#if loadingAgents}
+          <p class="empty-state">Loading agent configuration...</p>
+        {:else if agentConfigs.length === 0}
+          <p class="empty-state">Could not load agent configuration from backend.</p>
+        {:else}
+          {#each Object.entries(AGENT_CATEGORIES) as [catKey, category]}
+            {@const catAgents = agentConfigs.filter((a) => category.roles.includes(a.role))}
+            {#if catAgents.length > 0}
+              <div class="agent-category">
+                <h3 class="category-label">{category.label}</h3>
+                <div class="agent-grid">
+                  {#each catAgents as agent}
+                    <div class="agent-row">
+                      <span class="agent-name">{ROLE_LABELS[agent.role] || agent.role}</span>
+                      <span class="agent-provider pill">
+                        <span class="label">Provider</span>
+                        <span class="value">{agent.provider}</span>
+                      </span>
+                      <span class="agent-model pill">
+                        <span class="label">Model</span>
+                        <span class="value">{agent.model}</span>
+                      </span>
+                    </div>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+          {/each}
+        {/if}
+      {/if}
     </section>
 
     <!-- Version -->
@@ -488,6 +618,79 @@
 
   .toggle-label input {
     width: auto;
+  }
+
+  /* Advanced agent config */
+  .advanced-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: inherit;
+    font-family: inherit;
+  }
+
+  .toggle-arrow {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+  }
+
+  .toggle-arrow.open {
+    transform: rotate(90deg);
+  }
+
+  .agent-category {
+    margin-bottom: 14px;
+  }
+
+  .category-label {
+    font-size: var(--font-small);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 6px;
+    font-weight: 600;
+  }
+
+  .agent-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .agent-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.02);
+    flex-wrap: wrap;
+  }
+
+  .agent-name {
+    min-width: 140px;
+    font-size: var(--font-small);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .agent-provider,
+  .agent-model {
+    font-size: 0.72rem;
+  }
+
+  .empty-state {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: var(--font-body);
+    padding: 16px 0;
+    text-align: center;
   }
 
   .version-info {

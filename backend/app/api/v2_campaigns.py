@@ -3022,3 +3022,29 @@ def patch_campaign_settings(campaign_id: str, body: CampaignSettings):
         )
     finally:
         conn.close()
+
+
+# ── Model Config API (per-agent LLM configuration) ─────────────────
+
+class AgentModelConfig(BaseModel):
+    role: str
+    provider: str
+    model: str
+    base_url: str = ""
+
+class ModelConfigResponse(BaseModel):
+    agents: list[AgentModelConfig]
+
+@router.get("/model_config", response_model=ModelConfigResponse)
+async def get_model_config():
+    """Return the current per-agent model configuration."""
+    from backend.app.config import MODEL_CONFIG
+    agents = []
+    for role, cfg in sorted(MODEL_CONFIG.items()):
+        agents.append(AgentModelConfig(
+            role=role,
+            provider=cfg.get("provider", "ollama"),
+            model=cfg.get("model", ""),
+            base_url=cfg.get("base_url", ""),
+        ))
+    return ModelConfigResponse(agents=agents)
