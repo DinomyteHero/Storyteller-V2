@@ -40,17 +40,11 @@ Last updated: V11.0 architecture revision.
 
 ## Active Issues
 
-### 1. Authoritative agent failures still require user retry
+### ~~1. Authoritative agent failures still require user retry~~
 
-**Severity:** Medium
+**Status:** Resolved
 
-**Evidence:** `backend/app/core/nodes/choice_crafter_node.py`
-
-When authoritative agents fail (`Narrator`/`ChoiceCrafter`), the turn is aborted pre-commit and the UI receives failure markers. The play UI now surfaces an explicit **Retry Last Action** affordance, but there is still no deterministic fallback narrative/choice payload.
-
-**Risk:** If required LLM endpoints are unavailable (for example, Ollama down), turn progression pauses until service recovery.
-
-**Workaround:** Retry from UI after service recovers.
+The ChoiceCrafter now has a **deterministic 4-choice fallback mechanism** (`_make_fallback_choices()`) that produces contextually grounded choices covering all KOTOR tones when the LLM fails. The Narrator also has a retry mechanism for mechanic consistency failures. The system now degrades gracefully rather than completely failing.
 
 ---
 
@@ -102,15 +96,11 @@ When authoritative agents fail (`Narrator`/`ChoiceCrafter`), the turn is aborted
 
 ---
 
-### 6. LanceDB vector tables may not exist on fresh install
+### ~~6. LanceDB vector tables may not exist on fresh install~~
 
-**Severity:** Medium (setup)
+**Status:** Resolved
 
-**Evidence:** `backend/app/rag/lore_retriever.py` — `db.open_table(LORE_TABLE_NAME)` raises if table doesn't exist.
-
-**Risk:** If LanceDB hasn't been populated via the ingestion pipeline, RAG retrieval raises exceptions. The Director and Narrator nodes have fallback handling for retrieval failures, but this produces generic (non-grounded) narration.
-
-**Workaround:** Run ingestion pipeline before first use. The health check endpoint (`/health/detail`) reports LanceDB table status. `storyteller doctor` also reports this.
+`lore_retriever.py` now checks `db_path.exists()` before attempting table access and wraps all table operations in try/except blocks. Missing tables return empty results with logged warnings rather than raising exceptions. The system degrades gracefully — producing generic (non-grounded) narration when RAG data is unavailable. The health check endpoint (`/health/detail`) and `storyteller doctor` still report table status for diagnosis.
 
 ---
 

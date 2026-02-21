@@ -9,8 +9,15 @@ Storyteller AI/
     llm_client.py                # Ollama HTTP client (LLMClient)
     app/
       api/
-        v2_campaigns.py          # V2 REST API: content/era/campaign/player/turn endpoints
+        v2_campaigns.py          # V2 REST API: campaign management + state/transcript endpoints
+        v2_turn.py               # Turn execution endpoints (turn, turn_stream, classify)
+        v2_content.py            # Content catalog, era data, model config endpoints
+        v2_player.py             # Player profiles, sagas, campaign settings endpoints
+        v2_library.py            # Library: book ingestion, lore source CRUD endpoints
+        v2_export.py             # Novel export endpoint
+        v2_eraforge.py           # EraForge: procedural era pack generation endpoints
         campaign_models.py       # Pydantic request/response models for campaign API
+        eraforge_models.py       # Pydantic models for EraForge endpoints
         campaign_setup.py        # Campaign initialization and auto-setup logic
         starships.py             # Starship acquisition endpoints
       config.py                  # Per-role LLM config + env flags + paths
@@ -41,6 +48,7 @@ Storyteller AI/
           commit.py              # make_commit_node() — single transaction boundary
         agents/                  # LLM-powered and deterministic agents
           base.py                # AgentLLM wrapper (Ollama-only, JSON mode, repair retry)
+          base.py                # BaseAgent — shared base class for LLM-backed agents
           director.py            # DirectorAgent — text-only scene instructions via LLM
           director_helpers.py    # Director prompt construction helpers
           narrator.py            # NarratorAgent — prose generation via LLM
@@ -49,14 +57,18 @@ Storyteller AI/
           mechanic.py            # MechanicAgent — deterministic dice/DC/time (no LLM)
           architect.py           # CampaignArchitect — campaign blueprint + WorldSim off-screen
           biographer.py          # BiographerAgent — character background generation
+          campaign_bible_agent.py # CampaignBibleAgent — ongoing campaign context management
           casting.py             # CastingAgent — legacy LLM NPC casting (rarely used)
           encounter.py           # EncounterManager — deterministic NPC selection
           choice_crafter_agent.py  # ChoiceCrafterAgent — LLM-driven player choice generation (V5.0)
           companion_system_agent.py # CompanionSystemAgent — extended companion interactions (V5.0)
           continuity_agent.py    # ContinuityAgent — narrative continuity checks (V5.0)
           era_transition_scene_agent.py # Era transition scene generation (V5.0)
+          era_forge_agent.py     # EraForgeAgent — procedural era pack generation
           intent_router_agent.py # LLM-assisted intent routing (V5.0)
+          legacy_agent.py        # LegacyAgent — cross-saga character legacy tracking
           memory_agent.py        # MemoryAgent — long-term memory management (V5.0)
+          origin_agent.py        # OriginAgent — playable backstory screenplay generation
           progression_agent.py   # ProgressionAgent — player/story progression (V5.0)
           prologue_agent.py      # PrologueAgent — campaign opening scene (V5.0)
           psych_archivist_agent.py # PsychArchivistAgent — psychology profile updates (V5.0)
@@ -111,9 +123,15 @@ Storyteller AI/
         canon_scheduler.py       # Historical timeline canon event scheduler (V7.0)
         consequence_propagator.py  # Sandbox consequence propagation: ripple/wave/tsunami tiers (V7.0)
         deferred_agents.py       # Post-commit deferred maintenance agent runner (V7.0)
+        origin_engine.py         # Playable origin story engine (3-stage: SCENE_SET → DILEMMA → RESOLUTION)
+        cloud_health.py          # Cloud provider health check utilities
+        encounter_throttle.py    # NPC encounter throttling + introduction tracking
+        npc_state_store.py       # NPC state persistence (extracted from world_state_json, V7.0)
+        quest_store.py           # Quest state persistence (extracted from world_state_json, V7.0)
+        rewind.py                # Snapshot-based rewind logic (V7.0)
       db/                        # SQLite schema + migration runner
         schema.sql               # Reference schema
-        migrations/              # Migrations 0001-0036
+        migrations/              # Migrations 0001-0037
           0001_init.sql          # Core tables (campaigns, characters, inventory, turn_events)
           0002_add_rendered_turns.sql
           0003_add_credits.sql
@@ -136,6 +154,7 @@ Storyteller AI/
         turn_contract.py         # TurnContract + Fact + component models
         news.py                  # News feed models (rumors_to_news_feed)
       rag/                       # LanceDB retrieval + ingestion helpers
+        vector_store.py          # LanceDB vector store abstraction layer
         lore_retriever.py        # Lore retrieval (era/planet/faction/doc_type filters)
         style_retriever.py       # 4-lane style retrieval (retrieve_style_layered)
         style_mappings.py        # BASE_STYLE_MAP, ERA_STYLE_MAP, ARCHETYPE_STYLE_MAP
@@ -159,21 +178,55 @@ Storyteller AI/
 
   ingestion/                     # Offline lore ingestion pipeline
     ingest_lore.py               # PDF/EPUB/TXT -> lore_chunks (parent/child chunks)
+    chunking.py                  # Semantic document chunking
+    embedding.py                 # sentence-transformers embeddings (384-dim)
+    epub_reader.py               # EPUB parsing via ebooklib
     store.py                     # LanceDB store + stable chunk IDs
+    classify_document.py         # Document type classification (lore/style/character_voice)
+    cloud_enricher.py            # Optional cloud enrichment
+    era_content_generator.py     # Procedural content generation
+    era_normalization.py         # Era ID normalization
+    style_pack_builder.py        # Style reference pack building
     tagger.py                    # Optional LLM metadata enrichment (off by default)
     npc_tagging.py               # NPC entity tagging in lore chunks
+    manifest.py                  # Ingestion manifest management
+    query.py                     # Ingestion query utilities
     conftest.py                  # Test fixtures for ingestion tests
     __main__.py                  # `python -m ingestion <command>`
 
   frontend/                      # SvelteKit UI
-    src/routes/+page.svelte      # Landing page; V11.0: "Continue Story" + saga browser
-    src/routes/create/+page.svelte # Campaign creation; V11.0: Universe step + ref material upload
-    src/routes/play/+page.svelte # Gameplay view; V11.0: optional portrait + location art
-    src/routes/library/+page.svelte # Library page; V11.0: "Sources" tab
+    src/routes/+page.svelte      # Landing page; "Continue Story" + saga browser
+    src/routes/+error.svelte     # Global error boundary
+    src/routes/create/+page.svelte # Campaign creation wizard (universe, era, species, background, CYOA)
+    src/routes/origin/+page.svelte # Playable origin story sequence
+    src/routes/prologue/+page.svelte # Prologue cinematic briefing
+    src/routes/play/+page.svelte # Main gameplay view
+    src/routes/library/+page.svelte # Library page: worlds, books, sources, ingestion status
+    src/routes/settings/+page.svelte # Global LLM provider configuration
+    src/routes/complete/+page.svelte # Campaign completion & legacy screen
     src/lib/api/                 # HTTP + SSE client helpers
-      sagas.ts                   # V11.0: Saga API client
-      sources.ts                 # V11.0: Lore source API client
+      sagas.ts                   # Saga API client
+      sources.ts                 # Lore source API client
     src/lib/stores/              # UI and gameplay stores
+    src/lib/components/game/     # Extracted gameplay components
+      HudBar.svelte              # HUD bar (location, time, HP, credits, stress)
+      CompanionSidebar.svelte    # Party roster with affinity relationships
+      QuestTracker.svelte        # Active quest display with stage progression
+      SettingsPanel.svelte       # In-game settings panel
+      MechanicNotes.svelte       # Dice/DC/outcome transparency panel
+      ConsequenceOverlay.svelte  # Dramatic consequence display
+      AlignmentIndicator.svelte  # Player alignment indicator
+
+  prompts/                       # Externalized system prompt templates
+    v1/
+      choice_crafter_system.txt  # ChoiceCrafter system prompt
+      continuity_system.txt      # ContinuityAgent system prompt
+      intent_router_system.txt   # IntentRouter system prompt
+      memory_system.txt          # MemoryAgent system prompt
+      progression_system.txt     # ProgressionAgent system prompt
+      quest_weaver_evaluate_system.txt  # QuestWeaver evaluation prompt
+      quest_weaver_generate_system.txt  # QuestWeaver generation prompt
+      suggestion_refiner_system.txt     # SuggestionRefiner system prompt
 
   storyteller/                   # Unified CLI dispatcher (installs `storyteller` script)
     cli.py                       # argparse + subcommand registration
@@ -254,6 +307,10 @@ graph LR
     subgraph API
         main[backend/main.py]
         v2[backend/app/api/v2_campaigns.py]
+        v2turn[backend/app/api/v2_turn.py]
+        v2content[backend/app/api/v2_content.py]
+        v2player[backend/app/api/v2_player.py]
+        v2library[backend/app/api/v2_library.py]
         starships[backend/app/api/starships.py]
     end
 
@@ -304,6 +361,10 @@ graph LR
     end
 
     main --> v2 --> graph_mod --> nodes
+    main --> v2turn --> graph_mod
+    main --> v2content
+    main --> v2player
+    main --> v2library
     main --> starships
     nodes --> mech
     nodes --> enc
@@ -326,6 +387,20 @@ graph LR
     kg --> db
     truth --> db
 ```
+
+## Post-V11.0 New Modules Summary
+
+| Module | Purpose |
+| ------- | ------- |
+| `backend/app/core/origin_engine.py` | Playable origin story engine — 3-stage (SCENE_SET → DILEMMA → RESOLUTION) constrained sequence |
+| `backend/app/core/agents/origin_agent.py` | OriginAgent — generates playable backstory screenplay from background + CYOA answers |
+| `backend/app/core/agents/base.py` | BaseAgent — shared base class for LLM-backed agents (reduces boilerplate) |
+| `frontend/src/routes/origin/+page.svelte` | Playable origin story route |
+| `frontend/src/routes/settings/+page.svelte` | Global LLM provider configuration UI |
+| `frontend/src/routes/+error.svelte` | Global error boundary |
+| `frontend/src/lib/components/game/HudBar.svelte` | Extracted HUD bar component (was inline in play page) |
+| `prompts/v1/*.txt` | 8 externalized system prompt templates (choice_crafter, continuity, intent_router, memory, progression, quest_weaver, suggestion_refiner) |
+| `backend/app/db/migrations/0037_truth_facts_index.sql` | Performance index on `truth_facts(campaign_id)` |
 
 ## V11.0 New Modules Summary
 

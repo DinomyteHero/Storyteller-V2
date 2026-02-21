@@ -9,6 +9,7 @@ Legend:
 - 🔄 Changed in V5.0
 - 🆕 Added in V7.0
 - 🧠 Added in V10.0
+- 🎮 Added in V11.0+
 
 ---
 
@@ -78,6 +79,27 @@ Legend:
 
 ---
 
+## V11.0 Architecture (Player Experience)
+
+| Feature | Status | Notes |
+| --------- | -------- | ------- |
+| **Universe & Story UX** — "Continue Story" hero button, Universe selection in creation wizard, saga-grouped load modal | 🎮 ✅ | `+page.svelte` (home), `create/+page.svelte` (wizard Step 0), `sagas.ts` API client. Frontend-only — no pipeline changes. |
+| **UI-Exposed Lore Ingestion** — `lore_sources` table, source CRUD endpoints, Library Sources tab | 🎮 ✅ | `v2_library.py` (`GET/POST/DELETE /v2/library/sources`), migration 0036, `sources.ts` API client, Library page Sources tab. |
+| **Optional Visual Layer** — NPC portraits + location key art, feature-flagged | 🎮 ✅ | `ENABLE_PORTRAITS` env flag in `config.py`. `portrait_key` on `EraNpcEntry`/`EraCompanion`, `key_art` on `EraLocation`. Static serving at `/portraits/`. Default off. |
+| **API route split** — monolithic `v2_campaigns.py` split into focused modules | 🎮 ✅ | `v2_campaigns.py`, `v2_turn.py`, `v2_content.py`, `v2_player.py`, `v2_library.py`, `v2_export.py`, `v2_eraforge.py`. |
+| **BaseAgent class** — shared base class for LLM-backed agents | 🎮 ✅ | `backend/app/core/agents/base.py`. Exported from `agents/__init__.py`. |
+| **Externalized system prompts** — prompt templates moved to versioned files | 🎮 ✅ | `prompts/v1/` directory with 8 system prompt `.txt` files. |
+| **Origin story system** — playable backstory before prologue | 🎮 ✅ | `origin_engine.py` (3-stage engine), `origin_agent.py` (screenplay generation), `/origin` frontend route. |
+| **HudBar extraction** — extracted from monolithic play page | 🎮 ✅ | `frontend/src/lib/components/game/HudBar.svelte`. |
+| **Global error boundary** — prevents blank screen on catastrophic errors | 🎮 ✅ | `frontend/src/routes/+error.svelte`. |
+| **Settings page** — global LLM provider configuration | 🎮 ✅ | `/settings` route with per-role model configuration. |
+| **Setup progress indicator** — multi-stage feedback during `setupAuto()` | 🎮 ✅ | Progress bar overlay in `create/+page.svelte` with staged messaging. |
+| **Pydantic validation hardening** — enum validation, input size limits | 🎮 ✅ | `CampaignScale`, `CampaignMode`, `Difficulty` as `Literal` types. `MAX_USER_INPUT_CHARS` validated in Pydantic model via `Field(max_length=...)`. |
+| **DEV_MODE defaults to False** — requires explicit opt-in | 🎮 ✅ | `_env_flag("STORYTELLER_DEV_MODE", default=False)` in `main.py`. |
+| **Rate limit configurable** — via `STORYTELLER_RATE_LIMIT_MAX` env var | 🎮 ✅ | `int(os.environ.get("STORYTELLER_RATE_LIMIT_MAX", "10"))` in `main.py`. |
+
+---
+
 ## Agent System
 
 | Feature | Status | Notes |
@@ -125,7 +147,7 @@ Legend:
 
 | Feature | Status | Notes |
 | --------- | -------- | ------- |
-| **V2 REST API** — campaign/turn/content endpoints | ✅ | `v2_campaigns.py`. 18+ endpoints. |
+| **V2 REST API** — campaign/turn/content endpoints | ✅ | Split across `v2_campaigns.py`, `v2_turn.py`, `v2_content.py`, `v2_player.py`, `v2_library.py`, `v2_export.py`, `v2_eraforge.py`. 30+ endpoints. |
 | **SSE streaming** — turn/stream endpoint | ✅ | `GET /v2/campaigns/{id}/turn/stream`. Streams narration chunks. |
 | **Auto-setup endpoint** — `POST /v2/setup/auto` | ✅ | CampaignArchitect + BiographerAgent pipeline. |
 | **Health check** — `/health` + `/health/detail` | ✅ | Checks Ollama, LanceDB, era packs, LLM roles. |
