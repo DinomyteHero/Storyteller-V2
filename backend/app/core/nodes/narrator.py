@@ -251,15 +251,16 @@ def make_narrator_node():
         # Phase 7: Narrator feedback loop — retry once on mechanic consistency failure
         from backend.app.core.nodes.narrative_validator import _check_mechanic_consistency
         mechanic_result = state.get("mechanic_result") or {}
-        consistency_warnings = _check_mechanic_consistency(final_text, mechanic_result)
+        corrected_text, consistency_warnings, _repairs = _check_mechanic_consistency(final_text, mechanic_result)
+        final_text = corrected_text  # Apply any inline repairs from the validator
         if consistency_warnings and _turn_narrator._llm is not None:
             correction = "; ".join(consistency_warnings)
             _narrator_logger.info("Narrator retry: mechanic consistency issue detected, retrying once.")
             try:
                 retry_output = _turn_narrator.generate_with_correction(gs, correction, kg_context=kg_context)
-                retry_warnings = _check_mechanic_consistency(retry_output.text, mechanic_result)
+                _corrected_retry, retry_warnings, _retry_repairs = _check_mechanic_consistency(retry_output.text, mechanic_result)
                 if not retry_warnings:
-                    final_text = retry_output.text
+                    final_text = _corrected_retry
                     output = retry_output
                     _narrator_logger.info("Narrator retry succeeded — consistency resolved.")
                 else:

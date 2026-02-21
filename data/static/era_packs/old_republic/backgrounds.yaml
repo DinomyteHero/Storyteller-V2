@@ -1,0 +1,284 @@
+# Old Republic Backgrounds — Knights of the Old Republic (3,956 BBY)
+# KOTOR-style branching character backgrounds for the Jedi Civil War era.
+
+backgrounds:
+
+  - id: jedi_padawan
+    name: "Jedi Padawan"
+    description: "You were taken from your family as a child and trained in the ways of the Force. Now the war has come to the Enclave door."
+    icon: "force"
+    starting_stats:
+      Combat: 2
+      Stealth: 1
+      Charisma: 2
+      Tech: 1
+      General: 4
+    questions:
+      - id: alignment
+        title: "Where does your connection to the Force lead you?"
+        subtitle: "This determines your path through the Jedi Civil War"
+        choices:
+          - label: "The light side. The Jedi Code is my foundation, even when it costs me everything."
+            concept: "a devoted Jedi Padawan committed to the light side of the Force"
+            tone: PARAGON
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-enclave
+              thread_seed: "Your Master has not returned from a scouting mission near Sith-held space. The Council says wait. The Force says otherwise."
+          - label: "I walk the line. Passion fuels me — I just refuse to let it consume me."
+            concept: "a grey Jedi who draws strength from emotion without surrendering to darkness"
+            tone: NEUTRAL
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-cantina
+              thread_seed: "A Sith holocron you were ordered to destroy is still in your possession. Its whispers are useful. Its price is unclear."
+          - label: "The dark side is not evil — it is honest. The Jedi lie to themselves about power."
+            concept: "a Padawan tempted by the dark side of the Force"
+            tone: RENEGADE
+            effects:
+              faction_hint: sith_empire
+              location_hint: loc-safe-house
+              thread_seed: "A Sith adept has offered to take you to Korriban — real training, real power, no Jedi politics. The offer expires at dawn."
+      - id: master
+        title: "What happened to your Jedi Master?"
+        subtitle: "This shapes your opening wound"
+        choices:
+          - label: "Killed at Malachor V following Revan into battle. I carry their lightsaber."
+            concept: "haunted by a Master lost in the war they chose to join"
+            tone: PARAGON
+            effects:
+              thread_seed: "You have received a message: your Master left a sealed holocron in the Dantooine archives. It was not to be opened until now."
+          - label: "They fell to the dark side and now serves Darth Malak. I don't know if I can face them."
+            concept: "a Padawan whose Master became the enemy"
+            tone: RENEGADE
+            effects:
+              thread_seed: "Intel places your fallen Master on Korriban, training the next generation of Sith. They know you are alive. They have sent for you."
+          - label: "They fled the Order after Malachor V and vanished. The Council won't tell me why."
+            concept: "a Padawan abandoned by a Master who could not bear the weight of the war"
+            tone: INVESTIGATE
+            effects:
+              thread_seed: "A merchant on Taris recognized your Master's name. They saw someone matching the description last month — hiding in the undercity."
+
+  - id: republic_soldier
+    name: "Republic Soldier"
+    description: "You've fought Sith on a dozen worlds. You've held lines that should have broken. The war follows you."
+    icon: "soldier"
+    starting_stats:
+      Combat: 4
+      Stealth: 1
+      Charisma: 1
+      Tech: 2
+      General: 2
+    questions:
+      - id: theater
+        title: "Where did the war break you open?"
+        subtitle: "This defines your wound and your strength"
+        choices:
+          - label: "Telos. Malak bombarded it from orbit — civilians, everything. I survived by accident."
+            concept: "a survivor of Malak's orbital bombardment of Telos IV"
+            tone: PARAGON
+            effects:
+              faction_hint: galactic_republic
+              location_hint: loc-docking-bay
+              thread_seed: "A Sith officer responsible for the Telos bombardment has been captured and is being held for trial. They will be traded for prisoners before the week is out — unless someone stops it."
+          - label: "Malachor V. I was there when Revan turned the Mass Shadow Generator on everyone — us included."
+            concept: "a veteran haunted by what both sides did at Malachor V"
+            tone: NEUTRAL
+            effects:
+              faction_hint: galactic_republic
+              location_hint: loc-cantina
+              thread_seed: "A Mandalorian survivor of Malachor V is asking questions about what you saw. They are not interested in the official story."
+          - label: "I've been on every front. The war hasn't broken me. I worry it's made me into something else."
+            concept: "a hardened soldier who fears what the war has made of them"
+            tone: RENEGADE
+            effects:
+              faction_hint: galactic_republic
+              location_hint: loc-safe-house
+              thread_seed: "Your commanding officer has ordered an operation that crosses lines you thought you had. The mission matters. So does what it costs you."
+      - id: motivation
+        title: "Why do you keep fighting?"
+        subtitle: "This shapes your personal stakes"
+        choices:
+          - label: "I believe in the Republic. It's imperfect but it's ours."
+            concept: "a soldier who genuinely believes in what they're fighting for"
+            tone: PARAGON
+            effects:
+              thread_seed: "Intelligence suggests a high-ranking Republic senator is feeding supply routes to the Sith. Proving it means going against your own command structure."
+          - label: "My unit. I fight for the people next to me, nothing bigger."
+            concept: "a soldier whose loyalty is to their squad, not an institution"
+            tone: NEUTRAL
+            effects:
+              thread_seed: "Three members of your old unit are listed as deserters. You know why they ran — and the Republic's tribunal doesn't care about the truth."
+          - label: "I want the war over. I don't care who wins, only who survives."
+            concept: "a war-weary soldier approaching moral exhaustion"
+            tone: RENEGADE
+            effects:
+              thread_seed: "A Sith defector wants to sell battle plans to the Republic. They'll only deal with you — and they want safe passage to Exchange-controlled space."
+
+  - id: scoundrel
+    name: "Scoundrel"
+    description: "The Jedi Civil War is someone else's fight. You just need to survive it — and maybe profit from it."
+    icon: "scoundrel"
+    starting_stats:
+      Combat: 2
+      Stealth: 3
+      Charisma: 3
+      Tech: 2
+      General: 0
+    questions:
+      - id: operation
+        title: "What is your game?"
+        subtitle: "This determines your contacts and entanglements"
+        choices:
+          - label: "Information broker. In wartime, secrets are worth more than kolto."
+            concept: "an information dealer selling intelligence to all sides"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: exchange
+              location_hint: loc-cantina
+              thread_seed: "You've intercepted a coded Sith transmission. You don't know what it says — but three different buyers have already approached you about it."
+          - label: "Smuggler. Refugees, medicine, weapons — I move what needs moving."
+            concept: "a blockade-runner keeping desperate people alive"
+            tone: PARAGON
+            effects:
+              faction_hint: exchange
+              location_hint: loc-docking-bay
+              thread_seed: "Your latest run carries Jedi artifacts off Dantooine before the Sith arrive. The Jedi contact hasn't shown up. The Sith patrol has."
+          - label: "The Exchange pays well and asks few questions. I am a professional."
+            concept: "a career criminal with Exchange ties and a flexible conscience"
+            tone: RENEGADE
+            effects:
+              faction_hint: exchange
+              location_hint: loc-marketplace
+              thread_seed: "The Exchange wants a Jedi brought in — alive, unharmed. The bounty is enough to disappear for good. You just have to stop caring why."
+      - id: complication
+        title: "What is chasing you?"
+        subtitle: "Every scoundrel has a past that won't stay buried"
+        choices:
+          - label: "A Sith officer I cheated during the Mandalorian Wars. They have a very long memory."
+            concept: "haunted by a powerful enemy made before the current war"
+            tone: RENEGADE
+            effects:
+              thread_seed: "Your Sith creditor has found you. They want the debt repaid in a service — one that will make you an enemy of the Republic."
+          - label: "Czerka Corporation. I stole something from them. I'm still not sure what it was."
+            concept: "in possession of contraband so dangerous they don't know what it is"
+            tone: INVESTIGATE
+            effects:
+              thread_seed: "Czerka's retrieval team arrived on the same station as you. Whatever is in that cargo container is worth more than your life to them."
+          - label: "I have no enemies. I stay that way by being very careful and very fast."
+            concept: "a professional who has survived through caution and competence"
+            tone: NEUTRAL
+            effects:
+              thread_seed: "You've been offered a job that should be routine. It isn't. The client is lying and the cargo is wrong and you are already three systems from the nearest Republic checkpoint."
+
+  - id: mandalorian_warrior
+    name: "Mandalorian Warrior"
+    description: "The Mandalorian Wars are over. Your people are scattered and broken. You are still standing — and you are still dangerous."
+    icon: "hunter"
+    starting_stats:
+      Combat: 4
+      Stealth: 2
+      Charisma: 1
+      Tech: 2
+      General: 1
+    questions:
+      - id: malachor
+        title: "What did Malachor V take from you?"
+        subtitle: "This shapes your wound and your war"
+        choices:
+          - label: "My clan. I am the last. The Mandalorian code demands I rebuild or die trying."
+            concept: "the last survivor of a Mandalorian clan, carrying an impossible debt"
+            tone: NEUTRAL
+            effects:
+              faction_hint: mandalorian_clans
+              location_hint: loc-cantina
+              thread_seed: "You have found a trail leading to the Mandalorian who sold your clan's location to Revan before Malachor. Justice or revenge — the difference feels academic."
+          - label: "My certainty. I believed in the cause. Malachor showed me what causes cost."
+            concept: "a warrior questioning the values they once killed for"
+            tone: PARAGON
+            effects:
+              faction_hint: mandalorian_clans
+              location_hint: loc-docking-bay
+              thread_seed: "A young Mandalorian has come to you as a teacher. They want to be what you were before the war. You are no longer sure that person deserves to exist."
+          - label: "Nothing. I survived. That is enough. I will find the next battle."
+            concept: "a Mandalorian who has accepted the loss and pushes forward through pure will"
+            tone: RENEGADE
+            effects:
+              faction_hint: mandalorian_clans
+              location_hint: loc-marketplace
+              thread_seed: "Canderous Ordo has sent word — Mandalore's mask may still be on Rekkiad. Reclaiming it means reclaiming the title. Are you the one to carry it?"
+      - id: allegiance
+        title: "Who do you fight for now?"
+        subtitle: "Mandalorians need a cause"
+        choices:
+          - label: "The highest bidder. Honor is a luxury I can no longer afford."
+            concept: "a mercenary who has separated survival from principle"
+            tone: RENEGADE
+            effects:
+              thread_seed: "Two clients want the same target: a Jedi Knight carrying something the Sith want. You can only honor one contract."
+          - label: "Myself — and anyone who earns my oath."
+            concept: "a warrior who grants loyalty only to those who prove worthy"
+            tone: NEUTRAL
+            effects:
+              thread_seed: "A Republic soldier saved your life and asked for nothing. You owe them a debt. Mandalorian honor says this matters more than the credits you were just offered to hand them over."
+          - label: "Mandalore — whoever earns that title next. The clans must unite."
+            concept: "a warrior devoted to rebuilding the Mandalorian people"
+            tone: PARAGON
+            effects:
+              thread_seed: "You have located one of Mandalore the Ultimate's former warlords. They are rallying scattered clans — but under the wrong banner, toward the wrong war."
+
+  - id: sith_acolyte
+    name: "Sith Acolyte"
+    description: "You trained at the Academy on Korriban. You learned what the dark side offers. Now you must decide if the price is worth it."
+    icon: "sith"
+    starting_stats:
+      Combat: 3
+      Stealth: 1
+      Charisma: 2
+      Tech: 1
+      General: 3
+    questions:
+      - id: ideology
+        title: "What does the dark side mean to you?"
+        subtitle: "This determines your Sith philosophy and allegiance"
+        choices:
+          - label: "Power is the only truth. I embraced the dark side and I do not apologize for it."
+            concept: "a true Sith ideologue who believes in strength above all else"
+            tone: RENEGADE
+            effects:
+              faction_hint: sith_empire
+              location_hint: loc-enclave
+              thread_seed: "Darth Malak has sent you a task: retrieve a Jedi from the Dantooine ruins, alive. What you do with them afterward is yours to decide."
+          - label: "I used the Academy's power and I am not loyal to anyone in it."
+            concept: "an opportunist who took Sith training without Sith loyalty"
+            tone: NEUTRAL
+            effects:
+              faction_hint: exchange
+              location_hint: loc-cantina
+              thread_seed: "Your former instructor at Korriban has marked you as a deserter. A Sith assassin is already on your trail — and they are carrying your old Academy ranking card."
+          - label: "I went to Korriban to understand the enemy. The training changed me in ways I didn't expect."
+            concept: "a Republic agent or Jedi spy who underwent Sith training and is not unchanged by it"
+            tone: INVESTIGATE
+            effects:
+              faction_hint: jedi_order
+              location_hint: loc-safe-house
+              thread_seed: "Your handler wants a debrief. What you experienced on Korriban is valuable intelligence. But some of what you learned — and felt — was not in the mission parameters."
+      - id: master
+        title: "Who trained you on Korriban?"
+        subtitle: "Your Master leaves a mark — and a shadow"
+        choices:
+          - label: "Darth Bandon — Malak's right hand. He was cruel and brilliant and I learned from both."
+            concept: "a Sith trained by one of the most dangerous figures in Malak's hierarchy"
+            tone: RENEGADE
+            effects:
+              thread_seed: "Darth Bandon has been killed. Your training bond was severed violently through the Force. The backlash left something behind in you — something that whispers."
+          - label: "A Sith overseer who believed in the old ways — strength, purity, doctrine."
+            concept: "a Sith trained in traditional dark side philosophy"
+            tone: NEUTRAL
+            effects:
+              thread_seed: "Your overseer left you a Sith holocron that contradicts everything Malak teaches. It speaks of a Sith philosophy older than the Academy — and more dangerous."
+          - label: "Nobody. I survived Korriban through cunning, not sponsorship."
+            concept: "a self-made Sith who earned their rank through survival and ruthlessness"
+            tone: RENEGADE
+            effects:
+              thread_seed: "The Korriban Academy's new overseer knows you cheated to pass the trials. They are not angry — they are impressed. They want you back, as an instructor."

@@ -1,0 +1,152 @@
+# old_republic/locations.yaml — Named locations for the Jedi Civil War era.
+# scene_types must be from: dialogue, stealth, combat, travel, investigation,
+#   puzzle, philosophical_dialogue, meditation, tech_investigation, survival,
+#   exploration, training, ritual, tracking, social_contract
+# services must be from: briefing_room, medbay, arms_dealer, slicer, transport,
+#   bounty_board, safehouse, market, cantina, hub, inn, smithy, guild_hall,
+#   temple, ripperdoc, fixer, netrunner_den
+
+locations:
+
+  - id: loc-cantina
+    name: "The Outer Rim Lounge — Taris Upper City"
+    description: >
+      One of the few drinking establishments in the Upper City that hasn't been
+      commandeered by Sith forces. The owner paid the right people; the result is
+      a tense neutrality that suits everyone who needs a conversation that isn't
+      overheard. Dejarik tables line one wall. A Bith musician works through
+      something slow in the corner. The drinks are worse than they cost.
+    planet: Taris
+    region: Upper City
+    tags: [cantina, urban, neutral, information]
+    threat_level: moderate
+    controlling_factions: [galactic_republic, exchange]
+    scene_types: [dialogue, investigation, stealth]
+    services: [cantina, arms_dealer, safehouse]
+    keywords: [blockade, curfew, Sith, Republic, refugees, dejarik, Bith music, information broker]
+
+  - id: loc-docking-bay
+    name: "Docking Bay 94 — Taris Upper Promenade"
+    description: >
+      Most traffic has stopped since the Sith blockade went up. The bay is half-empty:
+      a few ships that can't leave, a Republic shuttle with blown motivators, and
+      two Sith inspection craft that nobody is allowed to approach. The dockmaster
+      accepts credits to look the other way on transit papers — when he thinks
+      the risk is manageable. He is frequently wrong about that.
+    planet: Taris
+    region: Upper City Promenade
+    tags: [spaceport, hangar, blockaded, tense]
+    threat_level: high
+    controlling_factions: [sith_empire, galactic_republic]
+    scene_types: [stealth, combat, travel, investigation]
+    services: [transport, slicer, arms_dealer]
+    keywords: [blockade, starships, Sith patrol, dockmaster, transit papers, escape]
+
+  - id: loc-safe-house
+    name: "Lower City Safe House — Javyar's Block"
+    description: >
+      A reinforced basement three levels below the Upper City surface. It smells
+      of recycled air and old grease. The walls are covered in markings: routes,
+      warning signals, and one faded piece of Twi'lek calligraphy that nobody
+      who matters can read. Exchange-affiliated, but the current occupants are
+      desperate enough that the normal rules have been suspended. For now.
+    planet: Taris
+    region: Lower City
+    tags: [underworld, hidden, safe, exchange]
+    threat_level: moderate
+    controlling_factions: [exchange]
+    scene_types: [dialogue, stealth, investigation]
+    services: [safehouse, medbay, arms_dealer, slicer]
+    keywords: [Twi'lek, Exchange, Lower City, rakghouls outside, curfew, hiding, kolto, forgery]
+
+  - id: loc-marketplace
+    name: "Upper City Market District — Taris"
+    description: >
+      The Upper City market runs on a combination of Czerka Corporation franchises
+      and desperate private vendors trying to undercut them. Since the blockade,
+      prices for offworld goods have tripled. Republic-certified vendors are
+      required to display Alliance ration cards; most of them also display Sith
+      occupier permits, because they need both sides to keep buying.
+    planet: Taris
+    region: Upper City
+    tags: [marketplace, urban, commerce, contested]
+    threat_level: low
+    controlling_factions: [galactic_republic, sith_empire]
+    scene_types: [dialogue, investigation, combat]
+    services: [market, arms_dealer, medbay, bounty_board]
+    keywords: [Czerka, Republic, Sith patrols, ration cards, price gouging, vendors, droids]
+
+  - id: loc-enclave
+    name: "Jedi Enclave — Dantooine"
+    description: >
+      Hidden in the grasslands of Dantooine, the Enclave is one of the last places
+      in the galaxy where the Jedi Order still trains openly. Stone corridors built
+      to last ten thousand years. Meditation chambers where the Force feels close enough
+      to touch. A Council chamber where decisions of galaxy-altering weight are made
+      by seven people who genuinely believe in the right ones. The archives hold
+      holocrons that remember the Mandalorian Wars, things older than anyone alive.
+      Training grounds outside, where lightsabers hum through morning air.
+    planet: Dantooine
+    region: Jedi Enclave grounds
+    tags: [enclave, jedi, rural, sacred, training]
+    threat_level: low
+    controlling_factions: [jedi_order]
+    scene_types: [training, philosophical_dialogue, investigation, meditation]
+    services: [temple, medbay, briefing_room, safehouse]
+    keywords: [Council, holocron, lightsaber, the Force, meditation, padawan, archives, Dantooine]
+
+  - id: loc-undercity
+    name: "Taris Undercity — The Rakghoul Warrens"
+    description: >
+      Below the Lower City, beyond where even the Exchange maintains patrols,
+      the Undercity is what Taris looks like without maintenance. Buildings half-collapsed
+      by centuries of urban weight above them. Streets flooded with grey water that
+      doesn't smell right. Rakghouls — beings infected by an ancient plague, stripped
+      of reason and left with hunger — in packs that grow bold after dark. The
+      few humans who live down here have learned exactly how much noise to make
+      and when to make none at all.
+    planet: Taris
+    region: Undercity
+    tags: [underworld, ruins, dangerous, isolated, plague]
+    threat_level: extreme
+    controlling_factions: []
+    scene_types: [survival, exploration, combat, stealth, investigation]
+    services: [safehouse, market]
+    keywords: [rakghoul, plague, ruins, survivors, Endar Spire wreckage, darkness, escape pods]
+
+  - id: loc-sith-outpost
+    name: "Sith Military Command Post — Taris Upper City"
+    description: >
+      The Sith didn't bother converting an existing building — they cleared a city block
+      and built what they needed. Prefab command structures behind a permacrete wall,
+      two Sith fighter-interceptors on the pad, a detention level three stories down,
+      and a Sith officer who has been awake for forty hours and is not interested
+      in excuses. Entry requires either credentials, a very convincing story, or a
+      very good distraction. The guards are bored but competent.
+    planet: Taris
+    region: Upper City — occupied zone
+    tags: [military, sith, urban, restricted, detention]
+    threat_level: high
+    controlling_factions: [sith_empire]
+    scene_types: [stealth, combat, investigation, dialogue]
+    services: [briefing_room, arms_dealer]
+    keywords: [Sith, occupation, prisoners, blasters, Dark Jedi, credentials, interrogation, detention]
+
+  - id: loc-korriban-academy
+    name: "Korriban Sith Academy — Valley of the Dark Lords"
+    description: >
+      Built against the cliff face of the Valley of the Dark Lords, where ancient
+      Sith tombs swallow the names of rulers who lived before the Republic existed.
+      The Academy is not a school in any conventional sense — it is an elimination
+      tournament with a curriculum. Students are assigned trials designed to kill
+      some of them. The dark side saturates the rock here, thicker than heat,
+      older than the Academy itself. Sith artifacts line the archive halls:
+      some documented, some not, some actively hostile to documentation.
+    planet: Korriban
+    region: Valley of the Dark Lords
+    tags: [sith, ancient, ruins, sacred, dangerous]
+    threat_level: extreme
+    controlling_factions: [sith_empire]
+    scene_types: [training, combat, investigation, philosophical_dialogue, stealth]
+    services: [temple, briefing_room, arms_dealer]
+    keywords: [Sith tombs, dark side, holocron, trials, Malak, acolyte, ancient evil, Korriban]

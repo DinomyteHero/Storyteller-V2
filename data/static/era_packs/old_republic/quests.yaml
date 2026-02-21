@@ -1,0 +1,279 @@
+# old_republic/quests.yaml — Authored quest threads for the Jedi Civil War era.
+# These seed mission offers and branching story arcs across ~50 turns.
+
+quests:
+
+  - id: quest-taris-escape
+    title: "Escape from Taris"
+    description: >
+      Darth Malak's fleet has placed Taris under total blockade — no ships in or out.
+      The Endar Spire has been destroyed. Someone needs to find a way off this planet
+      before Malak decides the quickest way to find what he's looking for is to
+      level the city from orbit.
+    stages:
+      - stage_id: stage-find-transport
+        objective: "Locate a ship capable of running the Sith blockade"
+        objectives:
+          - "Find a pilot willing to attempt the blockade run"
+          - "Secure a ship with operational engines"
+          - "Obtain or forge Sith transit clearance — or find a way through the patrol gap"
+        success_conditions: "Player has identified a viable escape route or vessel"
+        fail_conditions: "Player is captured and detained by Sith forces"
+        on_enter_effects:
+          rumor_inject: "A Mandalorian mercenary in the cantina has a ship — and a price."
+      - stage_id: stage-lower-city-run
+        objective: "Reach the Lower City landing pad without triggering Sith alert"
+        objectives:
+          - "Navigate through Exchange-controlled Lower City territory"
+          - "Avoid or neutralize Sith patrol units"
+          - "Reach Docking Bay without alerting the blockade fleet"
+        success_conditions: "Player reaches the landing pad with transport intact"
+        fail_conditions: "Sith alert level reaches maximum — blockade tightens, all routes close"
+        on_enter_effects:
+          alert_modifier: +1
+      - stage_id: stage-break-blockade
+        objective: "Launch and break through the Sith blockade"
+        objectives:
+          - "Launch before the Sith realize what is happening"
+          - "Navigate the gap in the blockade patrol pattern"
+          - "Reach hyperspace before Sith interceptors respond"
+        success_conditions: "Ship reaches hyperspace — destination: Dantooine"
+        on_exit_effects:
+          location_unlock: loc-enclave
+          reputation_change:
+            galactic_republic: +15
+    path_consequences:
+      - path_id: rescued-republic
+        conditions: "Player assists Republic soldiers during escape"
+        effects:
+          faction_modifier:
+            galactic_republic: +20
+            sith_empire: -10
+      - path_id: exchange-deal
+        conditions: "Player negotiated passage through the Exchange"
+        effects:
+          faction_modifier:
+            exchange: +15
+          item_grant: item-exchange-credit-chip
+
+  - id: quest-dantooine-ruins
+    title: "Secrets in the Ruins"
+    description: >
+      The Jedi Enclave on Dantooine sits near ruins that predate the Republic by
+      thousands of years. The Jedi Council has been evasive about what lies inside.
+      Something the Council calls a 'Star Map' is drawing attention from people
+      who should not know it exists.
+    entry_conditions:
+      location_required: loc-enclave
+      faction_minimum:
+        jedi_order: 0
+    stages:
+      - stage_id: stage-council-meeting
+        objective: "Gain an audience with the Jedi Council on Dantooine"
+        objectives:
+          - "Present credentials or purpose to Master Dorak"
+          - "Demonstrate enough trustworthiness for a Council meeting"
+          - "Learn what the Council actually knows about the ruins"
+        success_conditions: "Council grants access information about the ruins"
+        on_enter_effects:
+          npc_inject: npc-jedi-archivist
+      - stage_id: stage-ruins-approach
+        objective: "Navigate to the ancient ruins south of the Enclave"
+        objectives:
+          - "Cross the Dantooine grasslands safely"
+          - "Deal with the Kath hound territory around the ruins"
+          - "Find the entrance the Jedi archives reference"
+        success_conditions: "Player reaches the ruin entrance"
+        fail_conditions: "Player is driven back by wildlife or lost without guide"
+      - stage_id: stage-star-map
+        objective: "Activate the Rakatan Star Map within the ruins"
+        objectives:
+          - "Navigate Rakatan environmental challenges inside the ruins"
+          - "Resolve the ancient test the Rakata left behind"
+          - "Record the partial navigational coordinates the Map contains"
+        success_conditions: "Player activates the Star Map and obtains its data"
+        on_exit_effects:
+          item_grant: item-star-map-fragment
+          reputation_change:
+            jedi_order: +25
+    path_consequences:
+      - path_id: light-side-approach
+        conditions: "Player completes ruins trial through compassion and wisdom"
+        effects:
+          faction_modifier:
+            jedi_order: +15
+      - path_id: dark-side-approach
+        conditions: "Player forces through the ruins trial through power"
+        effects:
+          faction_modifier:
+            jedi_order: -10
+            sith_empire: +5
+
+  - id: quest-korriban-trial
+    title: "The Sith Academy Trials"
+    description: >
+      The Korriban Sith Academy accepts students through trials designed to be fatal
+      for the weak. Overseer Uthar Wynn controls what 'weak' means. Inside the Academy
+      are dark side artifacts, ancient tombs, and students who will kill you for
+      a higher ranking. Also the most complete archive of Old Sith knowledge
+      outside the Star Forge itself.
+    entry_conditions:
+      location_required: loc-korriban-academy
+    stages:
+      - stage_id: stage-academy-entry
+        objective: "Gain entry to the Korriban Sith Academy"
+        objectives:
+          - "Demonstrate Force sensitivity convincingly enough for the Overseer's guards"
+          - "Navigate the Academy's political landscape on the first day"
+          - "Identify which students are allies, which are competitors, and which are both"
+        success_conditions: "Player is accepted as a trial candidate"
+        fail_conditions: "Player's deception is detected — immediate hostile response"
+        on_enter_effects:
+          npc_inject: npc-academy-overseer
+          alert_modifier: +2
+      - stage_id: stage-trial-completion
+        objective: "Complete one of the Overseer's assigned trials"
+        objectives:
+          - "Choose a trial from the Overseer's assignments"
+          - "Enter the relevant tomb in the Valley of the Dark Lords"
+          - "Return with proof of completion — and survival"
+        success_conditions: "Player completes the trial and returns with proof"
+        fail_conditions: "Player is trapped in the tomb or killed by its challenges"
+        branch_points:
+          - condition: "Player aligns with another student"
+            effect: "Shared trial — reduced difficulty, new complication"
+          - condition: "Player betrays assigned student"
+            effect: "Reputation boost with Overseer, permanent enemy created"
+      - stage_id: stage-archive-access
+        objective: "Access the restricted Academy archive before departing"
+        objectives:
+          - "Earn or steal Overseer clearance for the restricted archive level"
+          - "Locate the specific Sith record the player's purpose requires"
+          - "Exit the Academy with the information and without being identified as a spy"
+        success_conditions: "Player exits with archive data intact"
+        on_exit_effects:
+          reputation_change:
+            sith_empire: -20
+            jedi_order: +20
+    path_consequences:
+      - path_id: genuine-sith
+        conditions: "Player completes trials as a genuine Sith candidate"
+        effects:
+          faction_modifier:
+            sith_empire: +30
+            jedi_order: -30
+      - path_id: spy-extraction
+        conditions: "Player completes trials and extracts with Republic/Jedi intelligence"
+        effects:
+          faction_modifier:
+            jedi_order: +25
+            galactic_republic: +15
+
+  - id: quest-exchange-debt
+    title: "A Debt to the Exchange"
+    description: >
+      The Exchange doesn't forget. Someone you know — or someone you've become —
+      owes the Exchange something. The war has made them less patient about collecting.
+      Settling this requires either credits, service, or information about a Jedi
+      the Exchange is being paid to locate.
+    stages:
+      - stage_id: stage-initial-contact
+        objective: "Meet the Exchange representative about the outstanding obligation"
+        objectives:
+          - "Find the correct Exchange contact (they will find you first)"
+          - "Determine the full scope of what is owed"
+          - "Assess whether the Exchange's counter-offer is survivable"
+        success_conditions: "Player understands the debt and its payment options"
+        on_enter_effects:
+          npc_inject: npc-exchange-enforcer
+      - stage_id: stage-payment-choice
+        objective: "Choose a method to resolve the Exchange obligation"
+        objectives:
+          - "OPTION A: Pay the debt in credits (requires item-exchange-credit-chip or equivalent)"
+          - "OPTION B: Complete a job for the Exchange (locate a Jedi for their Sith client)"
+          - "OPTION C: Expose the Exchange contact's embezzlement to his superiors"
+        success_conditions: "Player commits to a resolution path"
+        branch_points:
+          - condition: "Player pays in credits"
+            effect: "Debt cleared — Exchange neutral, Jedi Order unaffected"
+          - condition: "Player accepts the job"
+            effect: "Quest branches to hunting a Force-sensitive for a dangerous client"
+          - condition: "Player exposes enforcer"
+            effect: "Enforcer eliminated, debt voided, new Exchange enemy created"
+      - stage_id: stage-resolution
+        objective: "Resolve the Exchange situation and its consequences"
+        objectives:
+          - "Complete the chosen resolution path without creating worse problems"
+          - "Ensure the Exchange contact cannot reopen the debt"
+          - "Deal with any collateral consequences of the choice"
+        success_conditions: "Exchange obligation closed — at a cost that varies by path"
+    path_consequences:
+      - path_id: paid-in-full
+        conditions: "Player pays the debt"
+        effects:
+          faction_modifier:
+            exchange: +10
+      - path_id: jedi-betrayal
+        conditions: "Player turns over the Force-sensitive to the Exchange's Sith client"
+        effects:
+          faction_modifier:
+            sith_empire: +20
+            jedi_order: -40
+            exchange: +15
+      - path_id: burned-the-contact
+        conditions: "Player exposes the enforcer's embezzlement"
+        effects:
+          faction_modifier:
+            exchange: -20
+
+  - id: quest-telos-reckoning
+    title: "What Malak Did to Telos"
+    description: >
+      Telos IV was a Republic world. Darth Malak bombarded it from orbit — not
+      because it was a military target, but because it was an example. The survivors
+      are everywhere: in cantinas, in the undercity, on ships that won't go back.
+      Something about what happened there is not being said in official reports.
+    stages:
+      - stage_id: stage-survivor-accounts
+        objective: "Gather survivor accounts of the Telos bombardment"
+        objectives:
+          - "Find Telos survivors willing to speak"
+          - "Identify discrepancies between official accounts and survivor testimony"
+          - "Locate the one survivor who was present in the command structure"
+        success_conditions: "Player has enough testimony to see the full picture"
+        on_enter_effects:
+          npc_inject: npc-refugee
+      - stage_id: stage-intelligence-trail
+        objective: "Follow the intelligence trail of what the Republic knew and when"
+        objectives:
+          - "Access Republic military records about Telos pre-bombardment"
+          - "Determine whether the evacuation warning was deliberately withheld"
+          - "Identify whose decision it was and why"
+        success_conditions: "Player discovers the truth about what the Republic knew"
+        fail_conditions: "Republic Intelligence identifies player as a leak risk"
+      - stage_id: stage-decision
+        objective: "Decide what to do with what you know"
+        objectives:
+          - "OPTION A: Bring the information to the Jedi Council"
+          - "OPTION B: Release it publicly through a journalist contact"
+          - "OPTION C: Use it as leverage against the responsible Republic official"
+          - "OPTION D: Bury it — some truths don't survive their telling"
+        success_conditions: "Player makes a choice and lives with it"
+    path_consequences:
+      - path_id: jedi-council
+        conditions: "Player reports to Jedi Council"
+        effects:
+          faction_modifier:
+            jedi_order: +20
+            galactic_republic: -10
+      - path_id: public-truth
+        conditions: "Player releases information publicly"
+        effects:
+          faction_modifier:
+            galactic_republic: -25
+            exchange: +10
+      - path_id: leverage
+        conditions: "Player uses information as blackmail"
+        effects:
+          faction_modifier:
+            galactic_republic: -15

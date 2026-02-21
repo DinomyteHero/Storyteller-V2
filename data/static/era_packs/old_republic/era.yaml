@@ -1,0 +1,288 @@
+# ============================================================
+# old_republic/era.yaml — Knights of the Old Republic Era Pack (V6.0 Minimal)
+# ============================================================
+# Set during the Jedi Civil War, approximately 3,956 BBY.
+# Darth Malak's Sith forces assault the Galactic Republic.
+# The Jedi Enclave on Dantooine trains the last defenders of the light.
+# The Star Forge churns out warships in the Unknown Regions.
+#
+# Files in this directory:
+#   era.yaml       — This manifest (setting rules, metadata, start pool)
+#   backgrounds.yaml — CYOA character backgrounds
+#   species.yaml   — Playable species + stat bonuses
+# ============================================================
+
+era_id: OLD_REPUBLIC
+schema_version: 3
+style_ref: data/style/rebellion_style.md  # nearest style; CampaignBibleAgent adapts tone
+
+# Minimal file index
+file_index:
+  era: era.yaml
+  backgrounds: backgrounds.yaml
+  species: species.yaml
+
+# Canonical starting location archetypes
+start_location_pool:
+  - loc-cantina
+  - loc-docking-bay
+  - loc-safe-house
+  - loc-marketplace
+  - loc-enclave
+  - loc-undercity
+
+metadata:
+  display_name: Knights of the Old Republic
+  time_period: 3,956 BBY (Legends)
+  calendar_note: >
+    Approximately 3,956 years before the Battle of Yavin.
+    The Jedi Civil War is at its height — Darth Malak's Sith armada
+    advances on Republic worlds while the Jedi Order reels from devastating losses.
+  summary: >
+    Four thousand years before the Galactic Empire, the Republic and the Jedi Order
+    face annihilation. Darth Revan's Sith Empire swept through the galaxy like a
+    supernova, forged by veterans of the Mandalorian Wars who saw the Republic's
+    weakness and decided to cure it with conquest. Revan fell — or was redeemed,
+    depending on who tells the story — but Darth Malak took the mantle and the Star
+    Forge: an ancient Rakatan superweapon manufacturing warships without end.
+    The Republic holds Coruscant, barely. The Jedi Enclave on Dantooine trains what
+    few padawans remain. Taris burns under Sith blockade. Korriban's Sith Academy
+    produces a new generation of dark side warriors. On Manaan, kolto keeps soldiers
+    alive long enough to die in the next battle. The Force itself seems to have chosen
+    a side — and nobody agrees which one. A single adventurer's choices may tip
+    the balance between Republic survival and Sith domination.
+  tone: >
+    Ancient myth and personal redemption; the weight of past lives; Force philosophy
+    and moral ambiguity; galaxy-spanning war felt through individual stories.
+  key_conflicts:
+    - "Sith Empire vs. Galactic Republic: industrial-scale war with the Star Forge as its engine."
+    - "Jedi Order vs. dark side corruption: the line between strength and fall blurs under war."
+    - "Mandalorian aftermath: warriors without a war, honor codes tested by defeat."
+    - "Exchange crime syndicate vs. everyone: exploiting the chaos on every blockaded world."
+    - "Ancient Rakatan technology: the Star Forge and its corrupting influence."
+  themes:
+    - Redemption and identity — can who you were define who you become?
+    - The cost of winning — did the Mandalorian Wars create the very enemy they feared?
+    - Light and dark as living forces, not moral abstractions.
+    - Survival in ruins — cities under siege, economies collapsed, refugees everywhere.
+
+# Legends timeline reference
+legends_timeline:
+  era_start: "3,976 BBY (Mandalorian Wars begin)"
+  era_end: "3,954 BBY (aftermath of the Jedi Civil War)"
+  key_events:
+    - "3,976–3,960 BBY: Mandalorian Wars — Republic nearly falls; Revan leads Jedi into battle"
+    - "3,960 BBY: Revan and Malak discover the Star Forge in the Unknown Regions"
+    - "3,959 BBY: Revan declared Sith Lord; Jedi Civil War begins"
+    - "3,957 BBY: Revan captured by the Jedi Council; memory wiped"
+    - "3,956 BBY: Darth Malak besieges Taris; Jedi Civil War reaches its climax"
+    - "3,956 BBY: Battle of Rakata Prime — Star Forge destroyed, Malak defeated"
+    - "3,955–3,951 BBY: The Jedi Purge; Sith Triumvirate hunts surviving Jedi"
+    - "3,951 BBY: KOTOR II — The Sith Lords; Meetra Surik and Kreia's confrontation"
+  galactic_state: >
+    The Galactic Republic holds Coruscant and core worlds, but Sith fleets press
+    from multiple directions. The Jedi Order has been devastated — hundreds died
+    in the Mandalorian Wars, more fell to Malak's purges. Dantooine's Enclave
+    is the last major Jedi training ground. The Exchange fills the power vacuum
+    on blockaded worlds. Czerka Corporation operates legally and illegally,
+    prioritising profit over allegiance. Mandalorian clans, broken after
+    Malachor V, seek purpose or vengeance in scattered warbands.
+  notable_locations:
+    - "Taris (city-planet, Sith blockade — upper city privilege, lower city danger, undercity lawlessness)"
+    - "Dantooine (Jedi Enclave, ancient ruins, peaceful farmland hiding great power)"
+    - "Korriban (Sith homeworld, Valley of the Dark Lords, Sith Academy)"
+    - "Manaan (neutral oceanic world, kolto trade, Selkath courts)"
+    - "Tatooine (Outer Rim desert, Sand People, Czerka mining camps)"
+    - "Kashyyyk (Wookiee homeworld, Shadowlands, Czerka slaving operations)"
+    - "Nar Shaddaa (Smuggler's Moon, Exchange stronghold, refugee crisis)"
+    - "Lehon / Rakata Prime (Unknown Regions, Star Forge, ancient Rakatan ruins)"
+    - "Coruscant (Republic capital, Jedi Temple, Senate)"
+  notable_figures:
+    - "Darth Malak (Dark Lord of the Sith, commands the Star Forge armada)"
+    - "Bastila Shan (Jedi Knight, Battle Meditation, captured on Taris)"
+    - "Carth Onasi (Republic soldier, survivor of Telos, determined to end the war)"
+    - "HK-47 (assassin droid, built by Revan, sarcastic and lethal)"
+    - "Canderous Ordo (Mandalorian warrior, Clan Ordo, pragmatic and proud)"
+    - "Mission Vao (young Twi'lek, Taris lower city survivor)"
+    - "Zaalbar (Wookiee, life-debt to Mission, Kashyyyk shadow)"
+    - "Jolee Bindo (Jedi exile, Kashyyyk Shadowlands, unconventional wisdom)"
+    - "Juhani (Cathar Jedi, fallen and redeemed, Dantooine)"
+    - "Darth Traya / Kreia (KOTOR II: Sith Lord, philosopher, mentor figure)"
+    - "Meetra Surik / The Exile (KOTOR II: severed from the Force, returns from exile)"
+
+# Canon character proximity zones
+canon_characters:
+  - name: "Bastila Shan"
+    proximity: extended
+    locations: [loc-cantina, loc-docking-bay, loc-enclave, loc-safe-house]
+    exclusion_events:
+      - "Star Forge final confrontation"
+      - "Bastila's fall to the dark side"
+    role: "Jedi Knight, Battle Meditation specialist"
+    archetype: "Proud prodigy wrestling with her own darkness"
+    voice_tags: ["formal", "earnest", "guarded", "proud"]
+    traits: ["disciplined", "brave", "conflicted"]
+    motivation: "Serve the Republic and Jedi Order; suppress the fear that she is not worthy"
+    faction_id: "jedi_order"
+    knowledge_boundary: "3,956 BBY (Jedi Civil War)"
+    knowledge_exclusions:
+      - "Does NOT know the player is Revan (until the revelation)"
+      - "Does NOT know the full depth of Revan's influence on her through the Force bond"
+    voice:
+      belief: "The Jedi Code exists for a reason. Without it, we are no better than the Sith."
+      wound: "She saved Revan by capturing rather than killing — and the Council used it against both of them."
+      rhetorical_style: "Formal diction, lectures when nervous. Softens when genuinely touched."
+      tell: "Crosses her arms when uncomfortable. Straightens her robe when regaining composure."
+      taboo: "Any suggestion that the Jedi Code is wrong — she argues too hard because she suspects it."
+    scene_hooks:
+      - "Tactical debate — sharp military mind, genuine respect for competence"
+      - "Force philosophy — can be drawn into real conversation under the doctrine"
+      - "Personal vulnerability — the Force bond creates unexpected honesty"
+      - "Combat — Battle Meditation makes her indispensable, and she knows it"
+    off_limits:
+      - "Cannot be permanently turned to the dark side before the Star Forge"
+      - "Cannot be killed"
+      - "Cannot reveal Revan's identity before the canonical moment"
+    character_voice_id: "bastila-shan"
+
+  - name: "Darth Malak"
+    proximity: cameo
+    locations: [loc-imperial-outpost, loc-docking-bay]
+    exclusion_events:
+      - "Rakata Prime final duel"
+    role: "Dark Lord of the Sith, Supreme Commander of the Sith armada"
+    archetype: "Fallen hero consumed by power"
+    voice_tags: ["cold", "commanding", "contemptuous"]
+    traits: ["ruthless", "powerful", "haunted"]
+    motivation: "Destroy the Republic and forge a Sith Empire — and prove he has surpassed his master"
+    faction_id: "sith_empire"
+    knowledge_boundary: "3,956 BBY"
+    knowledge_exclusions:
+      - "Does NOT know the player's true identity until the moment of revelation"
+    voice:
+      belief: "Strength is the only truth. Compassion is a lie the weak tell themselves."
+      wound: "He was once Alek, Revan's most loyal friend. He destroyed that person willingly — or thought he did."
+      rhetorical_style: "Short, contemptuous statements. Uses silence as a weapon."
+      tell: "The jaw prosthetic amplifies every word. He never raises his voice."
+      taboo: "Revan — any mention brings cold fury or rare, dangerous vulnerability."
+    scene_hooks:
+      - "Intimidation — overwhelming Force presence, expects submission"
+      - "Confrontation — tests the player's strength, not to destroy but to measure"
+    off_limits:
+      - "Cannot be killed before Rakata Prime"
+      - "Cannot be redeemed"
+    character_voice_id: "darth-malak"
+
+  - name: "Canderous Ordo"
+    proximity: extended
+    locations: [loc-cantina, loc-docking-bay, loc-marketplace]
+    exclusion_events: []
+    role: "Mandalorian warrior, mercenary"
+    archetype: "Warrior without a war"
+    voice_tags: ["blunt", "pragmatic", "proud", "dry-humored"]
+    traits: ["honorable", "deadly", "loyal"]
+    motivation: "Reclaim Mandalorian honor; find an opponent worth fighting"
+    faction_id: "mandalorian_clans"
+    knowledge_boundary: "3,956 BBY"
+    knowledge_exclusions: []
+    voice:
+      belief: "Battle is the only honest thing. Everything else is politics."
+      wound: "Malachor V. The Mandalorians broke there. He won't speak of why."
+      rhetorical_style: "War stories and blunt assessments. Respects competence above all."
+      tell: "Goes quiet when he respects someone. Talks when he doesn't."
+      taboo: "Mandalore the Ultimate — the defeat is personal."
+    scene_hooks:
+      - "Battle tactics — expert strategist who loves to plan violence"
+      - "Honor code — will push back hard against dishonorable choices"
+      - "Mandalorian history — willing to share if the player has earned it"
+    off_limits:
+      - "Cannot be killed"
+      - "Cannot betray the player once allied"
+    character_voice_id: "canderous-ordo"
+
+# Setting rules for agent prompts
+setting_rules:
+  setting_name: "Star Wars Legends — Knights of the Old Republic"
+  setting_genre: "science fantasy / space opera RPG"
+  biographer_role: "a biographer for a Star Wars KOTOR narrative RPG set in the Old Republic era"
+  architect_role: "the World Architect for a Star Wars KOTOR narrative RPG"
+  director_role: >
+    the Director for an interactive Knights of the Old Republic story engine.
+    Use Old Republic-era language: kolto (not bacta), Jedi Enclave (not Temple).
+    The Sith are a militarized empire with fleets and academies — not a shadowy cult.
+    The Jedi are stretched thin and morally uncertain. The galaxy is ancient and strange;
+    ruins thousands of years old are commonplace.
+  suggestion_style: "a Star Wars KOTOR-style game with Force philosophy and moral alignment choices"
+  common_species: ["Human", "Twi'lek", "Rodian", "Wookiee", "Zabrak", "Cathar", "Selkath", "Chiss", "Miraluka"]
+  example_factions:
+    - "Galactic Republic (Senate, military, Jedi-allied)"
+    - "Jedi Order (Dantooine Enclave)"
+    - "Sith Empire (Darth Malak's forces, Star Forge armada)"
+    - "Exchange (crime syndicate)"
+    - "Mandalorian Clans (scattered warriors, post-Malachor V)"
+    - "Czerka Corporation (corporate exploitation, legally grey)"
+  historical_lore_label: "established Star Wars Legends / KOTOR lore"
+  bypass_methods: ["force", "force_dark", "sith_amulet", "mandalorian_rage"]
+  fallback_background: "A traveler in the age of the Jedi Civil War."
+
+# Atmospheric prose fragments injected by NarratorPrompt for scene-setting.
+atmosphere_fragments:
+  opening: >
+    The air here smelled of ozone and old stone — the particular scent of a galaxy
+    at war with itself, four thousand years deep in a conflict no single person started
+    and no single battle would end.
+  ambient: >
+    Somewhere above, a Sith blockade patrol swept its searchlights across the night sky.
+    You had learned not to look up when they passed.
+  tension: >
+    The Force tightened around the moment like a hand closing around a blade.
+    Whatever happened next would matter in ways that couldn't be undone.
+  calm: >
+    For a breath, the Jedi Civil War seemed impossibly far away — just a name in
+    dispatches, a rumor in another city, someone else's catastrophe.
+  hook: >
+    The past was never far from the surface in the Old Republic. It was always just
+    beneath your boots, waiting to be unearthed by the wrong question
+    or the right stranger.
+
+# Background figures keyed by location tag — non-interactable scene atmosphere.
+background_figures:
+  cantina:
+    - "a Duros in a battered flight jacket nursing something amber and watching the door"
+    - "two Republic soldiers arguing over dejarik, voices low, eyes careful"
+    - "a Twi'lek dancer moving through the smoke, expression professionally absent"
+    - "a hooded figure in the corner booth who hasn't touched their drink"
+    - "a Rodian merchant tallying inventory on a datapad, oblivious to everything"
+  marketplace:
+    - "Czerka vendors calling out prices with the specific energy of people who are paid on commission"
+    - "a Republic patrol moving through the crowd, armor newly scratched, faces newly tired"
+    - "a street child weaving between stalls with practiced invisibility"
+    - "an elderly Ithorian examining produce with methodical suspicion"
+    - "a pair of off-worlders arguing over a translation droid's error"
+  spaceport:
+    - "a fuel technician running line checks with the glazed expression of the third shift"
+    - "a customs officer interrogating a freighter captain about a suspiciously light manifest"
+    - "maintenance droids trundling past in a line, beeping to each other"
+    - "a Republic dispatcher barking departure codes into a comm that keeps cutting out"
+  hangar:
+    - "a mechanic buried to the elbow in a starfighter's ventral housing"
+    - "a loadlifter droid stacking crates with no regard for anyone's feet"
+    - "a pilot running pre-flight checks, lips moving silently through the checklist"
+  underworld:
+    - "a scarred enforcer using the wall as a chair and the silence as a statement"
+    - "a slicer hunched over a cracked datapad, fingers moving too fast to follow"
+    - "a Gamorrean bodyguard rotating one thick shoulder, bored and ready"
+    - "a masked courier making an exchange in a doorway, both parties pretending to look elsewhere"
+  enclave:
+    - "Padawans practicing lightsaber forms in the courtyard, counting breaths between strikes"
+    - "a Jedi Master seated in meditation, expression suggesting they are somewhere else entirely"
+    - "a protocol droid cataloguing recovered artifacts with fastidious care"
+    - "Jedi Initiates walking in pairs, deep in earnest, whispered debate"
+  ruins:
+    - "crumbling pillars carved with glyphs in a language older than the Republic"
+    - "a vine-covered archway that once led somewhere important"
+    - "scattered debris suggesting a hasty departure that happened centuries ago"
+  default:
+    - "a few locals moving through their routines, eyes downcast in the way of people in a war"
+    - "a maintenance droid trundling a slow patrol, light blinking amber"
+    - "a figure in a doorway who stops watching you just a moment too late"

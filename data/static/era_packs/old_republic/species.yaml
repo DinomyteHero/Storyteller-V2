@@ -1,0 +1,169 @@
+# old_republic/species.yaml — Playable species for the Knights of the Old Republic era.
+# 3,956 BBY — Jedi Civil War period.
+
+species:
+
+  - id: species-human
+    name: Human
+    description: >
+      The most numerous species in the galaxy, four thousand years before the Empire.
+      Humans fill every role from Jedi Master to Sith Lord to dockworker — their
+      adaptability is both their greatest strength and the reason no one faction can
+      claim them. In the age of the Jedi Civil War, a human face draws no special
+      attention, which is often precisely what you need.
+    cultural_notes: >
+      No cultural bias — humans are found in every faction from Republic Senate to
+      Sith Academy to Exchange crime networks. The Jedi Order draws proportionally
+      more humans than any other species simply due to numbers.
+    common_homeworlds: [Coruscant, Corellia, Alderaan, Deralia, Telos IV]
+    typical_traits: [Adaptable, Ambitious, Determined]
+    stat_bonus:
+      General: 1
+    narrative_hooks:
+      - "Your unremarkable face is a survival tool. You look like everyone and no one."
+      - "Humans built the Republic. Humans broke it into the Jedi Civil War. That history is yours to carry."
+
+  - id: species-twilek
+    name: "Twi'lek"
+    description: >
+      Lekku-bearing beings from Ryloth whose history is defined by exploitation —
+      the Hutt slave trade has turned their people into a commodity across the galaxy.
+      In the Old Republic era, a Twi'lek navigates a galaxy that sees them as
+      property before person, which makes every success harder-won and every
+      relationship more fraught with history.
+    cultural_notes: >
+      Twi'leks communicate subtle nuance through lekku motion alongside spoken word.
+      Deep resentment of the Exchange's slave networks runs through most Twi'lek communities.
+      Mission Vao of Taris is a notable example of Twi'lek resilience.
+    common_homeworlds: [Ryloth, Nar Shaddaa]
+    typical_traits: [Perceptive, Charismatic, Resilient]
+    stat_bonus:
+      Charisma: 1
+      Stealth: 1
+    narrative_hooks:
+      - "You have learned to read a room faster than most people read a word. You had to."
+      - "Freedom means something different when you know its absence from the inside."
+
+  - id: species-wookiee
+    name: Wookiee
+    description: >
+      Towering beings from Kashyyyk whose homeworld is currently under the heel of
+      Czerka Corporation's slaving operations. A Wookiee in the Old Republic era
+      carries the weight of their people's subjugation and a lifespan that stretches
+      across centuries of history. They are terrifying in battle and unbreakable in loyalty —
+      the life-debt is not a metaphor.
+    cultural_notes: >
+      The life-debt (honored obligation to one who saved your life) is sacred and binding.
+      Czerka Corporation's presence on Kashyyyk has made many Wookiees refugees or slaves.
+      Zaalbar of Kashyyyk is a canonical example.
+    common_homeworlds: [Kashyyyk]
+    typical_traits: [Loyal, Ferocious, Enduring]
+    stat_bonus:
+      Combat: 2
+    narrative_hooks:
+      - "The Czerka slavers took someone from you. You remember every face."
+      - "A life-debt is a living thing. It demands to be honored, even when honoring it is costly."
+
+  - id: species-zabrak
+    name: Zabrak
+    description: >
+      Horned near-humans with an iron will and a cultural devotion to self-determination.
+      In the era of the Jedi Civil War, Zabraks appear on both sides — some serve the
+      Republic military, others the Sith Academy, and many more the Exchange's criminal
+      networks. Their facial tattoos mark clan and achievement; their refusal to yield
+      marks character.
+    cultural_notes: >
+      Zabrak tattoos record clan affiliation and life milestones.
+      The concept of surrender does not translate well from Zabraki.
+      Darth Maul, a Dathomiri Zabrak, exists elsewhere in history — the Old Republic
+      Zabraks predate his particular darkness by four thousand years.
+    common_homeworlds: [Iridonia, Dathomir]
+    typical_traits: [Determined, Independent, Fierce]
+    stat_bonus:
+      Combat: 1
+      General: 1
+    narrative_hooks:
+      - "The marks on your face tell a story. Very few people in this era have earned the right to hear it."
+      - "You have never learned how to stop. That has saved your life. It has also cost you things."
+
+  - id: species-cathar
+    name: Cathar
+    description: >
+      Feline humanoids from Cathar whose homeworld was virtually annihilated by the
+      Mandalorians in the wars preceding the Jedi Civil War. Cathar survivors carry
+      that genocide with them always — it is part of why many joined Revan's crusade
+      against the Mandalorians, and part of why Malachor V cut so deep.
+      Juhani, a Jedi Knight on Dantooine, is one of the most prominent Cathar of this era.
+    cultural_notes: >
+      Cathar honor their fallen through continued survival and resistance.
+      The Mandalorian massacre of Cathar is within living memory for many.
+      They tend toward passionate intensity rather than cold calculation.
+    common_homeworlds: [Cathar]
+    typical_traits: [Passionate, Fierce, Loyal]
+    stat_bonus:
+      Combat: 1
+      Stealth: 1
+    narrative_hooks:
+      - "Your people were nearly erased by the Mandalorians. The war is not abstract to you."
+      - "You carry a ferocity that the Jedi Order calls a challenge and enemies call a mistake."
+
+  - id: species-miraluka
+    name: Miraluka
+    description: >
+      Near-humans who lack conventional eyes entirely, perceiving the galaxy solely
+      through the Force. All Miraluka are Force-sensitive by birth — their entire
+      culture is built around this relationship with the living Force. In the Old
+      Republic era they are rare travelers, often mistaken for eccentric humans
+      until their true sight is revealed.
+    cultural_notes: >
+      Miraluka wear visors or blindfolds in public to avoid disturbing others.
+      Their Force-sight is not like trained Jedi perception — it is involuntary,
+      constant, and deeply tied to emotional states of those nearby.
+      Visas Marr (KOTOR II) is a prominent Miraluka.
+    common_homeworlds: [Alpheridies, Katarr]
+    typical_traits: [Perceptive, Thoughtful, Haunted]
+    stat_bonus:
+      General: 2
+    narrative_hooks:
+      - "You see everyone's Force signature before their face. You know things about people they don't know about themselves."
+      - "The war has made the Force loud and ugly. Every battlefield you pass near leaves an echo you cannot silence."
+
+  - id: species-selkath
+    name: Selkath
+    description: >
+      Amphibious beings native to Manaan — the sole source of kolto in the galaxy.
+      The Selkath use their planet's monopoly on the galaxy's primary healing substance
+      as a shield of neutrality, refusing to formally side with either the Republic or
+      the Sith. A Selkath adventurer is rare and unusual: their people prefer their
+      courts and their ocean cities. Those who leave carry their planet's politics everywhere they go.
+    cultural_notes: >
+      Selkath law is labyrinthine and treats off-worlders with formal suspicion.
+      Manaan's neutrality is a point of fierce cultural pride and practical survival.
+      The Hrakert Rift kolto harvesting operations are the economic heart of their world.
+    common_homeworlds: [Manaan]
+    typical_traits: [Analytical, Formal, Proud]
+    stat_bonus:
+      Tech: 1
+      Charisma: 1
+    narrative_hooks:
+      - "Every faction wants Manaan's kolto. Being Selkath means everyone is always trying to use you."
+      - "You left Manaan. Your people consider that borderline treasonous. You have not told them why yet."
+
+  - id: species-rodian
+    name: Rodian
+    description: >
+      Green-skinned hunters from Rodia whose culture centers on the pursuit and the kill.
+      In the Old Republic era Rodians serve as bounty hunters, mercenaries, and assassins
+      across the Exchange's crime networks. Their reputation as lethal professionals
+      opens certain doors — and marks them as threats in others.
+    cultural_notes: >
+      Hunting mastery determines social rank. Clan obligations are paramount.
+      Rodian mercenaries are common on Taris and Nar Shaddaa during the Jedi Civil War.
+    common_homeworlds: [Rodia]
+    typical_traits: [Precise, Tenacious, Clan-loyal]
+    stat_bonus:
+      Combat: 1
+      Stealth: 1
+    narrative_hooks:
+      - "You track what matters. You do not let go."
+      - "The war has flooded the market with soldiers. A hunter who is precise and patient is still rare."
