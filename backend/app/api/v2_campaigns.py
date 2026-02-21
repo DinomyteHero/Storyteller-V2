@@ -11,6 +11,7 @@ import hashlib
 import json
 import logging
 import random
+import sqlite3
 import time
 import uuid
 from typing import Any
@@ -145,12 +146,12 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         apply_quick_start_defaults(body)
         try:
             _bible = CampaignBibleAgent(llm=AgentLLM("bible"))
-        except Exception as e:
+        except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
             logger.warning("Failed to initialize CampaignBibleAgent with LLM, using fallback: %s", e, exc_info=True)
             _bible = CampaignBibleAgent(llm=None)
         try:
             _bio = BiographerAgent(llm=AgentLLM("biographer"))
-        except Exception as e:
+        except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
             logger.warning("Failed to initialize BiographerAgent with LLM, using fallback: %s", e, exc_info=True)
             _bio = BiographerAgent(llm=None)
 
@@ -202,7 +203,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                 _era_forge_llm: AgentLLM | None = None
                 try:
                     _era_forge_llm = AgentLLM("era_forge")
-                except Exception:
+                except (ConnectionError, TimeoutError, OSError, RuntimeError):
                     logger.debug("EraForge LLM init failed, using None", exc_info=True)
                 _forge_agent = EraForgeAgent(llm=_era_forge_llm)
 
@@ -247,7 +248,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                         update={"canon_characters": _refined_rules}
                     )
                     logger.info("Canon character refinement applied: %d characters.", len(_refined_rules))
-            except Exception as _refine_err:
+            except (ConnectionError, TimeoutError, OSError, RuntimeError, ValueError, TypeError) as _refine_err:
                 logger.warning("Canon character refinement failed (non-fatal): %s", _refine_err)
 
         era_metadata = (
@@ -264,7 +265,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                     selected_legacy = json.loads(leg_row["legacy_json"] or "{}")
                     if not body.saga_id and leg_row["saga_id"]:
                         body.saga_id = str(leg_row["saga_id"])
-            except Exception as _legacy_load_err:
+            except (sqlite3.OperationalError, json.JSONDecodeError, TypeError, ValueError) as _legacy_load_err:
                 logger.debug("Legacy preload failed (non-fatal): %s", _legacy_load_err)
         bible_dict = _bible.build(
             player_concept=body.player_concept or "",
@@ -356,7 +357,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                 if auto_genre:
                     world_state["genre"] = auto_genre
                     logger.info("Auto-assigned genre '%s' from background=%s, location_tags=%s", auto_genre, body.background_id, loc_tags)
-            except Exception as _genre_err:
+            except (ImportError, KeyError, TypeError, ValueError) as _genre_err:
                 logger.debug("Genre auto-assignment failed (non-fatal): %s", _genre_err)
 
         if body.player_profile_id:
@@ -395,7 +396,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                             if legacy_pitch:
                                 world_state["legacy_campaign_pitch"] = legacy_pitch
                                 logger.info("Injected legacy campaign pitch for architect context")
-            except Exception as _legacy_err:
+            except (sqlite3.OperationalError, json.JSONDecodeError, TypeError, ValueError) as _legacy_err:
                 logger.debug("Legacy faction seeding failed (non-fatal): %s", _legacy_err)
 
         npc_cast = bible_dict.get("npc_cast") or []
@@ -459,7 +460,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                 len(world_state["generated_npcs"]),
                 len(world_state["generated_quests"]),
             )
-        except Exception as _world_err:
+        except (ConnectionError, TimeoutError, OSError, RuntimeError, ValueError, TypeError) as _world_err:
             logger.warning("Campaign world generation failed (non-fatal): %s", _world_err)
             world_state["generated_locations"] = []
             world_state["generated_npcs"] = []
@@ -480,7 +481,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
             world_state["career_file"] = initialize_career_file(
                 time_period or body.time_period or "unknown"
             )
-        except Exception as _cf_err:
+        except (ImportError, KeyError, TypeError, ValueError) as _cf_err:
             logger.warning("Career file initialization failed (non-fatal): %s", _cf_err)
 
         try:
@@ -499,7 +500,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                 arc_seed["opening_crawl"] = _arc_screenplay["opening_crawl"]
                 arc_seed["climax_question"] = _arc_screenplay.get("climax_question", "")
                 world_state["arc_seed"] = arc_seed
-        except Exception as _arc_err:
+        except (ConnectionError, TimeoutError, OSError, RuntimeError, ValueError, TypeError) as _arc_err:
             logger.warning("ArcScreenplayAgent failed (non-fatal): %s", _arc_err)
 
         try:
@@ -516,7 +517,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
             )
             world_state = initialize_prologue(world_state, _prologue_screenplay)
             logger.info("PrologueScreenplay generated: title=%r, tone=%s", _prologue_screenplay.get("prologue_title"), _prologue_screenplay.get("tone"))
-        except Exception as _prologue_err:
+        except (ConnectionError, TimeoutError, OSError, RuntimeError, ValueError, TypeError) as _prologue_err:
             logger.warning("PrologueScreenplayAgent failed (non-fatal): %s", _prologue_err)
 
         canonical_key_events: list[str] = []
@@ -547,7 +548,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
                     "UPDATE sagas SET updated_at = datetime('now') WHERE id = ?",
                     (saga_id,),
                 )
-            except Exception as _saga_link_err:
+            except sqlite3.OperationalError as _saga_link_err:
                 logger.debug("Saga linkage failed (non-fatal): %s", _saga_link_err)
         background = character_sheet.get("background") or ""
 
@@ -606,7 +607,7 @@ def setup_auto(body: SetupAutoRequest) -> dict[str, Any]:
         )
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # Intentional broad catch: unknown failure modes in setup pipeline
         log_error_with_context(
             error=e, node_name="setup", campaign_id=None, turn_number=None,
             agent_name="setup_auto",

@@ -246,7 +246,7 @@ def _start_ingestion_worker(
             conn.commit()
             logger.info("Library: ingestion job %s complete — %d chunks", job_id, chunk_count)
 
-        except Exception as e:
+        except Exception as e:  # Intentional broad catch: worker thread error boundary
             logger.error("Library: ingestion job %s failed: %s", job_id, e)
             try:
                 conn.execute(
@@ -255,7 +255,7 @@ def _start_ingestion_worker(
                     (str(e)[:500], job_id),
                 )
                 conn.commit()
-            except Exception:
+            except sqlite3.OperationalError:
                 pass
         finally:
             conn.close()
@@ -379,7 +379,7 @@ def delete_source(
         db_dir = resolve_vectordb_path()
         store = LanceStore(str(db_dir))
         deleted_chunks = store.delete_by_filter(source=row["name"])
-    except Exception as e:
+    except (ImportError, FileNotFoundError, RuntimeError, OSError) as e:
         logger.warning("Failed to delete LanceDB chunks for source %s: %s", source_id, e)
 
     # Mark as deleted

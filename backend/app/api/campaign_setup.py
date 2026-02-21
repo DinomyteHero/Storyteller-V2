@@ -327,7 +327,7 @@ def _generate_arc_seed(
             "climax_question": climax_question,
             "arc_intent": arc_intent,
         }
-    except Exception:
+    except (ConnectionError, TimeoutError, OSError, RuntimeError, json.JSONDecodeError, ValueError):
         logger.exception("setup_auto arc seed generation failed; using deterministic fallback")
         return fallback
 

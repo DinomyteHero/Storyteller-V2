@@ -157,27 +157,34 @@ python scripts/validate_era_packs.py your_era
 
 See [QUICKSTART.md](QUICKSTART.md) for full step-by-step instructions.
 
-**One-command start (cross-platform):**
+**Prerequisites:** Python 3.11+, Node.js + npm, [Ollama](https://ollama.ai) installed.
+
+**Clean-machine install (cross-platform):**
 
 ```bash
+# 1. Clone and install Python dependencies
+git clone <repo-url> && cd Storyteller-V2
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e .
-python -m storyteller setup
-python run_app.py --dev
-```
 
-**Windows:**
-
-```bat
-.\start_app.bat
-```
-
-**Required Ollama models:**
-
-```bash
+# 2. Pull required Ollama models
 ollama pull mistral-nemo      # Director + Narrator (quality-critical)
 ollama pull qwen3:8b          # ChoiceCrafter + Mechanic + CompanionSystem + WorldMind + QuestWeaver + Memory + more
 ollama pull qwen3:4b          # Architect + Biographer + KG Extraction + Continuity + lightweight roles
 ollama pull nomic-embed-text  # Embeddings (RAG)
+
+# 3. Run first-time setup + start
+python -m storyteller setup
+python run_app.py --dev
+```
+
+> `run_app.py` automatically runs `npm install` if `frontend/node_modules` is missing, then starts both the backend (port 8000) and frontend (port 5173).
+
+**Windows shortcut:**
+
+```bat
+.\start_app.bat
 ```
 
 ---
@@ -230,11 +237,20 @@ python -m pytest backend/tests -q
 # Ingestion + CLI tests
 python -m pytest tests -q
 
-# Deterministic smoke test
+# Release-gate tests (all narrative quality + deterministic harness)
+python scripts/run_deterministic_tests.py --release-gate
+
+# Or run release-gate tests via pytest marker
+python -m pytest -m release_gate -v
+
+# Deterministic harness only
 python scripts/run_deterministic_tests.py
 
 # Lightweight API smoke test
 python scripts/smoke_test.py
+
+# Frontend E2E tests (requires backend + Ollama running)
+cd frontend && npm run test:e2e
 
 # Health check (runtime)
 curl http://localhost:8000/health/detail

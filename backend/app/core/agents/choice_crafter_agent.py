@@ -4,7 +4,9 @@ Replaces the deterministic suggestion_engine.py (~1100 lines of hardcoded scenar
 trees) with a single authoritative LLM agent that generates contextually-aware,
 narratively-rich player choices.
 
-No deterministic fallbacks. If the LLM fails, the exception propagates to the caller.
+On LLM failure the exception propagates to the caller (choice_crafter_node),
+which catches it and falls back to _make_fallback_choices() — a deterministic
+4-choice degraded path that preserves the dialogue wheel contract.
 
 V5.0: Setting-agnostic. Uses {setting_style} placeholder from SettingRules.
 """

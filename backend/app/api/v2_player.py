@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import logging
+import sqlite3
 import uuid
 from typing import Any
 
@@ -290,7 +291,7 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest) -> dict[s
             )
             if raw and isinstance(raw, str) and len(raw.strip()) > 10:
                 next_campaign_pitch = raw.strip()[:500]
-        except Exception as _pitch_err:
+        except (ConnectionError, TimeoutError, OSError, RuntimeError, ValueError) as _pitch_err:
             logger.warning("Next campaign pitch generation failed (non-fatal): %s", _pitch_err)
 
         if not next_campaign_pitch:
@@ -330,7 +331,7 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest) -> dict[s
             ).fetchone()
             if p_row and p_row["name"]:
                 character_name = str(p_row["name"])
-        except Exception:
+        except (sqlite3.OperationalError, KeyError, TypeError):
             logger.debug("Character name lookup failed (non-fatal)", exc_info=True)
 
         character_legacy_doc: dict[str, Any] = {}
@@ -355,7 +356,7 @@ def complete_campaign(campaign_id: str, body: CompleteCampaignRequest) -> dict[s
                 (profile_id, campaign_id, saga_id, json.dumps(character_legacy_doc), now_str),
             )
             character_legacy_id = int(getattr(_ins, "lastrowid", 0) or 0) or None
-        except Exception as _char_legacy_err:
+        except (ConnectionError, TimeoutError, OSError, RuntimeError, ValueError, TypeError) as _char_legacy_err:
             logger.warning("Character legacy generation failed (non-fatal): %s", _char_legacy_err)
         conn.commit()
         return {
@@ -412,7 +413,7 @@ def era_transition(campaign_id: str, body: EraTransitionRequest) -> dict[str, An
         if player_id:
             try:
                 player = load_player_by_id(conn, campaign_id, player_id) or {}
-            except Exception:
+            except (sqlite3.OperationalError, KeyError, TypeError):
                 logger.debug("Player load failed for era transition (non-fatal)", exc_info=True)
 
         arc_consequences = capture_consequences(ws, player, [], [])
@@ -422,7 +423,7 @@ def era_transition(campaign_id: str, body: EraTransitionRequest) -> dict[str, An
             era_pack = CONTENT_REPOSITORY.get_era_pack(to_era.lower())
             if era_pack and era_pack.locations:
                 available_locations = [loc.id for loc in era_pack.locations]
-        except Exception:
+        except (FileNotFoundError, KeyError, TypeError, ValueError):
             logger.debug("Era pack location lookup failed (non-fatal)", exc_info=True)
 
         transition_bridge = ""
@@ -430,7 +431,7 @@ def era_transition(campaign_id: str, body: EraTransitionRequest) -> dict[str, An
             transition_bridge = ADJACENT_TRANSITIONS.get(
                 (current_era.upper(), to_era.upper()), ""
             ) or f"The galaxy shifts from {current_era} to {to_era}."
-        except Exception:
+        except (KeyError, TypeError, ValueError):
             logger.debug("Transition bridge lookup failed (non-fatal)", exc_info=True)
 
         setting_rules = None
@@ -438,7 +439,7 @@ def era_transition(campaign_id: str, body: EraTransitionRequest) -> dict[str, An
             era_pack_obj = CONTENT_REPOSITORY.get_era_pack(to_era.lower())
             if era_pack_obj:
                 setting_rules = era_pack_obj.setting_rules
-        except Exception:
+        except (FileNotFoundError, KeyError, TypeError, ValueError):
             logger.debug("Setting rules lookup failed (non-fatal)", exc_info=True)
 
         agent = EraTransitionSceneAgent()
@@ -506,7 +507,7 @@ def complete_prologue(campaign_id: str, body: CompletePrologueRequest | None = N
         if player_id:
             try:
                 player = load_player_by_id(conn, campaign_id, player_id) or {}
-            except Exception:
+            except (sqlite3.OperationalError, KeyError, TypeError):
                 logger.debug("Player load failed for prologue completion (non-fatal)", exc_info=True)
 
         origin_context = build_origin_context_manifest(ws, player)
@@ -563,7 +564,7 @@ def get_campaign_codex(campaign_id: str) -> dict[str, Any]:
                 era_pack = CONTENT_REPOSITORY.get_pack(era_id)
                 if era_pack:
                     total_available = len(era_pack.codex or [])
-            except Exception:
+            except (FileNotFoundError, KeyError, TypeError, ValueError):
                 logger.debug("Codex era pack lookup failed (non-fatal)", exc_info=True)
 
         unlocked = get_unlocked_codex_entries(ws, era_pack)

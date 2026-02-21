@@ -26,6 +26,8 @@ export interface HealthDetailResponse {
       message?: string;
       error?: string;
       models_loaded?: number;
+      required_models?: string[];
+      missing_required_models?: string[];
     };
     [key: string]: unknown;
   };

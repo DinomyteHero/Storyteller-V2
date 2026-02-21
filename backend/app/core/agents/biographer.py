@@ -12,8 +12,11 @@ from shared.schemas import CharacterSheetOutput
 logger = logging.getLogger(__name__)
 
 
-# Deterministic concept-to-location mapping for fallback and validation.
-# Used when SettingRules.concept_location_map is empty (default SW setup).
+# Legacy concept-to-location mapping used as a fallback when the active era pack
+# does not provide its own SettingRules.concept_location_map.  The Star Wars
+# keywords below are inert for non-SW settings (they simply won't match) and
+# the generic keywords (smuggler, pilot, soldier, etc.) work across any setting.
+# Era packs should supply their own map via SettingRules for full accuracy.
 _CONCEPT_LOCATION_MAP: dict[str, list[str]] = {
     "smuggler": ["docking-bay", "spaceport", "cantina"],
     "pilot": ["hangar", "spaceport", "docking-bay"],

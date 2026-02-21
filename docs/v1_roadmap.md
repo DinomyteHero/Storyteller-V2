@@ -1,8 +1,8 @@
 # Storyteller V1.0 Roadmap — Remaining Work
 
-Last updated: V11.0 codebase audit.
+Last updated: V11.0 pre-release hardening pass (post-`6e2abcb`).
 
-Items from the original roadmap that have been completed are removed. This document tracks only remaining work.
+Items from the original roadmap that have been completed are removed. This document tracks only remaining work. Section 4 (Launch Readiness Audit) contains the authoritative must-fix list; sections 1–3 cover polish, cleanup, and packaging that are distinct from launch-gate items.
 
 ---
 
@@ -12,13 +12,13 @@ Items from the original roadmap that have been completed are removed. This docum
 
 | # | Issue | File(s) | Effort |
 |---|-------|---------|--------|
-| 1 | **13+ generic `except Exception` blocks** in API file — swallow errors, break observability | `api/v2_campaigns.py` | Medium |
+| 1 | ~~**37 generic `except Exception` blocks**~~ **DONE** — All 37 blocks narrowed to specific exception types or annotated with `# Intentional broad catch:` comments. 6 intentional broad catches remain (SSE error boundary, worker thread, debug endpoint, pipeline reraise). | `api/v2_campaigns.py`, `v2_turn.py`, `v2_player.py`, `v2_library.py`, `v2_content.py`, `v2_eraforge.py`, `campaign_setup.py` | ~~High~~ Done |
 
 ### 1.2 Polish (Should Fix)
 
 | # | Issue | File(s) | Effort |
 |---|-------|---------|--------|
-| 1 | **Prologue page is static** — should be playable turns, not a read-only briefing. Current `/prologue` shows screenplay data but the player just reads and clicks "Begin." Wire `OpeningCrawl` into the prologue-to-play transition. | `prologue/+page.svelte` | Medium |
+| 1 | **Prologue is cinematic-only, not playable** — `/prologue` has an interactive crawl sequence with skip and phase transitions, but no player agency (no choices, no turns). Consider wiring playable prologue turns or interactive moments into the crawl-to-play transition so the player's first experience is participatory, not passive. | `prologue/+page.svelte` | Medium |
 | 2 | **Ollama status not visible in gameplay HUD** — only shown in layout banner, not in `HudBar.svelte` | `play/+page.svelte`, `HudBar.svelte` | Low |
 
 ### 1.3 Post-Release (v1.1 Backlog)
@@ -27,9 +27,10 @@ Items from the original roadmap that have been completed are removed. This docum
 |---|------|----------|
 | 1 | Quick-start archetypes ("The Reluctant Hero", "The Ruthless Mercenary") — pre-built character templates, not just random quick-start | Medium |
 | 2 | "Browse Universes" redesign — split Library into browse vs. manage modes | Medium |
-| 3 | Frontend integration tests (creation wizard, turn submission, campaign resume) | Medium |
-| 4 | Query caching for CampaignBibleAgent (per setting_id) | Medium |
-| 5 | World state snapshot pagination (snapshot every N turns, prune old snapshots) | Low |
+| 3 | Query caching for CampaignBibleAgent (per setting_id) | Medium |
+| 4 | World state snapshot pagination (snapshot every N turns, prune old snapshots) | Low |
+
+> **Note:** Frontend E2E integration tests were previously listed here but have been promoted to a must-fix launch gate. See [4.7 #6](#47-additional-pre-release-tasks-from-code-audit).
 
 ---
 
@@ -51,9 +52,9 @@ Proposed:
     constants.py         # Game constants (action costs, tone mappings)
 ```
 
-#### B. Standardize Error Handling
+#### B. ~~Standardize Error Handling~~ DONE
 
-Multiple patterns in use (`log_error_with_context()`, direct `logger.exception()`, generic `except Exception`). `error_handling.py` exists but no unified decorator pattern is adopted across all agents.
+~~Multiple patterns in use (`log_error_with_context()`, direct `logger.exception()`, generic `except Exception`).~~ All 37 generic `except Exception` blocks across 7 API files have been narrowed to specific exception types (Category A: JSON parsing, B: LLM init, C: critical path with reraise, D: cleanup) or annotated with `# Intentional broad catch:` comments for blocks that genuinely need broad catching (SSE error boundary, worker threads, debug endpoints, pipeline reraise with `log_error_with_context`).
 
 ### 2.2 Medium Priority Cleanup
 
@@ -66,7 +67,9 @@ Multiple patterns in use (`log_error_with_context()`, direct `logger.exception()
 
 ## 3. DISTRIBUTABLE PACKAGING (Executable Wrapper)
 
-Not yet started. Options under consideration:
+> **Decision made:** Launcher-supported v1.0 (ship with `start_app.bat`/`run_app.py` + browser). Native packaging (Tauri/Electron) deferred to v1.1+. `run_app.py` now auto-installs frontend `node_modules` if missing. Clean-machine validation confirmed on Windows.
+
+Options under consideration:
 
 ### 3.1 Recommended Approach: Tauri
 
@@ -140,4 +143,95 @@ The following sections from the original roadmap have been fully implemented and
 
 ---
 
-*Assessed against: Storyteller-V2 at V11.0*
+*Assessed against: Storyteller-V2 at V11.0 (commit `6e2abcb`)*
+
+---
+
+## 4. V1.0 LAUNCH READINESS AUDIT (ADDENDUM)
+
+### 4.1 Current Readiness (Critical Review)
+
+| Area | Status | Why this matters for players | What is still left |
+|---|---|---|---|
+| Core architecture (turn pipeline, commit boundary, rewind, idempotency) | Strong | Prevents story corruption and duplicate turns | Keep existing release checklist gates enforced on every candidate build |
+| Runtime resilience + observability | Medium Risk | Hidden failures become "story feels broken" to users | Remove remaining generic `except Exception` usage and standardize structured error handling across authoritative agents/routes |
+| Narrative quality consistency | Medium Risk | Inconsistent prose/choices causes immediate churn in narrative games | Add a formal narrative regression suite (golden-turn scenarios + rubric scoring for continuity, agency, tone, and choice usefulness) |
+| Content completeness per universe/era | High Risk | Sparse packs make the world feel empty/repetitive | Define and enforce a minimum content contract for every era pack shipped in v1.0 |
+| First-run onboarding (models/dependencies) | High Risk | "It does not work on first launch" is a top consumer drop-off point | Add an in-app dependency preflight gate (model presence, vector tables, health checks) before players can start a campaign |
+| Distribution/installation path | High Risk | Public launch requires a reproducible install/start experience | Choose one v1 path now (native wrapper vs launcher) and complete clean-machine validation on Windows/macOS |
+| Frontend behavioral confidence | Medium Risk | Regressions in creation/play/resume are player-visible and trust-breaking | Add frontend integration tests for setup, turn submit/stream, resume, and rewind |
+| Documentation consistency | Medium Risk | Contradictory docs create operator mistakes and support burden | Reconcile discrepancies between roadmap/alignment/risk docs (especially ChoiceCrafter fallback behavior and setting-agnostic migration status) |
+
+### 4.2 Must-Fix Before Public v1.0
+
+| # | Must-fix item | Exit criteria (go/no-go gate) | Status |
+|---|---|---|---|
+| 1 | Finalize launch packaging strategy | One documented and automated path for install/start on clean machines, tested end-to-end on target OSes | **DONE** — Launcher scripts validated, `run_app.py` auto-npm-install, QUICKSTART.md documented |
+| 2 | Narrative regression harness | Promote existing tests into CI release gates with score thresholds. Add golden-turn scenario seeds. | **PARTIALLY DONE** — Release-gate markers and `--release-gate` runner added. Golden-turn scenario expansion (20+ seeds, rubric scoring) deferred to v1.1. |
+| 3 | Era pack minimum viability contract | Define minimum content thresholds per pack. Set `ERA_PACK_LENIENT_VALIDATION` to `False` for release builds. | **OPEN** — Remaining pre-release work |
+| 4 | Error handling hardening | No silent generic catches in critical API paths; request-scoped error logs include `request_id`, `campaign_id`, and failure class | **DONE** — 37 blocks narrowed, `request_id` added to critical-path error logs |
+| 5 | First-run readiness gate | In-product preflight blocks play until required model/service dependencies are available or clearly guided | **DONE** — Hard-block on Ready step, model pull guidance, `ondismiss` UX |
+| 6 | End-to-end UX regression coverage | Automated tests cover campaign creation, first turn, streaming turn, resume, and rewind without manual-only validation | **DONE** — 5 Playwright E2E specs covering all critical journeys |
+
+### 4.3 Consumer Pain Points (And Mitigations to Track in v1)
+
+| Pain point from player perspective | Likely root cause | Mitigation to add/track in roadmap |
+|---|---|---|
+| "I installed it but cannot actually play." | Missing model pull or misconfigured provider | In-app startup diagnostics + one-click remediation guidance before entering campaign flow |
+| "The world feels shallow in some universes." | Incomplete era pack data | Publish only era packs that meet minimum content contract; mark others as "preview/experimental" |
+| "The game forgot what happened earlier." | Narrative continuity drift under long sessions | Narrative regression suite focused on long-horizon continuity and callback consistency |
+| "Choices are repetitive or not relevant." | Weak contextual grounding in edge cases | Add choice-quality evals (novelty, relevance, tone spread) to release gate and nightly checks |
+| "Turns sometimes fail and I do not know what to do." | Non-actionable user-facing error states | Standardized player-facing fallback/retry messaging with request ID surfaced in UI |
+| "I waited too long after clicking submit." | Latency spikes or post-narrator dead time | Enforce latency SLOs and maintain clear progress states for all turn phases |
+| "I am not sure my progress is safe." | Low confidence in save/commit visibility | Keep save confidence indicator and add explicit recovery guidance for interrupted turns |
+| "Different settings feel inconsistent in tone/rules." | Setting-agnostic migration still partial | Complete `SettingRules` adoption in all remaining prompts/agents before v1 public launch |
+
+### 4.4 Suggested Launch SLOs (Add as explicit release gates)
+
+> **Prerequisite:** Establish baseline measurements for each metric before using as release gates. Current per-node timings are collected but no aggregate SLO dashboard exists. Without a baseline, these thresholds are aspirational and may need adjustment.
+
+| Metric | Suggested v1 threshold |
+|---|---|
+| Turn success rate (non-user-error requests) | >= 99.0% |
+| p95 turn latency (standard turn) | <= 10s |
+| p99 turn latency | <= 18s |
+| Retry-required turn rate | < 2% |
+| Crash-free play sessions | >= 99.5% |
+| Narrative regression pass rate (golden scenarios) | 100% on blocking checks, >= 90% on scored checks |
+
+### 4.5 30-Day Post-Launch Watchlist
+
+| # | Item | Why it should be pre-committed now |
+|---|---|---|
+| 1 | Structured player feedback intake tied to campaign + turn metadata | Needed to convert subjective narrative complaints into reproducible bugs |
+| 2 | Weekly narrative quality review (sampled transcripts) | Detect tone drift, repetition, and continuity failures before ratings decline |
+| 3 | Era pack depth expansion cadence | Prevent "content exhaustion" for early adopters |
+| 4 | Packaging hardening if launcher is used for v1.0 | Provides path from "works for technical users" to mainstream usability |
+
+### 4.6 Code-Verified Findings (No-Assumption Pass)
+
+| Finding | Code evidence | Roadmap implication |
+|---|---|---|
+| API generic exception usage is broader than one file | `backend/app/api/v2_campaigns.py` (13), `backend/app/api/v2_turn.py` (9), `backend/app/api/v2_player.py` (9), plus `v2_library.py`, `v2_content.py`, `v2_eraforge.py`, `campaign_setup.py` | **RESOLVED** — All 37 blocks narrowed to specific types or annotated |
+| ChoiceCrafter behavior/docs are internally inconsistent | `backend/app/core/agents/choice_crafter_agent.py` and `backend/app/core/nodes/choice_crafter_node.py` still claim "No deterministic fallbacks", but node contains `_make_fallback_choices()` degraded path | **RESOLVED** — Docstrings updated to document fallback behavior |
+| First-run onboarding exists but is a soft gate | `frontend/src/lib/components/FirstRunWizard.svelte` checks health and can be skipped; `frontend/src/routes/+page.svelte` shows wizard by localStorage flag only | **RESOLVED** — Hard-block on Ready step when Ollama unreachable, model pull guidance added, `ondismiss` callback wired |
+| Launcher path is already implemented | `start_app.bat` and `run_app.py` exist with runtime preflight support | **RESOLVED** — Launcher scripts validated, auto-npm-install added to `run_app.py` |
+| Narrative quality tests already exist | `backend/tests/test_deterministic_harness.py`, `test_narrative_validator.py`, `test_narrative_coherence.py`, `test_player_agency.py`, `scripts/run_deterministic_tests.py` | **RESOLVED** — `release_gate` markers added, `--release-gate` flag in test runner, `pyproject.toml` marker config |
+| Frontend E2E/integration coverage is not present | Frontend has Vitest/unit tests (`frontend/src/lib/components/__tests__`, `frontend/src/lib/stores/__tests__`) but no Playwright/Cypress flow tests in repo | **RESOLVED** — Playwright E2E specs added for 5 critical journeys (create, first turn, streaming, resume, rewind) |
+| Era pack depth risk is confirmed in data and config | `data/static/era_packs/*` packs are mostly 3-4 files each; `shared/config.py` sets `ERA_PACK_LENIENT_VALIDATION` default `True` | **OPEN** — Keep era pack viability as launch blocker for consumer-facing quality |
+| Setting-agnostic migration remains partial | `backend/app/world/era_pack_models.py` `SettingRules` defaults are Star Wars-centric (lines 938–967: `setting_name="Star Wars Legends"`, Star Wars species list, `bypass_methods=["force", "force_dark", "sith_amulet"]`). Additional hardcoded references in: `kg/extractor.py:23` ("Star Wars Legends novels"), `kg/synthesis.py:19,31` ("Star Wars lore compiler"), `core/agents/biographer.py:151` (Jedi Temple), `core/genre_triggers.py:39` ("New Jedi Order era") | **PARTIALLY RESOLVED** — `kg/extractor.py`, `kg/synthesis.py` parameterized; `biographer.py` documented; `genre_triggers.py` override system added. `era_pack_models.py` Star Wars defaults remain as they are the correct defaults for the shipped SettingRules. |
+| First-run wizard dismiss path is ambiguous for users | `FirstRunWizard.svelte` `dismiss()` only sets local storage; no explicit close event emitted to parent route | **RESOLVED** — `ondismiss` prop added, immediate UI close on dismiss |
+
+### 4.7 Additional Pre-Release Tasks from Code Audit
+
+| # | Task | Priority | Status |
+|---|---|---|---|
+| 1 | Broaden API exception hardening from one file to all V2 route modules (`v2_campaigns`, `v2_turn`, `v2_player`, `v2_library`, `v2_content`, `v2_eraforge`, `campaign_setup`) | Must | **DONE** — All 37 blocks narrowed; 6 intentional broad catches annotated |
+| 2 | Resolve ChoiceCrafter docstring drift: update agent and node docstrings to acknowledge `_make_fallback_choices()` degraded path | Must | **DONE** — Docstrings updated in both files |
+| 3 | Define strict first-run gating policy: hard block when Ollama unreachable, soft warn on missing models with guidance | Must | **DONE** — Hard-block on Ready step, model pull guidance with copy-to-clipboard |
+| 4 | Promote existing narrative tests into official release gates | Must | **DONE** — `pytestmark = [pytest.mark.release_gate]` on 4 test files, `pyproject.toml` markers, `--release-gate` flag in `run_deterministic_tests.py` |
+| 5 | Decide v1 distribution scope: launcher-supported v1.0 | Must | **DONE** — Launcher scripts validated, `run_app.py` auto-installs npm deps |
+| 6 | Add frontend E2E coverage for critical player journeys (create, first turn, stream turn, resume, rewind) | Must | **DONE** — Playwright installed, 5 E2E specs in `frontend/e2e/`, `npm run test:e2e` script |
+| 7 | Fix first-run wizard dismiss/close behavior | Should | **DONE** — `ondismiss` prop wired, immediate close without page reload |
+| 8 | Add model pull guidance/automation to first-run flow | Must | **DONE** — Missing model list, copy-to-clipboard `ollama pull` commands, "Check Again" button |
+| 9 | Complete setting-agnostic cleanup beyond `era_pack_models.py` | Should | **DONE** — `kg/extractor.py`, `kg/synthesis.py` parameterized; `biographer.py` documented; `genre_triggers.py` merge-based override system |

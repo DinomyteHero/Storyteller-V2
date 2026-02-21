@@ -2,9 +2,13 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 _root = Path(__file__).resolve().parents[2]
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
+
+pytestmark = [pytest.mark.release_gate, pytest.mark.narrative]
 
 from backend.app.core.nodes.narrative_validator import (  # noqa: E402
     narrative_validator_node,

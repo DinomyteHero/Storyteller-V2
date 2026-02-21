@@ -15,35 +15,37 @@ from backend.app.kg.predicates import PREDICATE_LABELS
 
 logger = logging.getLogger(__name__)
 
-_PROFILE_SYSTEM_PROMPT = """\
-You are a Star Wars lore compiler. Given a character's known relationships, \
-faction memberships, and chapter appearances, write a concise character arc summary.
+def _profile_system_prompt(setting_name: str = "narrative fiction") -> str:
+    return (
+        f"You are a {setting_name} lore compiler. Given a character's known relationships, "
+        "faction memberships, and chapter appearances, write a concise character arc summary.\n\n"
+        'Output ONLY valid JSON: {"summary": "<200-word character arc summary>"}\n\n'
+        "Rules:\n"
+        "- Only state facts supported by the provided data.\n"
+        "- Focus on relationships, motivations, and story progression.\n"
+        "- No speculation beyond what the data implies.\n"
+        "- No markdown, no extra text. ONLY the JSON object."
+    )
 
-Output ONLY valid JSON: {"summary": "<200-word character arc summary>"}
 
-Rules:
-- Only state facts supported by the provided data.
-- Focus on relationships, motivations, and story progression.
-- No speculation beyond what the data implies.
-- No markdown, no extra text. ONLY the JSON object."""
-
-_DOSSIER_SYSTEM_PROMPT = """\
-You are a Star Wars lore compiler. Given a location's known properties, \
-controlling factions, notable characters, and events, write a concise location dossier.
-
-Output ONLY valid JSON: {"summary": "<150-word location dossier>"}
-
-Rules:
-- Only state facts supported by the provided data.
-- Focus on atmosphere, strategic importance, and key activities.
-- No speculation beyond what the data implies.
-- No markdown, no extra text. ONLY the JSON object."""
+def _dossier_system_prompt(setting_name: str = "narrative fiction") -> str:
+    return (
+        f"You are a {setting_name} lore compiler. Given a location's known properties, "
+        "controlling factions, notable characters, and events, write a concise location dossier.\n\n"
+        'Output ONLY valid JSON: {"summary": "<150-word location dossier>"}\n\n'
+        "Rules:\n"
+        "- Only state facts supported by the provided data.\n"
+        "- Focus on atmosphere, strategic importance, and key activities.\n"
+        "- No speculation beyond what the data implies.\n"
+        "- No markdown, no extra text. ONLY the JSON object."
+    )
 
 
 def synthesize_character_profiles(
     store: KGStore,
     llm: AgentLLM | None,
     era: str,
+    setting_name: str = "narrative fiction",
 ) -> int:
     """Build composite character profiles from all book extractions.
 
@@ -96,7 +98,7 @@ def synthesize_character_profiles(
                     role="kg_extractor",
                     agent_name="KGSynthesizer",
                     campaign_id=None,
-                    system_prompt=_PROFILE_SYSTEM_PROMPT,
+                    system_prompt=_profile_system_prompt(setting_name),
                     user_prompt=context,
                     fallback_fn=lambda: {"summary": f"{char['canonical_name']}: data available but synthesis failed."},
                     max_retries=2,
@@ -122,6 +124,7 @@ def synthesize_location_dossiers(
     store: KGStore,
     llm: AgentLLM | None,
     era: str,
+    setting_name: str = "narrative fiction",
 ) -> int:
     """Build location dossiers from all mentions across books.
 
@@ -167,7 +170,7 @@ def synthesize_location_dossiers(
                     role="kg_extractor",
                     agent_name="KGSynthesizer",
                     campaign_id=None,
-                    system_prompt=_DOSSIER_SYSTEM_PROMPT,
+                    system_prompt=_dossier_system_prompt(setting_name),
                     user_prompt=context,
                     fallback_fn=lambda: {"summary": f"{loc['canonical_name']}: data available but synthesis failed."},
                     max_retries=2,

@@ -19,37 +19,39 @@ logger = logging.getLogger(__name__)
 
 # ── Prompt templates ──────────────────────────────────────────────────
 
-EXTRACTION_SYSTEM_PROMPT = """\
-You are a knowledge extraction system for Star Wars Legends novels.
+def _build_extraction_system_prompt(setting_name: str = "narrative fiction") -> str:
+    """Build the KG extraction system prompt, parameterized by setting name."""
+    return f"""\
+You are a knowledge extraction system for {setting_name} novels.
 Given text from a novel, extract structured knowledge as JSON.
 
 Output ONLY valid JSON matching this schema:
-{
+{{
   "entities": [
-    {
+    {{
       "name": "<full canonical name>",
       "entity_type": "<CHARACTER|LOCATION|FACTION|SHIP|ARTIFACT|EVENT>",
-      "properties": {}
-    }
+      "properties": {{}}
+    }}
   ],
   "relationships": [
-    {
+    {{
       "subject": "<entity name>",
       "predicate": "<relationship type from allowed list>",
       "object": "<entity name>",
       "context": "<1 sentence explaining this relationship>"
-    }
+    }}
   ],
   "chapter_summary": "<100-word synopsis of events in this passage>",
   "key_events": [
-    {
+    {{
       "name": "<event name>",
       "participants": ["<entity names>"],
       "location": "<where it happened>",
       "outcome": "<what happened>"
-    }
+    }}
   ]
-}
+}}
 
 Allowed relationship predicates: TRAINED_BY, TRAINS, FATHER_OF, MOTHER_OF, CHILD_OF, \
 SIBLING_OF, MARRIED_TO, FRIEND_OF, RIVAL_OF, ENEMY_OF, APPRENTICE_OF, MASTER_OF, \
@@ -58,20 +60,17 @@ FOUNDED, LOCATED_ON, LOCATED_AT, HOMEWORLD_OF, CONTROLS, STATIONED_AT, TRAVELED_
 PARTICIPATED_IN, INITIATED, CONCLUDED, ALLIED_WITH, OPPOSES, NEUTRAL_TO, SUBGROUP_OF, \
 OWNS, PILOTS, BUILT.
 
-For CHARACTER entities include: species, force_sensitive (boolean), faction, role.
+For CHARACTER entities include: species (if relevant), faction, role.
 For LOCATION entities include: location_type (planet/station/ship/building), region, controlling_faction.
-For FACTION entities include: faction_type (government/military/criminal/religious), alignment (light/dark/neutral).
+For FACTION entities include: faction_type (government/military/criminal/religious), alignment.
 
 Rules:
 - Extract ONLY facts explicitly stated or strongly implied in the text.
 - Do NOT invent relationships or facts not present.
-- Use the most complete version of each name (e.g., "Luke Skywalker" not just "Luke").
+- Use the most complete version of each name (e.g., full name not a shortened form).
 - If a character is referenced by a title/alias, still use their full name.
 - Keep chapter_summary under 100 words.
-- No markdown, no extra text. ONLY the JSON object.
-
-Example output (abbreviated):
-{"entities":[{"name":"Mara Jade","entity_type":"CHARACTER","properties":{"species":"Human","force_sensitive":true,"faction":"Empire","role":"Emperor's Hand"}},{"name":"Coruscant","entity_type":"LOCATION","properties":{"location_type":"planet","region":"Core Worlds","controlling_faction":"Galactic Empire"}}],"relationships":[{"subject":"Mara Jade","predicate":"SERVES","object":"Emperor Palpatine","context":"Mara Jade serves as the Emperor's Hand, carrying out his secret orders."}],"chapter_summary":"Mara Jade receives orders from the Emperor to eliminate a target on Coruscant.","key_events":[{"name":"Assassination Mission","participants":["Mara Jade"],"location":"Coruscant","outcome":"Mara receives her mission briefing and prepares to depart."}]}"""
+- No markdown, no extra text. ONLY the JSON object."""
 
 
 def _build_user_prompt(
@@ -118,6 +117,7 @@ def extract_from_chunks(
     llm: AgentLLM,
     alias_lookup: dict[str, str],
     known_characters: list[str] | None = None,
+    setting_name: str = "narrative fiction",
 ) -> ExtractionResult:
     """Extract entities, triples, and summaries from a batch of chunks.
 
@@ -131,6 +131,7 @@ def extract_from_chunks(
         llm: AgentLLM instance for the kg_extractor role.
         alias_lookup: Pre-built alias -> canonical_id mapping.
         known_characters: List of known character names for the prompt.
+        setting_name: Human-readable setting name for the extraction prompt.
 
     Returns:
         ExtractionResult with entities, triples, chapter_summary.
@@ -151,13 +152,15 @@ def extract_from_chunks(
             "key_events": [],
         }
 
+    system_prompt = _build_extraction_system_prompt(setting_name)
+
     try:
         raw_data = call_with_json_reliability(
             llm=llm,
             role="kg_extractor",
             agent_name="KGExtractor",
             campaign_id=None,
-            system_prompt=EXTRACTION_SYSTEM_PROMPT,
+            system_prompt=system_prompt,
             user_prompt=user_prompt,
             schema_class=None,  # raw dict validation
             validator_fn=_validate_extraction,

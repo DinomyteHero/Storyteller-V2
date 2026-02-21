@@ -5,6 +5,7 @@ import hashlib
 import json
 import logging
 import os
+import sqlite3
 import threading
 import time
 import uuid
@@ -374,11 +375,11 @@ def post_turn(
             state.structured_intent = body.structured_intent.model_dump(mode="json")
         try:
             result = run_turn(conn, state)
-        except Exception as e:
+        except Exception as e:  # Intentional broad catch: unknown failure modes in turn pipeline
             log_error_with_context(
                 error=e, node_name="turn", campaign_id=campaign_id,
                 turn_number=state.turn_number, agent_name="run_turn",
-                extra_context={"user_input": body.user_input[:100] if body.user_input else None},
+                extra_context={"user_input": body.user_input[:100] if body.user_input else None, "request_id": request_id},
             )
             raise
 
@@ -593,7 +594,7 @@ def post_turn(
                     })
                 if npc_contexts:
                     active_npc_contexts_out = npc_contexts
-        except Exception:
+        except (KeyError, TypeError, ValueError):
             logger.debug("NPC context enrichment failed (non-fatal)", exc_info=True)
 
         if party_status and camp:
@@ -608,7 +609,7 @@ def post_turn(
                 if spoken_map:
                     for item in party_status:
                         item.spoken_reaction = spoken_map.get(item.id) or spoken_map.get(item.name)
-            except Exception:
+            except (KeyError, TypeError, ValueError):
                 logger.debug("Companion spoken reaction enrichment failed (non-fatal)", exc_info=True)
 
         response_payload = TurnResponse(
@@ -652,11 +653,11 @@ def post_turn(
         return response_payload
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # Intentional broad catch: unknown failure modes in turn pipeline
         log_error_with_context(
             error=e, node_name="turn", campaign_id=campaign_id,
             turn_number=None, agent_name="post_turn",
-            extra_context={"player_id": player_id},
+            extra_context={"player_id": player_id, "request_id": request_id},
         )
         raise
     finally:
@@ -668,7 +669,7 @@ def post_turn(
                     (campaign_id, player_id, endpoint_key, idempotency_key),
                 )
                 conn.commit()
-            except Exception:
+            except sqlite3.OperationalError:
                 logger.debug("Idempotency cleanup failed (non-fatal)", exc_info=True)
         if turn_lock_acquired:
             turn_lock_ctx.__exit__(None, None, None)
@@ -839,7 +840,7 @@ def post_turn_stream(
                     mem_block = epi.format_for_prompt(memories, max_chars=500)
                     if mem_block:
                         kg_context = (kg_context + "\n\n" + mem_block) if kg_context else mem_block
-                except Exception:
+                except (KeyError, TypeError, ValueError, RuntimeError):
                     logger.debug("Episodic memory retrieval failed (non-fatal)", exc_info=True)
 
             from backend.app.rag.lore_retriever import retrieve_lore
@@ -856,7 +857,7 @@ def post_turn_stream(
 
             try:
                 narrator_llm = AgentLLM("narrator")
-            except Exception:
+            except (ConnectionError, TimeoutError, OSError, RuntimeError):
                 logger.warning("Narrator LLM init failed; falling back to None", exc_info=True)
                 narrator_llm = None
 
@@ -1026,7 +1027,7 @@ def post_turn_stream(
 
         except HTTPException as e:
             yield f"data: {json.dumps({'type': 'error', 'request_id': request_id, 'message': str(e.detail)})}\n\n"
-        except Exception as e:
+        except Exception as e:  # Intentional broad catch: SSE error boundary must not crash the stream
             logger.exception(
                 "SSE turn_stream failed node=turn_stream request_id=%s campaign_id=%s latency_ms=%s",
                 request_id, campaign_id, int((time.perf_counter() - start_ts) * 1000),
@@ -1041,7 +1042,7 @@ def post_turn_stream(
                         (campaign_id, player_id, endpoint_key, idempotency_key),
                     )
                     conn.commit()
-                except Exception:
+                except sqlite3.OperationalError:
                     logger.debug("SSE idempotency cleanup failed (non-fatal)", exc_info=True)
             if turn_lock_acquired:
                 turn_lock_ctx.__exit__(None, None, None)

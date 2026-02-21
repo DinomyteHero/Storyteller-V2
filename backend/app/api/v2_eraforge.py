@@ -36,7 +36,7 @@ def _get_agent() -> EraForgeAgent:
     """Create an EraForgeAgent with the configured LLM."""
     try:
         llm = AgentLLM("era_forge")
-    except Exception:
+    except (ConnectionError, TimeoutError, OSError, RuntimeError):
         logger.warning("EraForge LLM init failed; agent will use fallback mode.")
         llm = None
     return EraForgeAgent(llm=llm)

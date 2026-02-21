@@ -31,6 +31,14 @@ dev = ["pytest>=7.0.0"]
 [project.scripts]
 storyteller = "storyteller.cli:main"
 
+[tool.pytest.ini_options]
+testpaths = ["backend/tests", "ingestion", "tests"]
+markers = [
+    "release_gate: tests that must pass before release",
+    "narrative: narrative quality tests",
+    "smoke: tests requiring live LLM",
+]
+
 [tool.setuptools.packages.find]
 include = [
     "backend*",

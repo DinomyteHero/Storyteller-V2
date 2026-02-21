@@ -237,8 +237,16 @@ def build_commands(args: argparse.Namespace, python_exe: str, ui_mode: str | Non
             npm_bin = shutil.which("npm")
             if npm_bin is None:
                 raise AppRunnerError("UI mode svelte detected but npm is not available")
+            # Auto-install frontend deps if node_modules is missing
+            frontend_dir = ROOT / "frontend"
+            if not (frontend_dir / "node_modules").exists():
+                print("[INFO] Frontend node_modules not found — running npm install...")
+                rc = subprocess.call([npm_bin, "install"], cwd=str(frontend_dir))
+                if rc != 0:
+                    raise AppRunnerError("npm install failed in frontend/")
+                print("[OK] npm install completed")
             ui_cmd = [npm_bin, "run", "dev", "--", "--port", str(args.ui_port)]
-            ui_cwd = ROOT / "frontend"
+            ui_cwd = frontend_dir
         elif ui_mode == "streamlit":
             ui_cmd = [python_exe, "-m", "streamlit", "run", "streamlit_app.py", "--server.port", str(args.ui_port)]
             ui_cwd = ROOT

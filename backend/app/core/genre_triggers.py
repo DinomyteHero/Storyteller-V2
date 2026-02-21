@@ -1,15 +1,24 @@
 """Deterministic genre auto-assignment based on background, location tags, and arc context.
 
-Genre is a narrative flavoring overlay on top of the Star Wars base layer.
+Genre is a narrative flavoring overlay. The default maps below were originally
+designed for Star Wars settings but use generic archetype names (smuggler,
+bounty_hunter, etc.) that work across many universes. Setting-specific entries
+that don't match a given universe's backgrounds are simply inert.
+
+Era packs can supply their own overrides via SettingRules.genre_background_map
+and SettingRules.genre_location_tag_map, which are merged on top of the defaults.
+
 No LLM calls — pure Python mappings.
 
 Usage:
     assign_initial_genre(background_id, location_tags) -> genre slug or None
     detect_genre_shift(current_genre, location_tags, arc_stage, turns_since_last_shift) -> genre slug or None
+    get_genre_maps(setting_rules) -> tuple of (background_map, location_tag_map)
 """
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -125,19 +134,46 @@ _TAG_PRIORITY = [
 ]
 
 
+def get_genre_maps(
+    setting_rules: Any | None = None,
+) -> tuple[dict[str, str], dict[str, str]]:
+    """Return (background_map, location_tag_map) with setting-specific overrides merged.
+
+    If the active SettingRules provides ``genre_background_map`` or
+    ``genre_location_tag_map``, those entries are merged on top of the defaults
+    so that era packs can add new mappings or override existing ones.
+    """
+    bg_map = dict(BACKGROUND_GENRE_MAP)
+    loc_map = dict(LOCATION_TAG_GENRE_MAP)
+    if setting_rules is not None:
+        sr_bg = getattr(setting_rules, "genre_background_map", None)
+        if isinstance(sr_bg, dict) and sr_bg:
+            bg_map.update(sr_bg)
+        sr_loc = getattr(setting_rules, "genre_location_tag_map", None)
+        if isinstance(sr_loc, dict) and sr_loc:
+            loc_map.update(sr_loc)
+    return bg_map, loc_map
+
+
 def assign_initial_genre(
     background_id: str | None,
     location_tags: list[str] | None = None,
+    setting_rules: Any | None = None,
 ) -> str | None:
     """Deterministic initial genre from background + location.
 
     Background takes priority over location tags.
     Returns genre slug (e.g. 'space_western') or None if no match.
+
+    ``setting_rules`` can provide genre_background_map / genre_location_tag_map
+    overrides that are merged on top of the built-in defaults.
     """
+    bg_map, loc_map = get_genre_maps(setting_rules)
+
     # Background takes priority
     if background_id:
         bg_lower = background_id.lower().strip()
-        genre = BACKGROUND_GENRE_MAP.get(bg_lower)
+        genre = bg_map.get(bg_lower)
         if genre:
             logger.debug("Genre assigned from background '%s': %s", background_id, genre)
             return genre
@@ -146,8 +182,8 @@ def assign_initial_genre(
     if location_tags:
         tags_lower = {t.lower().strip().replace("-", "_") for t in location_tags if t}
         for tag in _TAG_PRIORITY:
-            if tag in tags_lower:
-                genre = LOCATION_TAG_GENRE_MAP[tag]
+            if tag in tags_lower and tag in loc_map:
+                genre = loc_map[tag]
                 logger.debug("Genre assigned from location tag '%s': %s", tag, genre)
                 return genre
 

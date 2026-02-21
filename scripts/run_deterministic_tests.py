@@ -8,6 +8,7 @@ Usage:
   python scripts/run_deterministic_tests.py              # harness only (default)
   python scripts/run_deterministic_tests.py --smoke      # harness + smoke test
   python scripts/run_deterministic_tests.py --smoke-only # smoke test only
+  python scripts/run_deterministic_tests.py --release-gate  # all release-gate tests
 
 Exit: 0 on success, non-zero on failure. Failures point to responsible node/agent.
 """
@@ -50,6 +51,11 @@ def main() -> int:
         help="Run only smoke test (skip harness)",
     )
     ap.add_argument(
+        "--release-gate",
+        action="store_true",
+        help="Run all release-gate tests (harness + narrative + agency + validator)",
+    )
+    ap.add_argument(
         "--smoke-turns",
         type=int,
         default=5,
@@ -58,6 +64,40 @@ def main() -> int:
     args = ap.parse_args()
 
     os.chdir(_root)
+
+    # Release-gate: run all release-gate marked tests in one shot
+    if args.release_gate:
+        print("Running ALL release-gate tests...")
+        release_gate_suites = [
+            ("Deterministic harness", "backend/tests/test_deterministic_harness.py"),
+            ("Narrative coherence", "backend/tests/test_narrative_coherence.py"),
+            ("Narrative validator", "backend/tests/test_narrative_validator.py"),
+            ("Player agency", "backend/tests/test_player_agency.py"),
+        ]
+        env = os.environ.copy()
+        env.setdefault("ENCOUNTER_SEED", "42")
+        failed: list[str] = []
+        for suite_name, suite_path in release_gate_suites:
+            print(f"\n{'='*60}")
+            print(f"  {suite_name}: {suite_path}")
+            print(f"{'='*60}")
+            r = subprocess.run(
+                [_python_executable(), "-m", "pytest", suite_path, "-v"],
+                env=env,
+                cwd=_root,
+            )
+            if r.returncode != 0:
+                failed.append(suite_name)
+                print(f"\n  {suite_name} FAILED.", file=sys.stderr)
+            else:
+                print(f"  {suite_name} OK.")
+
+        print(f"\n{'='*60}")
+        if failed:
+            print(f"RELEASE GATE FAILED — {len(failed)} suite(s): {', '.join(failed)}", file=sys.stderr)
+            return 1
+        print("ALL RELEASE GATE TESTS PASSED.")
+        return 0
 
     # Harness: mocked agents, no LLMs, 10–20 turns, fixed seed
     if not args.smoke_only:

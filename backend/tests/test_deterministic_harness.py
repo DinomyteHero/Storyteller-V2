@@ -13,6 +13,9 @@ from __future__ import annotations
 import logging
 import os
 import tempfile
+import pytest  # noqa: F401 (used by pytestmark)
+
+pytestmark = [pytest.mark.release_gate]
 import unittest
 from unittest.mock import patch
 

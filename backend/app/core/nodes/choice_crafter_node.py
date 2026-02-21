@@ -3,8 +3,9 @@
 Replaces the suggestion_refiner node. Reads the Narrator's final_text and full scene
 context, then calls ChoiceCrafterAgent to generate 3-6 contextually-aware player choices.
 
-No deterministic fallbacks. On LLM failure, raises AgentFailureError which the
-graph-level handler converts to a user-facing error.
+On LLM failure, falls back to _make_fallback_choices() which returns a deterministic
+4-choice set covering all KOTOR tones. This preserves the dialogue wheel contract
+during degraded operation rather than surfacing a hard error to the player.
 
 V5.0: Authoritative LLM node — setting-agnostic, no hardcoded scenario trees.
 """

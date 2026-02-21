@@ -144,7 +144,7 @@ def debug_era_packs() -> dict[str, Any]:
                 for p in packs
             ],
         }
-    except Exception as e:
+    except Exception as e:  # Intentional broad catch: debug endpoint surfaces all errors
         logger.exception("Failed to load era packs for debug endpoint")
         return {
             "pack_dir": str(pack_dir),

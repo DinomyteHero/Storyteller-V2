@@ -397,7 +397,7 @@
 
 <!-- First-run setup wizard -->
 {#if showFirstRun}
-  <FirstRunWizard />
+  <FirstRunWizard ondismiss={() => showFirstRun = false} />
 {/if}
 
 <style>

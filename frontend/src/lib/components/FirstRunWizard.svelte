@@ -7,25 +7,38 @@
   import { providers } from '$lib/stores/providers';
   import { goto } from '$app/navigation';
 
+  interface Props {
+    ondismiss?: () => void;
+  }
+  let { ondismiss }: Props = $props();
+
   let step = $state<'welcome' | 'ollama' | 'cloud' | 'ready'>('welcome');
   let ollamaOk = $state(false);
+  let ollamaReachable = $state(false);
   let ollamaChecking = $state(false);
   let ollamaError = $state('');
+  let missingModels = $state<string[]>([]);
   let cloudKeyInput = $state('');
   let cloudProvider = $state<'anthropic' | 'openai'>('anthropic');
 
   async function checkOllama() {
     ollamaChecking = true;
     ollamaError = '';
+    missingModels = [];
     try {
       const detail = await getHealthDetail();
       const ollama = detail.checks?.ollama;
+      ollamaReachable = ollama?.status === 'reachable';
       ollamaOk = !!ollama?.ok;
-      if (!ollamaOk) {
+      missingModels = ollama?.missing_required_models ?? [];
+      if (!ollamaReachable) {
         ollamaError = 'Ollama is not running. Start it with: ollama serve';
+      } else if (missingModels.length > 0) {
+        ollamaError = `Ollama is running but ${missingModels.length} required model${missingModels.length > 1 ? 's are' : ' is'} missing.`;
       }
     } catch {
       ollamaOk = false;
+      ollamaReachable = false;
       ollamaError = 'Could not reach the backend. Make sure the server is running.';
     }
     ollamaChecking = false;
@@ -52,12 +65,12 @@
   }
 
   function completeSetup() {
-    // Mark first-run as complete
     try {
       localStorage.setItem('storyteller-first-run-complete', 'true');
     } catch {
       // storage unavailable
     }
+    ondismiss?.();
     goto('/create');
   }
 
@@ -67,6 +80,14 @@
     } catch {
       // storage unavailable
     }
+    // Run a health check before dismissing so the "I've set this up before" path
+    // still validates the environment — but don't block on it
+    checkOllama();
+    ondismiss?.();
+  }
+
+  function copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text).catch(() => {});
   }
 </script>
 
@@ -106,20 +127,36 @@
           {/if}
         </div>
 
-        {#if !ollamaOk && !ollamaChecking}
+        {#if !ollamaReachable && !ollamaChecking}
           <div class="help-box">
             <p>Install Ollama from <strong>ollama.com</strong>, then run:</p>
             <code>ollama serve</code>
-            <p style="margin-top: 8px;">Then pull the default model:</p>
-            <code>ollama pull qwen3:8b</code>
           </div>
           <div class="wizard-actions">
-            <button class="btn btn-primary" onclick={checkOllama}>Retry Check</button>
+            <button class="btn btn-primary" onclick={checkOllama}>Check Again</button>
             <button class="btn" onclick={skipToCloud}>
               Skip (use cloud LLMs instead)
             </button>
           </div>
-        {:else if ollamaOk}
+        {:else if ollamaReachable && missingModels.length > 0 && !ollamaChecking}
+          <div class="help-box">
+            <p>Ollama is running, but these models need to be pulled:</p>
+            {#each missingModels as model}
+              <div class="model-pull-row">
+                <code>ollama pull {model}</code>
+                <button class="copy-btn" onclick={() => copyToClipboard(`ollama pull ${model}`)} title="Copy command">
+                  Copy
+                </button>
+              </div>
+            {/each}
+          </div>
+          <div class="wizard-actions">
+            <button class="btn btn-primary" onclick={checkOllama}>Check Again</button>
+            <button class="btn" onclick={() => step = 'cloud'}>
+              Next: Cloud Setup (Optional)
+            </button>
+          </div>
+        {:else if ollamaOk && !ollamaChecking}
           <div class="wizard-actions">
             <button class="btn btn-primary" onclick={() => step = 'cloud'}>
               Next: Cloud Setup (Optional)
@@ -167,28 +204,52 @@
 
     {:else if step === 'ready'}
       <div class="wizard-step fade-in">
-        <h2>You're Ready!</h2>
-        <p class="wizard-desc">
-          Everything is set up. Create your first story — choose a universe,
-          build a character, and begin your adventure.
-        </p>
-        <div class="ready-summary">
-          {#if ollamaOk}
-            <div class="summary-item ok">Local LLM: Ready</div>
-          {:else}
-            <div class="summary-item warn">Local LLM: Not detected</div>
-          {/if}
-          {#if cloudKeyInput.trim()}
-            <div class="summary-item ok">Cloud LLM: Configured</div>
-          {:else}
+        {#if !ollamaReachable && !cloudKeyInput.trim()}
+          <h2>Almost There</h2>
+          <p class="wizard-desc">
+            Ollama must be running to play. Start it with <code class="inline-code">ollama serve</code>,
+            or go back and configure a cloud LLM provider.
+          </p>
+          <div class="ready-summary">
+            <div class="summary-item warn">Local LLM: Not running</div>
             <div class="summary-item neutral">Cloud LLM: Not configured</div>
-          {/if}
-        </div>
-        <div class="wizard-actions">
-          <button class="btn btn-primary" onclick={completeSetup}>
-            Create Your First Story
-          </button>
-        </div>
+          </div>
+          <div class="wizard-actions">
+            <button class="btn btn-primary" onclick={goToOllamaCheck}>
+              Check Ollama Again
+            </button>
+            <button class="btn" onclick={() => step = 'cloud'}>
+              Configure Cloud LLM
+            </button>
+          </div>
+        {:else}
+          <h2>You're Ready!</h2>
+          <p class="wizard-desc">
+            Everything is set up. Create your first story — choose a universe,
+            build a character, and begin your adventure.
+          </p>
+          <div class="ready-summary">
+            {#if ollamaOk}
+              <div class="summary-item ok">Local LLM: Ready</div>
+            {:else if ollamaReachable && missingModels.length > 0}
+              <div class="summary-item warn">Local LLM: {missingModels.length} model{missingModels.length > 1 ? 's' : ''} missing (may affect quality)</div>
+            {:else if !ollamaReachable && cloudKeyInput.trim()}
+              <div class="summary-item warn">Local LLM: Not running (using cloud instead)</div>
+            {:else}
+              <div class="summary-item warn">Local LLM: Not detected</div>
+            {/if}
+            {#if cloudKeyInput.trim()}
+              <div class="summary-item ok">Cloud LLM: Configured</div>
+            {:else}
+              <div class="summary-item neutral">Cloud LLM: Not configured</div>
+            {/if}
+          </div>
+          <div class="wizard-actions">
+            <button class="btn btn-primary" onclick={completeSetup}>
+              Create Your First Story
+            </button>
+          </div>
+        {/if}
       </div>
     {/if}
 
@@ -344,6 +405,44 @@
     margin-top: 6px;
     font-size: 0.85rem;
     color: var(--text-primary);
+  }
+
+  .model-pull-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .model-pull-row code {
+    flex: 1;
+    margin-top: 0;
+  }
+
+  .copy-btn {
+    background: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: color 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+  }
+
+  .copy-btn:hover {
+    color: var(--text-secondary);
+    border-color: var(--accent-primary);
+  }
+
+  .inline-code {
+    background: var(--bg-input);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    font-family: monospace;
   }
 
   /* Cloud form */
