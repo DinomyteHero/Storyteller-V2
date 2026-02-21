@@ -48,6 +48,8 @@
   import { apiFetch, BASE_URL } from '$lib/api/client';
   // V9.0: Settings panel
   import SettingsPanel from '$lib/components/game/SettingsPanel.svelte';
+  // Reorg: Extracted sub-components
+  import HudBar from '$lib/components/game/HudBar.svelte';
 
   let isSendingTurn = $state(false);
   let narrativeEl: HTMLDivElement | undefined = $state();
@@ -616,13 +618,6 @@
     window.open(url, '_blank');
   }
 
-  function stressLabel(level: number): string {
-    if (level >= 8) return 'Critical';
-    if (level >= 6) return 'High';
-    if (level >= 4) return 'Moderate';
-    return 'Low';
-  }
-
   // All drawer tabs including journal + quests
   const DRAWER_TABS = ['character', 'companions', 'factions', 'inventory', 'quests', 'comms', 'journal', 'settings'] as const;
 </script>
@@ -641,72 +636,14 @@
 {#if $isGameActive}
 <div class="gameplay-layout" role="main">
   <!-- ======================== HUD BAR ======================== -->
-  <header class="hud-bar card scanline" aria-label="Game status bar">
-    <div class="hud-left">
-      <button
-        class="hud-hamburger btn press-scale"
-        onclick={() => ui.toggleDrawer()}
-        title="Toggle info panel (i)"
-        aria-label="Toggle info panel"
-        aria-expanded={$ui.drawerOpen}
-      >
-        ≡
-        {#if !$ui.drawerOpen && $unreadIntelCount > 0}
-          <span class="hamburger-intel-dot" aria-label="{$unreadIntelCount} unread intel"></span>
-        {/if}
-      </button>
-      {#if hudData}
-        <div class="pill" role="status" aria-label="Location: {hudData.location}">
-          <span class="label">LOC</span>
-          <span class="value">{hudData.location}</span>
-        </div>
-        <div class="pill" aria-label="Year: {hudData.yearLabel}">
-          <span class="label">YEAR</span>
-          <span class="value">{hudData.yearLabel}</span>
-        </div>
-      {/if}
-    </div>
-    <div class="hud-right">
-      {#if hudData}
-        <div class="pill" aria-label="Hit points: {hudData.hp}">
-          <span class="label">HP</span>
-          <span class="value">{hudData.hp}</span>
-        </div>
-        <div class="pill" aria-label="Credits: {hudData.credits}">
-          <span class="label">CR</span>
-          <span class="value">{hudData.credits}</span>
-        </div>
-        <div
-          class="pill stress-pill"
-          class:stress-high={hudData.stress >= 7}
-          class:stress-mid={hudData.stress >= 4 && hudData.stress < 7}
-          aria-label="Stress: {hudData.stress} out of 10, {stressLabel(hudData.stress)}"
-        >
-          <span class="label">S</span>
-          <span class="value">{hudData.stress}</span>
-        </div>
-        <!-- V3.0: Heat & Alert pills from SceneFrame pressure -->
-        {#if $sceneFrame?.pressure?.heat && $sceneFrame.pressure.heat !== 'Low'}
-          <div class="pill heat-pill heat-{$sceneFrame.pressure.heat.toLowerCase()}" aria-label="Heat: {$sceneFrame.pressure.heat}">
-            <span class="label">🔥</span>
-            <span class="value">{$sceneFrame.pressure.heat}</span>
-          </div>
-        {/if}
-        {#if $sceneFrame?.pressure?.alert && $sceneFrame.pressure.alert !== 'Quiet'}
-          <div class="pill alert-pill alert-{$sceneFrame.pressure.alert.toLowerCase()}" aria-label="Alert: {$sceneFrame.pressure.alert}">
-            <span class="label">⚠</span>
-            <span class="value">{$sceneFrame.pressure.alert}</span>
-          </div>
-        {/if}
-      {/if}
-      <button
-        class="btn hud-quit press-scale"
-        onclick={handleQuit}
-        title="Quit to menu"
-        aria-label="Quit to main menu"
-      >✕</button>
-    </div>
-  </header>
+  <HudBar
+    {hudData}
+    pressure={$sceneFrame?.pressure}
+    drawerOpen={$ui.drawerOpen}
+    unreadIntelCount={$unreadIntelCount}
+    onToggleDrawer={() => ui.toggleDrawer()}
+    onQuit={handleQuit}
+  />
 
   <!-- Phase 5.3: Save confidence strip -->
   {#if lastSavedAt}
@@ -1438,44 +1375,6 @@
     flex-direction: column;
     min-height: 100vh;
   }
-
-  /* ======================== HUD BAR ======================== */
-  .hud-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 0;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .hud-left, .hud-right {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  .hud-hamburger {
-    padding: 4px 10px;
-    font-size: 1.2rem;
-    border: none;
-  }
-  .hud-quit {
-    padding: 4px 10px;
-    font-size: 0.9rem;
-    border: none;
-    color: var(--text-muted);
-  }
-  .hud-quit:hover {
-    color: var(--accent-danger);
-  }
-  .stress-high { color: var(--tone-renegade) !important; }
-  .stress-high .value { color: var(--tone-renegade) !important; }
-  .stress-mid { color: var(--tone-investigate) !important; }
-  .stress-mid .value { color: var(--tone-investigate) !important; }
 
   /* ======================== MAIN CONTENT ======================== */
   .gameplay-main {
@@ -2369,39 +2268,8 @@
     flex-shrink: 0;
   }
 
-  /* ======================== V3.0 HUD HEAT/ALERT PILLS ======================== */
-  .heat-pill.heat-noticed {
-    color: var(--tone-investigate) !important;
-    border-color: var(--tone-investigate) !important;
-  }
-  .heat-pill.heat-noticed .value { color: var(--tone-investigate) !important; }
-  .heat-pill.heat-wanted {
-    color: var(--tone-renegade) !important;
-    border-color: var(--tone-renegade) !important;
-    animation: pulse-hud 2s ease-in-out infinite;
-  }
-  .heat-pill.heat-wanted .value { color: var(--tone-renegade) !important; }
-  .alert-pill.alert-watchful {
-    color: var(--tone-investigate) !important;
-    border-color: var(--tone-investigate) !important;
-  }
-  .alert-pill.alert-watchful .value { color: var(--tone-investigate) !important; }
-  .alert-pill.alert-lockdown {
-    color: var(--tone-renegade) !important;
-    border-color: var(--tone-renegade) !important;
-    animation: pulse-hud 2s ease-in-out infinite;
-  }
-  .alert-pill.alert-lockdown .value { color: var(--tone-renegade) !important; }
-  @keyframes pulse-hud {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-  }
-
   /* ======================== RESPONSIVE ======================== */
   @media (max-width: 768px) {
-    .hud-bar {
-      padding: 6px 10px;
-    }
     .gameplay-main {
       padding: 1rem 0.75rem;
     }
@@ -2432,18 +2300,6 @@
       border-radius: 2px;
       background: var(--border-panel);
     }
-    /* Stack HUD pills */
-    .hud-left, .hud-right {
-      gap: 4px;
-    }
-    .pill {
-      padding: 3px 7px;
-      font-size: 0.7rem;
-    }
-    .pill .label {
-      font-size: 0.6rem;
-      margin-right: 3px;
-    }
   }
 
   @media (max-width: 480px) {
@@ -2457,15 +2313,6 @@
 
 
   /* ======================== V3.3 VISUAL UPGRADE ======================== */
-  .hud-bar {
-    border-bottom: 1px solid rgba(118, 176, 255, 0.35);
-    background:
-      linear-gradient(180deg, rgba(9, 18, 40, 0.95), rgba(8, 16, 35, 0.88));
-    box-shadow:
-      0 12px 30px rgba(0, 0, 0, 0.35),
-      inset 0 1px 0 rgba(162, 210, 255, 0.12);
-  }
-
   .gameplay-main {
     max-width: 840px;
     padding: 1.8rem 1.2rem 2rem;
@@ -2560,27 +2407,6 @@
   }
 
   /* ======================== Living-world surfacing ======================== */
-
-  /* HUD hamburger intel dot */
-  .hud-hamburger {
-    position: relative;
-  }
-  .hamburger-intel-dot {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent-primary);
-    box-shadow: 0 0 6px var(--accent-glow);
-    animation: intel-pulse 2s ease-in-out infinite;
-    pointer-events: none;
-  }
-  @keyframes intel-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
 
   /* Drawer tab unread badge */
   .tab-badge {
