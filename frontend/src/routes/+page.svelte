@@ -155,9 +155,22 @@
 </script>
 
 <div class="menu-container" role="main">
+  <!-- Ambient atmosphere -->
+  <div class="atmosphere" aria-hidden="true">
+    <div class="atmo-orb atmo-orb-1"></div>
+    <div class="atmo-orb atmo-orb-2"></div>
+    <div class="atmo-orb atmo-orb-3"></div>
+    <div class="atmo-particles">
+      {#each Array(12) as _, i}
+        <div class="particle" style="--i:{i};"></div>
+      {/each}
+    </div>
+  </div>
+
   <div class="menu-content">
     <!-- Title block -->
     <div class="title-block">
+      <div class="title-glow" aria-hidden="true"></div>
       <h1 class="game-title">Storyteller AI</h1>
       <p class="subtitle">An Interactive Narrative Adventure</p>
     </div>
@@ -172,7 +185,15 @@
         >
           {resumingLast ? 'Loading...' : 'Continue Story'}
         </button>
-        <p class="continue-hint">{lastPlayedCampaign.playerName} &middot; {ERA_LABELS[lastPlayedCampaign.era] ?? lastPlayedCampaign.era}</p>
+        <div class="continue-card">
+          <span class="continue-name">{lastPlayedCampaign.playerName}</span>
+          <span class="continue-sep">&middot;</span>
+          <span class="continue-era">{ERA_LABELS[lastPlayedCampaign.era] ?? lastPlayedCampaign.era}</span>
+          {#if lastPlayedCampaign.turnCount > 0}
+            <span class="continue-sep">&middot;</span>
+            <span class="continue-turns">{lastPlayedCampaign.turnCount} turns</span>
+          {/if}
+        </div>
       {/if}
       <button class="btn btn-primary menu-btn press-scale" onclick={handleNewCampaign}>
         New Story
@@ -212,7 +233,15 @@
       {/if}
 
       {#if loadingCampaignList}
-        <p class="empty-state">Loading campaigns...</p>
+        <div class="skeleton-list" aria-label="Loading campaigns">
+          {#each Array(3) as _}
+            <div class="skeleton-card">
+              <div class="skeleton-line skeleton-name"></div>
+              <div class="skeleton-line skeleton-detail"></div>
+              <div class="skeleton-line skeleton-meta"></div>
+            </div>
+          {/each}
+        </div>
       {:else if savedCampaigns.length === 0}
         <p class="empty-state">No saved campaigns found. Start a new campaign first!</p>
       {:else}
@@ -361,16 +390,123 @@
     align-items: center;
     justify-content: center;
     padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* === Ambient atmosphere === */
+  .atmosphere {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .atmo-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0;
+    animation: orbFloat 12s ease-in-out infinite;
+  }
+
+  .atmo-orb-1 {
+    width: 300px;
+    height: 300px;
+    background: var(--accent-glow);
+    top: -80px;
+    left: 15%;
+    animation-delay: 0s;
+  }
+
+  .atmo-orb-2 {
+    width: 200px;
+    height: 200px;
+    background: var(--accent-glow);
+    bottom: 10%;
+    right: 10%;
+    animation-delay: -4s;
+  }
+
+  .atmo-orb-3 {
+    width: 250px;
+    height: 250px;
+    background: var(--accent-glow);
+    top: 40%;
+    left: 60%;
+    animation-delay: -8s;
+  }
+
+  @keyframes orbFloat {
+    0%, 100% { opacity: 0.15; transform: translate(0, 0) scale(1); }
+    25% { opacity: 0.25; transform: translate(20px, -15px) scale(1.05); }
+    50% { opacity: 0.18; transform: translate(-10px, 10px) scale(0.95); }
+    75% { opacity: 0.22; transform: translate(15px, 5px) scale(1.02); }
+  }
+
+  .atmo-particles {
+    position: absolute;
+    inset: 0;
+  }
+
+  .particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    opacity: 0;
+    animation: particleDrift 8s ease-in-out infinite;
+    animation-delay: calc(var(--i) * 0.6s);
+    left: calc(8% + var(--i) * 7.5%);
+    top: calc(20% + sin(var(--i)) * 30%);
+  }
+
+  .particle:nth-child(odd) {
+    top: 65%;
+  }
+
+  .particle:nth-child(3n) {
+    width: 3px;
+    height: 3px;
+  }
+
+  @keyframes particleDrift {
+    0%, 100% { opacity: 0; transform: translateY(0); }
+    20% { opacity: 0.4; }
+    50% { opacity: 0.6; transform: translateY(-40px); }
+    80% { opacity: 0.3; }
   }
 
   .menu-content {
     text-align: center;
     max-width: 420px;
     width: 100%;
+    position: relative;
+    z-index: 1;
   }
 
   .title-block {
     margin-bottom: 3rem;
+    position: relative;
+  }
+
+  .title-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 320px;
+    height: 100px;
+    transform: translate(-50%, -50%);
+    background: var(--accent-glow);
+    filter: blur(60px);
+    opacity: 0.4;
+    animation: titlePulse 4s ease-in-out infinite;
+  }
+
+  @keyframes titlePulse {
+    0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.1); }
   }
 
   .game-title {
@@ -382,6 +518,7 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    position: relative;
   }
 
   .subtitle {
@@ -389,6 +526,7 @@
     color: var(--text-secondary);
     font-style: italic;
     letter-spacing: 0.5px;
+    position: relative;
   }
 
   .menu-buttons {
@@ -407,12 +545,35 @@
   .continue-btn {
     box-shadow: 0 0 16px var(--accent-glow);
   }
-  .continue-hint {
+
+  .continue-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     font-size: var(--font-small);
     color: var(--text-muted);
     margin-top: -6px;
     margin-bottom: 4px;
-    text-align: center;
+    flex-wrap: wrap;
+  }
+
+  .continue-name {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .continue-sep {
+    opacity: 0.4;
+  }
+
+  .continue-era {
+    color: var(--text-muted);
+  }
+
+  .continue-turns {
+    color: var(--text-muted);
+    font-size: var(--font-small);
   }
 
   .version-tag {
@@ -555,5 +716,68 @@
     font-size: var(--font-body);
     padding: 24px 0;
     text-align: center;
+  }
+
+  /* === Skeleton loaders === */
+  .skeleton-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .skeleton-card {
+    padding: 14px 16px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--panel-radius);
+    background: var(--bg-panel);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .skeleton-line {
+    border-radius: 4px;
+    background: linear-gradient(
+      90deg,
+      var(--border-subtle) 25%,
+      rgba(255, 255, 255, 0.06) 50%,
+      var(--border-subtle) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  .skeleton-name {
+    width: 45%;
+    height: 16px;
+  }
+
+  .skeleton-detail {
+    width: 65%;
+    height: 12px;
+  }
+
+  .skeleton-meta {
+    width: 35%;
+    height: 10px;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .atmo-orb,
+    .particle,
+    .title-glow {
+      animation: none;
+      opacity: 0.2;
+    }
+    .skeleton-line {
+      animation: none;
+    }
   }
 </style>
