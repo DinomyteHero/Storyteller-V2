@@ -1,6 +1,12 @@
 # Hybrid Cloud Setup Guide
 
-Storyteller V2 supports a **hybrid local+cloud** LLM approach: lightweight structural roles run on local Ollama, while quality-critical narrative roles are routed to cloud providers (Anthropic Claude) for faster, higher-quality responses.
+Storyteller V2 supports a **hybrid local+cloud** LLM approach: lightweight structural roles run on local Ollama, while quality-critical narrative roles are routed to cloud providers for faster, higher-quality responses.
+
+**V12.0 Settings UI:** You can now manage API keys, test provider connectivity, and configure per-role models directly from the in-app Settings page (`/settings`). The `.env`-based configuration below is still supported for advanced users and CI/CD environments.
+
+**Supported cloud providers:** Anthropic (Claude), OpenAI (GPT), xAI (Grok), DeepSeek, Google (Gemini).
+
+**System presets:** `local` (default), `budget`, `balanced`, `quality`, `cloud_all`, `deepseek`, `custom`.
 
 ## Why Hybrid?
 
@@ -106,9 +112,21 @@ STORYTELLER_PROLOGUE_MODEL=claude-sonnet-4-5-20250929
 | World Mind | qwen3:8b | qwen3:8b | World sim, background |
 | Quest Weaver | qwen3:8b | qwen3:8b | Post-turn, not latency-critical |
 
-## OpenAI Support
+### DeepSeek (~$0.02/turn, ~$2.00 per 100-turn campaign)
 
-You can also use OpenAI models:
+All roles on DeepSeek. Affordable cloud alternative — no local GPU required.
+
+```bash
+DEEPSEEK_API_KEY=your-deepseek-key-here
+```
+
+Then select the **DeepSeek** preset in the Settings UI, or set `cloud_preset=deepseek` when creating a campaign. DeepSeek V3 handles most roles; DeepSeek R1 (reasoner) handles narrative-critical roles (Director, Narrator, Bible, Prologue).
+
+> **Note:** DeepSeek does not have a separate "fast" tier model. The tier fallback system (`TIER_PRIORITY`) automatically routes "fast" tier requests to DeepSeek V3 (quality tier).
+
+## Other Cloud Providers
+
+### OpenAI
 
 ```bash
 OPENAI_API_KEY=sk-your-key-here
@@ -116,13 +134,29 @@ STORYTELLER_NARRATOR_PROVIDER=openai
 STORYTELLER_NARRATOR_MODEL=gpt-4o
 ```
 
-Or OpenAI-compatible providers (e.g., local vLLM, Together AI):
+### OpenAI-Compatible Providers (vLLM, Together AI, etc.)
 
 ```bash
 STORYTELLER_NARRATOR_PROVIDER=openai_compat
 STORYTELLER_NARRATOR_MODEL=meta-llama/Llama-3-70b
 STORYTELLER_NARRATOR_BASE_URL=https://api.together.xyz/v1
 STORYTELLER_NARRATOR_API_KEY=your-together-key
+```
+
+### xAI (Grok)
+
+```bash
+XAI_API_KEY=your-xai-key-here
+STORYTELLER_NARRATOR_PROVIDER=xai
+STORYTELLER_NARRATOR_MODEL=grok-3
+```
+
+### Google (Gemini)
+
+```bash
+GOOGLE_API_KEY=your-google-key-here
+STORYTELLER_NARRATOR_PROVIDER=google
+STORYTELLER_NARRATOR_MODEL=gemini-2.0-flash
 ```
 
 ## Health Check

@@ -6,6 +6,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+import pytest
+
 from backend.app.content.repository import CONTENT_REPOSITORY
 from backend.app.world.npc_generator import generate_npc
 
@@ -56,6 +58,7 @@ def test_procedural_npc_uses_location_encounter_table_when_available():
     assert template_id in {e.template_id for e in loc.encounter_table}
 
 
+@pytest.mark.skip(reason="enrich_era_pack_v2.py removed; era enrichment now via EraForge agent")
 def test_enrich_script_idempotent_for_minimal_pack():
     # Dynamically import the script (scripts/ is not a Python package).
     root = Path(__file__).resolve().parents[2]

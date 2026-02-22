@@ -71,6 +71,12 @@
       desc: 'All narrative roles on cloud. Maximum prose quality.',
       cost: '~$0.05/turn',
     },
+    {
+      value: 'deepseek' as const,
+      label: 'DeepSeek',
+      desc: 'All roles on DeepSeek. Affordable cloud, no Ollama required.',
+      cost: '~$0.02/turn',
+    },
   ] as const;
 
   $: userPresets = presetList.filter((p) => !p.is_system);

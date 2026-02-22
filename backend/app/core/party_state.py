@@ -126,25 +126,39 @@ def load_party_state(world_state: dict[str, Any]) -> PartyState:
     if raw and isinstance(raw, dict):
         try:
             return PartyState.model_validate(raw)
-        except Exception:
-            logger.warning("Failed to parse party_state; rebuilding from legacy fields")
+        except Exception as exc:
+            logger.warning("Failed to parse party_state (%s: %s); rebuilding from legacy fields", type(exc).__name__, exc)
 
     # Backward-compat: build from legacy party/party_affinity/party_traits
     party = world_state.get("party") or []
+    if not isinstance(party, list):
+        logger.error("party field is %s, expected list; returning empty PartyState", type(party).__name__)
+        return PartyState()
     party_affinity = world_state.get("party_affinity") or {}
+    if not isinstance(party_affinity, dict):
+        party_affinity = {}
     party_traits = world_state.get("party_traits") or {}
+    if not isinstance(party_traits, dict):
+        party_traits = {}
     loyalty_progress = world_state.get("loyalty_progress") or {}
+    if not isinstance(loyalty_progress, dict):
+        loyalty_progress = {}
 
     companion_states: dict[str, CompanionRuntimeState] = {}
     for cid in party:
-        companion_states[cid] = CompanionRuntimeState(
-            companion_id=cid,
-            influence=int(party_affinity.get(cid, 0)),
-            traits=dict(party_traits.get(cid) or {}),
-            loyalty_progress=int(loyalty_progress.get(cid, 0)),
-            memories=list((world_state.get("companion_memories") or {}).get(cid) or []),
-        )
-    return PartyState(active_companions=list(party), companion_states=companion_states)
+        if not isinstance(cid, str) or not cid.strip():
+            continue
+        try:
+            companion_states[cid] = CompanionRuntimeState(
+                companion_id=cid,
+                influence=int(party_affinity.get(cid, 0)),
+                traits=dict(party_traits.get(cid) or {}),
+                loyalty_progress=int(loyalty_progress.get(cid, 0)),
+                memories=list((world_state.get("companion_memories") or {}).get(cid) or []),
+            )
+        except Exception as exc:
+            logger.warning("Skipping corrupt companion %r during legacy migration: %s", cid, exc)
+    return PartyState(active_companions=[c for c in party if isinstance(c, str) and c.strip()], companion_states=companion_states)
 
 
 def save_party_state(world_state: dict[str, Any], party_state: PartyState) -> dict[str, Any]:

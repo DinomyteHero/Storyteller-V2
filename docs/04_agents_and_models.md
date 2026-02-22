@@ -18,7 +18,7 @@ All agent files are located in `backend/app/core/agents/`.
 | **DirectorAgent** | `director.py` | No | Yes | No | `director_instructions` (text-only) | Returns empty instructions; pipeline continues |
 | **NarratorAgent** | `narrator.py` | No | Yes | Yes | `final_text` (prose) | `AgentFailureError` on failure (caught at graph level) |
 | **ChoiceCrafterAgent** | `choice_crafter_agent.py` | No | Yes | Yes | 4x player choices (setting-agnostic) | `AgentFailureError` on failure (caught at graph level) |
-| **WorldMindAgent** | `world_mind_agent.py` | No | Yes | No | World events, rumors, faction updates | Falls back to deterministic faction engine |
+| **WorldMindAgent** | `world_mind_agent.py` | No | Yes | No | World events, rumors, faction updates | Falls back to empty output (non-fatal) |
 | **CampaignArchitect** | `architect.py` | No | Yes | No | Campaign blueprint, off-screen simulation | Returns minimal scaffold |
 | **BiographerAgent** | `biographer.py` | No | Yes | No | Character background text | Returns default background |
 | **CastingAgent** | `casting.py` | No | Yes | No | NPC cast list | Falls back to Bible casting / procedural |
@@ -251,16 +251,13 @@ MechanicOutput(
 
 **Non-authoritative LLM agent.** Falls back to minimal deterministic scaffold.
 
-**Two responsibilities:**
+**Primary responsibility:**
 
 1. **Campaign blueprint generation** (used in `POST /v2/setup/auto`):
    - Generates arc scaffold: themes, opening threads, climax, act outline
    - Populates `world_state_json.act_outline`, `world_state_json.opening_beats`
 
-2. **Off-screen simulation** (used by WorldSim node on tick boundary):
-   - Simulates world events for `active_factions`
-   - Generates new rumors, faction goals, NPC movements
-   - Falls back to `faction_engine.simulate_faction_tick()` if LLM unavailable
+> **Note:** Off-screen world simulation was moved to `WorldMindAgent` in V4.0+. The CampaignArchitect no longer handles world ticks.
 
 ---
 
@@ -277,13 +274,16 @@ MechanicOutput(
 
 ### WorldMindAgent — `backend/app/core/agents/world_mind_agent.py`
 
-**Non-authoritative LLM agent (V5.0).** LLM-driven world simulation.
+**Non-authoritative LLM agent (V4.0+).** LLM-driven world simulation replacing the earlier deterministic faction engine.
 
 **Responsibilities:**
-- Generate off-screen world events from faction context
+- Generate off-screen world events from faction context, NPC states, and player action summaries
 - Produce world-state rumors with narrative flavor
 - Produce faction movement and goal updates
-- Falls back to deterministic `faction_engine` on failure
+- Track faction memory for multi-turn plan continuity
+- Manage NPC state updates (movement, goals)
+- Generate reactive encounters for faction-connected events (e.g., NPC death retaliation)
+- Falls back to empty `WorldSimOutput` on LLM failure (non-fatal; world sim errors never break a turn)
 
 ---
 

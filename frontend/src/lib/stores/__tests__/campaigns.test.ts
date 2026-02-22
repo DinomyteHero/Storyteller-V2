@@ -1,4 +1,9 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// Mock $app/environment so `browser` is true in jsdom test context.
+// Without this, every store function short-circuits with `if (!browser) return`.
+vi.mock('$app/environment', () => ({ browser: true }));
+
 import {
   getSavedCampaignMap,
   getSavedCampaigns,
@@ -12,7 +17,8 @@ const STORAGE_KEY = 'storyteller-saved-campaigns';
 
 describe('campaigns store cache behavior', () => {
   beforeEach(() => {
-    localStorage.removeItem(STORAGE_KEY);
+    // Clear localStorage AND any in-memory residue so stores don't leak between tests.
+    localStorage.clear();
   });
 
   it('upserts and merges backend campaign metadata', () => {

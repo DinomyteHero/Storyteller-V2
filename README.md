@@ -2,19 +2,18 @@
 
 Storyteller AI is a **local-first, setting-agnostic narrative RPG engine** powered by a FastAPI backend, SvelteKit frontend, and a LangGraph pipeline that orchestrates deterministic game systems with LLM-powered storytelling.
 
-**Current Engine Version: V11.0**
+**Current Engine Version: V12.0** | **Project version: v1.0.1**
 
-**Project version 0.1.0**
+V12.0 adds cloud provider management, user LLM presets, per-campaign LLM configuration, EraForge era pack generation, and novel export — building on the V11.0 player experience and V10.0 narrative intelligence architecture.
 
-V11.0 builds on the V10.0 narrative intelligence architecture with **Player Experience** improvements — surfacing existing backend systems as intuitive frontend flows:
+Key V12.0 additions:
 
-- **Universe & Story UX** — "Continue Story" hero button on home page; Universe selection step in creation wizard; campaigns grouped by Story in load modal
-- **UI-Exposed Lore Ingestion** — Source management (create/delete) in Library "Sources" tab; optional "Add Reference Material" upload during character creation; `lore_sources` table tracking ingested material
-- **Optional Visual Layer** — NPC/companion portraits and location key art served from era packs when `ENABLE_PORTRAITS=1` (default off, zero cost when disabled)
+- **Cloud Provider System** — 5 cloud LLM providers (Anthropic, OpenAI, xAI, DeepSeek, Google) with Settings UI for API key management, connectivity testing, and per-role model configuration
+- **Preset System** — Budget / Balanced / Quality / Cloud All / DeepSeek tiers with automatic provider resolution, plus user-created custom presets
+- **EraForge** — Suggest, generate, and refine custom era packs via LLM
+- **Novel Export** — Export campaign transcript as Markdown
 
-Previous V10.0 Narrative Intelligence features remain active: dramatic irony tags, "Yes, And" engine, narrative rhythm hints, revelation timing, callback crystallization, player behavioral profiling, foreshadowing hooks, thematic resonance, arc mood profiles, companion wound/reveal layers.
-
-**Previous versions:** V7.0 (production-readiness), V8.0 (multi-arc campaigns), V9.0 (novel-length storytelling), V10.0 (narrative intelligence)
+**Previous versions:** V7.0 (production-readiness), V8.0 (multi-arc campaigns), V9.0 (novel-length storytelling), V10.0 (narrative intelligence), V11.0 (player experience UX)
 
 ---
 
@@ -41,7 +40,7 @@ The result is a narrative game that feels alive — persistent companions, facti
 | Component | Technology |
 | ----------- | ----------- |
 | Backend | FastAPI + Uvicorn |
-| Pipeline | LangGraph `StateGraph` (13 nodes in ACTION path, 14 total including META) |
+| Pipeline | LangGraph `StateGraph` (15 nodes in ACTION path, 16 total including META) |
 | Persistence | SQLite (event sourcing + projections) |
 | Vector DB | LanceDB (lore, style, character voice RAG) |
 | Embeddings | `sentence-transformers/all-MiniLM-L6-v2` (local, 384-dim) |
@@ -49,12 +48,12 @@ The result is a narrative game that feels alive — persistent companions, facti
 | Frontend | SvelteKit 5.0 + TypeScript |
 | Content | YAML Era Packs (locations, NPCs, companions, quests, factions, moments) |
 
-### Pipeline Topology (V10.0 — unchanged in V11.0)
+### Pipeline Topology (V12.0 — 15 nodes)
 
 ```
-router -> mechanic -> encounter -> world_sim -> companion_reaction -> moments
-       -> arc_planner -> scene_frame -> director -> narrator -> narrative_validator
-       -> choice_crafter -> commit -> END
+router → mechanic → encounter → world_sim → moments → arc_planner → interlude
+       → scene_frame → director → companion_reaction → narrator → narrative_validator
+       → choice_crafter → commit → END
 ```
 
 Baseline is **3 LLM calls per normal turn** (Director + Narrator + ChoiceCrafter), with additional periodic maintenance-agent calls in commit-heavy turns. Mechanics, routing, and companion reactions remain deterministic.
@@ -289,13 +288,13 @@ curl http://localhost:8000/health/detail
 
 ---
 
-## Architecture Highlights (V11.0)
+## Architecture Highlights (V12.0)
 
 - **Event Sourcing** — Append-only `turn_events` + projections. State always reconstructable from event log.
 - **Single Transaction Boundary** — Only `CommitNode` calls `conn.commit()`. Pipeline failures before Commit leave no partial state.
 - **Deferred Agents** — Maintenance agents (Memory, QuestWeaver, Progression, PsychArchivist) + V10.0 intelligence agents (Revelation, Callback Crystallizer, Player Profile) run post-commit via `pending_world_state_patches`, keeping transaction hold time under 2 seconds.
 - **Shared Pipeline Executor** — `run_turn()` via `_run_pipeline_with_timings()` with `get_pre_narrator_steps()`/`get_post_narrator_steps()` helpers ensures streaming and non-streaming paths execute identical node sequences.
-- **Hybrid Cloud Routing** — Quality-critical roles route to cloud (Anthropic Claude); structural roles stay local (Ollama). See `docs/HYBRID_CLOUD_SETUP.md`.
+- **Cloud Provider System (V12.0)** — 5 cloud providers (Anthropic, OpenAI, xAI, DeepSeek, Google) + Ollama local. Tier-based presets (Budget/Balanced/Quality/Cloud All/DeepSeek/Custom) with per-campaign LLM configuration. See `docs/HYBRID_CLOUD_SETUP.md`.
 - **Snapshot-Based Rewind** — `turn_snapshots` table stores world state per turn. `POST /campaigns/{id}/rewind?to_turn=N` atomically restores state.
 - **Canon Event Scheduler** — Historical mode campaigns enforce era-defined canon events via `canon_scheduler.py` with immutable truth facts.
 - **Consequence Propagation** — Sandbox impact tiers (ripple/wave/tsunami) create multi-turn follow-on consequences tracked in world state.

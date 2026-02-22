@@ -131,7 +131,7 @@ Storyteller AI/
         rewind.py                # Snapshot-based rewind logic (V7.0)
       db/                        # SQLite schema + migration runner
         schema.sql               # Reference schema
-        migrations/              # Migrations 0001-0037
+        migrations/              # Migrations 0001-0043 (0024 absent)
           0001_init.sql          # Core tables (campaigns, characters, inventory, turn_events)
           0002_add_rendered_turns.sql
           0003_add_credits.sql
@@ -401,6 +401,15 @@ graph LR
 | `frontend/src/lib/components/game/HudBar.svelte` | Extracted HUD bar component (was inline in play page) |
 | `prompts/v1/*.txt` | 8 externalized system prompt templates (choice_crafter, continuity, intent_router, memory, progression, quest_weaver, suggestion_refiner) |
 | `backend/app/db/migrations/0037_truth_facts_index.sql` | Performance index on `truth_facts(campaign_id)` |
+
+## V12.0 / v1.0.1 New Modules Summary
+
+| Module | Purpose |
+| ------- | ------- |
+| `backend/app/core/decision_ledger.py` | Decision tracking — records player decisions with impact tiers and promise delivery tracking |
+| `backend/app/db/migrations/0042_decision_ledger.sql` | `decision_ledger` table for tracking major player decisions and undelivered promises |
+| `backend/app/db/migrations/0043_inventory_cascade.sql` | Inventory `ON DELETE CASCADE` + performance indexes (`turn_events.event_type`, `truth_facts.fact_key`, `turn_idempotency.idempotency_key`) |
+| `backend/app/core/provider_resolver.py` | Provider-specific preset auto-pinning (DeepSeek preset support) |
 
 ## V11.0 New Modules Summary
 

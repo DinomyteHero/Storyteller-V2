@@ -144,8 +144,8 @@ class TestClockTicksAndWorldReacts(unittest.TestCase):
                 with patch("backend.app.core.nodes.narrator.NarratorAgent") as MockNarrator:
                     MockNarrator.return_value.generate.return_value = narrator_output
                     # WorldSim is now deterministic (no LLM) — mock faction engine for controlled output
-                    with patch("backend.app.core.nodes.world_sim.simulate_faction_tick") as MockFactionTick:
-                        MockFactionTick.return_value = world_sim_output
+                    with patch("backend.app.core.agents.world_mind_agent.WorldMindAgent") as MockWorldMind:
+                        MockWorldMind.return_value.simulate.return_value = world_sim_output
                         state1 = build_initial_gamestate(self.conn, self.campaign_id, self.player_id)
                         state1.user_input = "Travel to the market"
                         run_turn(self.conn, state1)
@@ -287,8 +287,8 @@ class TestWorldSimNoPartialWrites(unittest.TestCase):
         with patch("backend.app.core.nodes.mechanic.MechanicAgent") as MockMechanic:
             MockMechanic.return_value.resolve = lambda gs: mechanic_result
             # WorldSim is now deterministic — mock faction engine for controlled output
-            with patch("backend.app.core.nodes.world_sim.simulate_faction_tick") as MockFactionTick:
-                MockFactionTick.return_value = world_sim_output
+            with patch("backend.app.core.agents.world_mind_agent.WorldMindAgent") as MockWorldMind:
+                MockWorldMind.return_value.simulate.return_value = world_sim_output
                 with patch("backend.app.core.nodes.director.DirectorAgent") as MockDirector:
                     MockDirector.return_value.plan.side_effect = RuntimeError("Director failed mid-turn")
                     with patch("backend.app.core.nodes.narrator.NarratorAgent"):
@@ -353,8 +353,8 @@ class TestWorldSimNoPartialWrites(unittest.TestCase):
         with patch("backend.app.core.nodes.mechanic.MechanicAgent") as MockMechanic:
             MockMechanic.return_value.resolve = lambda gs: mechanic_result
             # WorldSim is now deterministic — mock faction engine for controlled output
-            with patch("backend.app.core.nodes.world_sim.simulate_faction_tick") as MockFactionTick:
-                MockFactionTick.return_value = world_sim_output
+            with patch("backend.app.core.agents.world_mind_agent.WorldMindAgent") as MockWorldMind:
+                MockWorldMind.return_value.simulate.return_value = world_sim_output
                 with patch("backend.app.core.nodes.director.DirectorAgent") as MockDirector:
                     MockDirector.return_value.plan.return_value = director_plan_return
                     with patch("backend.app.core.nodes.narrator.NarratorAgent") as MockNarrator:

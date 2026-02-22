@@ -53,6 +53,14 @@ PERSUASION_VERBS = frozenset({
     "threaten", "threatens", "threatening", "threatened",
     "demand", "demands", "demanding", "demanded",
     "blackmail", "blackmails", "blackmailing", "blackmailed",
+    "seduce", "seduces", "seducing", "seduced",
+    "manipulate", "manipulates", "manipulating", "manipulated",
+    "coerce", "coerces", "coercing", "coerced",
+    "charm", "charms", "charming", "charmed",
+    "flatter", "flatters", "flattering", "flattered",
+    "plead", "pleads", "pleading", "pleaded",
+    "grovel", "grovels", "groveling", "groveled",
+    "cajole", "cajoles", "cajoling", "cajoled",
 })
 # "lie" as verb: "I lie" / "I'm lying" / "lying" (avoid "believe", "unlikely" via word boundary)
 LIE_VERB_PATTERN = re.compile(r"\b(lie|lies|lying|lied)\b", re.IGNORECASE)

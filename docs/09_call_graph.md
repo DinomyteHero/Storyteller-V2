@@ -86,9 +86,9 @@ graph.run_turn(conn, state)
   │         └─ core/encounter_throttle.py:check_throttle(conn, ...)
   │
   ├─ nodes/world_sim.py:world_sim_node(state)  [if tick boundary or travel]
-  │    ├─ agents/architect.py:CampaignArchitect.simulate_off_screen(...)  [non-authoritative LLM]
-  │    │    └─ llm_client.py:LLMClient.chat(ARCHITECT_MODEL)
-  │    ├─ world/faction_engine.py:simulate_faction_tick(...)  [deterministic fallback]
+  │    ├─ agents/world_mind_agent.py:WorldMindAgent.simulate(...)  [non-authoritative LLM]
+  │    │    └─ LLM call (WORLD_MIND_MODEL) → WorldSimOutput
+  │    ├─ [fallback: empty WorldSimOutput on LLM failure]
   │    └─ models/news.py:rumors_to_news_feed(rumors)
   │
   ├─ nodes/moments.py:moments_node(state)
@@ -213,8 +213,7 @@ graph.run_turn(conn, state)
 | LanceDB lore retrieval (Narrator) | ✅ | — |
 | LanceDB character voice retrieval | ✅ | — |
 | KG retrieval | — | Optional (when KG populated) |
-| `CampaignArchitect.simulate_off_screen()` | — | Only on WorldSim trigger |
-| `faction_engine.simulate_faction_tick()` | — | WorldSim fallback only |
+| `WorldMindAgent.simulate()` | — | Only on WorldSim trigger (tick boundary, travel, or world_reaction_needed) |
 | `IntentRouterAgent` LLM call | — | Only on low-confidence routing |
 | Episodic memory compression | — | Every 5 turns |
 | `RevelationAgent` (V10.0) | — | Every 5 turns (post-commit, deferred) |

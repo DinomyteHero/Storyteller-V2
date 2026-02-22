@@ -32,6 +32,8 @@ class TestTurnIdempotency(unittest.TestCase):
         apply_schema(self.db_path)
         self.patcher = patch("backend.app.api.v2_campaigns.DEFAULT_DB_PATH", self.db_path)
         self.patcher.start()
+        self.patcher_turn = patch("backend.app.api.v2_turn.DEFAULT_DB_PATH", self.db_path)
+        self.patcher_turn.start()
         self.run_turn_calls = 0
 
         def _fake_run_turn(_conn, state):
@@ -67,7 +69,7 @@ class TestTurnIdempotency(unittest.TestCase):
             state.mechanic_result = None
             return state
 
-        self.run_turn_patcher = patch("backend.app.api.v2_campaigns.run_turn", side_effect=_fake_run_turn)
+        self.run_turn_patcher = patch("backend.app.api.v2_turn.run_turn", side_effect=_fake_run_turn)
         self.run_turn_patcher.start()
 
         self.bio_patcher = patch(
@@ -110,6 +112,7 @@ class TestTurnIdempotency(unittest.TestCase):
         self.bible_patcher.stop()
         self.bio_patcher.stop()
         self.run_turn_patcher.stop()
+        self.patcher_turn.stop()
         self.patcher.stop()
         if os.path.exists(self.db_path):
             os.unlink(self.db_path)
@@ -161,7 +164,7 @@ class TestTurnIdempotency(unittest.TestCase):
         self.assertIn("different request payload", second.text)
 
     def test_parallel_turn_guard_rejects_when_campaign_busy(self):
-        with patch("backend.app.api.v2_campaigns._campaign_turn_lock", return_value=_DenyLock()):
+        with patch("backend.app.api.v2_turn._campaign_turn_lock", return_value=_DenyLock()):
             resp = self.client.post(
                 f"/v2/campaigns/{self.campaign_id}/turn",
                 params={"player_id": self.player_id},

@@ -32,7 +32,7 @@ Legend:
 | --------- | -------- | ------- |
 | **Setting-agnostic agents** — no hardcoded universe names in agent prompts | 🔄 ⚠️ | `get_setting_rules(state)` added; Director and ChoiceCrafter use `SettingRules`. Remaining agents are progressively updated. Some prompts may still contain SW-specific text. |
 | **ChoiceCrafter (authoritative)** — replaces SuggestionRefiner | 🔄 ✅ | `choice_crafter_node.py` + `choice_crafter_agent.py`. No deterministic fallback. Raises `AgentFailureError` on failure. |
-| **EraMoments system** — scripted narrative triggers from era packs | 🔄 ✅ | `moments_node` between `companion_reaction` and `arc_planner`. Non-fatal. Once-only enforcement via `fired_moments`. |
+| **EraMoments system** — scripted narrative triggers from era packs | 🔄 ✅ | `moments_node` between `world_sim` and `arc_planner`. Non-fatal. Once-only enforcement via `fired_moments`. |
 | **AgentFailureError / authoritative_call()** — structured agent failure handling | 🔄 ✅ | `error_handling.py`. `run_turn()` catches `AgentFailureError` and returns structured error. |
 | **ContentRepository singleton** — thread-safe era pack loading | 🔄 ✅ | `content/repository.py`. Thread-safe via `threading.RLock`. |
 | **PartyState canonical model** — multi-axis companion relationship | 🔄 ✅ | `party_state.py`. `world_state_json["party_state"]` is canonical. Legacy fields still written for compat. |
@@ -132,7 +132,7 @@ Legend:
 | Feature | Status | Notes |
 | --------- | -------- | ------- |
 | **Living World tick** — WorldSim fires on time tick or travel | ✅ | `world_sim.py`: `floor(t0/tick) != floor(t1/tick)` or TRAVEL action. |
-| **Deterministic faction engine** — no LLM fallback for faction simulation | ✅ | `faction_engine.simulate_faction_tick()`. WorldMindAgent is the optional LLM enhancement. |
+| **LLM-based world simulation** — WorldMindAgent handles faction moves, NPC actions, rumors | ✅ | `world_mind_agent.py:WorldMindAgent.simulate()`. Falls back to empty output on LLM failure (non-fatal). |
 | **Encounter throttling** — prevent NPC spam per location | ✅ | `encounter_throttle.py`. Throttle state persisted via `NPC_INTRODUCTION_RECORDED` events. |
 | **Companion reactions** — alignment/faction deltas, banter, tensions | ✅ | `companion_reactions.py`. No LLM; deterministic. |
 | **Episodic memory** — compressed narrative summaries for continuity | ✅ | `episodic_memory.py`. Stored in `episodic_memories` table. Retrieved by Director/Narrator. |

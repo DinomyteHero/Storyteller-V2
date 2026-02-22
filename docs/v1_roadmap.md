@@ -1,6 +1,6 @@
 # Storyteller V1.0 Roadmap — Remaining Work
 
-Last updated: V12.0 release packaging pass (2026-02-21, post-`0ecbfbe`).
+Last updated: v1.0.1 QA hardening pass (2026-02-22).
 
 Items from the original roadmap that have been completed are removed. This document tracks only remaining work. Section 4 (Launch Readiness Audit) contains the authoritative must-fix list; sections 1–3 cover polish, cleanup, and packaging that are distinct from launch-gate items.
 
@@ -503,4 +503,22 @@ make check
 
 ---
 
-*Assessed against: Storyteller-V2 at v1.0.0-rc (2026-02-21)*
+*Assessed against: Storyteller-V2 at v1.0.1 (2026-02-22)*
+
+---
+
+## 7. v1.0.1 QA HARDENING (Completed)
+
+Comprehensive QA audit and fix pass covering all P0-P3 issues plus DeepSeek cloud preset integration.
+
+| Category | Items Fixed | Details |
+|----------|------------|---------|
+| **P0 Critical** | 1 | `PlayerStarship.campaign_id` type mismatch (int→str) |
+| **P1 Tests** | 8 test files | Stale mock targets, wrong patch modules, removed scripts, renamed agents |
+| **P2 Robustness** | 4 | Party state corruption handling, inventory cascade FK, frontend test stability |
+| **P3 Improvements** | 3 | Expanded persuasion verbs (32 new), 3 DB performance indexes, DeepSeek preset |
+| **DeepSeek** | 4 files | Config preset, provider resolver auto-pinning, frontend SettingsPanel, .env.example |
+| **Test Results** | 913 pass, 37 env-dependent, 3 skipped | All 37 remaining failures are environment-dependent (missing era packs, Ollama not running) |
+| **Frontend Tests** | 15/15 passing | Fixed campaigns.test.ts and DialogueWheel.test.ts |
+
+See [CHANGELOG.md](../CHANGELOG.md) v1.0.1 entry for full details.

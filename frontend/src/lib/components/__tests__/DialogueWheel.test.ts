@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/svelte';
+import { afterEach, describe, it, expect, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import DialogueWheel from '$lib/components/choices/DialogueWheel.svelte';
 import type { ActionSuggestion, PlayerResponse } from '$lib/api/types';
 
@@ -74,6 +74,10 @@ function makeSuggestedActions(): ActionSuggestion[] {
 }
 
 describe('DialogueWheel', () => {
+  // Svelte 5 + @testing-library/svelte does not auto-cleanup in jsdom.
+  // Without this, rendered components from prior tests leak into subsequent queries.
+  afterEach(() => cleanup());
+
   it('renders four KOTOR tones in sorted order from player responses', () => {
     render(DialogueWheel, {
       playerResponses: makePlayerResponses(),

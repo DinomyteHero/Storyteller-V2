@@ -36,7 +36,8 @@ class TestWorldSimEvents(unittest.TestCase):
             "__runtime_conn": None,
         }
         # WorldSim is now deterministic — mock faction engine for controlled output
-        with patch("backend.app.core.nodes.world_sim.simulate_faction_tick", return_value=output):
+        with patch("backend.app.core.agents.world_mind_agent.WorldMindAgent") as MockWorldMind:
+            MockWorldMind.return_value.simulate.return_value = output
             out = node(state)
         events = out.get("world_sim_events") or []
         event_types = {e.get("event_type") for e in events if isinstance(e, dict)}

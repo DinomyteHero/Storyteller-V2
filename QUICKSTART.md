@@ -1,4 +1,4 @@
-# Quick Start Guide — Storyteller AI v1.0
+# Quick Start Guide — Storyteller AI v1.0.1
 
 This guide covers setup, configuration, and running your first campaign.
 
@@ -97,6 +97,23 @@ STORYTELLER_DEV_MODE=1
 ```
 
 **Note:** `ENABLE_SUGGESTION_REFINER=1` is on by default and can be disabled if you want raw LLM choices without refinement.
+
+### Cloud LLM Alternative (no local GPU required)
+
+Instead of running Ollama locally, you can route all LLM calls to a cloud provider. The easiest option is **DeepSeek** (~$0.02/turn):
+
+```bash
+# Add to .env
+DEEPSEEK_API_KEY=your-deepseek-key-here
+```
+
+Then either:
+- Set `cloud_preset=deepseek` when creating a campaign via the API, or
+- Select **DeepSeek** from the preset dropdown in the Settings page (`/settings`)
+
+Other supported cloud providers: **Anthropic** (Claude), **OpenAI** (GPT), **xAI** (Grok), **Google** (Gemini). See `docs/HYBRID_CLOUD_SETUP.md` for hybrid local+cloud configurations and cost estimates.
+
+> **Tip:** You can manage API keys and test provider connectivity from the in-app **Settings** page at `http://localhost:5173/settings`.
 
 ---
 

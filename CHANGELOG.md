@@ -6,6 +6,50 @@ Internal architecture versions (V1–V12) represent iterative milestones during 
 
 ---
 
+## v1.0.1 — 2026-02-22
+
+QA hardening pass: critical bug fix, test reliability improvements, robustness fixes, and DeepSeek cloud preset.
+
+### Critical Fix (P0)
+
+- **`PlayerStarship.campaign_id` type mismatch** — Pydantic model had `campaign_id: int` but migration 0040 changed the DB column to TEXT (UUIDs). Fixed to `campaign_id: str`. Any starship API call would have failed with a validation error.
+
+### DeepSeek System Preset
+
+- **New "deepseek" cloud preset** — Routes all LLM roles to DeepSeek (~$0.02/turn). Uses DeepSeek V3 (quality) for most roles; DeepSeek R1 (premium) for narrative-critical roles (Director, Narrator, Bible, Prologue). Requires `DEEPSEEK_API_KEY`.
+- **Provider-specific preset auto-pinning** — When a preset name matches a registered cloud provider (e.g., "deepseek"), `preferred_provider` is automatically set, ensuring tier resolution always selects the correct provider.
+- **Frontend integration** — DeepSeek appears in SettingsPanel cloud preset selector and campaign settings.
+- **VALID_CLOUD_PRESETS** updated: `local`, `budget`, `balanced`, `quality`, `cloud_all`, `deepseek`, `custom`.
+
+### Test Reliability (P1)
+
+- **`test_world_sim.py`** — Replaced stale `simulate_faction_tick` mock patches with `WorldMindAgent` mocks (3 test functions). The world sim node now uses `WorldMindAgent(llm=...).simulate()`.
+- **`test_worldsim_events.py`** — Same `WorldMindAgent` mock fix.
+- **`test_turn_idempotency.py`** — Fixed patch targets from `v2_campaigns` to `v2_turn` (turn endpoints moved).
+- **`test_v2_campaigns.py`** — Fixed `DEFAULT_DB_PATH` and `MAX_USER_INPUT_CHARS` patch targets to `v2_turn`.
+- **`test_warnings_turn_response.py`** — Fixed `DEFAULT_DB_PATH` patch target to `v2_turn`.
+- **`test_turn_stream_pre_pipeline_order.py`** — Fixed monkeypatch targets from source modules to `backend.app.core.graph.*` (graph.py binds references at import time). Fixed import from `v2_campaigns` to `v2_turn`.
+- **`test_setting_pack_v2.py`** — Skipped test for removed `enrich_era_pack_v2.py` script (functionality moved to EraForge agent).
+- **`test_setting_rules.py`** — Updated from `CampaignArchitect.build()` to `CampaignBibleAgent.build()`.
+
+### Robustness (P2)
+
+- **Party state corruption handling** — `load_party_state()` now type-checks all legacy fields (`party`, `party_affinity`, `party_traits`, `loyalty_progress`) before migration. Logs specific validation errors. Skips corrupt companion entries individually instead of crashing.
+- **Inventory FK cascade** — Migration 0043: recreated `inventory` table with `ON DELETE CASCADE` on `owner_id` FK. Deleting a character now cascades to their inventory.
+- **Frontend test stability** — Fixed `campaigns.test.ts` (added `browser: true` mock, `localStorage.clear()`), `DialogueWheel.test.ts` (added cleanup), and `vitest.config.ts` (replaced `sveltekit()` with `svelte()` plugin, disabled CSS preprocessing).
+
+### Improvements (P3)
+
+- **Expanded PERSUASION_VERBS** — Added 32 new verb conjugations (8 verb families: seduce, manipulate, coerce, charm, flatter, plead, grovel, cajole) for more accurate intent routing of persuasion actions.
+- **Database indexes** — Migration 0043 adds performance indexes on `turn_events(event_type)`, `truth_facts(fact_key)`, and `turn_idempotency(idempotency_key)`.
+
+### Database
+
+- 43 migrations (0001–0043, 0024 absent)
+- New: migration 0042 (decision ledger), migration 0043 (inventory cascade + indexes)
+
+---
+
 ## v1.0.0 — 2026-02-21
 
 First public release. Local-first, setting-agnostic narrative RPG engine powered by LLM agents and a LangGraph state-machine pipeline.
@@ -71,7 +115,7 @@ First public release. Local-first, setting-agnostic narrative RPG engine powered
 
 - **5 cloud LLM providers**: Anthropic (Claude), OpenAI (GPT), xAI (Grok), DeepSeek, Google (Gemini)
 - **Settings UI**: manage API keys, test connectivity, per-role model configuration
-- **Preset system**: Budget / Balanced / Quality / Cloud All tiers with automatic provider resolution
+- **Preset system**: Budget / Balanced / Quality / Cloud All / DeepSeek tiers with automatic provider resolution
 - **User-created presets**: custom per-role provider/model assignments stored in DB
 - **Per-campaign LLM configuration**: override presets at the campaign level
 - **Provider key storage**: DB-backed with environment variable fallback
@@ -117,8 +161,8 @@ First public release. Local-first, setting-agnostic narrative RPG engine powered
 ### Database
 
 - SQLite with WAL mode for concurrent reads
-- 41 migrations (0001–0041, 0024 absent)
-- Key tables: campaigns, characters, inventory, turn_events, rendered_turns, truth_facts, truth_events, turn_snapshots, canon_events, npc_states, quest_entries, pending_world_state_patches, player_starships, provider_keys, user_presets, app_preferences
+- 43 migrations (0001–0043, 0024 absent)
+- Key tables: campaigns, characters, inventory, turn_events, rendered_turns, truth_facts, truth_events, turn_snapshots, canon_events, npc_states, quest_entries, pending_world_state_patches, player_starships, provider_keys, user_presets, app_preferences, decision_ledger
 
 ### Deployment
 

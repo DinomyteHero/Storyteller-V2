@@ -2,7 +2,7 @@
 
 ## Overview
 
-Storyteller uses SQLite for persistent state (30 tables) and LanceDB for vector embeddings.
+Storyteller uses SQLite for persistent state (31 tables, 43 migrations) and LanceDB for vector embeddings.
 All JSON columns store complex nested data as serialized TEXT, enabling schema flexibility.
 
 ## ER Diagram (Mermaid)
@@ -289,12 +289,26 @@ erDiagram
 
     player_starships {
         INTEGER id PK
-        INTEGER campaign_id FK
+        TEXT campaign_id FK
         TEXT ship_type
         TEXT custom_name
         TEXT upgrades_json
         TEXT acquired_at
         TEXT acquired_method
+    }
+
+    %% ===== Decision Tracking =====
+
+    decision_ledger {
+        INTEGER id PK
+        TEXT campaign_id FK
+        INTEGER turn_number
+        TEXT decision_type
+        TEXT chosen_text
+        TEXT alternatives_json
+        TEXT impact_tier
+        TEXT promise_text
+        INTEGER delivered
     }
 
     %% ===== Content & Library =====
@@ -366,7 +380,9 @@ erDiagram
     campaigns ||--o{ campaign_legacy : "produces"
     campaigns ||--o{ character_legacies : "preserves"
 
-    characters ||--o{ inventory : "carries"
+    campaigns ||--o{ decision_ledger : "records_decisions"
+
+    characters ||--o{ inventory : "carries (CASCADE)"
 
     kg_entities ||--o{ kg_triples : "is_subject"
     kg_entities ||--o{ kg_triples : "is_object"
@@ -387,6 +403,7 @@ erDiagram
 | **World State** | npc_states, pending_world_state_patches | NPC state and deferred world updates |
 | **Legacy** | campaign_legacy, character_legacies | Cross-campaign persistence |
 | **Content** | generated_era_packs, lore_sources, ingestion_jobs | Era pack generation and lore ingestion |
+| **Decision Tracking** | decision_ledger | Player decision history with impact tiers and promise tracking |
 | **Other** | player_starships, suggestion_cache | Vehicle ownership and LLM response cache |
 
 ## Key Design Patterns
@@ -402,3 +419,7 @@ erDiagram
 5. **Truth System**: `truth_facts` holds mutable campaign facts (faction standings, relationship scores). `canon_events` holds immutable historical events that can never be contradicted.
 
 6. **Legacy System**: When a campaign ends, `campaign_legacy` and `character_legacies` preserve decisions and outcomes for import into sequel campaigns via sagas.
+
+7. **Cascade Deletes**: `inventory.owner_id` has `ON DELETE CASCADE` to `characters.id` (migration 0043). `player_starships.campaign_id` has `ON DELETE CASCADE` to `campaigns.id` (migration 0040).
+
+8. **Performance Indexes**: Key indexes include `idx_turn_events_type` (event_type), `idx_truth_facts_key` (fact_key), `idx_turn_idempotency_key` (idempotency_key), plus campaign-scoped indexes on most foreign key columns (migration 0040, 0043).

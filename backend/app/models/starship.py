@@ -65,7 +65,7 @@ class PlayerStarship(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int = Field(..., description="DB primary key")
-    campaign_id: int = Field(..., description="Campaign this ship belongs to")
+    campaign_id: str = Field(..., description="Campaign this ship belongs to")
     ship_type: str = Field(..., description="Starship definition ID (e.g., ship-reb-yt1300)")
     custom_name: Optional[str] = Field(None, description="Player's custom ship name")
     upgrades: PlayerStarshipUpgrades = Field(default_factory=PlayerStarshipUpgrades)

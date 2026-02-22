@@ -196,9 +196,47 @@ SYSTEM_PRESETS: dict[str, dict[str, dict[str, str]]] = {
         "kg_extractor": {"tier": "fast"},
         "ingestion_tagger": {"tier": "fast"},
     },
+    # DeepSeek: routes ALL roles to DeepSeek — affordable cloud alternative (~$0.02/turn).
+    # Uses DeepSeek V3 (quality/fast) for most roles; R1 (premium) for narrative-critical.
+    # Requires DEEPSEEK_API_KEY.
+    "deepseek": {
+        # Narrative (premium → deepseek-reasoner for maximum quality)
+        "director": {"tier": "premium"},
+        "narrator": {"tier": "premium"},
+        "choice_crafter": {"tier": "quality"},
+        "companion_system": {"tier": "quality"},
+        # World building
+        "architect": {"tier": "fast"},
+        "bible": {"tier": "premium"},
+        "world_mind": {"tier": "fast"},
+        "era_forge": {"tier": "quality"},
+        # Character & memory
+        "biographer": {"tier": "fast"},
+        "casting": {"tier": "fast"},
+        "memory": {"tier": "fast"},
+        "psych_archivist": {"tier": "fast"},
+        "progression": {"tier": "fast"},
+        # Structure & analysis
+        "arc_weaver": {"tier": "fast"},
+        "arc_screenplay": {"tier": "quality"},
+        "intent_router": {"tier": "fast"},
+        "continuity": {"tier": "fast"},
+        "quest_weaver": {"tier": "fast"},
+        # Special
+        "prologue": {"tier": "premium"},
+        "origin": {"tier": "quality"},
+        "mechanic": {"tier": "fast"},
+        "suggestion_refiner": {"tier": "fast"},
+        "revelation_agent": {"tier": "fast"},
+        "callback_crystallizer": {"tier": "fast"},
+        # Infrastructure (LLM-based only — embedding uses local sentence-transformers)
+        "campaign_init": {"tier": "fast"},
+        "kg_extractor": {"tier": "fast"},
+        "ingestion_tagger": {"tier": "fast"},
+    },
 }
 
-VALID_CLOUD_PRESETS: tuple[str, ...] = ("local", "budget", "balanced", "quality", "cloud_all", "custom")
+VALID_CLOUD_PRESETS: tuple[str, ...] = ("local", "budget", "balanced", "quality", "cloud_all", "deepseek", "custom")
 
 
 def _log_resolved_model_config() -> None:

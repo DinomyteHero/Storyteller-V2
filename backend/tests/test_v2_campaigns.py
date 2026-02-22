@@ -85,6 +85,8 @@ class TestV2OneTurn(unittest.TestCase):
         apply_schema(self.db_path)
         self.patcher = patch("backend.app.api.v2_campaigns.DEFAULT_DB_PATH", self.db_path)
         self.patcher.start()
+        self.patcher_turn = patch("backend.app.api.v2_turn.DEFAULT_DB_PATH", self.db_path)
+        self.patcher_turn.start()
         from backend.main import app
         self.client = TestClient(app)
         r = self.client.post(
@@ -96,6 +98,7 @@ class TestV2OneTurn(unittest.TestCase):
         self.player_id = r.json()["player_id"]
 
     def tearDown(self):
+        self.patcher_turn.stop()
         self.patcher.stop()
         if os.path.exists(self.db_path):
             os.unlink(self.db_path)
@@ -239,7 +242,7 @@ class TestV2OneTurn(unittest.TestCase):
         self.assertIsInstance(body["validation_failures"], list)
 
     def test_turn_rejects_oversized_user_input(self):
-        with patch("backend.app.api.v2_campaigns.MAX_USER_INPUT_CHARS", 10):
+        with patch("backend.app.api.v2_turn.MAX_USER_INPUT_CHARS", 10):
             r = self.client.post(
                 f"/v2/campaigns/{self.campaign_id}/turn",
                 params={"player_id": self.player_id},

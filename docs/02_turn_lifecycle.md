@@ -5,7 +5,7 @@
 A single turn flows through a LangGraph `StateGraph` that is compiled once on first use (see `backend/app/core/graph.py`). The pipeline is invoked by `run_turn(conn, state)`, which injects the SQLite connection as `state["__runtime_conn"]` and strips it after graph execution.
 
 **V5.0 changes:**
-- `moments` node added between `companion_reaction` and `arc_planner`
+- `moments` node added between `world_sim` and `arc_planner`
 - `suggestion_refiner` replaced by `choice_crafter` (authoritative LLM; no deterministic fallback)
 - `run_turn()` now catches `AgentFailureError` from authoritative agents and returns a structured error in `GameState`
 
@@ -36,7 +36,7 @@ A single turn flows through a LangGraph `StateGraph` that is compiled once on fi
 - 3 new deferred agents run post-commit: RevelationAgent (every 5 turns), CallbackCrystallizerAgent (every 10 turns), PlayerProfileAgent (every 10 turns, deterministic)
 - Commit node records choice history for player profiling
 
-## Pipeline Topology (V11.0)
+## Pipeline Topology (V12.0)
 
 ```mermaid
 flowchart TD
@@ -154,7 +154,7 @@ Also:
 
 ### 4) WorldSim (Living World)
 
-**File:** `backend/app/core/nodes/world_sim.py` (calls `backend/app/core/agents/world_mind_agent.py` or `backend/app/world/faction_engine.py`)
+**File:** `backend/app/core/nodes/world_sim.py` (calls `backend/app/core/agents/world_mind_agent.py`)
 
 **Purpose:** Run off-screen simulation on tick-boundary crossing or travel.
 
@@ -168,7 +168,7 @@ Also:
 **When triggered:**
 
 - Loads current `active_factions` from DB (`campaigns.world_state_json.active_factions`).
-- Calls `WorldMindAgent.simulate()` (LLM with deterministic fallback) or the deterministic `faction_engine.simulate_faction_tick()`.
+- Calls `WorldMindAgent.simulate()` (LLM-based world simulation with empty-output fallback on LLM failure).
 - Produces:
   - `world_sim_events` (hidden faction moves / plot ticks)
   - `world_sim_rumors` as public rumor events (`is_public_rumor=true`)

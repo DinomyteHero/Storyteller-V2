@@ -94,6 +94,7 @@ def _resolve_system_preset_for_role(
 ) -> dict[str, Any] | None:
     """Resolve a system preset's tier to a concrete provider+model."""
     from backend.app.config import SYSTEM_PRESETS
+    from backend.app.core.provider_registry import CLOUD_PROVIDERS
 
     preset = SYSTEM_PRESETS.get(preset_name)
     if not preset or role not in preset:
@@ -102,6 +103,10 @@ def _resolve_system_preset_for_role(
     role_spec = preset[role]
     tier = role_spec.get("tier", "quality")
     preferred = campaign_settings.get("preferred_provider")
+
+    # Provider-specific presets (e.g. "deepseek"): auto-pin to that provider
+    if not preferred and preset_name in CLOUD_PROVIDERS:
+        preferred = preset_name
 
     return _resolve_tier(tier, preferred, conn)
 

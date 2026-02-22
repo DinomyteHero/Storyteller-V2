@@ -185,7 +185,7 @@ export async function getEraCompanions(
 
 export interface CampaignSettings {
   narrator_mode: 'concise' | 'novel' | 'epic';
-  cloud_preset: 'local' | 'budget' | 'balanced' | 'quality' | 'custom';
+  cloud_preset: 'local' | 'budget' | 'balanced' | 'quality' | 'cloud_all' | 'deepseek' | 'custom';
   custom_preset_id?: string | null;
   preferred_provider?: string | null;
   agent_overrides?: Record<string, { provider: string; model: string }> | null;

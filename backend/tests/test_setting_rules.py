@@ -178,18 +178,19 @@ class TestAgentDecontamination:
         assert result["name"] == "Harry"
         assert isinstance(result["background"], str)
 
-    def test_architect_accepts_setting_rules(self):
-        """Architect.build() should accept setting_rules parameter."""
-        from backend.app.core.agents.architect import CampaignArchitect
-        arch = CampaignArchitect(llm=None)
+    def test_bible_agent_accepts_setting_rules(self):
+        """CampaignBibleAgent.build() should accept setting_rules parameter."""
+        from backend.app.core.agents.campaign_bible_agent import CampaignBibleAgent
+        bible = CampaignBibleAgent(llm=None)
         # No LLM = fallback. Just verify it doesn't crash with setting_rules.
-        result = arch.build(
+        result = bible.build(
+            player_concept="Harry -- wizard student from London",
             time_period="HOGWARTS",
             themes=["magic", "friendship"],
             setting_rules=self._hp_rules(),
         )
         assert result is not None
-        assert result.get("title") is not None
+        assert result.get("campaign_title") is not None or result.get("title") is not None
 
     def test_suggestion_refiner_prompt_template(self):
         """SuggestionRefiner prompt template should use __SUGGESTION_STYLE__ placeholder."""

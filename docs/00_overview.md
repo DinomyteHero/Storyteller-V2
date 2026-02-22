@@ -2,9 +2,9 @@
 
 ## What the System Does
 
-Storyteller AI (current codebase, project version 0.1.0, engine version V11.0) is a text-based RPG engine that runs a turn-by-turn narrative loop driven by a **LangGraph state-machine pipeline**. A player selects from KOTOR-style dialogue-wheel choices; the engine classifies the input, resolves mechanics, fires any scripted narrative moments, simulates off-screen world events, generates dramatic pacing instructions, and produces final prose narration — all in a single turn.
+Storyteller AI (current codebase, project version v1.0.1, engine version V12.0) is a text-based RPG engine that runs a turn-by-turn narrative loop driven by a **LangGraph state-machine pipeline**. A player selects from KOTOR-style dialogue-wheel choices; the engine classifies the input, resolves mechanics, fires any scripted narrative moments, simulates off-screen world events, generates dramatic pacing instructions, and produces final prose narration — all in a single turn.
 
-The "Living World" mechanic is the core differentiator: every player action costs in-game time (in minutes). When accumulated time crosses a configurable tick boundary (default 4 hours), a **WorldSim** node fires a deterministic faction simulation (with optional LLM-driven world narrative) that moves NPC factions, generates rumors, and feeds a Mass Effect-style news briefing system — making the world feel alive even when the player isn't directly interacting with those factions.
+The "Living World" mechanic is the core differentiator: every player action costs in-game time (in minutes). When accumulated time crosses a configurable tick boundary (default 4 hours), a **WorldSim** node fires an LLM-driven world simulation (via `WorldMindAgent`) that moves NPC factions, generates rumors, and feeds a Mass Effect-style news briefing system — making the world feel alive even when the player isn't directly interacting with those factions.
 
 **V5.0 introduced setting-agnostic architecture; V7.0 adds production-readiness; V8.0 adds multi-arc campaigns; V9.0 adds novel-length storytelling; V10.0 adds narrative intelligence; V11.0 adds player experience UX; V12.0 adds cloud provider management, user LLM presets, and per-campaign LLM configuration.** Agents no longer hardcode universe names, species, or factions. All setting-specific content comes from `SettingRules` (stored in `world_state_json["setting_rules"]`) and era pack YAML files, loaded via the `ContentRepository` singleton. V10.0 adds dramatic irony, creative input detection, narrative rhythm hints, revelation timing, callback crystallization, player behavioral profiling, foreshadowing hooks, thematic resonance across arcs, arc mood profiles, and companion wound/reveal layers. V11.0 adds Universe & Story UX (frontend), UI-exposed lore source management, and optional portrait/key art serving (feature-flagged).
 
@@ -17,7 +17,7 @@ The "Living World" mechanic is the core differentiator: every player action cost
 | **Deterministic Mechanic (with LLM resolution)** | The `MechanicAgent` handles dice rolls, DC computation, time costs, and event generation in pure Python. As of V12.0, it delegates narrative resolution to `ResolutionAgent` (LLM-backed) for richer outcome descriptions. Core mechanics remain deterministic. |
 | **LLM-Driven Choices (V5.0)** | The `ChoiceCrafterNode` replaced the deterministic `SuggestionRefiner`. Player choices are now fully LLM-generated from the Narrator's prose, scene context, and arc state. This is an authoritative node — on failure it raises `AgentFailureError`, surfaced as a structured error to the player. |
 | **Event Sourcing** | The source of truth is an append-only event log (`turn_events` table). Normalized tables (`characters`, `inventory`, `campaigns.world_state_json`) are projections derived from events via `apply_projection()`. |
-| **Per-Role LLM Config** | Agent configuration is per-role via environment variables (`STORYTELLER_{ROLE}_MODEL`, `STORYTELLER_{ROLE}_PROVIDER`). Multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:8b` for medium roles (ChoiceCrafter, Mechanic, CompanionSystem, WorldMind, QuestWeaver, Memory, Prologue, ArcScreenplay, Bible, EraForge), `qwen3:4b` for lightweight roles (Architect, Casting, Biographer, KG Extraction, IntentRouter, ArcWeaver, Continuity, Progression, PsychArchivist, RevelationAgent, CallbackCrystallizer). V7.0 adds per-role cloud provider routing (e.g., `anthropic` for quality-critical roles). |
+| **Per-Role LLM Config** | Agent configuration is per-role via environment variables (`STORYTELLER_{ROLE}_MODEL`, `STORYTELLER_{ROLE}_PROVIDER`) or the V12.0 Settings UI. Multi-model: `mistral-nemo:latest` for Director/Narrator, `qwen3:8b` for medium roles, `qwen3:4b` for lightweight roles. V12.0 adds system presets (Budget/Balanced/Quality/Cloud All/DeepSeek) with automatic tier-based provider resolution across 5 cloud providers (Anthropic, OpenAI, xAI, DeepSeek, Google) + Ollama. |
 | **Deferred Maintenance Agents (V7.0+)** | Heavy maintenance agents (MemoryAgent, QuestWeaver, ProgressionAgent, PsychArchivist) plus V10.0 intelligence agents (RevelationAgent, CallbackCrystallizer, PlayerProfileAgent) run post-commit via `pending_world_state_patches` table, reducing transaction hold time from 10-20s to ~2s. |
 | **Shared Pipeline Executor (V7.0)** | `run_turn()` via `_run_pipeline_with_timings()` with `get_pre_narrator_steps()`/`get_post_narrator_steps()` helpers ensures streaming and non-streaming paths execute identical node sequences. |
 | **SQLite WAL Mode (V7.0)** | `PRAGMA journal_mode=WAL` + `PRAGMA busy_timeout=5000` enabled in `backend/app/db/connection.py` for concurrent read safety. |
@@ -54,7 +54,7 @@ The "Living World" mechanic is the core differentiator: every player action cost
 | **Turn Idempotency (V7.0)** | `Idempotency-Key` header on turn endpoints prevents duplicate commits on retry. |
 | **Saga System (V7.0)** | `sagas` + `character_legacies` tables. Campaigns grouped by player-owned saga with chapter ordering. |
 | **Personality Profiles** | NPC characterization via personality profile blocks injected into Director/Narrator prompts. |
-| **Deterministic Faction Engine** | No LLM calls. Faction reputation tracking, NPC movement (20% chance per tick), faction-aware goals in `npc_states`. |
+| **WorldMindAgent (V4.0+)** | LLM-driven world simulation. Faction reputation tracking, NPC movement, faction-aware goals, multi-turn faction memory, reactive encounters. Falls back to empty output on LLM failure. |
 | **Knowledge Graph** | Optional KG extraction from lore. Entity resolution, triple store, synthesis summaries for runtime retrieval. |
 | **AgentFailureError (V5.0)** | `authoritative_call()` pattern: 2 attempts, then raises `AgentFailureError`. Caught at graph level (`run_turn()`), returns structured error in `GameState`. |
 | **Multi-Arc Campaigns (V8.0)** | 2-5 arc campaigns with interlude scenes, epilogue system, cross-arc memory bridging via saga context injection. |
@@ -110,7 +110,7 @@ graph TD
 
     subgraph "LLM Providers"
         Ollama[Ollama Local]
-        Cloud[Cloud Providers<br/>Anthropic/OpenAI<br/>V7.0 Hybrid]
+        Cloud[Cloud Providers<br/>Anthropic/OpenAI/xAI/DeepSeek/Google<br/>V12.0 Preset System]
     end
 
     subgraph "Content Layer"
@@ -146,7 +146,7 @@ router → meta → commit → END
 ```
 
 **Key changes from previous versions:**
-- `moments` node added between `companion_reaction` and `arc_planner` (EraMoment trigger system, V5.0)
+- `moments` node added between `world_sim` and `arc_planner` (EraMoment trigger system, V5.0)
 - `suggestion_refiner` replaced by `choice_crafter` (authoritative LLM; no deterministic fallback, V5.0)
 - `run_turn()` catches `AgentFailureError` and returns structured error in `GameState` (V5.0)
 - Shared pipeline executor via `_run_pipeline_with_timings()` with `get_pre_narrator_steps()`/`get_post_narrator_steps()` helpers eliminates streaming/non-streaming path drift (V7.0)

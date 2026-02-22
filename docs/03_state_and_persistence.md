@@ -76,7 +76,7 @@ class GameState(BaseModel):
 
 ## SQLite Database Schema
 
-Schema is applied via `backend/app/db/migrate.py`, which runs all SQL files in `backend/app/db/migrations/` in order. **41 migrations** are currently applied (0001 through 0041, with 0024 absent — the sequence jumps from 0023 to 0025).
+Schema is applied via `backend/app/db/migrate.py`, which runs all SQL files in `backend/app/db/migrations/` in order. **43 migrations** are currently applied (0001 through 0043, with 0024 absent — the sequence jumps from 0023 to 0025).
 
 ### Core Tables
 
@@ -159,7 +159,7 @@ inventory (
     item_name TEXT NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 1,
     attributes_json TEXT NOT NULL DEFAULT '{}',
-    FOREIGN KEY (owner_id) REFERENCES characters(id)
+    FOREIGN KEY (owner_id) REFERENCES characters(id) ON DELETE CASCADE
 )
 ```
 
@@ -767,5 +767,7 @@ Called by the Commit node via `process_quests_for_turn(world_state, era, turn_nu
 | 0039 | user_presets table (user-created LLM presets, V12.0) |
 | 0040 | Schema fixes: player_starships.campaign_id type fix (INTEGER→TEXT), missing indexes |
 | 0041 | app_preferences table (app-level settings from frontend, V12.0) |
+| 0042 | decision_ledger table (player decision tracking with impact tiers, V1.1) |
+| 0043 | Inventory ON DELETE CASCADE + performance indexes (turn_events.event_type, truth_facts.fact_key, turn_idempotency.idempotency_key) |
 
 > **Note:** Migration 0024 does not exist — the numbering jumps from 0023 to 0025.

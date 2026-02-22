@@ -2,7 +2,7 @@
 
 This is a **living** list of code-evidenced issues and risks in the current repo state.
 
-Last updated: V11.0 architecture revision.
+Last updated: v1.0.1 QA pass (2026-02-22).
 
 ---
 
@@ -46,6 +46,22 @@ Last updated: V11.0 architecture revision.
 | Event type names in projections were wrong in docs (ITEM_ACQUIRED→ITEM_GET, ITEM_LOST→ITEM_LOSE) | ✅ Resolved | Docs corrected to use actual event type names (`ITEM_GET`, `ITEM_LOSE`) |
 | `player_starships` table had wrong `campaign_id` type (INTEGER instead of TEXT) | ✅ Resolved | Fixed in migration 0040 (schema fixes — `campaign_id` type corrected) |
 | 28 API endpoints were undocumented | ✅ Resolved | All endpoints now documented across API docs (settings, provider, preset, EraForge, export routes) |
+
+---
+
+## Resolved in v1.0.1
+
+| Issue | Status | Resolution |
+| ------- | -------- | ----------- |
+| `PlayerStarship.campaign_id` was `int` but DB column is TEXT (UUIDs) after migration 0040 | ✅ Resolved | Fixed Pydantic model to `campaign_id: str` |
+| `test_world_sim.py` mock targets referenced removed `simulate_faction_tick` function | ✅ Resolved | Replaced with `WorldMindAgent` mock patches |
+| `test_turn_idempotency.py` patched `v2_campaigns.run_turn` instead of `v2_turn.run_turn` | ✅ Resolved | Fixed patch targets after turn endpoint split |
+| `test_turn_stream_pre_pipeline_order.py` monkeypatched source modules instead of graph module | ✅ Resolved | Patching `backend.app.core.graph.*` where references are bound at import time |
+| `PartyState` loader crashed on corrupted legacy fields without type-checking | ✅ Resolved | Added type validation for all legacy fields, per-companion error isolation |
+| Inventory table lacked `ON DELETE CASCADE` on `owner_id` FK | ✅ Resolved | Migration 0043 recreates table with cascade FK |
+| Missing performance indexes on `turn_events(event_type)`, `truth_facts(fact_key)`, `turn_idempotency(idempotency_key)` | ✅ Resolved | Added in migration 0043 |
+| Router missed persuasion intent for verbs like seduce, manipulate, coerce, charm | ✅ Resolved | PERSUASION_VERBS expanded with 32 new conjugations |
+| No DeepSeek-specific cloud preset despite provider registration | ✅ Resolved | "deepseek" preset added to `SYSTEM_PRESETS` with auto-pinning in provider resolver |
 
 ---
 
