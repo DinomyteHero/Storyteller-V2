@@ -142,7 +142,7 @@ class TestNarratorWithVoiceRetriever(unittest.TestCase):
         from backend.app.core.agents.narrator import NarratorAgent  # noqa: E402
         from backend.app.models.state import GameState  # noqa: E402
 
-        def empty_voice_retriever(cids, era, k=6):
+        def empty_voice_retriever(cids, era, k=6, **_kw):
             return {cid: [] for cid in (cids or [])}
 
         narrator = NarratorAgent(

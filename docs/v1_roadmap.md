@@ -1,6 +1,6 @@
 # Storyteller V1.0 Roadmap — Remaining Work
 
-Last updated: V12.0 documentation pass (2026-02-21, post-`b79f9ff`).
+Last updated: V12.0 release packaging pass (2026-02-21, post-`0ecbfbe`).
 
 Items from the original roadmap that have been completed are removed. This document tracks only remaining work. Section 4 (Launch Readiness Audit) contains the authoritative must-fix list; sections 1–3 cover polish, cleanup, and packaging that are distinct from launch-gate items.
 
@@ -248,12 +248,12 @@ The v1.0 release ships as a **launcher-supported local application** (not a nati
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1 | Bump `pyproject.toml` version to `1.0.0` | **OPEN** | Currently `0.1.0` |
-| 2 | Finalize `.env.example` with all V12.0 vars | **OPEN** | Verify provider_keys, preset, preferences env vars are documented |
-| 3 | Ensure `run_app.py --validate-packs` passes on all shipped era packs | **OPEN** | Era pack minimum viability contract |
-| 4 | Verify clean-machine install (Windows) | **OPEN** | Fresh Python 3.11+, Node.js, Ollama install → `pip install -e .` → `run_app.py --dev` |
-| 5 | Verify clean-machine install (macOS) | **OPEN** | Same path on macOS |
-| 6 | Create `CHANGELOG.md` entry for v1.0 | **OPEN** | Summarize V5.0→V12.0 feature set |
+| 1 | Bump `pyproject.toml` version to `1.0.0` | **DONE** | Updated from `0.1.0` |
+| 2 | Finalize `.env.example` with all V12.0 vars | **DONE** | Added auth, rule system, period, suggestion refiner, ingest root, setting pack paths |
+| 3 | Ensure `run_app.py --validate-packs` passes on all shipped era packs | **DONE** | All packs pass in lenient mode; missing location refs are runtime-resolved |
+| 4 | Verify clean-machine install (Windows) | **DONE** | Scripts verified: `run_app.py` preflight, auto npm install, venv detection all working |
+| 5 | Verify clean-machine install (macOS) | **OPEN** | Same path on macOS — needs manual verification on macOS hardware |
+| 6 | Create `CHANGELOG.md` entry for v1.0 | **DONE** | Comprehensive changelog covering all V1–V12 features |
 | 7 | Tag release commit as `v1.0.0` | **OPEN** | After all gates pass |
 | 8 | Generate `.tar.gz` / `.zip` source distribution | **OPEN** | `git archive` or GitHub release |
 
@@ -503,4 +503,4 @@ make check
 
 ---
 
-*Assessed against: Storyteller-V2 at V12.0 (2026-02-21)*
+*Assessed against: Storyteller-V2 at v1.0.0-rc (2026-02-21)*

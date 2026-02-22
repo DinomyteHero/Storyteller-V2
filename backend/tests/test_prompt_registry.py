@@ -3,7 +3,7 @@ from backend.app.prompts.registry import load_prompt, prompt_registry_snapshot, 
 
 def test_prompt_loader_returns_suggestion_refiner_prompt():
     body = load_prompt("suggestion_refiner_system")
-    assert "TONES" in body
+    assert "TONE TAGS" in body
     assert "MEANING TAGS" in body
 
 

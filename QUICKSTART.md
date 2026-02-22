@@ -1,4 +1,4 @@
-# Quick Start Guide — Storyteller AI V11.0
+# Quick Start Guide — Storyteller AI v1.0
 
 This guide covers setup, configuration, and running your first campaign.
 
@@ -40,7 +40,7 @@ bash scripts/bootstrap.sh
 make check
 ```
 
-This installs Python dependencies, copies `.env.example` → `.env`, and runs health checks.
+This installs Python dependencies, copies `.env.production.example` → `.env` (if no `.env` exists), and runs health checks. Frontend `node_modules` are auto-installed on first launch.
 
 ---
 
@@ -96,7 +96,7 @@ ENABLE_PROCEDURAL_NPCS=1       # Fallback NPC generation
 STORYTELLER_DEV_MODE=1
 ```
 
-**Note:** `ENABLE_SUGGESTION_REFINER` is no longer used. The `ChoiceCrafterAgent` handles all player choice generation and is always active (since V5.0).
+**Note:** `ENABLE_SUGGESTION_REFINER=1` is on by default and can be disabled if you want raw LLM choices without refinement.
 
 ---
 

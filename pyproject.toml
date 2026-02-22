@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "storyteller-ai"
-version = "0.1.0"
+version = "1.0.0"
 description = "Storyteller AI — local narrative RPG engine"
 requires-python = ">=3.11,<3.15"
 dependencies = [
