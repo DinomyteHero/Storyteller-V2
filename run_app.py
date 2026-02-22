@@ -257,9 +257,9 @@ def build_commands(args: argparse.Namespace, python_exe: str, ui_mode: str | Non
 
 
 def _ensure_prod_env_safety() -> None:
-    """Validate production auth/cors env when STORYTELLER_DEV_MODE=0."""
-    dev_mode = os.environ.get("STORYTELLER_DEV_MODE", "1").strip().lower()
-    if dev_mode not in {"0", "false", "no", "off"}:
+    """Validate production auth/cors env when STORYTELLER_DEV_MODE is off."""
+    dev_mode = os.environ.get("STORYTELLER_DEV_MODE", "").strip().lower()
+    if dev_mode in ("1", "true", "yes", "on"):
         return
 
     api_token = os.environ.get("STORYTELLER_API_TOKEN", "").strip()
@@ -321,7 +321,23 @@ def run_preflight(args: argparse.Namespace, python_exe: str, ui_mode: str | None
 
 def main() -> int:
     load_dotenv(ROOT / ".env")
+
+    # Auto-create .env from .env.example on first run so the app boots cleanly
+    env_path = ROOT / ".env"
+    if not env_path.exists():
+        example = ROOT / ".env.example"
+        if example.exists():
+            shutil.copy2(str(example), str(env_path))
+            print(f"[INFO] Created .env from .env.example (edit as needed)")
+            # Re-load the newly created file
+            load_dotenv(env_path)
+
     args = parse_args()
+
+    # --dev flag is the single source of truth: propagate to env so backend
+    # reads the same value via _env_flag("STORYTELLER_DEV_MODE").
+    if args.dev:
+        os.environ["STORYTELLER_DEV_MODE"] = "1"
 
     python_exe = args.python or find_venv_python(ROOT) or sys.executable
     os.environ.setdefault("PYTHONPATH", str(ROOT))

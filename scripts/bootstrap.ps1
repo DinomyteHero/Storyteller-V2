@@ -15,8 +15,9 @@ if (!(Test-Path .venv)) {
 & .\.venv\Scripts\python.exe -m pip install --upgrade pip
 & .\.venv\Scripts\python.exe -m pip install -e .
 
-if (!(Test-Path .env) -and (Test-Path .env.production.example)) {
-  Copy-Item .env.production.example .env
+if (!(Test-Path .env) -and (Test-Path .env.example)) {
+  Copy-Item .env.example .env
+  Write-Host "[INFO] Created .env from .env.example (edit as needed)"
 }
 
 & .\.venv\Scripts\python.exe run_app.py --check

@@ -23,8 +23,9 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e .
 
-if [[ ! -f ".env" && -f ".env.production.example" ]]; then
-  cp .env.production.example .env
+if [[ ! -f ".env" && -f ".env.example" ]]; then
+  cp .env.example .env
+  echo "[INFO] Created .env from .env.example (edit as needed)"
 fi
 
 python run_app.py --check || true
