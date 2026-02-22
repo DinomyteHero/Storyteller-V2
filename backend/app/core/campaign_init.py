@@ -448,6 +448,78 @@ def _try_cloud_blueprint(
     return None
 
 
+def _generate_companion_depth(
+    era: str | None,
+    era_pack: Any | None,
+    campaign_mode: str = "historical",
+    warnings: list[str] | None = None,
+) -> dict[str, Any]:
+    """Generate deep tier data for era-pack companions that lack it.
+
+    V1.1: Runs at campaign creation to enrich standard-tier companions with
+    personal_banter, opinion_triggers, personal_quest, dialogue_samples,
+    wound, and revelation_stages.
+
+    Returns dict mapping companion_id -> deep_data for persistence in
+    world_state_json['companion_deep_profiles'].
+    """
+    try:
+        from backend.app.core.companions import load_companions, register_deep_profile
+        from backend.app.core.agents.companion_deep_gen_agent import CompanionDeepGenAgent
+
+        companions = load_companions(era)
+        # Filter to standard-tier companions only (skip curated deep companions)
+        standard_comps = [
+            c for c in companions
+            if isinstance(c, dict)
+            and c.get("id")
+            and str(c.get("depth_tier", "")).lower() != "deep"
+        ]
+        if not standard_comps:
+            return {}
+
+        # Build setting context from era_pack metadata
+        setting_context: dict[str, Any] = {"era": era or "unknown"}
+        if era_pack is not None:
+            if hasattr(era_pack, "setting_rules") and era_pack.setting_rules:
+                setting_context["setting_name"] = getattr(
+                    era_pack.setting_rules, "setting_name", ""
+                )
+                setting_context["genre"] = getattr(
+                    era_pack.setting_rules, "setting_genre", ""
+                )
+            if hasattr(era_pack, "metadata") and era_pack.metadata:
+                setting_context["tone"] = getattr(era_pack.metadata, "tone", "")
+
+        # Create agent (LLM may or may not be available)
+        try:
+            llm = AgentLLM("companion_deep_gen")
+        except Exception:
+            llm = None
+
+        agent = CompanionDeepGenAgent(llm=llm)
+        profiles = agent.generate_batch(standard_comps, setting_context)
+
+        # Merge generated profiles into companion cache for immediate use
+        for comp_id, deep_data in profiles.items():
+            register_deep_profile(comp_id, deep_data)
+
+        if profiles:
+            logger.info(
+                "CampaignInit: Generated deep profiles for %d companions",
+                len(profiles),
+            )
+
+        return profiles
+
+    except Exception as e:
+        logger.warning(
+            "CampaignInit: Companion depth generation failed (non-fatal): %s", e
+        )
+        add_warning(warnings, "Companion depth auto-generation unavailable.")
+        return {}
+
+
 def initialize_campaign_world(
     campaign_id: str,
     era: str | None,
@@ -578,6 +650,14 @@ def initialize_campaign_world(
             # Reassign to a random generated location
             npc["default_location_id"] = gen_locations[0]["id"] if gen_locations else starting_location
 
+    # V1.1: Generate deep companion data for era-pack companions
+    companion_deep_profiles = _generate_companion_depth(
+        era=era,
+        era_pack=era_pack,
+        campaign_mode=campaign_mode,
+        warnings=warnings,
+    )
+
     result: dict[str, Any] = {
         "generated_locations": gen_locations,
         "generated_npcs": gen_npcs,
@@ -594,4 +674,6 @@ def initialize_campaign_world(
     }
     if blueprint:
         result["campaign_blueprint"] = blueprint
+    if companion_deep_profiles:
+        result["companion_deep_profiles"] = companion_deep_profiles
     return result

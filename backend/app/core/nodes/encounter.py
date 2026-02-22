@@ -325,6 +325,60 @@ def make_encounter_node():
         except Exception as e:
             logger.debug("Canon proximity enforcement skipped (non-fatal): %s", e)
 
+        # V1.1 Phase 4B: Check pending reactive encounters
+        reactive_remaining = None
+        try:
+            enc_campaign = state.get("campaign") if isinstance(state.get("campaign"), dict) else {}
+            enc_ws = enc_campaign.get("world_state_json") if isinstance(enc_campaign.get("world_state_json"), dict) else {}
+            pending_re = enc_ws.get("pending_reactive_encounters") or []
+            current_turn = int(state.get("turn_number") or 0)
+            triggered_re = []
+            remaining_re = []
+            for re_entry in pending_re:
+                if not isinstance(re_entry, dict):
+                    continue
+                if re_entry.get("trigger_turn", 9999) <= current_turn:
+                    triggered_re.append(re_entry)
+                else:
+                    remaining_re.append(re_entry)
+            reactive_remaining = remaining_re
+
+            for enc in triggered_re:
+                archetype = enc.get("npc_archetype", "informant")
+                faction = enc.get("faction")
+                desc = enc.get("description", "A stranger approaches")
+                hostility = enc.get("hostility", "neutral")
+                npc_id = f"reactive-{archetype}-t{current_turn}"
+                reactive_npc: dict[str, Any] = {
+                    "id": npc_id,
+                    "name": archetype.replace("_", " ").title(),
+                    "role": archetype.replace("_", " ").title(),
+                    "relationship_score": -20 if hostility == "hostile" else (10 if hostility == "friendly" else 0),
+                    "location_id": effective_loc,
+                    "has_secret_agenda": hostility == "hostile",
+                    "reactive_encounter": True,
+                    "reactive_context": desc,
+                    "reactive_faction": faction,
+                }
+                if hostility == "hostile":
+                    reactive_npc["secret_agenda"] = desc
+                present.append(reactive_npc)
+                spawn_events.append(
+                    Event(event_type="NPC_SPAWN", payload={
+                        "character_id": npc_id,
+                        "name": reactive_npc["name"],
+                        "role": reactive_npc["role"],
+                        "reactive_trigger": enc.get("trigger"),
+                        "reactive_description": desc,
+                    })
+                )
+                logger.info(
+                    "Reactive encounter triggered: %s (%s) turn %d",
+                    archetype, hostility, current_turn,
+                )
+        except Exception:
+            logger.debug("Reactive encounter check failed (non-fatal)", exc_info=True)
+
         warnings = list(state.get("warnings") or [])
         if canon_warnings:
             warnings.extend(canon_warnings)
@@ -336,6 +390,7 @@ def make_encounter_node():
             "active_rumors": active_rumors,
             "background_figures": background_figures,
             "warnings": warnings,
+            "reactive_encounters_remaining": reactive_remaining,
         }
 
     return encounter_node

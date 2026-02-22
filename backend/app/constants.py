@@ -214,6 +214,8 @@ ROLE_TOKEN_BUDGETS: dict[str, dict[str, int]] = {
     "suggestion_refiner": {"max_context_tokens": 2048, "reserved_output_tokens": 512},
     "revelation_agent": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
     "callback_crystallizer": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
+    "decision_ledger": {"max_context_tokens": 4096, "reserved_output_tokens": 1024},
+    "companion_deep_gen": {"max_context_tokens": 4096, "reserved_output_tokens": 2048},
     # Infrastructure roles
     "ingestion_tagger": {"max_context_tokens": 4096, "reserved_output_tokens": 512},
     "kg_extractor": {"max_context_tokens": 6144, "reserved_output_tokens": 2048},
@@ -472,7 +474,7 @@ NARRATOR_MODE_WORD_TARGETS: dict[str, dict[str, int]] = {
     },
 }
 VALID_NARRATOR_MODES: tuple[str, ...] = ("concise", "novel", "epic")
-DEFAULT_NARRATOR_MODE = "concise"
+DEFAULT_NARRATOR_MODE = "novel"
 
 # ── V10.0 Narrative Intelligence ─────────────────────────────────────
 
@@ -596,3 +598,34 @@ DIRECTOR_ENTITY_STOP_WORDS = frozenset({
     "new", "old", "safe", "dangerous", "approach", "confront", "explore", "commit",
     "social", "hi", "hello", "advance",
 })
+
+# ── V1.1 Decision Ledger ────────────────────────────────────────────
+DECISION_LEDGER_MAX_RECENT = 30       # Max decisions to retain for prompt context
+DECISION_LEDGER_EVAL_INTERVAL = 5     # Evaluate promise delivery every N turns
+DECISION_LEDGER_PROMISE_URGENCY = 10  # Turns before undelivered wave+ becomes urgent
+DECISION_LEDGER_PROMPT_LIMIT = 5      # Max decisions shown in narrator prompt
+
+# ── V1.1 Failure Cascade System ─────────────────────────────────────
+# WOUNDED state: triggered when HP reaches 0
+WOUNDED_DC_PENALTY = 2                # Added to all DCs while wounded
+WOUNDED_RECOVERY_TURNS = 3            # Minimum turns before recovery possible
+WOUNDED_RECOVERY_HEAL_THRESHOLD = 5   # HP must reach this to clear WOUNDED
+# Last Stand: triggered on second wound without recovery
+LAST_STAND_STAT_REDUCTION = 2         # Permanent stat penalty after Last Stand
+LAST_STAND_SCENE_WEIGHT = "CLIMAX"    # Force climax weight for Last Stand scene
+# Stress Breakdown: triggered when stress reaches 10
+BREAKDOWN_RECOVERY_TURNS = 2          # Turns before BREAKDOWN can clear
+BREAKDOWN_PARAGON_CLEARS = True       # Companion intervention (PARAGON choice) clears breakdown
+
+# ── V1.1 Deep Companion System ──────────────────────────────────────
+DEEP_COMPANION_PERSONAL_QUEST_CAP = 1  # Max active personal quests at once
+DEEP_COMPANION_REVELATION_DRAMATIC_VALUE = 8  # Dramatic value for wound revelations
+
+# ── V1.1 Companion Deep Generation Pipeline ──────────────────────
+COMPANION_DEEP_GEN_MAX_PER_CAMPAIGN = 6  # Max companions to auto-generate depth for at init
+COMPANION_DEEP_GEN_OPINION_TRIGGERS_MAX = 8  # Max opinion triggers per companion
+COMPANION_DEEP_GEN_BANTER_CAP = 4       # Max banter lines per tone category
+COMPANION_DEEP_GEN_DIALOGUE_CAP = 6     # Max dialogue samples per companion
+
+# ── V1.1 Reactive Encounter System ────────────────────────────────
+REACTIVE_ENCOUNTER_MAX_PENDING = 3    # Max reactive encounters queued at once

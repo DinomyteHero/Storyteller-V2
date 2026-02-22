@@ -146,7 +146,17 @@ Return ONLY a single valid JSON object. No markdown fences. No preamble.
       "multi_turn_plan": string,       // current multi-step plan
       "plan_progress": integer         // 0-based tick counter
     }
-  }
+  },
+  "reactive_encounters": [             // 0-2 NPCs that should appear as consequences
+    {
+      "trigger": string,               // faction_move|npc_death|reputation_change|world_event
+      "npc_archetype": string,         // bounty_hunter|emissary|avenger|opportunist|informant
+      "faction": string|null,
+      "description": string,           // Brief context for EncounterManager
+      "urgency": string,               // next_turn|within_3_turns|eventual
+      "hostility": string              // hostile|neutral|friendly
+    }
+  ]
 }"""
 
 
@@ -290,6 +300,22 @@ def _normalize_output(
                     pass
             new_faction_memory[fname] = entry
 
+    # V1.1: Normalize reactive_encounters
+    reactive_encounters: list[dict[str, Any]] = []
+    raw_re = raw.get("reactive_encounters") or []
+    if isinstance(raw_re, list):
+        for enc in raw_re[:3]:  # Cap at 3
+            if not isinstance(enc, dict):
+                continue
+            reactive_encounters.append({
+                "trigger": str(enc.get("trigger", "world_event"))[:50],
+                "npc_archetype": str(enc.get("npc_archetype", "informant"))[:30],
+                "faction": str(enc.get("faction", ""))[:50] or None,
+                "description": str(enc.get("description", ""))[:200],
+                "urgency": str(enc.get("urgency", "within_3_turns"))[:20],
+                "hostility": str(enc.get("hostility", "neutral"))[:20],
+            })
+
     return WorldSimOutput(
         elapsed_time_summary=elapsed,
         faction_moves=faction_moves,
@@ -299,6 +325,7 @@ def _normalize_output(
         faction_memory=new_faction_memory,
         # NPC states are managed by MemoryAgent (commit.py); pass through unchanged
         npc_states=npc_states,
+        reactive_encounters=reactive_encounters,
     )
 
 

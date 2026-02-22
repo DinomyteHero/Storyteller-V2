@@ -128,6 +128,23 @@ def _player_id(state: GameState) -> str:
     return state.player_id
 
 
+def _build_player_status(state: GameState) -> str:
+    """Build player status flags (WOUNDED, BREAKDOWN, etc.) for GM context."""
+    campaign = getattr(state, "campaign", None) or {}
+    ws = campaign.get("world_state_json") if isinstance(campaign, dict) else {}
+    ws = ws if isinstance(ws, dict) else {}
+
+    flags: list[str] = []
+    if ws.get("player_wounded"):
+        wound_turn = ws.get("wound_turn", "?")
+        flags.append(f"WOUNDED (since turn {wound_turn}) — all DCs +2, physically impaired")
+    if ws.get("last_stand_triggered"):
+        flags.append("LAST STAND — fighting through mortal peril, desperate")
+    if ws.get("player_breakdown"):
+        flags.append("BREAKDOWN (stress critical) — erratic, impaired judgment")
+    return ", ".join(flags) if flags else "Normal"
+
+
 def _build_user_prompt(state: GameState) -> str:
     campaign = getattr(state, "campaign", None) or {}
     world_time = int(campaign.get("world_time_minutes") or 0) if isinstance(campaign, dict) else 0
@@ -137,6 +154,7 @@ def _build_user_prompt(state: GameState) -> str:
     stats = (player.stats if player else {}) or {}
     hp = (player.hp_current if player else 0) or 0
     arc = _arc_stage(state)
+    player_status = _build_player_status(state)
 
     # Recent narrative: last 1 turn is enough to avoid token bloat
     recent = ""
@@ -165,6 +183,7 @@ Name: {player_name}
 Player ID: {_player_id(state)}
 Stats: {json.dumps(stats)}
 HP: {hp}
+Status: {player_status}
 Inventory: {_build_inventory_summary(state)}
 
 [PRESENT NPCs]

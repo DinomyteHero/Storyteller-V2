@@ -138,7 +138,16 @@ def _build_generate_user_prompt(
     established_facts: list[str],
     recent_narrative: str,
     dynamic_quests: list[dict],
+    companion_quest_context: str = "",
 ) -> str:
+    # V1.1: Companion personal quest section (if any are available)
+    companion_block = ""
+    if companion_quest_context:
+        companion_block = f"""
+[COMPANION PERSONAL QUESTS — prioritize these over procedural generation]
+{companion_quest_context}
+"""
+
     return f"""\
 [WORLD STATE — Turn {turn_number}]
 Arc Stage: {arc_stage}
@@ -161,7 +170,7 @@ Player Location: {player_location}
 
 [EXISTING QUESTS]
 {_format_existing_dynamic_quests(dynamic_quests)}
-
+{companion_block}
 {_format_arc_hooks(arc_stage, dynamic_quests)}
 Weave 1-2 new quests that emerge naturally from the tensions above.
 Output only the JSON object."""
@@ -362,6 +371,43 @@ class QuestWeaverAgent(BaseAgent):
         npc_states = world_state.get("npc_states") or {}
         active_factions = world_state.get("active_factions") or []
 
+        # V1.1: Build companion personal quest context for deep companions
+        _companion_quest_ctx = ""
+        try:
+            from backend.app.core.companions import get_deep_companion_data
+            from backend.app.constants import DEEP_COMPANION_PERSONAL_QUEST_CAP
+            party = list(world_state.get("party") or [])
+            party_affinity = world_state.get("party_affinity") or {}
+            # Count active companion personal quests
+            _active_personal = sum(
+                1 for q in dynamic_quests
+                if q.get("status") == "active" and q.get("source") == "companion_personal"
+            )
+            if _active_personal < DEEP_COMPANION_PERSONAL_QUEST_CAP:
+                _quest_lines: list[str] = []
+                for cid in party:
+                    deep = get_deep_companion_data(cid)
+                    if not deep or not deep.get("personal_quest"):
+                        continue
+                    pq = deep["personal_quest"]
+                    trigger_aff = int(pq.get("trigger_affinity", 999))
+                    current_aff = int(party_affinity.get(cid, 0))
+                    if current_aff < trigger_aff:
+                        continue
+                    # Check if already generated
+                    pq_id = f"companion-pq-{cid}"
+                    if pq_id in existing_ids:
+                        continue
+                    _quest_lines.append(
+                        f"- {cid}: \"{pq.get('title', 'Personal Quest')}\" — "
+                        f"{pq.get('hook', '')} "
+                        f"(affinity {current_aff}, stages: {len(pq.get('stages', []))})"
+                    )
+                if _quest_lines:
+                    _companion_quest_ctx = "\n".join(_quest_lines)
+        except Exception as _cq_err:
+            logger.debug("Companion personal quest context build failed: %s", _cq_err)
+
         system_prompt = _build_generate_system_prompt()
         user_prompt = _build_generate_user_prompt(
             arc_stage=arc_stage,
@@ -374,6 +420,7 @@ class QuestWeaverAgent(BaseAgent):
             established_facts=list(ledger.get("established_facts") or []),
             recent_narrative=recent_narrative,
             dynamic_quests=dynamic_quests,
+            companion_quest_context=_companion_quest_ctx,
         )
 
         logger.debug(

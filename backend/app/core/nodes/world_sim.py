@@ -101,6 +101,22 @@ def make_world_sim_node():
             if dice and action:
                 mechanic_result_summary = f"{action}: {dice}"
 
+        # V1.1 Phase 4E: Enrich WorldMind context with major player decisions
+        try:
+            from backend.app.core.decision_ledger import get_undelivered_promises
+            if conn and campaign_id:
+                major_decisions = get_undelivered_promises(conn, campaign_id, min_impact="wave")
+                if major_decisions:
+                    decision_lines = [
+                        f"Turn {d['turn_number']}: {d['chosen_text']} ({d['impact_tier']})"
+                        for d in major_decisions[:3]
+                    ]
+                    user_action_summary += (
+                        "\n[RECENT MAJOR DECISIONS] " + "; ".join(decision_lines)
+                    )
+        except Exception:
+            logger.debug("Failed to load decision context for world sim", exc_info=True)
+
         # Load faction memory and NPC states from persisted world state
         faction_memory = campaign_ws.get("faction_memory") or {}
         npc_states = campaign_ws.get("npc_states") or {}
@@ -182,6 +198,7 @@ def make_world_sim_node():
         npc_death_flag = False
         npc_death_rumors: list[str] = []
         npc_death_wave_consequences: list[dict] = []
+        death_reactive_encounters: list[dict] = []
         mr_events = mechanic_result.get("events") or []
         for ev in mr_events:
             if not isinstance(ev, dict):
@@ -221,6 +238,32 @@ def make_world_sim_node():
                     },
                     "is_hidden": False,
                 })
+
+        # V1.1 Phase 4D: Generate reactive encounters for faction-connected NPC deaths
+        if npc_death_flag:
+            for wave_ev in npc_death_wave_consequences:
+                w_payload = wave_ev.get("payload") or {}
+                dead_name = w_payload.get("npc_name", "")
+                dead_id = w_payload.get("npc_id", "")
+                # Check if dead NPC is faction-connected via known NPCs
+                faction_for_dead = None
+                for knpc in known_npcs:
+                    if knpc.get("character_id") == dead_id or knpc.get("name") == dead_name:
+                        kstats = knpc.get("stats_json") or {}
+                        faction_for_dead = (
+                            kstats.get("faction") or kstats.get("faction_id")
+                            or knpc.get("faction_id")
+                        )
+                        break
+                if faction_for_dead:
+                    death_reactive_encounters.append({
+                        "trigger": "npc_death",
+                        "npc_archetype": "avenger",
+                        "faction": faction_for_dead,
+                        "description": f"Seeking vengeance for the death of {dead_name}",
+                        "urgency": "within_3_turns",
+                        "hostility": "hostile",
+                    })
 
         # Inject death rumors into WorldMindAgent output
         if npc_death_rumors:
@@ -299,13 +342,47 @@ def make_world_sim_node():
         campaign["new_rumors_raw"] = list(out.new_rumors or [])
         # 2.1: Persist faction memory for multi-turn plan continuity
         # 3.1: Persist NPC states for NPC autonomy
-        if out.faction_memory or out.npc_states:
-            ws = dict(campaign.get("world_state_json") or {})
-            if out.faction_memory:
-                ws["faction_memory"] = out.faction_memory
-            if out.npc_states:
-                ws["npc_states"] = out.npc_states
-            campaign["world_state_json"] = ws
+        ws = dict(campaign.get("world_state_json") or {})
+        if out.faction_memory:
+            ws["faction_memory"] = out.faction_memory
+        if out.npc_states:
+            ws["npc_states"] = out.npc_states
+
+        # V1.1 Phase 4A+4D: Process reactive encounters into pending queue
+        import random as _random
+        from backend.app.constants import REACTIVE_ENCOUNTER_MAX_PENDING
+        current_turn = int(state.get("turn_number") or 0)
+        # Start from encounter node's remaining list (triggered entries removed)
+        reactive_remaining = state.get("reactive_encounters_remaining")
+        if reactive_remaining is not None:
+            pending_encounters = list(reactive_remaining)
+        else:
+            pending_encounters = list(ws.get("pending_reactive_encounters") or [])
+        all_reactive = list(out.reactive_encounters or []) + death_reactive_encounters
+        for enc in all_reactive:
+            if not isinstance(enc, dict):
+                continue
+            urgency = enc.get("urgency", "within_3_turns")
+            if urgency == "next_turn":
+                trigger_turn = current_turn + 1
+            elif urgency == "eventual":
+                trigger_turn = current_turn + _random.randint(3, 8)
+            else:  # within_3_turns
+                trigger_turn = current_turn + _random.randint(1, 3)
+            pending_encounters.append({
+                "trigger": enc.get("trigger", "world_event"),
+                "npc_archetype": enc.get("npc_archetype", "informant"),
+                "faction": enc.get("faction"),
+                "description": str(enc.get("description", ""))[:200],
+                "urgency": urgency,
+                "hostility": enc.get("hostility", "neutral"),
+                "trigger_turn": trigger_turn,
+                "source_turn": current_turn,
+            })
+        # Cap at max pending (keep newest)
+        ws["pending_reactive_encounters"] = pending_encounters[-REACTIVE_ENCOUNTER_MAX_PENDING:]
+
+        campaign["world_state_json"] = ws
 
         return {
             **state,

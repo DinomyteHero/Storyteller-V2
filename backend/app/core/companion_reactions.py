@@ -131,12 +131,40 @@ def compute_companion_reactions(
             if isinstance(emo_data, dict):
                 emotional_states[cid_key] = emo_data.get("state", "calm")
 
+    # V1.1: Gather scene tags for deep companion opinion trigger matching
+    scene_tags: list[str] = []
+    if isinstance(mr, dict):
+        for fact in (mr.get("narrative_facts") or []):
+            if isinstance(fact, str):
+                scene_tags.extend(fact.lower().split())
+        action_type = (mr.get("action_type") or "").lower()
+        if action_type:
+            scene_tags.append(action_type)
+
     for cid in party or []:
         traits = (party_traits or {}).get(cid) or {}
         if cid in explicit_affinity:
             affinity_delta_map[cid] = max(AFFINITY_DELTA_MIN, min(AFFINITY_DELTA_MAX, int(explicit_affinity[cid])))
             reasons_map[cid] = (explicit_reasons.get(cid) or "mechanic override")[:64]
             continue
+
+        # V1.1: Deep companion opinion triggers override trait scoring
+        trigger_matched = False
+        try:
+            from backend.app.core.companions import match_opinion_trigger
+            trigger = match_opinion_trigger(cid, scene_tags)
+            if trigger:
+                delta = max(AFFINITY_DELTA_MIN, min(AFFINITY_DELTA_MAX, int(trigger.get("affinity_bonus", 0))))
+                if delta != 0:
+                    affinity_delta_map[cid] = delta
+                reasons_map[cid] = trigger.get("reaction", "")[:64]
+                trigger_matched = True
+        except Exception:
+            pass
+
+        if trigger_matched:
+            continue
+
         score = _tone_match_score(tone_tag, traits)
         delta = _score_to_affinity_delta(score)
 
@@ -304,7 +332,17 @@ def maybe_enqueue_banter(
         banter_seed = derive_seed(campaign.get("id", ""), turn_number, counter=77)
         banter_rng = random.Random(banter_seed)
 
-        if memories and arc in ("TRUSTED", "LOYAL"):
+        # V1.1: Deep companions use personal banter instead of generic pool
+        _personal_line = None
+        try:
+            from backend.app.core.companions import get_personal_banter
+            _personal_line = get_personal_banter(companion_id, tone_tag)
+        except Exception:
+            pass
+
+        if _personal_line:
+            line = _personal_line
+        elif memories and arc in ("TRUSTED", "LOYAL"):
             recent_memory = memories[-1][:60] if memories else ""
             pool = BANTER_MEMORY_POOL.get(style, BANTER_MEMORY_POOL.get("stoic", []))
             if pool:

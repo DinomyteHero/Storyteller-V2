@@ -439,6 +439,45 @@ def make_choice_crafter_node():
         if _use_fallback:
             add_warning(gs, "ChoiceCrafter: LLM failed; showing degraded options.")
 
+        # V1.1: BREAKDOWN — replace 1-2 choices with desperate/irrational options
+        _ws = gs.campaign.get("world_state_json") if isinstance(gs.campaign, dict) else {}
+        _ws = _ws if isinstance(_ws, dict) else {}
+        if _ws.get("player_breakdown") and len(items) >= 3:
+            _has_companion = bool(companion_hint)
+            desperate_choices: list[dict[str, str]] = [
+                {
+                    "text": "Lash out at whatever is closest — anything to make the pressure stop",
+                    "tone": "RENEGADE",
+                    "meaning": "desperate_outburst",
+                    "risk": "DANGEROUS",
+                    "impact_tier": "wave",
+                    "consequence_hint": "Acting on panic rarely ends well.",
+                },
+            ]
+            if _has_companion:
+                # Companion intervention choice (PARAGON path out of breakdown)
+                _comp_name = companion_hint.split("(")[0].strip() if companion_hint else "your companion"
+                desperate_choices.append({
+                    "text": f"{_comp_name} grabs your arm: 'Stop. Breathe.' — let them anchor you",
+                    "tone": "PARAGON",
+                    "meaning": "companion_intervention",
+                    "risk": "SAFE",
+                    "impact_tier": "ripple",
+                    "consequence_hint": "Trusting someone in your worst moment changes things.",
+                })
+            else:
+                desperate_choices.append({
+                    "text": "Freeze — your mind goes blank, body won't respond",
+                    "tone": "NEUTRAL",
+                    "meaning": "desperate_freeze",
+                    "risk": "RISKY",
+                    "impact_tier": "ripple",
+                    "consequence_hint": "Inaction has its own consequences.",
+                })
+            # Replace the last 1-2 items with desperate choices
+            items = items[: len(items) - len(desperate_choices)] + desperate_choices
+            add_warning(gs, "BREAKDOWN: stress critical — some choices reflect your fractured state.")
+
         # Convert to ActionSuggestions
         suggestions = _to_action_suggestions(items)
         suggestions = ensure_tone_diversity(suggestions)
@@ -468,10 +507,26 @@ def make_choice_crafter_node():
             final_text, items, scene_frame, npc_utterance_text
         )
 
+        # V1.1: Store the previous turn's suggested_actions for decision_ledger
+        # recording in the commit node (so we can track what was rejected).
+        _prev_sa = state.get("suggested_actions") or []
+        result_sa_with_hints = []
+        for a in actions_list:
+            entry = dict(a) if isinstance(a, dict) else {}
+            # Preserve consequence_hint from the LLM-generated items
+            for item in items:
+                if isinstance(item, dict) and item.get("text") == entry.get("label"):
+                    entry["consequence_hint"] = item.get("consequence_hint", "")
+                    entry["impact_tier"] = item.get("impact_tier", "ripple")
+                    entry["meaning_tag"] = item.get("meaning", "")
+                    break
+            result_sa_with_hints.append(entry)
+
         logger.info("ChoiceCrafter: generated %d choices from prose", len(actions_list))
         result = {
             **state,
-            "suggested_actions": actions_list,
+            "suggested_actions": result_sa_with_hints,
+            "previous_suggested_actions": _prev_sa,
             "player_responses": player_responses,
             "warnings": gs.warnings,
         }

@@ -83,29 +83,29 @@ class TestQuestEntryConditions:
 
     def test_turn_min_blocks_early_activation(self):
         tracker = QuestTracker(_rebellion_quests())
-        updated, notes = tracker.process_turn({}, 1, None, [], {})
+        updated, notes, _cevents = tracker.process_turn({}, 1, None, [], {})
         assert "quest_first_contact" not in updated
 
     def test_turn_min_allows_activation(self):
         tracker = QuestTracker(_rebellion_quests())
-        updated, notes = tracker.process_turn({}, 3, None, [], {})
+        updated, notes, _cevents = tracker.process_turn({}, 3, None, [], {})
         assert "quest_first_contact" in updated
         assert updated["quest_first_contact"]["status"] == QUEST_STATUS_ACTIVE
         assert any("New quest: First Contact" in n for n in notes)
 
     def test_location_condition_blocks_wrong_location(self):
         tracker = QuestTracker(_rebellion_quests())
-        updated, _ = tracker.process_turn({}, 10, "loc-smuggler_den", [], {})
+        updated, _, _cevents = tracker.process_turn({}, 10, "loc-smuggler_den", [], {})
         assert "quest_shadow_freight" not in updated
 
     def test_location_condition_allows_correct_location(self):
         tracker = QuestTracker(_rebellion_quests())
-        updated, _ = tracker.process_turn({}, 10, "loc-cantina", [], {})
+        updated, _, _cevents = tracker.process_turn({}, 10, "loc-cantina", [], {})
         assert "quest_shadow_freight" in updated
 
     def test_turn_max_blocks_late_activation(self):
         tracker = QuestTracker(_rebellion_quests())
-        updated, _ = tracker.process_turn({}, 30, "loc-cantina", [], {})
+        updated, _, _cevents = tracker.process_turn({}, 30, "loc-cantina", [], {})
         assert "quest_shadow_freight" not in updated
 
     def test_reputation_in_entry_conditions_does_not_block(self):
@@ -113,7 +113,7 @@ class TestQuestEntryConditions:
         reputation_min is a stage condition, not an entry condition,
         so the quest activates regardless of reputation."""
         tracker = QuestTracker(_rebellion_quests())
-        updated, _ = tracker.process_turn({}, 20, None, [], {"faction_reputation": {"rebel_alliance": 5}})
+        updated, _, _cevents = tracker.process_turn({}, 20, None, [], {"faction_reputation": {"rebel_alliance": 5}})
         # Quest activates because reputation_min is not enforced in entry conditions
         assert "quest_iron_fist" in updated
 
@@ -126,23 +126,23 @@ class TestQuestStageProgression:
         tracker = QuestTracker(_rebellion_quests())
 
         # Turn 3: Activate
-        log, notes = tracker.process_turn({}, 3, None, [], {})
+        log, notes, _cevents = tracker.process_turn({}, 3, None, [], {})
         assert log["quest_first_contact"]["status"] == QUEST_STATUS_ACTIVE
         assert log["quest_first_contact"]["current_stage_idx"] == 0
 
         # Turn 4: Meet rebel_contact → complete stage 0
-        log, notes = tracker.process_turn(log, 4, None, [], {"known_npcs": ["rebel_contact"]})
+        log, notes, _cevents = tracker.process_turn(log, 4, None, [], {"known_npcs": ["rebel_contact"]})
         assert log["quest_first_contact"]["current_stage_idx"] == 1
         assert "locate_contact" in log["quest_first_contact"]["stages_completed"]
 
         # Turn 5: Assist rebellion → complete stage 1
         events = [{"event_type": "ACTION", "payload": {"text": "I assist_rebellion"}}]
-        log, notes = tracker.process_turn(log, 5, None, events, {"known_npcs": ["rebel_contact"]})
+        log, notes, _cevents = tracker.process_turn(log, 5, None, events, {"known_npcs": ["rebel_contact"]})
         assert log["quest_first_contact"]["current_stage_idx"] == 2
         assert "prove_loyalty" in log["quest_first_contact"]["stages_completed"]
 
         # Turn 6: Meet rebel_contact again + prove_loyalty completed → complete stage 2
-        log, notes = tracker.process_turn(log, 6, None, [], {"known_npcs": ["rebel_contact"]})
+        log, notes, _cevents = tracker.process_turn(log, 6, None, [], {"known_npcs": ["rebel_contact"]})
         assert log["quest_first_contact"]["status"] == QUEST_STATUS_COMPLETED
         assert any("Quest completed: First Contact" in n for n in notes)
 
@@ -154,7 +154,7 @@ class TestQuestBranchingResolution:
         """Activate shadow_freight. Note: stage 0 (location: loc-cantina) completes
         immediately on activation since activation happens at loc-cantina."""
         tracker = QuestTracker(_rebellion_quests())
-        log, _ = tracker.process_turn({}, 10, "loc-cantina", [], {})
+        log, _, _cevents = tracker.process_turn({}, 10, "loc-cantina", [], {})
         assert "quest_shadow_freight" in log
         # Stage 0 auto-completes in the same turn (location matches)
         assert log["quest_shadow_freight"]["current_stage_idx"] == 1
@@ -165,12 +165,12 @@ class TestQuestBranchingResolution:
         # Already at stage 1 (stage 0 completed on activation)
 
         # Stage 1: at cargo docks
-        log, _ = tracker.process_turn(log, 12, "loc-cargo_docks", [], {})
+        log, _, _cevents = tracker.process_turn(log, 12, "loc-cargo_docks", [], {})
         assert log["quest_shadow_freight"]["current_stage_idx"] == 2
 
         # Stage 2: fight the hunters (branching)
         events = [{"event_type": "ACTION", "payload": {"action": "fight_hunters"}}]
-        log, notes = tracker.process_turn(log, 13, None, events, {})
+        log, notes, _cevents = tracker.process_turn(log, 13, None, events, {})
         assert log["quest_shadow_freight"]["current_stage_idx"] == 3
         assert "handle_the_hunters:fight" in log["quest_shadow_freight"]["stages_completed"]
 
@@ -179,11 +179,11 @@ class TestQuestBranchingResolution:
         # Already at stage 1
 
         # Advance to stage 2
-        log, _ = tracker.process_turn(log, 12, "loc-cargo_docks", [], {})
+        log, _, _cevents = tracker.process_turn(log, 12, "loc-cargo_docks", [], {})
 
         # Stage 2: stealth path
         events = [{"event_type": "ACTION", "payload": {"action": "steal_cargo quietly"}}]
-        log, notes = tracker.process_turn(log, 13, None, events, {})
+        log, notes, _cevents = tracker.process_turn(log, 13, None, events, {})
         assert log["quest_shadow_freight"]["current_stage_idx"] == 3
         assert "handle_the_hunters:stealth" in log["quest_shadow_freight"]["stages_completed"]
 
@@ -192,13 +192,13 @@ class TestQuestBranchingResolution:
         # Already at stage 1
 
         # Stage 1-2
-        log, _ = tracker.process_turn(log, 12, "loc-cargo_docks", [], {})
+        log, _, _cevents = tracker.process_turn(log, 12, "loc-cargo_docks", [], {})
         events = [{"event_type": "ACTION", "payload": {"action": "negotiate_hunters"}}]
-        log, _ = tracker.process_turn(log, 13, None, events, {})
+        log, _, _cevents = tracker.process_turn(log, 13, None, events, {})
 
         # Stage 3: deliver
         events = [{"event_type": "ACTION", "payload": {"action": "deliver_supplies"}}]
-        log, notes = tracker.process_turn(log, 14, None, events, {})
+        log, notes, _cevents = tracker.process_turn(log, 14, None, events, {})
         assert log["quest_shadow_freight"]["status"] == QUEST_STATUS_COMPLETED
 
 
@@ -209,11 +209,11 @@ class TestMultipleQuestsParallel:
         tracker = QuestTracker(_rebellion_quests())
 
         # Activate first_contact at turn 3
-        log, _ = tracker.process_turn({}, 3, None, [], {})
+        log, _, _cevents = tracker.process_turn({}, 3, None, [], {})
         assert "quest_first_contact" in log
 
         # Activate shadow_freight at turn 10 at cantina — first_contact still active
-        log, _ = tracker.process_turn(log, 10, "loc-cantina", [], {"known_npcs": []})
+        log, _, _cevents = tracker.process_turn(log, 10, "loc-cantina", [], {"known_npcs": []})
         assert "quest_first_contact" in log
         assert "quest_shadow_freight" in log
         assert log["quest_first_contact"]["status"] == QUEST_STATUS_ACTIVE
@@ -227,12 +227,12 @@ class TestMultipleQuestsParallel:
         tracker = QuestTracker(_rebellion_quests())
 
         # Activate first_contact at turn 3 (shadow_freight won't activate: wrong location)
-        log, _ = tracker.process_turn({}, 3, "loc-safe_house", [], {"known_npcs": ["rebel_contact"]})
+        log, _, _cevents = tracker.process_turn({}, 3, "loc-safe_house", [], {"known_npcs": ["rebel_contact"]})
         assert "quest_first_contact" in log
         assert "quest_shadow_freight" not in log  # location gate blocks entry
 
         # Activate shadow_freight at turn 10 at cantina
-        log, _ = tracker.process_turn(log, 10, "loc-cantina", [], {"known_npcs": ["rebel_contact"]})
+        log, _, _cevents = tracker.process_turn(log, 10, "loc-cantina", [], {"known_npcs": ["rebel_contact"]})
         assert "quest_shadow_freight" in log
         # Both active, stages independent
         assert log["quest_first_contact"]["status"] == QUEST_STATUS_ACTIVE

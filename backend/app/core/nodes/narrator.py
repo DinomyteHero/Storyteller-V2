@@ -222,6 +222,29 @@ def make_narrator_node():
         if not gs.new_rumors and state.get("new_rumors"):
             gs.new_rumors = list(state.get("new_rumors") or [])
 
+        # V1.1: Last Stand scene override — force CLIMAX weight and inject directive
+        _ls_campaign = state.get("campaign") or {}
+        _ls_ws = _ls_campaign.get("world_state_json") if isinstance(_ls_campaign, dict) else {}
+        _ls_ws = _ls_ws if isinstance(_ls_ws, dict) else {}
+        if _ls_ws.get("last_stand_triggered"):
+            from backend.app.constants import LAST_STAND_SCENE_WEIGHT
+            last_stand_block = (
+                "\n\n## LAST STAND (MANDATORY — this overrides all other scene priorities)\n"
+                f"Scene weight: {LAST_STAND_SCENE_WEIGHT}. "
+                "The character faces their final crisis. This is not about death — "
+                "it's about transformation through suffering. Write the defining moment "
+                "of this character's journey. Every companion present reacts. "
+                "The world holds its breath. Physical pain is visceral. "
+                "What they choose here changes who they are permanently.\n"
+                "After this turn, the character survives but is permanently diminished — "
+                "show the cost of survival."
+            )
+            current_di = gs.director_instructions or ""
+            gs.director_instructions = current_di + last_stand_block
+            # Override scene_frame weight if available
+            if hasattr(gs, "scene_frame") and isinstance(gs.scene_frame, dict):
+                gs.scene_frame["scene_weight"] = LAST_STAND_SCENE_WEIGHT
+
         # V8.0 Gate 4: Companion reactions are now consolidated in narrator_prompt.py
         # as COMPANION PRESENCE (woven directive). We only need loyalty crisis flags
         # here (injected into director_instructions — never-trimmed).

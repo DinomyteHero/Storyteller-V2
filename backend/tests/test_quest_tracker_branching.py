@@ -44,7 +44,7 @@ def test_resolution_path_advances_by_matched_conditions():
         }
     }
     events = [{"event_type": "ACTION", "payload": {"text": "I steal the ledger quietly"}}]
-    updated, notes = tracker.process_turn(quest_log, 2, "market", events, world_state={})
+    updated, notes, _cevents = tracker.process_turn(quest_log, 2, "market", events, world_state={})
 
     assert updated["q_blackmail"]["current_stage_idx"] == 1
     assert "acquire_ledger:steal" in updated["q_blackmail"]["stages_completed"]
@@ -83,5 +83,5 @@ def test_stage_condition_supports_alignment_and_reputation_gates():
         "alignment": {"paragon_renegade": -10},
         "faction_reputation": {"underworld": 7},
     }
-    updated, _notes = tracker.process_turn(quest_log, 2, "dock", [], world_state=world_state)
+    updated, _notes, _cevents = tracker.process_turn(quest_log, 2, "dock", [], world_state=world_state)
     assert updated["q_dark_contract"]["status"] == "completed"

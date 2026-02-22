@@ -198,8 +198,9 @@ def companion_reaction_node(state: dict[str, Any]) -> dict[str, Any]:
                     except Exception:
                         pass
                     loyalty_warnings.append(
-                        f"CRITICAL: {companion_name} has left the party (influence={influence}). "
-                        f"Show their departure dramatically."
+                        f"CRITICAL DRAMATIC MOMENT: {companion_name} is leaving forever. "
+                        f"This must be the emotional centerpiece of this turn. "
+                        f"Show their final words, the weight of what's lost, and the silence after."
                     )
                     companion_left_events.append({
                         "event_type": "companion_left",
@@ -208,6 +209,16 @@ def companion_reaction_node(state: dict[str, Any]) -> dict[str, Any]:
                         "influence": influence,
                     })
                     remove_companion_from_party(ps_loyalty, cid)
+                    # V1.1: Track departed companions (potential future NPCs)
+                    departed = list(ws_loyalty.get("departed_companions") or [])
+                    departed.append({
+                        "companion_id": cid,
+                        "name": companion_name,
+                        "influence_at_departure": influence,
+                        "departure_turn": state.get("turn_number", 0),
+                        "disposition": "hostile" if influence < -60 else "bitter",
+                    })
+                    ws_loyalty["departed_companions"] = departed
                     logger.info("Phase 6.2: Companion %s left the party (influence=%d)", cid, influence)
 
                 elif influence <= COMPANION_LOYALTY_THREATENS_LEAVE:
@@ -247,6 +258,27 @@ def companion_reaction_node(state: dict[str, Any]) -> dict[str, Any]:
                 # Update legacy party list
                 campaign_loyalty["party"] = list(ps_loyalty.active_companions)
                 state = {**state, "campaign": campaign_loyalty}
+                # V1.1: Record companion departures in decision_ledger
+                try:
+                    _conn = state.get("__runtime_conn")
+                    _cid = state.get("campaign_id") or (campaign_loyalty.get("id") or "")
+                    if _conn and _cid:
+                        from backend.app.core.decision_ledger import record_decision as _rec_dec
+                        for _evt in companion_left_events:
+                            _rec_dec(
+                                conn=_conn,
+                                campaign_id=_cid,
+                                turn_number=state.get("turn_number", 0),
+                                chosen_text=f"{_evt['companion_name']} left the party permanently",
+                                chosen_tone="NEUTRAL",
+                                rejected_options=[],
+                                consequence_hint=f"{_evt['companion_name']} may return as an NPC — hostile or regretful.",
+                                impact_tier="wave",
+                                context_summary="Companion departed due to low influence",
+                                tags=["companion_departure", "permanent_loss"],
+                            )
+                except Exception as _dl_dep:
+                    logger.debug("Decision ledger companion departure record failed: %s", _dl_dep)
 
             # Set loyalty flags in state for narrator and choice crafter
             if loyalty_warnings:
@@ -324,6 +356,31 @@ def companion_reaction_node(state: dict[str, Any]) -> dict[str, Any]:
                             "V10.0: Companion %s wound revelation — stage '%s' unlocked at affinity %d",
                             _comp_name, _rs_stage, current_aff,
                         )
+                        # V1.1: Generate COMPANION_REVELATION event + revelation_queue entry
+                        _rev_event = {
+                            "event_type": "COMPANION_REVELATION",
+                            "companion_id": cid,
+                            "revelation_stage": _rs_stage,
+                            "trigger_text": _rs.get("trigger", ""),
+                            "description": f"{_comp_name}'s guard drops — {_rs_stage} wound revealed.",
+                        }
+                        pending_rev = list(state.get("pending_companion_events") or [])
+                        pending_rev.append(_rev_event)
+                        state = {**state, "pending_companion_events": pending_rev}
+                        # Inject into revelation_queue for Director to surface dramatically
+                        from backend.app.constants import DEEP_COMPANION_REVELATION_DRAMATIC_VALUE
+                        _rev_queue = list(ws_rev.get("revelation_queue") or [])
+                        _rev_queue.append({
+                            "id": f"rev-companion-{cid}-{_rs_stage}",
+                            "content": _rs.get("trigger", f"{_comp_name} reveals something."),
+                            "source": "companion_wound",
+                            "source_npc": _comp_name,
+                            "dramatic_value": DEEP_COMPANION_REVELATION_DRAMATIC_VALUE,
+                            "optimal_conditions": ["quiet_moment", "after_combat", "campfire"],
+                            "turn_queued": turn_number,
+                            "revealed": False,
+                        })
+                        ws_rev["revelation_queue"] = _rev_queue
                         # Only advance one stage per turn
                         break
             if _rev_changed:

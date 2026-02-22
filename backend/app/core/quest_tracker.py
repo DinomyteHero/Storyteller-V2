@@ -112,6 +112,14 @@ def _check_entry_conditions(
         if str(npc_cond) not in known:
             return False
 
+    # V1.1 Phase 4C: Faction ally gate — quest available when reputation >= threshold
+    faction_ally = conditions.get("faction_ally")
+    if isinstance(faction_ally, dict):
+        faction_rep = world_state.get("faction_reputation") if isinstance(world_state.get("faction_reputation"), dict) else {}
+        for faction, threshold in faction_ally.items():
+            if int(faction_rep.get(faction, 0) or 0) < int(threshold):
+                return False
+
     return True
 
 
@@ -210,6 +218,16 @@ def _check_stage_conditions(
             if int(alignment.get(axis, 0) or 0) > int(threshold):
                 return False
 
+    # V1.1 Phase 4C: Faction hostile gate — for fail conditions, triggers when
+    # faction reputation drops below threshold (faction turned hostile)
+    faction_hostile = conditions.get("faction_hostile")
+    if isinstance(faction_hostile, dict):
+        faction_rep = world_state.get("faction_reputation") if isinstance(world_state.get("faction_reputation"), dict) else {}
+        for faction, threshold in faction_hostile.items():
+            # Condition NOT met if reputation is still above threshold
+            if int(faction_rep.get(faction, 0) or 0) >= int(threshold):
+                return False
+
     # Item acquired
     item_cond = conditions.get("item_acquired")
     if item_cond:
@@ -227,6 +245,95 @@ def _check_stage_conditions(
 
 
 # ── Quest Tracker ──
+
+def _generate_failure_consequences(
+    quest_def: dict,
+    quest_id: str,
+    world_state: dict,
+) -> list[dict]:
+    """V1.1: Generate consequence events when a quest fails.
+
+    Severity inferred from quest definition:
+    - Has path_consequences → high (faction move + relationship hit)
+    - Has consequences or stages > 2 → medium (relationship hit + reputation)
+    - Basic quest → low (flag set only)
+    """
+    events: list[dict] = []
+
+    # Always set the failure flag
+    events.append({
+        "event_type": "FLAG_SET",
+        "payload": {"key": f"quest_failed_{quest_id}", "value": True},
+    })
+
+    has_path_consequences = bool(quest_def.get("path_consequences"))
+    stages = quest_def.get("stages") or []
+    has_complex_stages = len(stages) > 2
+
+    # Determine connected NPCs and factions from quest conditions
+    quest_giver_npc = None
+    connected_faction = None
+    entry = quest_def.get("entry_conditions") or {}
+    if isinstance(entry, dict):
+        quest_giver_npc = entry.get("npc_met")
+
+    # Check stages for faction/NPC references
+    for stage in stages:
+        if not isinstance(stage, dict):
+            continue
+        conds = stage.get("success_conditions") or {}
+        if isinstance(conds, dict):
+            if not quest_giver_npc:
+                quest_giver_npc = conds.get("npc_met")
+            rep_min = conds.get("reputation_min")
+            if isinstance(rep_min, dict):
+                connected_faction = next(iter(rep_min), None)
+            rep_max = conds.get("reputation_max")
+            if isinstance(rep_max, dict) and not connected_faction:
+                connected_faction = next(iter(rep_max), None)
+
+    if has_path_consequences:
+        # HIGH severity — faction capitalizes + relationship hit + reputation
+        if quest_giver_npc:
+            events.append({
+                "event_type": "RELATIONSHIP",
+                "payload": {"npc_id": quest_giver_npc, "delta": -10},
+            })
+        if connected_faction:
+            events.append({
+                "event_type": "FLAG_SET",
+                "payload": {
+                    "key": f"faction_reputation_delta_{connected_faction}",
+                    "value": -10,
+                },
+            })
+            events.append({
+                "event_type": "FACTION_MOVE",
+                "payload": {
+                    "faction": connected_faction,
+                    "action": f"capitalizes on failure of quest {quest_def.get('title', quest_id)}",
+                    "source": "quest_failure",
+                },
+            })
+    elif has_complex_stages:
+        # MEDIUM severity — relationship hit + minor reputation
+        if quest_giver_npc:
+            events.append({
+                "event_type": "RELATIONSHIP",
+                "payload": {"npc_id": quest_giver_npc, "delta": -5},
+            })
+        if connected_faction:
+            events.append({
+                "event_type": "FLAG_SET",
+                "payload": {
+                    "key": f"faction_reputation_delta_{connected_faction}",
+                    "value": -5,
+                },
+            })
+    # LOW severity: only the FLAG_SET above (cosmetic)
+
+    return events
+
 
 class QuestTracker:
     """Deterministic quest state machine.
@@ -253,7 +360,7 @@ class QuestTracker:
         location_id: str | None,
         events: list[dict],
         world_state: dict,
-    ) -> tuple[dict[str, dict], list[str]]:
+    ) -> tuple[dict[str, dict], list[str], list[dict]]:
         """Process a turn's events against all quests.
 
         Args:
@@ -264,10 +371,11 @@ class QuestTracker:
             world_state: Full world_state_json dict.
 
         Returns:
-            (updated_quest_log, notifications) — notifications are player-facing strings.
+            (updated_quest_log, notifications, consequence_events)
         """
         updated = dict(quest_log)
         notifications: list[str] = []
+        consequence_events: list[dict] = []
 
         # Check entry conditions for quests not yet in the log
         for quest_id, quest_def in self._quest_defs.items():
@@ -376,8 +484,15 @@ class QuestTracker:
                 title = quest_def.get("title", quest_id)
                 notifications.append(f"Quest failed: {title}")
                 logger.info("Quest failed: %s (turn %d)", quest_id, turn_number)
+                # V1.1: Generate failure consequence events
+                fail_events = _generate_failure_consequences(quest_def, quest_id, world_state)
+                consequence_events.extend(fail_events)
+                logger.info(
+                    "Quest %s failure generated %d consequence events",
+                    quest_id, len(fail_events),
+                )
 
-        return updated, notifications
+        return updated, notifications, consequence_events
 
 
 def get_quest_tracker(era: str) -> QuestTracker | None:
@@ -403,22 +518,22 @@ def process_quests_for_turn(
     turn_number: int,
     location_id: str | None,
     events: list[dict],
-) -> list[str]:
+) -> tuple[list[str], list[dict]]:
     """Convenience: process quest conditions for a turn and update world_state in place.
 
-    Returns list of player-facing notifications.
+    Returns (notifications, consequence_events).
     """
     tracker = get_quest_tracker(era)
     if not tracker:
-        return []
+        return [], []
 
     quest_log = world_state.get("quest_log") or {}
     if not isinstance(quest_log, dict):
         quest_log = {}
 
-    updated_log, notifications = tracker.process_turn(
+    updated_log, notifications, consequence_events = tracker.process_turn(
         quest_log, turn_number, location_id, events, world_state,
     )
 
     world_state["quest_log"] = updated_log
-    return notifications
+    return notifications, consequence_events

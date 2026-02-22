@@ -517,6 +517,28 @@ def _build_story_state_summary(state: GameState) -> str:
     if _emotional_arc_note:
         psych_block += f"\nDirector note: {_emotional_arc_note}"
 
+    # V1.1: Failure state injection — WOUNDED and BREAKDOWN
+    if isinstance(ws, dict):
+        if ws.get("player_wounded"):
+            _wound_turn = ws.get("wound_turn", "?")
+            psych_block += (
+                f"\nPLAYER STATUS: WOUNDED (since turn {_wound_turn}). "
+                "The character is gravely injured — show physical pain, limited movement, "
+                "and vulnerability. Companions react with concern or urgency."
+            )
+        if ws.get("last_stand_triggered"):
+            psych_block += (
+                "\nPLAYER STATUS: LAST STAND. This is the character's defining moment — "
+                "not death, but transformation through suffering. Make this the emotional "
+                "centerpiece of the scene. Everything is at stake."
+            )
+        if ws.get("player_breakdown"):
+            psych_block += (
+                "\nPLAYER STATUS: BREAKDOWN (stress critical). The character's composure "
+                "has shattered — show irrational thoughts, trembling hands, tunnel vision. "
+                "Companions are alarmed and may intervene."
+            )
+
     # V2.5: Active rumors (last 3 is_public_rumor events) + Phase 5.1: new rumors from WorldSim
     active_rumors = getattr(state, "active_rumors", None) or []
     new_rumors = getattr(state, "new_rumors", None) or []
@@ -556,6 +578,43 @@ def _build_story_state_summary(state: GameState) -> str:
         threads_block = "\n".join(f"- {t}" for t in _scored_threads[:3])
     else:
         threads_block = "(No open threads.)"
+
+    # V1.1: Decision Ledger — surface past player decisions for narrative continuity
+    decision_ledger_block = ""
+    _conn = getattr(state, "__runtime_conn", None)
+    if _conn is not None:
+        try:
+            from backend.app.core.decision_ledger import (
+                get_relevant_decisions_for_scene,
+                format_decisions_for_prompt,
+            )
+            from backend.app.constants import DECISION_LEDGER_PROMPT_LIMIT
+            # Gather scene tags from mechanic result and threads
+            _scene_tags: list[str] = []
+            if state.mechanic_result:
+                _mr = state.mechanic_result
+                _scene_tags.append(getattr(_mr, "action_type", "") or "")
+                _scene_tags.append(getattr(_mr, "tone_tag", "") or "")
+            _scene_tags.extend(t.split("]")[-1].strip().lower().split() for t in open_threads if t)  # type: ignore[arg-type]
+            _flat_tags = [w for item in _scene_tags for w in (item if isinstance(item, list) else [item]) if w]
+
+            _decisions = get_relevant_decisions_for_scene(
+                _conn,
+                campaign_id,
+                _turn_number,
+                scene_tags=_flat_tags,
+                limit=DECISION_LEDGER_PROMPT_LIMIT,
+            )
+            _formatted = format_decisions_for_prompt(_decisions, max_entries=DECISION_LEDGER_PROMPT_LIMIT)
+            if _formatted:
+                decision_ledger_block = (
+                    "## YOUR PAST DECISIONS (weave through memory, NPC reactions, or environmental echoes — NEVER as meta-narrative summary)\n"
+                    + _formatted
+                    + "\nWhen referencing past decisions, show their weight through character memory, NPC behavior changes, "
+                    "or environmental consequences — not by restating what happened."
+                )
+        except Exception:
+            logger.debug("Decision ledger prompt injection skipped", exc_info=True)
 
     # V2.5: Critical outcome from mechanic
     critical_outcome_block = ""
@@ -658,6 +717,7 @@ def _build_story_state_summary(state: GameState) -> str:
         f"## Open threads (reference 1-2 subtly to maintain continuity)\n"
         f"{threads_block}\n\n"
         + (f"{dynamic_quests_block}\n\n" if dynamic_quests_block else "")
+        + (f"{decision_ledger_block}\n\n" if decision_ledger_block else "")
         + f"## Character psych_profile (use for tone)\n"
         f"{psych_block}\n\n"
         f"## Present NPCs (ONLY these characters exist in this scene)\n"

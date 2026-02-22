@@ -46,6 +46,11 @@ class WorldSimOutput(BaseModel):
     faction_memory: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
     # 3.1: NPC autonomy state tracking
     npc_states: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+    # V1.1: Reactive encounters spawned by world events
+    reactive_encounters: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="NPCs that should appear as consequences of world events",
+    )
 
 
 class CharacterSheetOutput(BaseModel):

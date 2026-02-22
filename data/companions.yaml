@@ -31,6 +31,64 @@ companions:
     - affinity_threshold: 60
       stage: core
       trigger: "A moment of genuine trust — she tells you what she's really looking for."
+  depth_tier: deep
+  personal_banter:
+    PARAGON:
+      - "Kira nods slowly. 'That's the kind of choice that builds something worth fighting for.'"
+      - "A ghost of a smile crosses Kira's face. 'My master would have done the same.'"
+      - "Kira touches her hidden lightsaber hilt — a reflex. 'There's still light in this galaxy. You just proved it.'"
+    RENEGADE:
+      - "Kira's jaw tightens. She looks away, saying nothing — but her silence is loud."
+      - "'There are faster ways to die than making enemies of everyone.' Her voice is flat."
+      - "Kira's hand trembles. She's meditating — or trying to. Your choice made that harder."
+    INVESTIGATE:
+      - "'Good. Knowledge is armor.' She sounds like she's quoting someone."
+      - "Kira tilts her head, curious. 'The Force has patterns. You're learning to read them.'"
+    general:
+      - "Kira adjusts her medkit strap — an old habit from before."
+      - "She watches the stars through the viewport, lips moving in what might be a count of the lost."
+      - "Kira hums something low and ancient — stops when she realizes you're listening."
+  opinion_triggers:
+    - situation: player_helps_refugees
+      reaction: "Kira's eyes brighten — this is why she stays."
+      affinity_bonus: 3
+      tags: [mercy, protection]
+    - situation: player_uses_dark_side
+      reaction: "Kira flinches as if struck. 'You don't know what that costs.'"
+      affinity_bonus: -4
+      tags: [dark_side, force]
+    - situation: player_confronts_authority
+      reaction: "A complex expression crosses Kira's face — admiration and fear in equal measure."
+      affinity_bonus: 1
+      tags: [rebellion, authority]
+    - situation: companion_death_nearby
+      reaction: "Kira's hand goes to her lightsaber — hidden for years, never forgotten."
+      affinity_bonus: 0
+      tags: [death, loss]
+    - situation: quiet_moment_camp
+      reaction: "Kira sits apart from the fire, eyes closed, lips moving in what might be a meditation — or a prayer."
+      affinity_bonus: 0
+      tags: [rest, reflection]
+  personal_quest:
+    title: "Echoes of the Purge"
+    hook: "Kira has received word that another Jedi survivor may be hiding in the outer rim."
+    trigger_affinity: 40
+    stages:
+      - "Kira mentions a rumor about a survivor — test her trust"
+      - "Travel to the coordinates she provides"
+      - "Confront what you find — the survivor may not want to be found"
+    resolution_paths:
+      - "Help the survivor — Kira's core wound begins to heal"
+      - "The survivor is a trap — Kira must face her fear of freezing again"
+  dialogue_samples:
+    - context: greeting
+      line: "The Force doesn't choose the ready. It chooses the willing."
+    - context: disagreement
+      line: "I've seen what certainty does to people. It burned the Temple."
+    - context: vulnerable
+      line: "I keep looking for someone who can tell me it wasn't my fault. I haven't found them yet."
+    - context: combat
+      line: "Stay behind me. I didn't survive the Purge to lose anyone else."
 - id: comp-reb-vex
   name: Vex Torin
   archetype: Defected Imperial sergeant
@@ -63,6 +121,62 @@ companions:
     - affinity_threshold: 60
       stage: core
       trigger: "After the player shows pragmatic leadership — Vex admits what really drove him to defect."
+  depth_tier: deep
+  personal_banter:
+    PARAGON:
+      - "Vex grunts. 'Idealism. Fine. Just have an exit strategy for when it doesn't work.'"
+      - "'That was... decent of you.' He sounds almost surprised at his own approval."
+    RENEGADE:
+      - "Vex nods once, sharp. 'Effective. I can work with effective.'"
+      - "'Reminds me of my old CO. That's not a compliment.' A pause. 'Mostly not.'"
+    INVESTIGATE:
+      - "'Recon first. Good. Only the dead charge blind.' He checks his weapon out of habit."
+      - "Vex pulls out a datapad. 'Intel wins wars. Blasters just finish them.'"
+    general:
+      - "Vex field-strips his blaster. Again. It's already clean."
+      - "He stares at the sunset like he's running tactical assessments on the horizon."
+      - "Vex catches himself standing at parade rest. Shifts his weight. Says nothing."
+  opinion_triggers:
+    - situation: player_shows_mercy_to_imperials
+      reaction: "Vex goes very still. His jaw works. He doesn't speak for a long time."
+      affinity_bonus: -2
+      tags: [mercy, imperial]
+    - situation: player_leads_tactical_op
+      reaction: "Vex falls into formation like breathing. This is his element."
+      affinity_bonus: 3
+      tags: [tactics, leadership]
+    - situation: player_sacrifices_for_civilians
+      reaction: "Something shifts behind Vex's eyes. He won't explain. But he remembers."
+      affinity_bonus: 2
+      tags: [sacrifice, civilians]
+    - situation: player_executes_prisoner
+      reaction: "'Efficient.' His voice is hollow. He's been here before."
+      affinity_bonus: -3
+      tags: [execution, ruthless]
+    - situation: quiet_moment_camp
+      reaction: "Vex sits on watch even when it's not his shift. Old habits from a life he can't fully leave."
+      affinity_bonus: 0
+      tags: [rest, reflection]
+  personal_quest:
+    title: "The Village That Burned"
+    hook: "Vex has learned that survivors from the village exist — and they remember his face."
+    trigger_affinity: 40
+    stages:
+      - "Vex receives a coded message — someone knows what he did"
+      - "Track down the survivors before Imperial intelligence does"
+      - "Face the people whose lives he destroyed — justice or forgiveness?"
+    resolution_paths:
+      - "Accept judgment from the survivors — Vex begins to forgive himself"
+      - "Protect the survivors from Imperial retaliation — actions speak louder than guilt"
+  dialogue_samples:
+    - context: greeting
+      line: "Status report. Don't sugarcoat it."
+    - context: disagreement
+      line: "I've followed bad orders before. I know what it costs. Do you?"
+    - context: vulnerable
+      line: "The Empire didn't make me do anything. I volunteered. Every time."
+    - context: combat
+      line: '"Covering fire. Move on my mark. Just like—" He stops. "Just move."'
 - id: comp-reb-shade
   name: Shade Vos
   archetype: Underworld fixer
@@ -95,6 +209,62 @@ companions:
     - affinity_threshold: 65
       stage: core
       trigger: "After the player proves loyalty under fire — Shade admits what the money is really about."
+  depth_tier: deep
+  personal_banter:
+    PARAGON:
+      - "'Oh, you're one of those.' Shade rolls his eyes, but there's a flicker of something underneath — envy, maybe."
+      - "'Idealism. Cute. Wake me when reality shows up.' But he doesn't leave."
+    RENEGADE:
+      - "Shade grins — sharp, genuine. 'Now that's a language I speak fluently.'"
+      - "'See, this is why we get along. You understand that principles are luxury goods.'"
+    INVESTIGATE:
+      - "'Ooh, sneaky. I like sneaky.' He produces a lockpick from nowhere. 'Need a hand?'"
+      - "Shade already has three exit routes mapped. He always does."
+    general:
+      - "Shade counts credits. He's always counting credits."
+      - "He gives you a nickname. He gives everyone nicknames. It's easier than remembering names of people who might not survive."
+      - "Shade shuffles a sabacc deck one-handed, eyes scanning every exit in the room."
+  opinion_triggers:
+    - situation: player_shares_loot_fairly
+      reaction: "Shade blinks. Twice. 'You're... splitting it? Evenly?' Genuine confusion."
+      affinity_bonus: 2
+      tags: [fairness, trust]
+    - situation: player_betrays_ally
+      reaction: "Shade doesn't flinch. But he memorizes every detail. Insurance."
+      affinity_bonus: -3
+      tags: [betrayal, trust]
+    - situation: player_risks_self_for_team
+      reaction: "Shade's hand twitches toward his blaster — covering you. He'll deny it later."
+      affinity_bonus: 3
+      tags: [sacrifice, loyalty]
+    - situation: player_threatens_shade
+      reaction: "The mask drops for one second. Behind the smirk: something very cold, very still, very dangerous."
+      affinity_bonus: -5
+      tags: [threat, trust]
+    - situation: quiet_moment_camp
+      reaction: "Shade deals himself a hand of sabacc. Loses to himself. Cheats anyway."
+      affinity_bonus: 0
+      tags: [rest, reflection]
+  personal_quest:
+    title: "The Partner's Debt"
+    hook: "Shade's old partner — the one who sold him out — has resurfaced. And they're asking for help."
+    trigger_affinity: 45
+    stages:
+      - "Shade picks up a transmission he shouldn't have heard — his old partner is alive"
+      - "Track the partner to a rimworld outpost"
+      - "Confront them — revenge, forgiveness, or a new deal?"
+    resolution_paths:
+      - "Forgive the partner — Shade learns that trust isn't always a debt"
+      - "The partner betrays again — Shade learns to trust selectively, not universally"
+  dialogue_samples:
+    - context: greeting
+      line: "Morning, sunshine. I've already scouted three escape routes and one profitable detour."
+    - context: disagreement
+      line: "Look, I don't do loyalty. I do mutual self-interest. And right now, our interests diverge."
+    - context: vulnerable
+      line: "Everyone I've ever trusted cashed me in for credits. Every. Single. One."
+    - context: combat
+      line: "I don't fight fair and I don't apologize for it. You want honor, hire a Mandalorian."
 - id: comp-reb-mercy
   name: Elara Voss
   archetype: Combat medic pacifist
@@ -159,6 +329,62 @@ companions:
     - affinity_threshold: 60
       stage: core
       trigger: "After the player stays when they could have run — Jax says what running really costs him."
+  depth_tier: deep
+  personal_banter:
+    PARAGON:
+      - "'Huh. The hero play. I've seen those go wrong more than right.' A beat. 'But not this time.'"
+      - "Jax tips an imaginary hat. 'If we survive this, drinks are on me. I mean it. For once.'"
+    RENEGADE:
+      - "Jax whistles low. 'Cold. But I've seen colder.' He's bluffing — he hasn't."
+      - "'That's pure sabacc, right there. No mercy, no tells.' He sounds impressed and uneasy."
+    INVESTIGATE:
+      - "'Playing it smart? Good. I'm tired of flying by the seat of my pants.' He is absolutely not tired of it."
+      - "Jax leans in. 'You know what? I actually want to know where this goes.'"
+    general:
+      - "Jax rests his boots on the console. The ship complains. He doesn't care."
+      - "He tells a story about a Kessel Run that can't possibly be true. It's a good story anyway."
+      - "Jax checks the hyperdrive readings. Twice. He pretends it's casual. It isn't."
+  opinion_triggers:
+    - situation: player_protects_crew
+      reaction: "Something shutters behind Jax's eyes. He remembers the crew member he didn't protect."
+      affinity_bonus: 4
+      tags: [loyalty, crew, protection]
+    - situation: player_abandons_ally
+      reaction: "Jax goes white. His hands grip the armrest until his knuckles show bone."
+      affinity_bonus: -5
+      tags: [abandonment, betrayal]
+    - situation: player_gambles_or_bluffs
+      reaction: "'Now you're speaking my language.' Jax grins like a man who's found home."
+      affinity_bonus: 2
+      tags: [risk, charm]
+    - situation: player_turns_down_reward
+      reaction: "'Are you — did you just — for free?' Jax stares like you've grown a second head."
+      affinity_bonus: 1
+      tags: [generosity, idealism]
+    - situation: quiet_moment_camp
+      reaction: "Jax tinkers with the ship. It doesn't need fixing. He needs fixing. The ship is easier."
+      affinity_bonus: 0
+      tags: [rest, reflection]
+  personal_quest:
+    title: "The One Left Behind"
+    hook: "A name on a bounty board — Jax's old crew member, the one he abandoned. Alive. Enslaved."
+    trigger_affinity: 40
+    stages:
+      - "Jax sees a bounty posting that makes him go quiet — really quiet"
+      - "Track down the slave market where they're being held"
+      - "The rescue — and the reckoning with who Jax used to be"
+    resolution_paths:
+      - "Save the crew member — Jax faces what he did and starts to make it right"
+      - "The crew member refuses his help — Jax learns that some debts can't be repaid, only carried"
+  dialogue_samples:
+    - context: greeting
+      line: "Bad news: we're low on fuel. Good news: I know a guy. Bad news: he wants to kill me."
+    - context: disagreement
+      line: "I've been dealt a bad hand before. Difference is, I can walk away from this table."
+    - context: vulnerable
+      line: "I left someone behind once. Told myself I'd go back. I never did. The galaxy got bigger and I got smaller."
+    - context: combat
+      line: "Nobody dies today! That's not optimism, that's a flight plan!"
 - id: comp-reb-sentinel
   name: Torrin Kael
   archetype: Former Imperial magistrate
@@ -177,6 +403,76 @@ companions:
   banter_style: stoic
   faction_interest: [Rebel Alliance, Local Resistance]
   recruitment_context: Investigating corruption at the local garrison; asks for help gathering evidence before the ISB silences his witnesses.
+  wound:
+    surface: "Resigned his judgeship in protest — carries himself like a man who sacrificed everything for a principle nobody noticed."
+    deep: "He didn't just resign. He signed execution orders before he left. People he convicted under Imperial law who were only guilty of dissent."
+    core: "He builds frameworks for justice not to prevent future tyranny — but because if the system works, then the people he condemned under the old system were guilty. If it doesn't, he's a murderer in a judge's robe."
+  revelation_stages:
+    - affinity_threshold: 20
+      stage: surface
+      trigger: "During a legal dispute — Torrin mentions 'the cost of principle' with a weight that suggests personal experience."
+    - affinity_threshold: 40
+      stage: deep
+      trigger: "When someone is sentenced unfairly — Torrin's composure cracks. He's signed papers like that before."
+    - affinity_threshold: 60
+      stage: core
+      trigger: "After the player challenges whether laws can be just — Torrin finally admits what he's really building, and why."
+  depth_tier: deep
+  personal_banter:
+    PARAGON:
+      - "'Principled.' Torrin folds his hands. 'The galaxy needs more of that. Desperately.'"
+      - "A rare warmth enters his voice. 'That is precisely what the law was meant to protect.'"
+    RENEGADE:
+      - "Torrin's expression hardens. 'Expedience. I've seen where that road leads. I've walked it.'"
+      - "'I once believed the ends justified the means. I have a graveyard that disagrees.'"
+    INVESTIGATE:
+      - "'Thorough. Good. The truth survives scrutiny — lies don't.' He sounds like he's quoting case law."
+      - "Torrin produces a datapad. 'I've already compiled the relevant precedents.'"
+    general:
+      - "Torrin reviews legal briefs for a government that doesn't exist yet."
+      - "He corrects his own Imperial citations mid-sentence. Every time."
+      - "Torrin stands at the viewport, hands clasped behind his back — the posture of a man accustomed to passing judgment."
+  opinion_triggers:
+    - situation: player_upholds_law
+      reaction: "Torrin straightens. For a moment he looks like the judge he used to be — proud, certain."
+      affinity_bonus: 3
+      tags: [justice, order]
+    - situation: player_executes_without_trial
+      reaction: "Torrin goes pale. 'That is exactly — that is what they did.' His hands shake."
+      affinity_bonus: -5
+      tags: [execution, tyranny]
+    - situation: player_forgives_enemy
+      reaction: "Something in Torrin's armor cracks. Mercy is the one thing he never mastered."
+      affinity_bonus: 2
+      tags: [mercy, redemption]
+    - situation: player_builds_alliance
+      reaction: "Torrin nods approvingly. 'Institutions, not individuals. That's how civilizations survive.'"
+      affinity_bonus: 3
+      tags: [diplomacy, building]
+    - situation: quiet_moment_camp
+      reaction: "Torrin writes. Always writes. Constitutions, codes, frameworks — building the future one clause at a time."
+      affinity_bonus: 0
+      tags: [rest, reflection]
+  personal_quest:
+    title: "The Judge's Docket"
+    hook: "A name from Torrin's last docket under the Empire — someone he sentenced to death for treason. They're alive. And they want to talk."
+    trigger_affinity: 40
+    stages:
+      - "Torrin receives a holographic message from a ghost — someone who should be dead"
+      - "Travel to the meeting point — heavily guarded, possibly a trap"
+      - "Face the person he condemned — and answer for what he did under Imperial law"
+    resolution_paths:
+      - "The condemned forgives him — Torrin accepts he can't undo the past but can build something better"
+      - "The condemned wants revenge — Torrin must decide if he'll accept punishment or argue his case one last time"
+  dialogue_samples:
+    - context: greeting
+      line: "Order of business. Item one: we're still alive. Item two: let's ensure that continues."
+    - context: disagreement
+      line: "I've read the Imperial legal code. All twelve thousand articles. Not one of them mentions conscience."
+    - context: vulnerable
+      line: "I signed the execution orders myself. Proper procedure. Correct form. The ink was still wet when I realized what I'd become."
+    - context: combat
+      line: "I was a magistrate, not a soldier. But I've learned that justice sometimes requires a blaster."
 - id: comp-reb-dross
   name: Dross Harkin
   archetype: Mandalorian exile
@@ -303,6 +599,76 @@ companions:
   banter_style: stoic
   faction_interest: [Rebel Alliance, Underworld]
   recruitment_context: Chained in a slave pen at a Hutt outpost; freeing Quarrel earns a life debt and a very dangerous ally.
+  wound:
+    surface: "Enslaved on Kashyyyk — the rage is constant, barely contained beneath Wookiee honor codes."
+    deep: "Quarrel didn't just lose his freedom. He lost his family. His mate and cub were separated from him and sold to different worlds."
+    core: "The rage isn't about slavery. It's about the moment he stopped fighting — when they threatened his cub, he surrendered. A Wookiee warrior who surrendered. He cannot forgive that."
+  revelation_stages:
+    - affinity_threshold: 20
+      stage: surface
+      trigger: "When slavers are mentioned — Quarrel's growl deepens. The translator picks up fragments: 'chains' and 'Kashyyyk.'"
+    - affinity_threshold: 45
+      stage: deep
+      trigger: "When a child is in danger — Quarrel's reaction is disproportionate. Overwhelming. He roars a name you haven't heard before."
+    - affinity_threshold: 65
+      stage: core
+      trigger: "In a moment of absolute trust — Quarrel shows you his wrists. The chain scars. And through growls and gestures, tells you the real story."
+  depth_tier: deep
+  personal_banter:
+    PARAGON:
+      - "Quarrel places a massive hand on your shoulder. Gentle. Approving. A low rumble of respect."
+      - "A soft chuffing sound — the Wookiee equivalent of a laugh. Translated: 'This is what strength looks like.'"
+    RENEGADE:
+      - "Quarrel growls — not anger, but warning. The translator renders it: 'The strong protect. They do not destroy.'"
+      - "He turns away. His shoulders are rigid. He's seen enough cruelty to last several lifetimes."
+    INVESTIGATE:
+      - "Quarrel tilts his head, curious. He points to something you missed — Wookiee senses are sharper than they look."
+      - "A questioning warble. Translated: 'What do your eyes tell you that mine do not?'"
+    general:
+      - "Quarrel carves something small from wroshyr wood. He won't say what it is."
+      - "He sits facing the door. Always facing the door. Old habit from the slave pens."
+      - "Quarrel grooms his fur with slow, deliberate strokes. It's meditative. Possibly the only peace he allows himself."
+  opinion_triggers:
+    - situation: player_frees_slaves
+      reaction: "Quarrel roars. Not rage — triumph. His eyes are wet. He breaks the chains himself."
+      affinity_bonus: 5
+      tags: [freedom, slavery]
+    - situation: player_deals_with_slavers
+      reaction: "Quarrel's fur stands on end. Every muscle in his body locks. The growl is subsonic — you feel it more than hear it."
+      affinity_bonus: -5
+      tags: [slavery, betrayal]
+    - situation: player_shows_honor
+      reaction: "Quarrel crosses his arms over his chest — the Wookiee gesture of respect between warriors."
+      affinity_bonus: 3
+      tags: [honor, respect]
+    - situation: player_protects_child
+      reaction: "Quarrel goes very still. Then he picks up the child with impossible gentleness. He won't put them down until they're safe."
+      affinity_bonus: 4
+      tags: [protection, children]
+    - situation: quiet_moment_camp
+      reaction: "Quarrel howls at the sky — long, low, searching. On Kashyyyk, it would carry for miles. Here, it just echoes."
+      affinity_bonus: 0
+      tags: [rest, reflection]
+  personal_quest:
+    title: "The Broken Chain"
+    hook: "A Wookiee trader brings word: Quarrel's cub is alive, on a mining colony in the outer rim."
+    trigger_affinity: 45
+    stages:
+      - "Quarrel receives news that changes everything — his cub may be alive"
+      - "Infiltrate the mining colony where Wookiee slaves are held"
+      - "The reunion — or the truth about what happened to his family"
+    resolution_paths:
+      - "Rescue the cub — Quarrel's rage transforms into purpose. He fights to build, not destroy."
+      - "The cub doesn't recognize him — Quarrel must earn back a relationship years of slavery stole"
+  dialogue_samples:
+    - context: greeting
+      line: "[Translated from Shyriiwook] The trees on this world are wrong. Too small. Too quiet."
+    - context: disagreement
+      line: "[Translated] A Wookiee does not argue. A Wookiee states truth and waits for the other to understand."
+    - context: vulnerable
+      line: "[Translated] They took my cub. I stopped fighting. A warrior who stops fighting is already dead. I have been dead for three years."
+    - context: combat
+      line: "[Untranslatable Wookiee battle cry — the walls shake]"
 - id: comp-reb-mira
   name: Mira Denn
   archetype: Bothan spy

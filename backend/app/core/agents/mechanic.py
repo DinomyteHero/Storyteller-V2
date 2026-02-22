@@ -16,7 +16,7 @@ import logging
 import re
 from typing import Any
 
-from backend.app.constants import SANDBOX_ARC_STAGE_ORDER, SANDBOX_IMPACT_TIERS
+from backend.app.constants import SANDBOX_ARC_STAGE_ORDER, SANDBOX_IMPACT_TIERS, WOUNDED_DC_PENALTY
 from backend.app.models.state import (
     ActionSuggestion,
     GameState,
@@ -366,5 +366,30 @@ class MechanicAgent:
                     result.modifiers = list(result.modifiers or []) + item_mods
         except Exception as _item_mod_err:
             logger.debug("Item modifier application failed (non-fatal): %s", _item_mod_err)
+
+        # V1.1: WOUNDED state — mechanical DC penalty + restrict dangerous actions
+        ws = _world_state_from_campaign(state.campaign)
+        if ws.get("player_wounded"):
+            # +2 DC penalty on all checks while wounded
+            result.modifiers = list(result.modifiers or []) + [
+                {"source": "wounded_penalty", "value": WOUNDED_DC_PENALTY}
+            ]
+            if result.dc is not None:
+                result.dc = int(result.dc) + WOUNDED_DC_PENALTY
+            for c in list(result.checks or []):
+                if c.dc is not None:
+                    c.dc = int(c.dc) + WOUNDED_DC_PENALTY
+            facts = list(result.narrative_facts or [])
+            facts.append("Player is WOUNDED: +2 DC penalty to all actions.")
+            result.narrative_facts = facts
+            result.world_reaction_needed = True
+
+            # Restrict physically dangerous actions at extreme difficulty
+            if result.action_type == "ATTACK" and result.difficulty in ("Formidable", "Extreme"):
+                result.invalid_action = True
+                result.rephrase_message = (
+                    "You're too badly wounded for that. "
+                    "Try a less physically demanding approach, or find healing first."
+                )
 
         return result

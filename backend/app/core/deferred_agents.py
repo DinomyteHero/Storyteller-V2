@@ -26,6 +26,7 @@ from backend.app.constants import (
     CALLBACK_CRYSTALLIZE_INTERVAL,
     PLAYER_PROFILE_INTERVAL,
     PLAYER_PROFILE_MIN_TURNS,
+    DECISION_LEDGER_EVAL_INTERVAL,
 )
 from backend.app.models.event_utils import ensure_event
 
@@ -317,6 +318,30 @@ def _run_agents(
         except AgentFailureError as e:
             logger.warning("Deferred CallbackCrystallizerAgent failed: %s", e)
 
+    # V1.1: DecisionLedgerAgent — consequence delivery tracking
+    def _run_decision_ledger():
+        if not (final_text and intent != "META" and turn_number % DECISION_LEDGER_EVAL_INTERVAL == 0):
+            return
+        try:
+            from backend.app.core.agents.decision_ledger_agent import DecisionLedgerAgent
+            from backend.app.db.connection import get_connection
+            _dl_llm = _resolve_deferred_llm("decision_ledger", campaign_settings, db_path)
+            _dl_conn = get_connection(db_path)
+            try:
+                DecisionLedgerAgent(llm=_dl_llm).evaluate(
+                    conn=_dl_conn,
+                    campaign_id=campaign_id,
+                    world_state=world_state,
+                    recent_narrative="\n".join(recent_narrative[-3:])[:600] if recent_narrative else "",
+                    recent_events=mem_events,
+                    turn_number=turn_number,
+                )
+                _dl_conn.commit()
+            finally:
+                _dl_conn.close()
+        except Exception as e:
+            logger.warning("Deferred DecisionLedgerAgent failed: %s", e)
+
     # V10.0 Feature 4: PlayerProfileAgent — deterministic behavioral profiling
     def _run_player_profile():
         if not (turn_number % PLAYER_PROFILE_INTERVAL == 0 and turn_number >= PLAYER_PROFILE_MIN_TURNS):
@@ -340,6 +365,7 @@ def _run_agents(
             pool.submit(_run_revelation): "RevelationAgent",
             pool.submit(_run_callback_crystallizer): "CallbackCrystallizerAgent",
             pool.submit(_run_player_profile): "PlayerProfileAgent",
+            pool.submit(_run_decision_ledger): "DecisionLedgerAgent",
         }
         for fut in as_completed(futures):
             try:

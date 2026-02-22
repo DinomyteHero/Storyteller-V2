@@ -550,10 +550,19 @@ def make_commit_node():
                     {"event_type": ensure_event(e).event_type, "payload": ensure_event(e).payload or {}}
                     for e in events
                 ]
-                quest_notifications = process_quests_for_turn(
+                quest_notifications, quest_consequence_events = process_quests_for_turn(
                     world_state, quest_era, next_turn_number,
                     state.get("current_location"), quest_events,
                 )
+                # V1.1: Append quest failure consequence events to the turn's event list
+                if quest_consequence_events:
+                    for qce in quest_consequence_events:
+                        events.append(ensure_event(
+                            Event(event_type=qce["event_type"], payload=qce.get("payload", {}))
+                        ))
+                    logger.info(
+                        "Quest failure generated %d consequence events", len(quest_consequence_events)
+                    )
                 if quest_notifications:
                     existing_warnings = list(state.get("warnings") or [])
                     for qn in quest_notifications:
@@ -574,6 +583,10 @@ def make_commit_node():
                             elif "New quest" in qn:
                                 quest_title = qn.replace("New quest: ", "")
                                 threads.append(f"Active quest: {quest_title}")
+                            elif "failed" in qn.lower():
+                                quest_title = qn.replace("Quest failed: ", "")
+                                facts.append(f"FAILED: {quest_title}")
+                                threads = [t for t in threads if quest_title.lower() not in t.lower()]
                             elif "Objective complete" in qn:
                                 facts.append(qn)
                         ledger["established_facts"] = facts
@@ -658,6 +671,137 @@ def make_commit_node():
                 })
                 if len(_choice_history) > PLAYER_PROFILE_HISTORY_MAX:
                     _choice_history[:] = _choice_history[-PLAYER_PROFILE_HISTORY_MAX:]
+
+            # V1.1: Record decision in decision_ledger for semantic choice tracking
+            if intent != "META" and user_input:
+                try:
+                    from backend.app.core.decision_ledger import record_decision as _record_decision
+                    _si = state.get("structured_intent") or {}
+                    _chosen_tone = _si.get("tone_tag", "NEUTRAL") if _si else "NEUTRAL"
+                    _impact = _si.get("impact_tier", "ripple") if _si else "ripple"
+                    _consequence = _si.get("consequence_hint", "") if _si else ""
+
+                    # Rejected options: from the previous turn's suggested actions
+                    _prev_suggestions = state.get("previous_suggested_actions") or []
+                    _rejected = []
+                    for _ps in _prev_suggestions:
+                        _ps_text = ""
+                        _ps_tone = ""
+                        if isinstance(_ps, dict):
+                            _ps_text = _ps.get("label") or _ps.get("text") or _ps.get("intent_text") or ""
+                            _ps_tone = _ps.get("tone_tag") or _ps.get("tone") or ""
+                        if _ps_text and _ps_text.lower().strip() != user_input.lower().strip():
+                            _rejected.append({"text": _ps_text[:200], "tone": _ps_tone})
+
+                    # Context summary from scene_frame or final_text
+                    _scene_frame = state.get("scene_frame") or {}
+                    _ctx = ""
+                    if isinstance(_scene_frame, dict):
+                        _ctx = _scene_frame.get("topic_primary") or ""
+                    if not _ctx and final_text:
+                        _ctx = (final_text[:150] + "...") if len(final_text or "") > 150 else (final_text or "")
+
+                    # Tags from mechanic result and tone
+                    _tags: list[str] = [_chosen_tone.lower()]
+                    if _si:
+                        _action_type = _si.get("action_type", "")
+                        if _action_type:
+                            _tags.append(_action_type.lower())
+                        _meaning = _si.get("meaning_tag") or _si.get("meaning") or ""
+                        if _meaning:
+                            _tags.append(str(_meaning).lower())
+
+                    _record_decision(
+                        conn=conn,
+                        campaign_id=campaign_id,
+                        turn_number=next_turn_number,
+                        chosen_text=user_input[:500],
+                        chosen_tone=_chosen_tone,
+                        rejected_options=_rejected[:6],
+                        consequence_hint=str(_consequence)[:500] if _consequence else None,
+                        impact_tier=_impact,
+                        context_summary=_ctx[:500] if _ctx else None,
+                        tags=_tags[:10],
+                    )
+                except Exception as _dl_err:
+                    logger.debug("Decision ledger record failed (non-fatal): %s", _dl_err)
+
+            # V1.1: BREAKDOWN auto-clear after BREAKDOWN_RECOVERY_TURNS or PARAGON companion intervention
+            if world_state.get("player_breakdown"):
+                from backend.app.constants import BREAKDOWN_RECOVERY_TURNS, BREAKDOWN_PARAGON_CLEARS
+                _bd_turn = world_state.get("breakdown_turn", 0)
+                _bd_age = next_turn_number - _bd_turn
+                _bd_cleared = False
+                if _bd_age >= BREAKDOWN_RECOVERY_TURNS:
+                    _bd_cleared = True
+                elif BREAKDOWN_PARAGON_CLEARS:
+                    # Check if the player chose a companion intervention (PARAGON + desperate tag)
+                    _si = state.get("structured_intent") or {}
+                    _meaning = str(_si.get("meaning_tag") or _si.get("meaning") or "").lower()
+                    _tone = str(_si.get("tone_tag") or "").upper()
+                    if _tone == "PARAGON" and _meaning == "companion_intervention":
+                        _bd_cleared = True
+                if _bd_cleared:
+                    world_state.pop("player_breakdown", None)
+                    world_state.pop("breakdown_turn", None)
+                    logger.info("V1.1: BREAKDOWN cleared at turn %d", next_turn_number)
+
+            # V1.1: Last Stand resolution — after the Last Stand turn, apply permanent consequences
+            if world_state.get("last_stand_triggered"):
+                from backend.app.constants import LAST_STAND_STAT_REDUCTION
+                # Clear wound state — the character survived but is diminished
+                world_state.pop("last_stand_triggered", None)
+                world_state.pop("player_wounded", None)
+                world_state.pop("wound_turn", None)
+                world_state["wound_count"] = 0
+                world_state["last_stand_completed"] = True
+                world_state["last_stand_turn"] = next_turn_number
+                # Apply permanent stat reduction to player character
+                try:
+                    player_id = state.get("player_id") or ""
+                    if player_id:
+                        _stat_cur = conn.execute(
+                            "SELECT stats_json FROM characters WHERE id = ? AND campaign_id = ?",
+                            (player_id, campaign_id),
+                        ).fetchone()
+                        if _stat_cur and _stat_cur[0]:
+                            import json as _json_mod
+                            _stats = _json_mod.loads(_stat_cur[0])
+                            if isinstance(_stats, dict):
+                                # Reduce all stats by LAST_STAND_STAT_REDUCTION
+                                for _sk in list(_stats.keys()):
+                                    try:
+                                        _sv = int(_stats[_sk])
+                                        _stats[_sk] = max(1, _sv - LAST_STAND_STAT_REDUCTION)
+                                    except (TypeError, ValueError):
+                                        pass
+                                conn.execute(
+                                    "UPDATE characters SET stats_json = ? WHERE id = ? AND campaign_id = ?",
+                                    (_json_mod.dumps(_stats), player_id, campaign_id),
+                                )
+                                logger.info(
+                                    "V1.1: Last Stand resolved — permanent -%d to all stats",
+                                    LAST_STAND_STAT_REDUCTION,
+                                )
+                except Exception as _ls_err:
+                    logger.warning("Last Stand stat reduction failed (non-fatal): %s", _ls_err)
+                # Record in decision ledger
+                try:
+                    from backend.app.core.decision_ledger import record_decision as _rec_ls
+                    _rec_ls(
+                        conn=conn,
+                        campaign_id=campaign_id,
+                        turn_number=next_turn_number,
+                        chosen_text="Survived the Last Stand — permanently diminished",
+                        chosen_tone="NEUTRAL",
+                        rejected_options=[],
+                        consequence_hint="All stats permanently reduced. The scars never fully heal.",
+                        impact_tier="tsunami",
+                        context_summary="Last Stand: second mortal wound survived",
+                        tags=["last_stand", "permanent_consequence"],
+                    )
+                except Exception:
+                    pass
 
             _ws_json_str = json.dumps(world_state)
             conn.execute(

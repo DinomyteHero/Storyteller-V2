@@ -101,11 +101,35 @@ def apply_projection(
                 )
                 row = cur.fetchone()
                 if row is not None:
-                    hp = max(0, (row[0] or 0) - amount)
+                    previous_hp = row[0] or 0
+                    hp = max(0, previous_hp - amount)
                     conn.execute(
                         "UPDATE characters SET hp_current = ? WHERE id = ? AND campaign_id = ?",
                         (hp, character_id, campaign_id),
                     )
+                    # V1.1: WOUNDED / LAST STAND cascade — only for player character
+                    if hp == 0 and previous_hp > 0:
+                        _is_player = payload.get("is_player", False)
+                        if not _is_player:
+                            # Check if this character is the player
+                            _role_cur = conn.execute(
+                                "SELECT role FROM characters WHERE id = ? AND campaign_id = ?",
+                                (character_id, campaign_id),
+                            )
+                            _role_row = _role_cur.fetchone()
+                            _is_player = _role_row is not None and str(_role_row[0]).lower() == "player"
+                        if _is_player:
+                            ws = _load_world_state(conn, campaign_id)
+                            if ws is not None:
+                                wound_count = _coerce_int(ws.get("wound_count", 0), 0)
+                                if wound_count == 0:
+                                    ws["player_wounded"] = True
+                                    ws["wound_count"] = 1
+                                    ws["wound_turn"] = payload.get("turn_number", 0)
+                                else:
+                                    ws["last_stand_triggered"] = True
+                                    ws["wound_count"] = wound_count + 1
+                                _save_world_state(conn, campaign_id, ws)
 
         elif event_type == "HEAL":
             character_id = payload.get("character_id")
@@ -122,6 +146,14 @@ def apply_projection(
                         "UPDATE characters SET hp_current = ? WHERE id = ? AND campaign_id = ?",
                         (hp, character_id, campaign_id),
                     )
+                    # V1.1: Clear WOUNDED state if HP recovers past threshold
+                    from backend.app.constants import WOUNDED_RECOVERY_HEAL_THRESHOLD
+                    if hp >= WOUNDED_RECOVERY_HEAL_THRESHOLD:
+                        ws = _load_world_state(conn, campaign_id)
+                        if ws is not None and ws.get("player_wounded"):
+                            ws["player_wounded"] = False
+                            ws.pop("wound_turn", None)
+                            _save_world_state(conn, campaign_id, ws)
 
         elif event_type == "RELATIONSHIP":
             npc_id = payload.get("npc_id")
@@ -183,6 +215,10 @@ def apply_projection(
                     state = _load_world_state(conn, campaign_id)
                     if state is not None:
                         state["psych_profile"] = psych
+                        # V1.1: BREAKDOWN trigger — stress hits maximum
+                        if new_stress >= 10 and current_stress < 10:
+                            state["player_breakdown"] = True
+                            state["breakdown_turn"] = payload.get("turn_number", 0)
                         _save_world_state(conn, campaign_id, state)
 
         elif event_type == "NPC_DEPART":
